@@ -1,0 +1,174 @@
+{
+  "notice": [
+    "This is a complementary config file for Tailwind v4 and is not a replacement for the Tailwind v3 config file.",
+    "For usage, see the docs: https://docs.hyva.io/hyva-themes/working-with-tailwindcss/using-hyva-modules/"
+  ],
+  "tailwind": {
+    "include": [
+      {
+        "src": "vendor/hyva-themes/magento2-default-theme"
+      }
+    ],
+    "exclude": []
+  },
+  "tokens": {
+    "values": {
+      "color": {
+        "primary": "#3A3935",
+        "on-primary": "#FFFFFF",
+        "secondary": "#ADBBA1",
+        "on-secondary": "#FFFFFF",
+        "tertiary": "#D4C8B3",
+        "accent": "#98A8BB",
+        "accent-dark": "#68839C",
+        "ink": "#3A3935",
+        "ink-muted": "#676F78",
+        "ink-subtle": "#797D81",
+        "page": "#F5F4EF",
+        "surface": "#FFFFFF",
+        "surface-muted": "#F8F8F8",
+        "sand-light": "#E1DBD1",
+        "cool-light": "#ECEFF1",
+        "border": "#CAC9C9",
+        "border-light": "#D3D6D9",
+        "divider": "#DCDCDC",
+        "placeholder": "#ADB2B8",
+        "success": "#00BC37",
+        "success-light": "#C5EAD6",
+        "olive": "#677858",
+        "warning": "#F2B20C",
+        "error": "#FF5942",
+        "error-strong": "#D82C0D",
+        "error-light": "#FFC3B8",
+        "promo": "#CB4867"
+      },
+      "text": {
+        "base": "15px",
+        "base--line-height": "20px",
+        "h1": "27px",
+        "h1--line-height": "35px",
+        "h1-desktop": "60px",
+        "h2": "20px",
+        "h2--line-height": "30px",
+        "h2-desktop": "28px",
+        "h3": "18px",
+        "h3--line-height": "20px",
+        "h3-desktop": "22px",
+        "h4": "18px",
+        "h4--line-height": "28px",
+        "h5": "16px",
+        "h5--line-height": "18px",
+        "h5-desktop": "18px",
+        "h6": "16px",
+        "h6--line-height": "22px",
+        "label": "11px",
+        "label--line-height": "13px",
+        "breadcrumbs": "12px"
+      },
+      "breakpoint": {
+        "sm": "480px",
+        "md": "768px",
+        "lg": "1025px",
+        "xl": "1280px",
+        "2xl": "1440px",
+        "3xl": "1920px"
+      },
+      "container": {
+        "max-width": "1920px",
+        "gutter": "20px",
+        "gutter-desktop": "40px"
+      },
+      "radius": {
+        "xs": "0px",
+        "sm": "0px",
+        "md": "0px",
+        "lg": "0px",
+        "xl": "0px",
+        "2xl": "0px",
+        "3xl": "0px",
+        "4xl": "0px"
+      },
+      "form": {
+        "radius": "1px",
+        "stroke": "#CAC9C9",
+        "bg": "transparent",
+        "color": "#3A3935",
+        "active-color": "#3A3935",
+        "py": "14px",
+        "px": "12px"
+      },
+      "btn": {
+        "min-height": "50px",
+        "padding-x": "24px",
+        "font-size": "15px",
+        "letter-spacing": "0.5px"
+      }
+    }
+  },
+  "fonts": [
+    {
+      "provider": "local",
+      "name": "Karla",
+      "cssVariable": "--font-sans",
+      "fallbacks": [
+        "ui-sans-serif",
+        "system-ui",
+        "sans-serif"
+      ],
+      "preload": false,
+      "variants": [
+        {
+          "weight": "300",
+          "style": "normal",
+          "src": "karla/Karla-Light.woff2"
+        },
+        {
+          "weight": "400",
+          "style": "normal",
+          "src": "karla/Karla-Regular.woff2"
+        },
+        {
+          "weight": "500",
+          "style": "normal",
+          "src": "karla/Karla-Medium.woff2"
+        },
+        {
+          "weight": "600",
+          "style": "normal",
+          "src": "karla/Karla-SemiBold.woff2"
+        },
+        {
+          "weight": "700",
+          "style": "normal",
+          "src": "karla/Karla-Bold.woff2"
+        },
+        {
+          "weight": "800",
+          "style": "normal",
+          "src": "karla/Karla-ExtraBold.woff2"
+        }
+      ]
+    },
+    {
+      "provider": "local",
+      "name": "DM Serif Display",
+      "cssVariable": "--font-heading",
+      "fallbacks": [
+        "Georgia",
+        "serif"
+      ],
+      "variants": [
+        {
+          "weight": "400",
+          "style": "normal",
+          "src": "dm-serif-display/DMSerifDisplay-Regular.woff2"
+        },
+        {
+          "weight": "400",
+          "style": "italic",
+          "src": "dm-serif-display/DMSerifDisplay-Italic.woff2"
+        }
+      ]
+    }
+  ]
+}

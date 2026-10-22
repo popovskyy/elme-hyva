@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <!-- Favicons from the old Bart/el theme; favicon.ico itself is Magento_Theme/web/favicon.ico (Magento default path) -->
+        <link src="Magento_Theme::favicon/favicon-16x16.png" rel="icon" type="image/png" sizes="16x16"/>
+        <link src="Magento_Theme::favicon/favicon-32x32.png" rel="icon" type="image/png" sizes="32x32"/>
+        <link src="Magento_Theme::favicon/android-chrome-192x192.png" rel="icon" type="image/png" sizes="192x192"/>
+        <link src="Magento_Theme::favicon/android-chrome-512x512.png" rel="icon" type="image/png" sizes="512x512"/>
+        <link src="Magento_Theme::favicon/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+        <!-- Body text weight only: everything else loads on demand (font-display: swap + metric-matched fallback) -->
+        <font src="fonts/karla/Karla-Regular.woff2"/>
+    </head>
+</page>

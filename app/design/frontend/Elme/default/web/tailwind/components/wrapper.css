@@ -1,0 +1,22 @@
+/*
+ * Elme: fluid up to --container-max-width with 20px (mobile) / 40px (tablet+) gutters,
+ * like the old theme (@layout__max-width, @layout-indent__mobile / __width).
+ * !important beats the per-breakpoint max-width that Tailwind's core container adds.
+ */
+@utility container {
+    margin-inline: auto;
+    max-width: var(--container-max-width) !important;
+    padding-inline: var(--container-gutter);
+
+    @variant md {
+        padding-inline: var(--container-gutter-desktop);
+    }
+}
+
+@layer components {
+    :where(main:not(.product-main-full-width, .page-main-full-width)) {
+        & .columns {
+            @apply container;
+        }
+    }
+}

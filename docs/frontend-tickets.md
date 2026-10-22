@@ -1,0 +1,981 @@
+# Elme Hyvä — Frontend Tickets
+
+57 frontend tickets to port elmeliving.com to the new Magento 2.4.9 + Hyvä storefront in 11 epics, plus 12 UX tickets (Epic 11) that fix weak spots of the current site. Logged-out pages were checked on production on 22 Oct 2026; logged-in features (prices, cart, quick order, account) come from the old theme Bart/el and modules ElmeLiving/\*, because we had no trade login.
+
+## How to use
+
+Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), **Ref** (production URL and old code in m2-bart-group, theme `Bart/el`), **QA** (checks QA ticks off). A ticket goes to QA only when it also meets the Definition of Done.
+
+**Definition of Done (every ticket)**
+
+- Matches production look at 390 px (mobile), 768 px (tablet), 1440 px and 1920 px (desktop); mobile-first, no horizontal scroll.
+- Chrome, Safari (macOS + iOS), Firefox, Edge — latest versions.
+- Logged-out and logged-in (trade customer) states both checked where the page differs.
+- No console errors, no CSP violations; Alpine components CSP-compatible.
+- Keyboard: every control reachable with Tab, visible focus, Esc closes drawers and modals.
+- Colours, fonts and sizes come from design tokens; no hardcoded hex or px in templates.
+- `styles.css` rebuilt and committed; `cache:flush` noted in the ticket if layout XML changed.
+
+## Overview
+
+57 FE + 12 UX tickets. **Depends on** lists tickets to finish first and open decisions (D1–D11, last section) that change the scope.
+
+| ID | Ticket | Epic | Depends on | Status |
+| --- | --- | --- | --- | --- |
+| FE-01 | Design tokens, fonts, base typography | 0 Foundation | — | To do |
+| FE-02 | UI kit: buttons, form fields, qty stepper, badges, breadcrumbs, pager + style-guide page | 0 Foundation | FE-01 | To do |
+| FE-03 | Global feedback: messages/toasts, modal, drawer, loaders, empty states | 0 Foundation | FE-01 | To do |
+| FE-04 | Page layouts and container (1 column, 2 columns left, banner + breadcrumbs, full width) | 0 Foundation | FE-01 | To do |
+| FE-05 | Top bar (USP text, Become a Stockist, Inspiration) | 1 Header & nav | FE-02 | To do |
+| FE-06 | Header desktop + sticky header | 1 Header & nav | FE-02, FE-03 | To do |
+| FE-07 | Header mobile | 1 Header & nav | FE-06 | To do |
+| FE-08 | Mega menu desktop | 1 Header & nav | FE-06, D3 | To do |
+| FE-09 | Mobile menu drawer | 1 Header & nav | FE-07, FE-08 | To do |
+| FE-10 | Footer | 2 Footer & blocks | FE-02 | To do |
+| FE-11 | Newsletter subscribe (footer) + signup popup | 2 Footer & blocks | FE-02, FE-03, D7 | To do |
+| FE-12 | "As styled by you" Instagram slider block | 2 Footer & blocks | FE-02, D10 | To do |
+| FE-13 | Shared CMS blocks: "Our Difference", "Need assistance?" | 2 Footer & blocks | FE-02 | To do |
+| FE-14 | Homepage hero / banner slider | 3 Homepage | FE-04, FE-57 | To do |
+| FE-15 | Category tiles carousel | 3 Homepage | FE-02, FE-57 | To do |
+| FE-16 | Homepage content sections (Outlet promo, Curated Catalogues, Become a Stockist, Welcome) | 3 Homepage | FE-02, FE-14, FE-57 | To do |
+| FE-17 | Product carousel widget (trending / new / related) | 3 Homepage | FE-19, D1 | To do |
+| FE-18 | Category page: banner, title, breadcrumbs, description | 4 PLP & search | FE-04 | To do |
+| FE-19 | Product card (shared tile) | 4 PLP & search | FE-02, FE-53 | To do |
+| FE-20 | PLP toolbar: sort, per page, pagination | 4 PLP & search | FE-18 | To do |
+| FE-21 | Layered navigation (filters) | 4 PLP & search | FE-18, D2 | To do |
+| FE-22 | Search autocomplete in header | 4 PLP & search | FE-06, D1 | To do |
+| FE-23 | Search results page + no-results state | 4 PLP & search | FE-19, FE-21, D1 | To do |
+| FE-24 | Recently viewed categories / products | 4 PLP & search | FE-19 | To do |
+| FE-25 | PDP layout + image gallery | 5 PDP | FE-04 | To do |
+| FE-26 | PDP buy box, logged out | 5 PDP | FE-25 | To do |
+| FE-27 | PDP buy box, logged in (price, MOQ, add to cart/list/wishlist, sticky bar) | 5 PDP | FE-25, FE-53 | To do |
+| FE-28 | Configurable products: colour/size swatches to sibling products | 5 PDP | FE-27 | To do |
+| FE-29 | PDP details accordion + CMS blocks + FAQ modal | 5 PDP | FE-25 | To do |
+| FE-30 | PDP recommendations (frequently bought together, related) + recently viewed | 5 PDP | FE-17, FE-24 | To do |
+| FE-31 | PDP stock and delivery info (stock number, dock date, delivery estimate) | 5 PDP | FE-27, D6 | To do |
+| FE-32 | Mini-cart drawer | 6 Cart & checkout | FE-06, FE-03 | To do |
+| FE-33 | Cart page | 6 Cart & checkout | FE-02, FE-32 | To do |
+| FE-34 | Checkout branding (Luma fallback) + success page | 6 Cart & checkout | FE-01 | To do |
+| FE-35 | Login, forgot password, reset password | 7 Account | FE-02 | To do |
+| FE-36 | Registration: "Apply for an account" (B2B, ABN) | 7 Account | FE-02 | To do |
+| FE-37 | Account layout, navigation (B2B/B2C), dashboard | 7 Account | FE-04 | To do |
+| FE-38 | Account info, password, address book, newsletter, saved cards | 7 Account | FE-37 | To do |
+| FE-39 | Orders: history, order view, invoices/shipments, reorder, CSV export | 7 Account | FE-37 | To do |
+| FE-40 | Quick Order page | 8 B2B | FE-02, FE-03, FE-53 | To do |
+| FE-41 | Quick Order mini-cart, "saved" toast, "Add to list" modal | 8 B2B | FE-40, FE-06 | To do |
+| FE-42 | Order templates (saved lists) | 8 B2B | FE-40 | To do |
+| FE-43 | Recently ordered page | 8 B2B | FE-37, FE-19 | To do |
+| FE-44 | Wishlist (ajax add + wishlist page) | 8 B2B | FE-19, FE-37 | To do |
+| FE-45 | Help page template with side nav | 9 CMS | FE-04 | To do |
+| FE-46 | Contact Us form | 9 CMS | FE-45 | To do |
+| FE-47 | FAQs accordion | 9 CMS | FE-45, FE-57 | To do |
+| FE-48 | Content pages: About, Careers, Outlet, Style Sourcebook, Meet the Team, Fairs & Events | 9 CMS | FE-04, FE-57 | To do |
+| FE-49 | Shop the Looks / lookbook with product hotspots | 9 CMS | FE-19, FE-57 | To do |
+| FE-50 | Virtual Catalogues (login only) + Shoppable Instagram | 9 CMS | FE-12, FE-53 | To do |
+| FE-51 | Showroom locator (list + location page) | 9 CMS | FE-04 | To do |
+| FE-52 | 404 page | 9 CMS | FE-04 | To do |
+| FE-53 | Login-only rules: price hiding, guest redirects, per-customer data | 10 Cross-cutting | — | To do |
+| FE-54 | Third-party scripts: Zendesk chat, Klaviyo, GTM/GA4, Triple Whale | 10 Cross-cutting | FE-01 | To do |
+| FE-55 | SEO markup: structured data, breadcrumbs, meta, canonical | 10 Cross-cutting | FE-18, FE-25 | To do |
+| FE-56 | Final QA pass: devices, accessibility, performance, visual compare | 10 Cross-cutting | all | To do |
+| FE-57 | Content Studio for Open Source + Hyvä (copy of Bart_ContentStudio) | 0 Foundation | FE-01, D11 | To do |
+| UX-01 | No empty or broken blocks | 11 UX | FE-12, FE-16, FE-17 | To do |
+| UX-02 | Guest path to a trade account | 11 UX | FE-06, FE-07, FE-19, FE-26 | To do |
+| UX-03 | Products above the fold on mobile PLP | 11 UX | FE-18, FE-19, FE-20 | To do |
+| UX-04 | Filters quality | 11 UX | FE-21 | To do |
+| UX-05 | Search relevance | 11 UX | FE-22, FE-23, D1 | To do |
+| UX-06 | Chat button placement | 11 UX | FE-54 | To do |
+| UX-07 | Forms that autofill | 11 UX | FE-35, FE-36, FE-46 | To do |
+| UX-08 | Accessibility baseline | 11 UX | FE-02, FE-03, FE-56 | To do |
+| UX-09 | Performance budget | 11 UX | FE-08, FE-54, FE-56 | To do |
+| UX-10 | Readable text | 11 UX | FE-10, FE-13, FE-15 | To do |
+| UX-11 | PDP essentials first | 11 UX | FE-25, FE-29 | To do |
+| UX-12 | Faster reordering for trade customers | 11 UX | FE-19, FE-32, FE-37, FE-40 | To do |
+
+## Epic 0 — Foundation and global UI
+
+Everything else builds on these four. Ship them first, so other tickets reuse the components instead of copying markup.
+
+### FE-01 Design tokens, fonts, base typography
+
+**Scope:** colour palette, type scale (body 15/20 Karla, headings DM Serif Display), breakpoints, container up to 1920 px, square corners, form and button metrics in `hyva.config.json` → `tokens.values`; self-hosted fonts. Mostly done.
+
+**Ref:** `Bart/el/web/css/source/variables/*`; computed styles on https://www.elmeliving.com/
+
+**QA:**
+
+- [ ] H1–H6, paragraph, link on any CMS page match production font, size and line height (mobile and desktop)
+- [ ] Page background warm off-white, body text charcoal, same as production
+- [ ] Fonts load from our domain (Network tab), no Google Fonts request, no flash of fallback font on reload
+
+### FE-02 UI kit + style-guide page
+
+**Scope:** buttons (primary, secondary, outline, link, disabled, loading), text input, select, textarea, checkbox, radio, qty stepper that steps in MOQ multiples, badges (Sale, New, In Stock, Low Stock), breadcrumbs, pagination. A CMS page `/styleguide` (noindex, not in menu) shows every state so QA tests them once.
+
+**Ref:** `Bart/el/web/css/source/variables/overrides/_buttons.less`, `_forms.less`; `Overdose_Theme/templates/styleguide`
+
+**QA:**
+
+- [ ] Every component on `/styleguide` has hover, focus, active, disabled and error states
+- [ ] Inputs 50 px high, 1 px border; buttons square, 50 px min height
+- [ ] Qty stepper with MOQ 6: +/− go 6 → 12 → 18; typing 7 rounds to a valid multiple with a message
+- [ ] Focus outline visible on every control
+
+### FE-03 Global feedback components
+
+**Scope:** page messages (success, error, notice, warning) and toasts, modal, side drawer (used by filters, mini-cart, mobile menu), loading spinner and skeleton, empty-state block.
+
+**QA:**
+
+- [ ] Message after an action (e.g. login failure) shows, can be closed, does not cover the header on mobile
+- [ ] Modal and drawer: open, close by ×, by overlay click and by Esc; focus stays inside while open; page does not scroll behind
+- [ ] Screen reader announces messages (role=alert / aria-live)
+
+### FE-04 Page layouts and container
+
+**Scope:** the layouts production uses: `1column`, `2columns-left` (help pages), banner + breadcrumbs (About, Careers, Outlet), full-width CMS (Meet the Team), full-width category. Side gutters 20 px mobile, 40 px desktop.
+
+**Ref:** body classes on production pages (`page-layout-banner-breadcrumbs`, `page-layout-cms-full-width`, `page-layout-category-full-width`)
+
+**QA:**
+
+- [ ] Each layout can be picked in admin for a CMS page and renders as on production
+- [ ] No horizontal scroll at 390 px; content stops at 1920 px and centres on wider screens
+
+### FE-57 Content Studio for Open Source + Hyvä
+
+**Scope:** copy `Bart_ContentStudio` from m2-bart-group (last commit ee7f5d323) into `app/code/Bart/ContentStudio` and make it a version for this project only: Magento Open Source 2.4.9 + Hyvä. From then on this copy lives on its own; fixes are not synced back.
+
+- Remove what Elme does not use: the `compare_mattress` type (template, view model, JS renderer, unit test, LESS) and the blog types from `Bart_MagefanBlog` (not copied).
+- Storefront: no LESS, no RequireJS. Type templates use Tailwind; behaviour, where a type needs it, is a CSP-compatible Alpine component in the type template instead of the global `storefront.js`.
+- "View on site" preview (sandbox page, badge, bridge) works on the Hyvä storefront.
+- Admin editor stays as it is; check it on Open Source 2.4.9 and its PHP version.
+- Add the module to `hyva.config.json` → `tailwind.include` so classes in type templates end up in `styles.css`.
+- Elme content types live in their own `etc/content_types.xml` in an Elme module, not in Content Studio itself: hero, category tiles, product carousel, promo split, USP strip, FAQ, team, events, lookbook, catalogue covers (used by FE-14…16, FE-47…49).
+
+**Ref:** `m2-bart-group/app/code/Bart/ContentStudio` (its `CLAUDE.md` explains the schema, editor, preview and import/export)
+
+**QA:**
+
+- [ ] On a clean install `setup:upgrade` and `setup:di:compile` run without errors
+- [ ] Admin: create, edit, preview, save, copy and delete an entry; store scope applies
+- [ ] "Content Studio Entry" widget placed in a CMS page renders the entry on the storefront
+- [ ] "View on site" opens an unsaved entry on the Elme storefront
+- [ ] Export entries as ZIP locally, import on staging: same entries and images
+- [ ] Storefront loads no RequireJS or LESS from the module; no CSP errors
+- [ ] Type picker shows only Elme types, no `compare_mattress` or blog types
+
+## Epic 1 — Header and navigation
+
+The header on production: dusty-blue top bar, then logo, mega menu (New, Flowers & Plants, Homewares, Furniture, Outdoor, Sale), search field, Log in/Sign up, Contact Us. Logged-in users also get the mini-cart and the Quick Order cart.
+
+### FE-05 Top bar
+
+**Scope:** strip above the header: USP text on the left ("Australia's leading wholesale supplier of artificial flora and home decor"), links on the right (Become a Stockist, Inspiration → /shop-the-looks). Text and links editable in admin (CMS block).
+
+**QA:**
+
+- [ ] Text and links match production; links open the right pages
+- [ ] On mobile the text wraps to two lines at most and does not overlap the header
+- [ ] Changing the CMS block in admin changes the bar after cache flush
+
+### FE-06 Header desktop + sticky header
+
+**Scope:** logo (link to home), main menu slot, search field "Search products by style, rooms", account link (logged out: "Log in/Sign up"; logged in: customer name + account menu), Contact Us, mini-cart icon with item count and Quick Order cart icon (logged in only). Header sticks to the top on scroll down.
+
+**Ref:** `Bart/el/Magento_Theme/layout/default.xml` (`od.header.custom.links`, `od.header.init-sticky`), `ElmeLiving_QuickOrder/templates/minicart/qo-minicart.phtml`
+
+**QA:**
+
+- [ ] Logged out: no cart icons, "Log in/Sign up" goes to login
+- [ ] Logged in: name shown, cart count updates after add to cart without page reload
+- [ ] Sticky header appears on scroll, does not jump the page, does not cover anchors
+- [ ] Cached page (Varnish on) never shows another customer's name or cart count
+
+### FE-07 Header mobile
+
+**Scope:** burger, logo centred, search icon that opens the search field, account and cart icons. Same login rules as FE-06.
+
+**QA:**
+
+- [ ] 390 px: all icons tappable (min 44 × 44 px), logo not cut off
+- [ ] Search opens, focuses the input, closes by × or Esc
+
+### FE-08 Mega menu desktop
+
+**Scope:** 5–6 top items; dropdown with category columns down to level 3 (e.g. Flowers & Plants → Arrangements → Orchid). Opens on hover with a short delay, also by keyboard. Source of the menu tree depends on D3.
+
+**Ref:** `Bart/el/Snowdog_Menu/templates/menu.phtml`, `menu/sub_menu.phtml`, `menu/node_type/*`
+
+**QA:**
+
+- [ ] Every top item and link matches production menu (count and order)
+- [ ] Dropdown opens on hover, closes on mouse leave without flicker when moving diagonally
+- [ ] Tab / Enter / Esc open and close the dropdown; current category highlighted
+- [ ] Menu at 1025 px fits on one line
+
+### FE-09 Mobile menu drawer
+
+**Scope:** off-canvas drawer from the burger; drill-down per level with Back and "View all \<category>" links; bottom links (account, Quick Order, Contact, Become a Stockist).
+
+**Ref:** `Bart/el/Snowdog_Menu/templates/menu/mobile-footer.phtml`, `Bart_NavigationModern/templates/html/mobile_menu_custom.phtml`
+
+**QA:**
+
+- [ ] All 3 levels reachable; Back returns one level; "View all" opens the category
+- [ ] Drawer closes by ×, overlay, Esc; page behind does not scroll
+- [ ] Same tree as desktop menu
+
+## Epic 2 — Footer and global blocks
+
+The footer and the blocks repeated above it on most pages (Instagram slider, "Our Difference", "Need assistance?").
+
+### FE-10 Footer
+
+**Scope:** logo; three link columns — Shop (Quick Order, Furniture, Plants, Homewares, Shop the Looks, Virtual Catalogues, Shop Instagram, Style Sourcebook, Outlet & Clearance Store), Service (About Us, Meet the Team, Showroom Locator, Become a Stockist, Fairs & Events, Careers), Help (Contact, Shipping & Returns, Terms & Conditions, Privacy Policy, FAQs, Submit a Product Claim → help.elmeliving.com); social icons (Facebook, Instagram, Pinterest, LinkedIn, TikTok); payment icons (Visa, Mastercard). Columns collapse to accordions on mobile. Links editable in admin.
+
+**Ref:** `Bart/el/Magento_Theme/templates/html/od-footer/links.phtml`, `logo.phtml`
+
+**QA:**
+
+- [ ] All links match production and open the right page; external links open in a new tab
+- [ ] Mobile: each column is an accordion, one tap opens/closes it
+- [ ] Social icons have accessible names ("Elme Living on Instagram")
+
+### FE-11 Newsletter subscribe + signup popup
+
+**Scope:** footer form "Be the first to know" (email + arrow button). Production also shows a signup popup on first visit ("Get 5% off your first purchase", first/last name, email, phone, company, business type) — run by Klaviyo; whether we rebuild it or keep Klaviyo depends on D7.
+
+**Ref:** `Bart/el/Magento_Newsletter/templates/footer-subscribe.phtml`, `Bart_NewsletterPopup`
+
+**QA:**
+
+- [ ] Empty or invalid email shows an inline error, no request sent
+- [ ] Valid email shows a success message; the same email again shows "already subscribed"
+- [ ] Popup (if in scope): shows once per visitor, closes by ×/Esc/overlay, not shown to logged-in customers
+
+### FE-12 "As styled by you" Instagram slider
+
+**Scope:** heading, @elmeliving, Follow Us button, horizontal image slider of Instagram posts; on home, PDP and some CMS pages. Feed source depends on D10.
+
+**Ref:** `Overdose_InstaFeed`, CMS block on production home
+
+**QA:**
+
+- [ ] Slider swipes on touch, arrows/keyboard work on desktop, images lazy-load
+- [ ] Clicking a post opens Instagram (or the shoppable view, if FE-50 builds it)
+- [ ] If the feed fails, the block hides instead of showing an empty frame
+
+### FE-13 Shared CMS blocks
+
+**Scope:** "Our Difference" (heading + paragraph) and "Need assistance?" (phone (03) 7067 9725, hello@elmeliving.com, showroom 1 Apollo Court, Blackburn VIC 3130) as reusable CMS blocks with Elme styling.
+
+**QA:**
+
+- [ ] Phone is a `tel:` link and email a `mailto:` link
+- [ ] Both blocks render the same on every page they appear on
+
+## Epic 3 — Homepage
+
+Production home, top to bottom: hero banners → category tiles carousel → Welcome text + Become a Stockist → Outlet promo → "Be Inspired" shop-the-look → trending products → Curated Catalogues → Become a Stockist benefits → Instagram (FE-12) → Our Difference (FE-13). Each section is a Content Studio entry (FE-57) placed on the page, so content editors can fill and reorder them; content is new, nothing is copied from the old site.
+
+### FE-14 Hero / banner slider
+
+**Scope:** full-width banner(s) with image (separate mobile and desktop image), heading, text, CTA; slider when more than one. Content Studio type `hero`.
+
+**Ref:** `Bart_Swiper/templates/swiper.phtml`, `block-banners` widget on production home
+
+**QA:**
+
+- [ ] Mobile loads the mobile image, desktop the desktop one (Network tab)
+- [ ] First banner image is not lazy-loaded (LCP); others are
+- [ ] Autoplay (if on) pauses on hover and has a pause control
+
+### FE-15 Category tiles carousel
+
+**Scope:** carousel of category tiles (image + name: Vessels, Decor, Floral Stems, Bouquets & Bundles, Coffee Tables …) with arrows; Content Studio type `category_tiles` (repeater: category, image, label).
+
+**Ref:** `Bart_Catalog/templates/category/widget/with_children.phtml`
+
+**QA:**
+
+- [ ] Tiles link to the right categories; swipe on mobile, arrows on desktop
+- [ ] Long names wrap without breaking the tile height
+
+### FE-16 Homepage content sections
+
+**Scope:** Welcome text + Become a Stockist button; Outlet promo (image left, heading, text, "Find Us In-Store" button); Curated Catalogues (dusty-blue band, Lookbook and Virtual Catalogues cards, "See All Catalogues"); Become a Stockist benefits (The Latest Trends, Premium Customer Service, Extensive Range, "Create An Account"). Built as Content Studio types `promo_split`, `catalogue_covers`, `usp_strip`.
+
+**QA:**
+
+- [ ] Each section matches production layout on mobile (stacked) and desktop (two columns)
+- [ ] All buttons go to the right pages
+- [ ] Editor can change texts and images in admin without a developer
+
+### FE-17 Product carousel widget
+
+**Scope:** reusable slider of product cards (FE-19) with title; sources: trending, new, a category, related. Used on home, PDP (FE-30), 404 and cart. Data source depends on D1 (Algolia Recommend or native).
+
+**Ref:** `ElmeLiving_AlgoliaRecommend` (trending, related, frequently bought together)
+
+**QA:**
+
+- [ ] Logged out: cards show "Sign in to see pricing"; logged in: the customer's price
+- [ ] Swipe on mobile, arrows on desktop, no layout shift while loading
+- [ ] Empty result hides the whole block, including the title
+
+## Epic 4 — PLP and search
+
+Production category page: banner with title and breadcrumbs, a Filters button that opens a drawer, sort dropdown, 4-column grid (2 on mobile), 24 per page, pagination. Test data: /flowers-plants.html (\~1,200 products), /new.html (many filters).
+
+### FE-18 Category page header
+
+**Scope:** category banner (title + breadcrumbs left, image right on desktop; image on top on mobile), category description, layout without banner when the category has no image.
+
+**Ref:** `Bart/el/Overdose_CategoryBanner/templates/category/banner.phtml`, `banner_wrapper.phtml`
+
+**QA:**
+
+- [ ] Category with image vs without image both look right
+- [ ] Breadcrumbs show the full path for a level-3 category and each crumb links
+- [ ] Title is the only H1 on the page
+
+### FE-19 Product card (shared tile)
+
+**Scope:** one card used on PLP, search, carousels, wishlist: image (white tile), Sale/New badge, name (2 lines max), SKU, price ex. GST or "Sign in to see pricing" when logged out, stock label ("In Stock" ≥ 10, "Low Stock" 1–9, none at 0), wishlist heart. Logged in, when "Quick order on PLP" is enabled: qty stepper (MOQ multiples) + Add to cart. Customer price loads after render (FE-53): show a placeholder, not a flash of the wrong price.
+
+**Ref:** `Bart/el/Magento_Catalog/templates/product/list.phtml`, `category-qo-plp-enable.phtml`, `Cloudinary_Cloudinary/templates/product/image_with_borders.phtml`, `ElmeLiving_Catalog/view/frontend/web/template/product/*`
+
+**QA:**
+
+- [ ] Logged out: no price, no add to cart, "Sign in to see pricing" links to login and returns to the same page after login
+- [ ] Logged in: price matches the cart price for that customer (different customers see different prices)
+- [ ] Stock label correct for qty 0, 5, 50
+- [ ] Add to cart with MOQ product adds the MOQ, mini-cart count updates
+- [ ] Card heights align in a row even with long names
+
+### FE-20 PLP toolbar
+
+**Scope:** sort (Position, Product Name, SKU, Best Sellers, Date, Price low–high, Price high–low), per page 12/24/36/48, pagination with first/last and ellipsis. Sort by price only for logged-in users.
+
+**QA:**
+
+- [ ] Each sort option reorders the grid and stays in the URL on reload and on back/forward
+- [ ] Changing page scrolls to the top of the grid
+- [ ] Page beyond the last returns the last page or 404, not an empty grid
+
+### FE-21 Layered navigation
+
+**Scope:** Filters button → drawer (mobile and desktop as on production). Filters seen on production: Colour (swatches), Material, Stock Availability (In Stock / Low Stock), Plant Type, Width (cm) and Depth (cm) ranges, Comfort. Multi-select, counts, "selected filters" chips with remove and Clear all. Engine depends on D2.
+
+**Ref:** `Bart/el/Aheadworks_Layerednav/templates/layer/view.phtml`, `filter/renderer/swatches.phtml`
+
+**QA:**
+
+- [ ] Selecting two values in one filter shows products with either value; counts update
+- [ ] Chips show the selection; removing one chip updates the grid; Clear all resets
+- [ ] Filtered URL can be shared and opens with the same filters
+- [ ] Drawer: Apply/Close work, focus trapped, Esc closes
+
+### FE-22 Search autocomplete
+
+**Scope:** dropdown under the header search after 2–3 characters: products (image, name, SKU), categories, "see all results". Search by SKU must work (customers order by SKU). Engine depends on D1.
+
+**Ref:** `Bart/el/Bart_AlgoliaSearchUi/templates/search.phtml`, `instant/hit.phtml`
+
+**QA:**
+
+- [ ] "vase" shows vases; a full SKU (e.g. PL.186.GYGN) shows that product first
+- [ ] Arrow keys move through results, Enter opens, Esc closes
+- [ ] No price shown logged out
+
+### FE-23 Search results page
+
+**Scope:** results grid with the same cards, toolbar and filters as PLP; no-results state with "Shop popular categories" links.
+
+**Ref:** `Bart/el/Algolia_AlgoliaSearch/templates/instant/wrapper.phtml`, `facet.phtml`
+
+**QA:**
+
+- [ ] Query shown in the heading, results count correct
+- [ ] "asdfgh" shows the no-results state with popular categories
+
+### FE-24 Recently viewed categories / products
+
+**Scope:** "Recently viewed" strip on PLP (and PDP via FE-30) from browser storage.
+
+**Ref:** `ElmeLiving_RecentlyViewedCategory`, `Overdose_RecentlyViewed`
+
+**QA:**
+
+- [ ] After visiting 3 products/categories they show newest first; current page not included
+- [ ] Hidden when the list is empty
+
+## Epic 5 — PDP
+
+Production PDP: gallery left, info right (badge, name, SKU, stock, short description, buy box), then a "Product Details" accordion, recommendations, Instagram, Our Difference. Test product: /acacia-hanging-bush-28-x-14-x-110cm-grey-green.html (simple, Sale); for MOQ and configurable products pick SKUs from admin.
+
+### FE-25 PDP layout + gallery
+
+**Scope:** breadcrumbs; gallery with main image, arrows, thumbnails, swipe on mobile, fullscreen with zoom; badge, name (H1), SKU, stock line, short description.
+
+**Ref:** `Bart/el/Magento_Catalog/templates/product/view/gallery.phtml`, `view/form.phtml`, `layout/catalog_product_view.xml`
+
+**QA:**
+
+- [ ] Product with 1 image: no arrows or thumbnails; with 5+: thumbnails scroll
+- [ ] Fullscreen opens on click, closes by ×/Esc, zoom works on desktop, pinch on mobile
+- [ ] Main image is not lazy-loaded; no layout shift when it loads
+
+### FE-26 PDP buy box, logged out
+
+**Scope:** "Sign in to see pricing", "Don't have an account? Apply here" (→ registration), Login button (→ login, then back to this product).
+
+**QA:**
+
+- [ ] No price, qty or add to cart anywhere in the HTML (view source), not only hidden by CSS
+- [ ] After login the customer lands back on the same PDP and sees the buy box from FE-27
+
+### FE-27 PDP buy box, logged in
+
+**Scope:** customer price ex. GST (loaded per customer, placeholder while loading), Sale price shown as was/now, MOQ note ("Minimum order 6"), qty stepper in MOQ multiples, Add to cart, Add to wishlist, Add to list (Quick Order lists, FE-41), sticky add-to-cart bar after scrolling past the buy box. No tier prices on Elme.
+
+**Ref:** `Bart/el/Magento_Catalog/templates/product/moq-stock.phtml`, `od-product/sticky_add_to_cart.phtml`, `ElmeLiving_QuickOrder/templates/product/view/addtocart.phtml`, `ElmeLiving_CustomPricing/templates/get_prices_script.phtml`
+
+**QA:**
+
+- [ ] Two test customers with different Pronto prices see different prices; cart shows the same price as PDP
+- [ ] Price label says ex. GST
+- [ ] MOQ product: qty starts at MOQ, steps in multiples, invalid qty cannot be added
+- [ ] Add to cart shows a success message and updates the mini-cart; out-of-stock product cannot be added
+- [ ] Sticky bar appears after scrolling, its button adds the same qty
+
+### FE-28 Configurable products (colour / size)
+
+**Scope:** colour and size swatches; clicking a swatch goes to the sibling product page (Elme has 147 configurables; swatch = navigation, not an in-page switch). Swatches on PLP cards too.
+
+**Ref:** `Bart/el/Bart_ConfigurableByAttribute/templates/product/options.phtml`, `product/listing/options.phtml`, `Overdose_ConfigurableByAttribute`
+
+**QA:**
+
+- [ ] Current colour is marked; clicking another opens that product's URL
+- [ ] Unavailable sizes are crossed out, not hidden
+- [ ] Swatch has a tooltip / accessible name with the colour name
+
+### FE-29 Product details accordion
+
+**Scope:** "Product Details" accordion with Details, Product Specifications, Dimensions, Delivery, Care Instructions (empty sections hidden); CMS blocks between sections (middle and material blocks); FAQ modal.
+
+**Ref:** `Bart/el/Magento_Catalog/templates/product/tabs.phtml`, `product/view/attribute.phtml`, `product/cms-block.phtml`, `Magento_Theme/templates/html/faq.phtml`
+
+**QA:**
+
+- [ ] Each section opens/closes; several can be open at once
+- [ ] Product with no care text has no Care Instructions row
+- [ ] Attribute values match admin (dimensions in cm)
+
+### FE-30 PDP recommendations + recently viewed
+
+**Scope:** Frequently bought together, Related products, recommendation tabs, Recently viewed — using the carousel (FE-17) and the card (FE-19).
+
+**Ref:** `Bart/el/ElmeLiving_AlgoliaRecommend/templates/recommendation/wrap/*`
+
+**QA:**
+
+- [ ] Blocks show for a product that has related data and hide for one that has none
+- [ ] Current product never appears in its own recommendations
+
+### FE-31 PDP stock and delivery info
+
+**Scope:** "N in stock" number and label, incoming (dock) date when out of stock, delivery estimate; showroom availability. Data from Pronto / shipment service — scope depends on D6.
+
+**Ref:** `Bart/el/Bart_OverdoseStorelocator/templates/product/view/product-stock-info.phtml`, `product-availability.phtml`, `Machship_Fusedship/layout/catalog_product_view.xml`
+
+**QA:**
+
+- [ ] Stock number matches admin salable qty for VTA stock
+- [ ] Out-of-stock product with a dock date shows the date in AU format (e.g. 12 Nov 2026)
+
+## Epic 6 — Cart and checkout
+
+Cart and checkout are login-only. Checkout runs on the Luma fallback (`hyva-themes/magento2-luma-checkout`), so FE-34 is styling only; checkout features (delivery date calendar, account credit payment, freight) come with their backend tickets.
+
+### FE-32 Mini-cart drawer
+
+**Scope:** drawer from the header cart icon: items (image, name, SKU, price ex. GST, qty stepper in MOQ multiples, remove), subtotal, "View cart" and "Checkout" buttons, empty state.
+
+**Ref:** `Bart/el/Magento_Checkout/layout/checkout_cart_sidebar_item_renderers.xml`, `Magento_Weee/templates/checkout/cart/item/price/sidebar.phtml`
+
+**QA:**
+
+- [ ] Opens after add to cart and from the icon; closes by ×/overlay/Esc
+- [ ] Changing qty updates subtotal and header count; qty below MOQ is refused with a message
+- [ ] Remove asks no browser confirm dialog and updates totals
+
+### FE-33 Cart page
+
+**Scope:** item table (image, name, SKU, options, unit price, qty, row total, remove), update qty, MOQ messages, minimum order value notice ("Add $X more to place your order"), coupon code, totals (subtotal ex. GST, freight, GST, total), Proceed to checkout, empty cart page with a link back to shopping. No gift cards (Adobe Commerce only).
+
+**Ref:** `Bart/el/Magento_Checkout/templates/cart/form.phtml`, `cart/item/default.phtml`, `cart/methods.phtml`, `Magento_Tax/layout/checkout_cart_index.xml`
+
+**QA:**
+
+- [ ] Customer below minimum order value sees the remaining amount and cannot proceed
+- [ ] Valid coupon applies and shows in totals; invalid coupon shows an error
+- [ ] Mobile: items stack as cards, totals below, checkout button easy to reach
+- [ ] Guest opening /checkout/cart/ is sent to login with a message
+
+### FE-34 Checkout branding + success page
+
+**Scope:** make the Luma checkout look like Elme: logo, fonts, colours, buttons, inputs, checkout header and footer with help block (phone, email). Success page with order number, "Continue shopping", link to the order in the account.
+
+**Ref:** `Bart/el/Magento_Checkout/templates/onepage/footer/checkout-footer.phtml`, `checkout-help.phtml`, `success/success-main.phtml`
+
+**QA:**
+
+- [ ] Checkout uses Elme logo, Karla / DM Serif Display and charcoal buttons, no Luma blue
+- [ ] Full order with each payment method available to the test customer reaches the success page
+- [ ] Success page order number links to the order in My Account
+
+## Epic 7 — Login, registration, customer account
+
+Customers are businesses with an ABN; the account area is split into B2B and B2C sections with their own breadcrumbs.
+
+### FE-35 Login, forgot password, reset password
+
+**Scope:** /customer/account/login: Email, Password, "I forgot?", Sign In, "Don't have an account? Apply for an account". Forgot password page (email + Reset Password + "Return back to Login"), reset password form.
+
+**Ref:** `Bart/el/Magento_Customer/templates/od-form/newcustomer.phtml`, `od-form/resetforgottenpassword.phtml`
+
+**QA:**
+
+- [ ] Wrong password shows an error; account pending approval shows the right message
+- [ ] Login from a PDP / gated page returns there afterwards
+- [ ] Reset email arrives, link opens the reset form, new password works; expired link shows an error
+- [ ] Password field has show/hide; browser autofill works
+
+### FE-36 Registration "Apply for an account"
+
+**Scope:** B2B application form: First/Last Name, Company Name, location, Business Type (Retailer, Commercial, Trade, Media, Other, Online Retailer), Job Title (optional), Phone, Email, Accounts Email, Accounts Contact Name, Accounts Phone, ABN (validated), Company Address (street, suburb, state, postcode), Terms & Conditions checkbox, password. Success page explains the account is pending approval.
+
+**Ref:** `Bart/el/Magento_Customer/templates/od-form/register.phtml`, `widget/company_address.phtml`, `widget/termsconditions.phtml`, `widget/additional-attributes.phtml`, `ElmeLiving_Customer`
+
+**QA:**
+
+- [ ] Required fields marked; submitting empty shows errors next to each field
+- [ ] Invalid ABN is rejected with a clear message; valid ABN passes
+- [ ] Existing email shows "already registered" with a login link
+- [ ] Admin receives the B2B registration notification email
+
+### FE-37 Account layout, navigation, dashboard
+
+**Scope:** account sidebar navigation grouped B2B / B2C (becomes a dropdown or drawer on mobile), account breadcrumbs, dashboard: contact info, default addresses, account credit (outstanding balance), recent orders.
+
+**Ref:** `Bart/el/Magento_Customer/templates/od-account/navigation/account-nav.phtml`, `od-account/dashboard/*`, `ElmeLiving_CustomerAccountNavigation`
+
+**QA:**
+
+- [ ] Every nav link opens its page and the active item is highlighted
+- [ ] Account credit shows the customer's balance from admin
+- [ ] Mobile: navigation usable with one hand, current page name visible
+
+### FE-38 Account info, addresses, newsletter, saved cards
+
+**Scope:** edit account info and change password; address book grid, add/edit address (company address fields); newsletter preferences; saved credit cards (Vault) list with delete.
+
+**Ref:** `Bart/el/Magento_CustomerCustomAttributes/templates/od-account/*`, `Magento_Customer/templates/od-account/address/*`, `od-account/newsletter/newsletter.phtml`, `Magento_Vault/templates/cards_list.phtml`
+
+**QA:**
+
+- [ ] Changing the password logs in with the new one; wrong current password is refused
+- [ ] Add, edit, delete, set default address; postcode/state validation for Australia
+- [ ] Newsletter checkbox state persists after save
+
+### FE-39 Orders
+
+**Scope:** order history table (number, date, ship-to, total, status, actions; cancel where allowed), order view (items, totals, addresses, shipping, payment), invoices / shipments / credit memos tabs, print, Reorder, CSV export of an order.
+
+**Ref:** `Bart/el/Magento_Sales/templates/od-order/*`, `Magento_AsyncOrder/templates/order/history.phtml`, `Magento_OrderCancellationUi/templates/order/history.phtml`
+
+**QA:**
+
+- [ ] History paginates; status labels readable; mobile shows orders as cards
+- [ ] Reorder puts available items in the cart (MOQ respected) and reports unavailable ones
+- [ ] CSV export downloads a file that opens in Excel with the order lines
+- [ ] Print view has no header/footer clutter
+
+## Epic 8 — B2B: Quick Order, order templates, wishlist
+
+Quick Order is the core page for trade customers: they reorder by SKU. On the old site it is 56 theme files (`ElmeLiving_QuickOrder`) plus its own controllers under /quick-order; the backend (controllers, tables) needs its own port ticket before these.
+
+### FE-40 Quick Order page
+
+**Scope:** /quick-order (login only): search by SKU or name with suggestions, add rows, qty per row in MOQ multiples, live availability per row, row price and total ex. GST, remaining amount to minimum order value, "Add all to cart" with per-row validation errors, "Recently ordered" list to add from. Separate mobile layout (cards) and desktop layout (table).
+
+**Ref:** `Bart/el/ElmeLiving_QuickOrder/templates/page/quick-order.phtml`, `components/quick-order/*`, `script/quick-order-js.phtml` (973 lines)
+
+**QA:**
+
+- [ ] Guest opening /quick-order is sent to login, then back to Quick Order
+- [ ] Typing a SKU suggests matching products; picking one adds a row with MOQ as qty
+- [ ] Unknown SKU or out-of-stock item shows a row error and is skipped on Add all
+- [ ] Add all: valid rows land in the cart, invalid rows stay with the reason
+- [ ] Minimum order value remainder updates as rows change
+- [ ] 50 rows stay responsive (no lag typing qty)
+
+### FE-41 Quick Order mini-cart, saved toast, Add to list
+
+**Scope:** Quick Order cart icon + panel in the header; "Saved" toast after saving a list; "Add to list" modal from PDP and wishlist (pick an existing list or create one).
+
+**Ref:** `Bart/el/ElmeLiving_QuickOrder/templates/minicart/qo-minicart.phtml`, `script/qo-saved-toast-js.phtml`, `add-to-list/modal.phtml`, `page/quick-order-cart.phtml`
+
+**QA:**
+
+- [ ] Add to list from PDP: modal lists existing lists, new list can be named and saved
+- [ ] Toast confirms and disappears; header Quick Order count updates
+
+### FE-42 Order templates (saved lists)
+
+**Scope:** list of saved order templates (name, items, date, actions), open a template into Quick Order, add all to cart, delete with confirm modal.
+
+**Ref:** `Bart/el/ElmeLiving_QuickOrder/templates/page/order-templates.phtml`, `components/order-templates/list-table.phtml`, `modal-delete.phtml`
+
+**QA:**
+
+- [ ] Template opens with its items and quantities; delete removes it after confirm
+- [ ] Empty state when the customer has no templates
+
+### FE-43 Recently ordered page
+
+**Scope:** /recently\_ordered: products from past orders with image, name, SKU, price, stock, qty (MOQ aware), add to cart, remove from list, review link.
+
+**Ref:** `ElmeLiving_RecentlyOrdered/view/frontend/templates/recently-ordered/*`, `Bart/el/ElmeLiving_RecentlyOrdered/templates/recently-ordered/item/cart.phtml`
+
+**QA:**
+
+- [ ] Lists products from the test customer's past orders, newest first
+- [ ] Add to cart respects MOQ; removed item stays removed after reload
+
+### FE-44 Wishlist
+
+**Scope:** add/remove from PLP and PDP without page reload (heart state), wishlist page with price, stock, qty, add to cart, add to Quick Order list, remove; guests sent to login.
+
+**Ref:** `Bart/el/Overdose_WishlistAjax/templates/ajaxWishlist/wishlist.phtml`, `Magento_Wishlist/templates/od-wishlist/*`
+
+**QA:**
+
+- [ ] Heart toggles on PLP and PDP and stays toggled after reload
+- [ ] Wishlist page add to cart moves the item with MOQ qty
+- [ ] Guest clicking the heart goes to login and returns
+
+## Epic 9 — CMS pages
+
+All content is new; nothing is migrated from the old site. Plain text pages (T&C, Privacy, About) use Page Builder with Elme styles; structured blocks are Content Studio types (FE-57). Writing the content is a content task, not part of these tickets. All URLs below exist on production today; /blog returns 404 there and is left out.
+
+### FE-45 Help page template with side nav
+
+**Scope:** two-column layout with a side menu of help pages (Contact Us, Shipping & Returns, Terms & Conditions, Privacy Policy, FAQs, Become a Stockist); optional top banner. Side menu becomes a dropdown on mobile.
+
+**Ref:** production /shipping-and-returns, /privacy-policy (body classes `help-page`, `help-page-banner`); `Bart/el/Magento_VersionsCms/templates/hierarchy/menu.phtml`
+
+**QA:**
+
+- [ ] All six pages use the template; current page highlighted in the side menu
+- [ ] Long legal text readable: line length max \~80 characters, headings spaced
+
+### FE-46 Contact Us form
+
+**Scope:** /contact-us: Your Name, Email, Phone, Company, Business Type, Enquiry type (select), Message with 200-character counter, "Receive emails on promotions" opt-in, Submit; success and error messages.
+
+**Ref:** `Bart/el/Magento_Contact/templates/form.phtml`, `Overdose_ContactForm/templates/widget/contact_form.phtml`
+
+**QA:**
+
+- [ ] Required fields validated; counter stops at 200
+- [ ] Submit sends the email to the store contact address and shows success
+- [ ] Form has spam protection (reCAPTCHA or honeypot)
+
+### FE-47 FAQs accordion
+
+**Scope:** /faqs grouped by topic (Location, Delivery, …) as an accordion; Content Studio type `faq` (repeater: question, answer, topic) so editors add questions without a developer.
+
+**QA:**
+
+- [ ] Each question opens/closes, keyboard accessible
+- [ ] Link to a question (#anchor) opens it
+
+### FE-48 Content pages
+
+**Scope:** styles for /about-us, /career-opportunities, /outlet-and-clearance-store, /style-sourcebook (banner + breadcrumbs layout), /meet-the-team (Content Studio type `team`: photo, name, role), /fairs-events (type `events`: name, start/end date, text, link; past events hide automatically), /become-a-stockist.
+
+**QA:**
+
+- [ ] Each page matches production on mobile and desktop
+- [ ] Meet the Team grid: 1 column mobile, 2 tablet, 4 desktop
+- [ ] An event whose end date has passed is not shown; with no upcoming events the page says so once
+
+### FE-49 Shop the Looks / lookbook
+
+**Scope:** /shop-the-looks and the "Be Inspired" home block: lifestyle images with "+" hotspots; a hotspot opens a product popup (image, name, "Sign in to see pricing" or price, "View »", qty + add to cart when logged in). Content Studio type `lookbook`: image with hotspots pinned in % of the frame, each linked to a SKU.
+
+**Ref:** production /shop-the-looks; hotspot editing as in `Bart_ContentStudio` (`compare_mattress` preview hotspots)
+
+**QA:**
+
+- [ ] Hotspot positions stay on the same object at 390, 768, 1440 px
+- [ ] Popup opens on tap/click, closes on outside click and Esc
+- [ ] Logged-in add to cart from the popup works with MOQ
+
+### FE-50 Virtual Catalogues + Shoppable Instagram
+
+**Scope:** /virtual-catalogues: logged out shows "Sign in to see our brand new catalogues!", logged in shows the catalogue embeds/links. /shoppable-instagram: intro text + Instagram grid with product links.
+
+**QA:**
+
+- [ ] Logged out never sees catalogue links (check HTML too)
+- [ ] Logged in sees and opens each catalogue
+
+### FE-51 Showroom locator
+
+**Scope:** /showroom-locator: search by suburb or postcode, "Use current location", filter by state (NSW, QLD, VIC), result list (name, address, "See Location"), map; location page with address, hours, map, directions link. Locations include the Melbourne Distribution & Pick-up Centre (Tarneit) and the trade-only Melbourne Showroom (Blackburn).
+
+**Ref:** `Bart/el/Overdose_Storelocator/templates/location/list.phtml`, `location/view.phtml`, `Bart_OverdoseStorelocator`
+
+**QA:**
+
+- [ ] Postcode 3130 lists Blackburn first; state filter VIC shows only VIC
+- [ ] Denying location permission shows a message, not a blank page
+- [ ] Location page map and directions link open the right address
+
+### FE-52 404 page
+
+**Scope:** "Oops... Looks like something went wrong", Back to home and Contact us buttons, search field, optional product carousel (FE-17).
+
+**QA:**
+
+- [ ] Any unknown URL returns HTTP 404 with this page (not 200)
+- [ ] Buttons go to home and contact
+
+## Epic 10 — Cross-cutting
+
+Rules that touch many pages. FE-53 is built early, next to FE-19, because every price and stock block depends on it.
+
+### FE-53 Login-only rules and per-customer data
+
+**Scope:** guests never get prices, qty inputs or add-to-cart in the HTML; "Sign in to see pricing" everywhere a price would be. Guests opening cart, checkout, Quick Order, wishlist, Virtual Catalogues are redirected to login with "Please login to access this page" and returned afterwards. Per-customer prices, cart count and names load per customer (customer section data / ajax), never cached in full-page cache.
+
+**Ref:** `ElmeLiving_Checkout` (`DisableGuestPage`, `DisableGuestAction`), `ElmeLiving_ElmeLiving` (`HideForGuest`, `HideForLoggedIn`), `ElmeLiving_CustomPricing`
+
+**QA:**
+
+- [ ] With Varnish on: log in as customer A, then B in another browser; each sees own prices and cart
+- [ ] Logged-out view source of PLP and PDP contains no price numbers
+- [ ] Every gated URL redirects guests and returns them after login
+
+### FE-54 Third-party scripts
+
+**Scope:** Zendesk chat ("Can we help?" button), Klaviyo (forms, tracking), GTM / GA4, Triple Whale pixel; loaded after the page is interactive, allowed in CSP, consent-ready. Chat button must not cover the sticky add-to-cart or mobile cart buttons.
+
+**QA:**
+
+- [ ] No CSP errors in the console on home, PLP, PDP, cart
+- [ ] Chat opens and sends a message; on mobile it does not cover buttons
+- [ ] GA4 / GTM receives page\_view and add\_to\_cart (GTM preview)
+
+### FE-55 SEO markup
+
+**Scope:** Product, BreadcrumbList, Organization JSON-LD (no price for guests if price is hidden); meta title/description, canonical on filtered and paged PLP, noindex on search and account pages; one H1 per page.
+
+**Ref:** `ElmeLiving_MirasvitSeoMarkup`
+
+**QA:**
+
+- [ ] Google Rich Results Test passes for a PDP and a PLP
+- [ ] Canonical on /flowers-plants.html?p=2 and on a filtered URL is correct
+
+### FE-56 Final QA pass
+
+**Scope:** one regression round over the whole storefront before launch: real devices (iPhone Safari, Android Chrome, iPad), accessibility (keyboard-only walk-through, contrast, screen reader on key flows), Lighthouse on home, PLP, PDP (target: Performance ≥ 90 mobile, CLS < 0.1, Accessibility ≥ 95), side-by-side visual compare with production.
+
+**QA:**
+
+- [ ] Key flow logged in: search SKU → PDP → add to cart → Quick Order add → cart → checkout → success → order in account
+- [ ] Key flow logged out: home → menu → PLP filter → PDP → "Apply here" → registration submitted
+- [ ] Lighthouse targets met; results attached to the ticket
+
+## Epic 11 — UX/UI improvements over production
+
+Production audit on 22 Oct 2026, logged out, 1440 px and 390 px. Each ticket fixes a weak spot found there and names the FE tickets it extends: build it into those tickets during the port, then QA it here.
+
+| What we found on production | Where |
+| --- | --- |
+| Curated Catalogues block is an empty dusty-blue area ~1,100 px tall; Instagram slider shows grey tiles; recommendations block renders empty for guests | Home, PDP |
+| Search "vase" returns 747 results, first hits are "Vale Muse … Sofa"; facets include Bed Type and Queen/King sizes | Search |
+| Filters drawer: "Material" listed twice, empty first row, width/depth ranges sorted as text (171–180 before 40–49), no result count on Apply | PLP |
+| Mobile category banner + title push the first product to ~600 px; product names cut at 2 lines hide the dimensions | PLP mobile |
+| Zendesk chat button covers "Apply filters", product cards and PDP description on mobile | Mobile, all pages |
+| Login and registration inputs have `autocomplete="off"`; phone is `type="text"`; ABN and postcode open the text keyboard; 4 address fields have no label; 17 fields in one block | Login, registration |
+| No skip link; ~130 focusable elements with no visible focus; 2 H1 on home (hidden title + "Added to cart" modal); 75 images with empty alt, product images included; 91 tap targets under 24 px | All pages |
+| 217 script requests, ~6,600 DOM nodes, 19 third-party hosts (Nosto, Clarity, Videowise, Rakuten, TikTok, Facebook, DoubleClick, Klaviyo, Zendesk, Yotpo, Google Fonts …), ~155 console errors per page; 88 of 91 images without width/height | All pages |
+| "Our Difference" is justified small grey text (rivers on mobile); footer links ~12 px; category tile labels on a thin bar, "Coffee Tables" clipped | Home, footer |
+| Mobile header shows "Sign Up" that opens login, no account icon; every card repeats "Sign in to see pricing" and nothing tells a guest what a trade account gives | Header, PLP, PDP |
+
+### UX-01 No empty or broken blocks
+
+**Extends:** FE-12, FE-16, FE-17
+
+**Scope:** any block whose data is empty or fails to load (catalogues, Instagram, recommendations) is not rendered, including its heading. Catalogues show cover images with links, not an embed that can stay blank.
+
+**QA:**
+
+- [ ] With the Instagram feed and recommendations switched off, home has no empty frames or grey tiles
+- [ ] Curated Catalogues shows covers for guests (link goes to login) and for customers
+
+### UX-02 Guest path to a trade account
+
+**Extends:** FE-06, FE-07, FE-19, FE-26
+
+**Scope:** header label says what it is ("Trade login" + account icon on mobile, not "Sign Up" that opens login). PLP and search get one slim banner for guests: "Wholesale prices for registered retailers — Log in / Apply for a trade account", with 3 facts (ABN required, minimum order, delivery Australia-wide). Cards show a short "Log in for price" instead of the long sentence.
+
+**QA:**
+
+- [ ] Guest understands from PLP alone that prices need a trade account and where to apply
+- [ ] Banner is not shown to logged-in customers
+- [ ] Header link text and target match on mobile and desktop
+
+### UX-03 Products above the fold on mobile PLP
+
+**Extends:** FE-18, FE-19, FE-20
+
+**Scope:** on mobile the category header is compact (title + breadcrumbs, small or no banner image), the Filters / Sort bar sticks under the header while scrolling, product name shows in full, dimensions on their own line under the name.
+
+**QA:**
+
+- [ ] At 390 × 844 the first product row is at least partly visible without scrolling
+- [ ] Filters / Sort bar stays reachable after scrolling 3 screens
+- [ ] "Adara Coffee Table Travertine & …" style truncation no longer hides size or material
+
+### UX-04 Filters quality
+
+**Extends:** FE-21
+
+**Scope:** one entry per attribute (no duplicate Material), numeric ranges sorted numerically, no empty rows, Apply button shows the count ("Show 124 products"), Filters button shows the number of active filters, PLP default sort is the merchandised position (production shows "Product Name").
+
+**QA:**
+
+- [ ] Width (cm) options read 30–39, 40–49, … 221–230
+- [ ] Apply button count matches the grid after applying
+- [ ] Default sort of /new.html is position, not name
+
+### UX-05 Search relevance
+
+**Extends:** FE-22, FE-23, D1
+
+**Scope:** exact SKU match first, then name matches; typo tolerance off for short words so "vase" does not match "Vale"; facets limited to attributes of the categories in the results.
+
+**QA:**
+
+- [ ] "vase" first page shows only vases and vessels
+- [ ] Full SKU (e.g. VG.228.ML) returns that product first
+- [ ] Vase results show no Bed Type or mattress size facets
+
+### UX-06 Chat button placement
+
+**Extends:** FE-54
+
+**Scope:** smaller Zendesk launcher, lifted above sticky bars (add to cart, filters, cookie bar), hidden while a drawer or modal is open and in checkout.
+
+**QA:**
+
+- [ ] At 390 px the launcher never covers a button or a price
+- [ ] Filters drawer and mini-cart open without the launcher on top
+
+### UX-07 Forms that autofill
+
+**Extends:** FE-35, FE-36, FE-46
+
+**Scope:** correct `autocomplete` on every field (`email`, `current-password`, `given-name`, `organization`, `tel`, `street-address`, `postal-code` …), `type="tel"` for phones, `inputmode="numeric"` for ABN and postcode, a visible label on every field. Registration split into sections Business, Contact, Accounts, Address; ABN lookup fills the company name; address autocomplete fills suburb, state, postcode.
+
+**QA:**
+
+- [ ] Browser password manager offers saved login on /customer/account/login
+- [ ] Chrome autofill fills name, company, phone, address in registration
+- [ ] On iPhone ABN and postcode open the number keypad
+- [ ] Screen reader reads a label for every field
+
+### UX-08 Accessibility baseline
+
+**Extends:** FE-02, FE-03, FE-56
+
+**Scope:** skip link to main content, visible focus on every control, one H1 per page (modals use H2), real alt text on product and content images, accessible names on icon links, tap targets at least 44 × 44 px on mobile, text contrast at least 4.5:1.
+
+**QA:**
+
+- [ ] Keyboard-only: skip link first, focus always visible, no trap
+- [ ] axe DevTools: 0 serious or critical issues on home, PLP, PDP, login, registration
+- [ ] Each page has exactly one H1
+
+### UX-09 Performance budget
+
+**Extends:** FE-08, FE-54, FE-56
+
+**Scope:** list every third-party script with marketing and keep only agreed ones (target ≤ 8 hosts), loaded after interaction or idle; fonts from our domain only; every image with width/height, below-fold images lazy; mega menu HTML not duplicated for mobile; 0 console errors.
+
+**QA:**
+
+- [ ] Lighthouse mobile on home, PLP, PDP: Performance ≥ 90, CLS < 0.1, LCP < 2.5 s
+- [ ] Network tab: third-party hosts match the agreed list
+- [ ] Console has no errors on home, PLP, PDP, cart
+
+### UX-10 Readable text
+
+**Extends:** FE-10, FE-13, FE-15
+
+**Scope:** body text left-aligned (no justify), at least 15 px, charcoal not light grey on long paragraphs; footer links at least 14 px with 44 px row height on mobile; category tile labels under the image, never clipped.
+
+**QA:**
+
+- [ ] "Our Difference" on mobile has no wide gaps between words
+- [ ] Longest category name on the tiles carousel shows in full at 390 px
+
+### UX-11 PDP essentials first
+
+**Extends:** FE-25, FE-29
+
+**Scope:** dimensions, material and MOQ / carton quantity shown next to the buy box, not only in the accordion; mobile gallery uses swipe with visible dots or thumbnails instead of arrows over the image.
+
+**QA:**
+
+- [ ] Dimensions visible without opening any accordion
+- [ ] Mobile gallery arrows do not cover the product
+
+### UX-12 Faster reordering for trade customers
+
+**Extends:** FE-19, FE-32, FE-37, FE-40
+
+**Scope:** proposals to validate with 2–3 real customers before building: paste or CSV upload of "SKU, qty" lines into Quick Order; "Buy again" list on the account dashboard; minimum order value progress bar in the mini-cart; quick add from search results.
+
+**QA:**
+
+- [ ] Paste of 20 "SKU qty" lines creates 20 Quick Order rows; bad SKUs are flagged
+- [ ] Progress bar shows the remaining amount and disappears once the minimum is met
+
+## Open decisions
+
+These decisions change the scope of the tickets named in **Affects**. Make them before those tickets start. Open Source has no Adobe Commerce features (dynamic banners, customer segments, content staging, gift cards), so nothing may depend on them.
+
+| # | Decision | Production today | Options | Affects |
+| --- | --- | --- | --- | --- |
+| D1 | Search and recommendations engine | Algolia InstantSearch + Algolia Recommend | Keep Algolia (Hyvä compat module) · native OpenSearch + Hyvä autocomplete, related/upsell from admin | FE-17, FE-22, FE-23, FE-30 |
+| D2 | Layered navigation | Aheadworks Layered Navigation | Aheadworks + Hyvä compat · Hyvä native filters with our own ranges and chips | FE-21, FE-23 |
+| D3 | Menu source | Snowdog Menu (built in admin) | Snowdog Menu + Hyvä compat · Magento category tree | FE-08, FE-09 |
+| D4 | Product reviews | Yotpo enabled, not visible to guests | Keep Yotpo · drop reviews | FE-25, FE-43 |
+| D5 | Lookbook hotspots | MGS Lookbook | **Decided:** Content Studio type `lookbook` (FE-57) | FE-49, FE-16 |
+| D6 | PDP stock / delivery data | Pronto stock, shipment service, Fusedship rates, showroom stock | Which of these exist on the new instance at launch | FE-31 |
+| D7 | Newsletter and signup popup | Klaviyo popup + footer form | Klaviyo forms · Magento newsletter + own popup | FE-11, FE-54 |
+| D8 | Product images | Cloudinary | Keep Cloudinary · native Magento images | FE-19, FE-25 |
+| D9 | Blog | Magefan Blog templates exist, /blog is 404 | Drop (recommended) · port | — |
+| D10 | Instagram feed | Overdose InstaFeed | Instagram API module · static images in CMS | FE-12, FE-50 |
+| D11 | CMS content | Adobe Page Builder + LESS classes | **Decided:** new content, no migration; Page Builder for plain text pages, own copy of Content Studio (Open Source + Hyvä) for structured blocks; no CMS Tailwind JIT | FE-14…16, FE-47…49, FE-57 |
+
+Out of scope for this list: transactional email templates, checkout features (delivery date calendar, account credit, freight) that come with their backend tickets, and writing the new CMS content.

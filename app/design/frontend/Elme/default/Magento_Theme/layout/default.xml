@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="logo">
+            <arguments>
+                <argument name="logo_file" xsi:type="string">images/logo.svg</argument>
+                <argument name="logo_width" xsi:type="number">180</argument>
+                <argument name="logo_height" xsi:type="number">38</argument>
+                <argument name="logo_alt" xsi:type="string">Elme Living</argument>
+            </arguments>
+        </referenceBlock>
+        <!-- Page titles take the Elme h1 style from elme.css instead of Hyvä's text-3xl font-bold -->
+        <referenceBlock name="page.main.title">
+            <arguments>
+                <argument name="css_class" xsi:type="string">mb-6</argument>
+            </arguments>
+        </referenceBlock>
+    </body>
+</page>

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Run a command inside the PHP container without a TTY (docker-magento convention).
+# The Hyvä AI skills (.claude/skills/hyva-exec-shell-cmd) detect this file and wrap
+# bin/magento / npm calls with it, e.g.: bin/clinotty bash -c "bin/magento cache:flush"
+exec docker exec -i -u magento -w /var/www/html elme_php "$@"
