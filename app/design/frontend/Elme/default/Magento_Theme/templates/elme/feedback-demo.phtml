@@ -31,7 +31,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             class="elme-modal"
             aria-labelledby="elme-sg-modal-title"
             x-show="modalOpen"
-            x-htmldialog="closeModal"
+            x-htmldialog.noscroll="closeModal"
             closeby="any"
             x-transition
         >
@@ -81,7 +81,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             class="elme-drawer elme-drawer-start open:flex flex-col"
             aria-labelledby="elme-sg-drawer-start-title"
             x-show="drawerStartOpen"
-            x-htmldialog="closeDrawerStart"
+            x-htmldialog.noscroll="closeDrawerStart"
             closeby="any"
             x-transition:enter="transition ease-out duration-300 motion-reduce:duration-0"
             x-transition:enter-start="-translate-x-full"
@@ -121,7 +121,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             class="elme-drawer elme-drawer-end open:flex flex-col"
             aria-labelledby="elme-sg-drawer-end-title"
             x-show="drawerEndOpen"
-            x-htmldialog="closeDrawerEnd"
+            x-htmldialog.noscroll="closeDrawerEnd"
             closeby="any"
             x-transition:enter="transition ease-out duration-300 motion-reduce:duration-0"
             x-transition:enter-start="translate-x-full"
