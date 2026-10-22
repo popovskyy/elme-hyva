@@ -89,7 +89,7 @@ $buttonClass = 'flex items-center justify-center w-11 shrink-0 text-lg text-ink 
             inputmode="numeric"
             class="w-16 h-full min-h-0 px-1 border-0 border-x border-border bg-transparent text-center
                    hover:border-border [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none
-                   [&::-webkit-outer-spin-button]:appearance-none aria-invalid:outline-0
+                   [&::-webkit-outer-spin-button]:appearance-none aria-invalid:not-focus-visible:outline-0
                    focus-visible:outline-2 focus-visible:-outline-offset-2"
             aria-describedby="<?= $escaper->escapeHtmlAttr($inputId) ?>-note"
             :value="qty"

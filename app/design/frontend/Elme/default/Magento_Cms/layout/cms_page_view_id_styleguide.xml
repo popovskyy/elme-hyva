@@ -9,6 +9,8 @@
     </head>
     <body>
         <referenceBlock name="cms_page" remove="true"/>
+        <!-- the head title would also render as a second H1; the template has its own -->
+        <referenceBlock name="page.main.title" remove="true"/>
         <referenceContainer name="content">
             <block name="elme.styleguide" template="Magento_Cms::styleguide.phtml"/>
         </referenceContainer>
