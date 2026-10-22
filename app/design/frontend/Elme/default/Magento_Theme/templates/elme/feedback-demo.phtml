@@ -1,0 +1,187 @@
+<?php
+/**
+ * Styleguide-only demos for modal and side drawer (FE-03).
+ * Proves: open/close via ×, overlay click, Esc; focus stays inside; body scroll locked.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$lucideIcons = $viewModels->require(LucideIcons::class);
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<div class="grid gap-8 lg:grid-cols-2" x-data="initElmeFeedbackDemo">
+    <div>
+        <p class="mb-2 text-label uppercase tracking-wide text-ink-subtle">
+            <?= $escaper->escapeHtml(__('Modal')) ?>
+        </p>
+        <button type="button" class="btn btn-primary" @click="openModal">
+            <?= $escaper->escapeHtml(__('Open modal')) ?>
+        </button>
+        <dialog
+            class="elme-modal"
+            aria-labelledby="elme-sg-modal-title"
+            x-show="modalOpen"
+            x-htmldialog="closeModal"
+            closeby="any"
+            x-transition
+        >
+            <div class="elme-modal__header">
+                <h3 id="elme-sg-modal-title" class="elme-modal__title" x-focus-first tabindex="-1">
+                    <?= $escaper->escapeHtml(__('Confirm action')) ?>
+                </h3>
+                <button
+                    type="button"
+                    class="elme-modal__close"
+                    @click="closeModal"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Close')) ?>"
+                >
+                    <?= $lucideIcons->xHtml('', 24, 24, ['aria-hidden' => 'true']); ?>
+                </button>
+            </div>
+            <p>
+                <?= $escaper->escapeHtml(__(
+                    'Close with ×, the overlay, or Escape. Focus stays inside while open; the page does not scroll behind.'
+                )) ?>
+            </p>
+            <div class="elme-modal__footer">
+                <button type="button" class="btn btn-outline" @click="closeModal">
+                    <?= $escaper->escapeHtml(__('Cancel')) ?>
+                </button>
+                <button type="button" class="btn btn-primary" @click="closeModal">
+                    <?= $escaper->escapeHtml(__('Confirm')) ?>
+                </button>
+            </div>
+        </dialog>
+    </div>
+
+    <div>
+        <p class="mb-2 text-label uppercase tracking-wide text-ink-subtle">
+            <?= $escaper->escapeHtml(__('Side drawer')) ?>
+        </p>
+        <div class="flex flex-wrap gap-3">
+            <button type="button" class="btn btn-secondary" @click="openDrawerStart">
+                <?= $escaper->escapeHtml(__('Open from left')) ?>
+            </button>
+            <button type="button" class="btn btn-secondary" @click="openDrawerEnd">
+                <?= $escaper->escapeHtml(__('Open from right')) ?>
+            </button>
+        </div>
+
+        <dialog
+            class="elme-drawer elme-drawer-start open:flex flex-col"
+            aria-labelledby="elme-sg-drawer-start-title"
+            x-show="drawerStartOpen"
+            x-htmldialog="closeDrawerStart"
+            closeby="any"
+            x-transition:enter="transition ease-out duration-300 motion-reduce:duration-0"
+            x-transition:enter-start="-translate-x-full"
+            x-transition:enter-end="translate-x-0"
+            x-transition:leave="transition ease-in duration-200 motion-reduce:duration-0"
+            x-transition:leave-start="translate-x-0"
+            x-transition:leave-end="-translate-x-full"
+        >
+            <div class="elme-drawer__header">
+                <h3 id="elme-sg-drawer-start-title" class="elme-drawer__title" x-focus-first tabindex="-1">
+                    <?= $escaper->escapeHtml(__('Filters')) ?>
+                </h3>
+                <button
+                    type="button"
+                    class="elme-modal__close"
+                    @click="closeDrawerStart"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Close')) ?>"
+                >
+                    <?= $lucideIcons->xHtml('', 24, 24, ['aria-hidden' => 'true']); ?>
+                </button>
+            </div>
+            <div class="elme-drawer__body">
+                <p><?= $escaper->escapeHtml(__('Used by layered navigation and the mobile menu.')) ?></p>
+                <label class="block mt-4">
+                    <span class="sr-only"><?= $escaper->escapeHtml(__('Sample filter')) ?></span>
+                    <input type="text" class="form-input w-full" placeholder="<?= $escaper->escapeHtmlAttr(__('Try Tab inside the drawer')) ?>">
+                </label>
+            </div>
+            <div class="elme-drawer__footer">
+                <button type="button" class="btn btn-primary w-full" @click="closeDrawerStart">
+                    <?= $escaper->escapeHtml(__('Apply')) ?>
+                </button>
+            </div>
+        </dialog>
+
+        <dialog
+            class="elme-drawer elme-drawer-end open:flex flex-col"
+            aria-labelledby="elme-sg-drawer-end-title"
+            x-show="drawerEndOpen"
+            x-htmldialog="closeDrawerEnd"
+            closeby="any"
+            x-transition:enter="transition ease-out duration-300 motion-reduce:duration-0"
+            x-transition:enter-start="translate-x-full"
+            x-transition:enter-end="translate-x-0"
+            x-transition:leave="transition ease-in duration-200 motion-reduce:duration-0"
+            x-transition:leave-start="translate-x-0"
+            x-transition:leave-end="translate-x-full"
+        >
+            <div class="elme-drawer__header">
+                <h3 id="elme-sg-drawer-end-title" class="elme-drawer__title" x-focus-first tabindex="-1">
+                    <?= $escaper->escapeHtml(__('Mini cart')) ?>
+                </h3>
+                <button
+                    type="button"
+                    class="elme-modal__close"
+                    @click="closeDrawerEnd"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Close')) ?>"
+                >
+                    <?= $lucideIcons->xHtml('', 24, 24, ['aria-hidden' => 'true']); ?>
+                </button>
+            </div>
+            <div class="elme-drawer__body">
+                <p><?= $escaper->escapeHtml(__('Same shell the mini-cart drawer will use (FE-32).')) ?></p>
+            </div>
+            <div class="elme-drawer__footer">
+                <button type="button" class="btn btn-primary w-full" @click="closeDrawerEnd">
+                    <?= $escaper->escapeHtml(__('View cart')) ?>
+                </button>
+            </div>
+        </dialog>
+    </div>
+</div>
+<script>
+    function initElmeFeedbackDemo() {
+        return {
+            modalOpen: false,
+            drawerStartOpen: false,
+            drawerEndOpen: false,
+
+            openModal() {
+                this.modalOpen = true;
+            },
+            closeModal() {
+                this.modalOpen = false;
+            },
+            openDrawerStart() {
+                this.drawerStartOpen = true;
+            },
+            closeDrawerStart() {
+                this.drawerStartOpen = false;
+            },
+            openDrawerEnd() {
+                this.drawerEndOpen = true;
+            },
+            closeDrawerEnd() {
+                this.drawerEndOpen = false;
+            }
+        }
+    }
+
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeFeedbackDemo', initElmeFeedbackDemo), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

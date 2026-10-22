@@ -63,4 +63,21 @@ class Styleguide implements ArgumentInterface
             ->setTemplate('Magento_Theme::elme/qty-stepper.phtml')
             ->toHtml();
     }
+
+    /**
+     * @param array<string, mixed> $data see Magento_Theme::elme/empty-state.phtml
+     */
+    public function getEmptyStateHtml(LayoutInterface $layout, array $data): string
+    {
+        return $layout->createBlock(Template::class, '', ['data' => $data])
+            ->setTemplate('Magento_Theme::elme/empty-state.phtml')
+            ->toHtml();
+    }
+
+    public function getFeedbackDemoHtml(LayoutInterface $layout): string
+    {
+        return $layout->createBlock(Template::class)
+            ->setTemplate('Magento_Theme::elme/feedback-demo.phtml')
+            ->toHtml();
+    }
 }

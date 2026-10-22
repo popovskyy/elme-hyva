@@ -1,0 +1,26 @@
+<?php
+/**
+ * Elme: full-page loading overlay (uses .elme-loader / .elme-spinner).
+ * Parent Alpine component must expose isLoading.
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\View\Element\Template;
+use Magento\Framework\Escaper;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+?>
+<div
+    class="elme-loader elme-loader--page"
+    x-show="isLoading"
+    x-cloak
+    x-transition.opacity.duration.200ms
+    role="status"
+    aria-live="polite"
+    aria-busy="true"
+>
+    <span class="elme-spinner elme-spinner--lg" aria-hidden="true"></span>
+    <span class="text-h5"><?= $escaper->escapeHtml(__('Loading…')) ?></span>
+</div>

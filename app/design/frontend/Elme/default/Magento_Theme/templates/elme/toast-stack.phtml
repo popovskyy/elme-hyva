@@ -1,0 +1,100 @@
+<?php
+/**
+ * Ephemeral toast stack (FE-03 / FE-41).
+ * Dispatch: window.dispatchEvent(new CustomEvent('elme-toast', {
+ *   detail: { type: 'success'|'error'|'notice'|'warning', text: '...', hideAfter: 4000 }
+ * }))
+ * Fixed under --elme-header-offset so toasts never cover the header.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$lucideIcons = $viewModels->require(LucideIcons::class);
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<div
+    class="elme-toast-stack"
+    x-data="initElmeToastStack"
+    x-bind="eventListeners"
+    aria-live="polite"
+    aria-relevant="additions"
+>
+    <template x-for="toast in toasts" :key="toast.id">
+        <div
+            class="message"
+            :class="toast.type"
+            role="status"
+            :aria-live="toastLive"
+        >
+            <span x-text="toast.text"></span>
+            <button
+                type="button"
+                class="shrink-0 p-2 -me-2 text-ink-muted hover:text-ink"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Close notification')) ?>"
+                @click="dismiss"
+                :data-toast-id="toast.id"
+            >
+                <?= $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']); ?>
+            </button>
+        </div>
+    </template>
+</div>
+<script>
+    function initElmeToastStack() {
+        return {
+            toasts: [],
+            nextId: 1,
+            defaultHideAfter: 5000,
+
+            eventListeners: {
+                ['@elme-toast.window'](event) {
+                    this.pushToast(event.detail || {});
+                }
+            },
+
+            pushToast(detail) {
+                const text = (detail.text || '').trim();
+                if (!text) return;
+
+                const id = this.nextId++;
+                const type = detail.type || 'notice';
+                const hideAfter = detail.hideAfter === 0
+                    ? 0
+                    : (detail.hideAfter || this.defaultHideAfter);
+
+                this.toasts.push({ id, type, text });
+
+                if (hideAfter > 0) {
+                    setTimeout(() => this.removeById(id), hideAfter);
+                }
+            },
+
+            dismiss() {
+                const id = Number(this.$el.dataset.toastId);
+                this.removeById(id);
+            },
+
+            removeById(id) {
+                this.toasts = this.toasts.filter((toast) => toast.id !== id);
+            },
+
+            toastLive() {
+                return this.toast.type === 'error' ? 'assertive' : 'polite';
+            }
+        }
+    }
+
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeToastStack', initElmeToastStack), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
