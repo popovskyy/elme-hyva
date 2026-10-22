@@ -32,9 +32,12 @@ $buttons = [
     'btn-outline' => __('Outline'),
     'btn-link' => __('Link'),
 ];
-$selectOptions = [__('Choose an option'), __('Retailer'), __('Interior designer'), __('Hospitality')];
 $sectionClass = 'py-8 border-t border-divider';
 $captionClass = 'mb-2 text-label uppercase tracking-wide text-ink-subtle';
+$skuOptions = [];
+for ($i = 1; $i <= 40; $i++) {
+    $skuOptions[] = sprintf('SKU-%03d Soft linen cushion %d', $i, $i);
+}
 ?>
 <div class="pt-6 pb-12">
     <h1 class="mb-4"><?= $escaper->escapeHtml(__('Style guide')) ?></h1>
@@ -135,34 +138,6 @@ $captionClass = 'mb-2 text-label uppercase tracking-wide text-ink-subtle';
                 </ul>
             </div>
             <div class="field">
-                <label class="label" for="sg-select"><?= $escaper->escapeHtml(__('Business type')) ?></label>
-                <select id="sg-select" class="form-select w-full">
-                    <?php foreach ($selectOptions as $option): ?>
-                        <option><?= $escaper->escapeHtml($option) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="field">
-                <label class="label" for="sg-select-disabled"><?= $escaper->escapeHtml(__('Business type (disabled)')) ?></label>
-                <select id="sg-select-disabled" class="form-select w-full" disabled>
-                    <?php foreach ($selectOptions as $option): ?>
-                        <option><?= $escaper->escapeHtml($option) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="field required field-error">
-                <label class="label" for="sg-select-error"><?= $escaper->escapeHtml(__('Business type (error)')) ?></label>
-                <select id="sg-select-error" class="form-select w-full" aria-invalid="true"
-                        aria-describedby="sg-select-error-msg" required>
-                    <?php foreach ($selectOptions as $option): ?>
-                        <option><?= $escaper->escapeHtml($option) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <ul class="messages" id="sg-select-error-msg">
-                    <li><?= $escaper->escapeHtml(__('This is a required field.')) ?></li>
-                </ul>
-            </div>
-            <div class="field">
                 <label class="label" for="sg-textarea"><?= $escaper->escapeHtml(__('Delivery instructions')) ?></label>
                 <textarea id="sg-textarea" class="form-textarea w-full" rows="4"
                           placeholder="<?= $escaper->escapeHtmlAttr(__('Additional comments & delivery instructions?')) ?>"></textarea>
@@ -178,6 +153,150 @@ $captionClass = 'mb-2 text-label uppercase tracking-wide text-ink-subtle';
                 <ul class="messages" id="sg-textarea-error-msg">
                     <li><?= $escaper->escapeHtml(__('Please enter no more than 200 characters.')) ?></li>
                 </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-select">
+        <h2 id="sg-select" class="mb-6"><?= $escaper->escapeHtml(__('Custom select')) ?></h2>
+        <p class="max-w-2xl mb-6 text-ink-subtle">
+            <?= $escaper->escapeHtml(__(
+                'Replaces native selects site-wide. A real select element stays in the DOM for forms and no-JS. '
+                . 'On phones (under 768px) the list opens as a bottom sheet.'
+            )) ?>
+        </p>
+        <div class="grid gap-x-8 gap-y-6 md:grid-cols-2 xl:grid-cols-3">
+            <div class="field">
+                <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Single')) ?></p>
+                <label class="label" for="sg-cs-single"><?= $escaper->escapeHtml(__('Business type')) ?></label>
+                <select id="sg-cs-single" class="form-select w-full" name="sg_cs_single"
+                        data-elme-searchable="0">
+                    <option value=""><?= $escaper->escapeHtml(__('Choose an option')) ?></option>
+                    <option value="retailer"><?= $escaper->escapeHtml(__('Retailer')) ?></option>
+                    <option value="designer"><?= $escaper->escapeHtml(__('Interior designer')) ?></option>
+                    <option value="hospitality"><?= $escaper->escapeHtml(__('Hospitality')) ?></option>
+                </select>
+            </div>
+            <div class="field">
+                <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Multi (chips + overflow)')) ?></p>
+                <label class="label" for="sg-cs-multi"><?= $escaper->escapeHtml(__('Showrooms')) ?></label>
+                <select id="sg-cs-multi" class="form-select w-full" name="sg_cs_multi[]" multiple
+                        data-elme-searchable="0" data-elme-chip-max="2">
+                    <option value="sydney" selected><?= $escaper->escapeHtml(__('Sydney')) ?></option>
+                    <option value="melbourne" selected><?= $escaper->escapeHtml(__('Melbourne')) ?></option>
+                    <option value="brisbane" selected><?= $escaper->escapeHtml(__('Brisbane')) ?></option>
+                    <option value="perth"><?= $escaper->escapeHtml(__('Perth')) ?></option>
+                    <option value="adelaide"><?= $escaper->escapeHtml(__('Adelaide')) ?></option>
+                </select>
+            </div>
+            <div class="field">
+                <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Searchable')) ?></p>
+                <label class="label" for="sg-cs-search"><?= $escaper->escapeHtml(__('State')) ?></label>
+                <select id="sg-cs-search" class="form-select w-full" name="sg_cs_search"
+                        data-elme-searchable="1">
+                    <option value=""><?= $escaper->escapeHtml(__('Please select a region, state or province.')) ?></option>
+                    <option value="ACT"><?= $escaper->escapeHtml(__('Australian Capital Territory')) ?></option>
+                    <option value="NSW"><?= $escaper->escapeHtml(__('New South Wales')) ?></option>
+                    <option value="NT"><?= $escaper->escapeHtml(__('Northern Territory')) ?></option>
+                    <option value="QLD"><?= $escaper->escapeHtml(__('Queensland')) ?></option>
+                    <option value="SA"><?= $escaper->escapeHtml(__('South Australia')) ?></option>
+                    <option value="TAS"><?= $escaper->escapeHtml(__('Tasmania')) ?></option>
+                    <option value="VIC"><?= $escaper->escapeHtml(__('Victoria')) ?></option>
+                    <option value="WA"><?= $escaper->escapeHtml(__('Western Australia')) ?></option>
+                </select>
+            </div>
+            <div class="field">
+                <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Icons')) ?></p>
+                <label class="label" for="sg-cs-icons"><?= $escaper->escapeHtml(__('Business type (icons)')) ?></label>
+                <select id="sg-cs-icons" class="form-select w-full" name="sg_cs_icons" data-elme-searchable="0">
+                    <option value=""><?= $escaper->escapeHtml(__('Choose an option')) ?></option>
+                    <option value="retailer" data-icon="store"><?= $escaper->escapeHtml(__('Retailer')) ?></option>
+                    <option value="designer" data-icon="palette"><?= $escaper->escapeHtml(__('Interior designer')) ?></option>
+                    <option value="hospitality" data-icon="building"><?= $escaper->escapeHtml(__('Hospitality')) ?></option>
+                </select>
+            </div>
+            <div class="field">
+                <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Colour swatches')) ?></p>
+                <label class="label" for="sg-cs-swatch"><?= $escaper->escapeHtml(__('Finish')) ?></label>
+                <select id="sg-cs-swatch" class="form-select w-full" name="sg_cs_swatch" data-elme-searchable="0">
+                    <option value=""><?= $escaper->escapeHtml(__('Choose a finish')) ?></option>
+                    <option value="olive" data-color="#677858"><?= $escaper->escapeHtml(__('Olive')) ?></option>
+                    <option value="sand" data-color="#D4C8B3"><?= $escaper->escapeHtml(__('Sand')) ?></option>
+                    <option value="charcoal" data-color="#3A3935"><?= $escaper->escapeHtml(__('Charcoal')) ?></option>
+                    <option value="slate" data-color="#98A8BB"><?= $escaper->escapeHtml(__('Slate')) ?></option>
+                </select>
+            </div>
+            <div class="field">
+                <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Grouped')) ?></p>
+                <label class="label" for="sg-cs-group"><?= $escaper->escapeHtml(__('Region')) ?></label>
+                <select id="sg-cs-group" class="form-select w-full" name="sg_cs_group" data-elme-searchable="1">
+                    <option value=""><?= $escaper->escapeHtml(__('Choose a region')) ?></option>
+                    <optgroup label="<?= $escaper->escapeHtmlAttr(__('Australia')) ?>">
+                        <option value="NSW"><?= $escaper->escapeHtml(__('New South Wales')) ?></option>
+                        <option value="VIC"><?= $escaper->escapeHtml(__('Victoria')) ?></option>
+                        <option value="QLD"><?= $escaper->escapeHtml(__('Queensland')) ?></option>
+                    </optgroup>
+                    <optgroup label="<?= $escaper->escapeHtmlAttr(__('New Zealand')) ?>">
+                        <option value="AUK"><?= $escaper->escapeHtml(__('Auckland')) ?></option>
+                        <option value="WGN"><?= $escaper->escapeHtml(__('Wellington')) ?></option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="field">
+                <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Disabled option')) ?></p>
+                <label class="label" for="sg-cs-opt-disabled"><?= $escaper->escapeHtml(__('Delivery window')) ?></label>
+                <select id="sg-cs-opt-disabled" class="form-select w-full" name="sg_cs_opt_disabled"
+                        data-elme-searchable="0">
+                    <option value=""><?= $escaper->escapeHtml(__('Choose a window')) ?></option>
+                    <option value="am"><?= $escaper->escapeHtml(__('Morning')) ?></option>
+                    <option value="pm" disabled><?= $escaper->escapeHtml(__('Afternoon (unavailable)')) ?></option>
+                    <option value="eve"><?= $escaper->escapeHtml(__('Evening')) ?></option>
+                </select>
+            </div>
+            <div class="field">
+                <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Disabled control')) ?></p>
+                <label class="label" for="sg-cs-disabled"><?= $escaper->escapeHtml(__('Business type (disabled)')) ?></label>
+                <select id="sg-cs-disabled" class="form-select w-full" name="sg_cs_disabled" disabled
+                        data-elme-searchable="0">
+                    <option value="retailer" selected><?= $escaper->escapeHtml(__('Retailer')) ?></option>
+                    <option value="designer"><?= $escaper->escapeHtml(__('Interior designer')) ?></option>
+                </select>
+            </div>
+            <div class="field required field-error">
+                <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Error')) ?></p>
+                <label class="label" for="sg-cs-error"><?= $escaper->escapeHtml(__('Business type (error)')) ?></label>
+                <select id="sg-cs-error" class="form-select w-full" name="sg_cs_error" required
+                        aria-invalid="true" aria-describedby="sg-cs-error-msg" data-elme-searchable="0">
+                    <option value=""><?= $escaper->escapeHtml(__('Choose an option')) ?></option>
+                    <option value="retailer"><?= $escaper->escapeHtml(__('Retailer')) ?></option>
+                    <option value="designer"><?= $escaper->escapeHtml(__('Interior designer')) ?></option>
+                </select>
+                <ul class="messages" id="sg-cs-error-msg">
+                    <li><?= $escaper->escapeHtml(__('This is a required field.')) ?></li>
+                </ul>
+            </div>
+            <div class="field">
+                <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Loading')) ?></p>
+                <label class="label" for="sg-cs-loading"><?= $escaper->escapeHtml(__('SKU search (loading)')) ?></label>
+                <select id="sg-cs-loading" class="form-select w-full" name="sg_cs_loading"
+                        data-elme-loading="1" data-elme-searchable="1">
+                    <option value=""><?= $escaper->escapeHtml(__('Loading SKUs…')) ?></option>
+                </select>
+            </div>
+            <div class="field md:col-span-2">
+                <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Async / 300+ options (Quick Order demo)')) ?></p>
+                <label class="label" for="sg-cs-async"><?= $escaper->escapeHtml(__('SKU')) ?></label>
+                <select id="sg-cs-async" class="form-select w-full" name="sg_cs_async"
+                        data-elme-async-demo="1" data-elme-searchable="1"
+                        data-elme-placeholder="<?= $escaper->escapeHtmlAttr(__('Type a SKU or product name')) ?>">
+                    <option value=""><?= $escaper->escapeHtml(__('Type a SKU or product name')) ?></option>
+                    <?php foreach ($skuOptions as $i => $label): ?>
+                        <option value="SKU-<?= $escaper->escapeHtmlAttr(sprintf('%03d', $i + 1)) ?>">
+                            <?= $escaper->escapeHtml($label) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <p class="field-note"><?= $escaper->escapeHtml(__('Filters a 320-item demo list as you type (accent/case insensitive).')) ?></p>
             </div>
         </div>
     </section>

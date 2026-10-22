@@ -1,0 +1,1619 @@
+<?php
+/**
+ * FE-59: CSP-compatible custom select (combobox / listbox) that wraps a real <select>.
+ * Loaded once site-wide; enhances select.form-select unless data-elme-select-skip is set.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<template id="elme-select-ui">
+    <div
+        class="elme-select__control"
+        :class="controlClasses"
+        @click="onControlClick"
+    >
+        <ul class="elme-select__chips" x-show="showChips" x-cloak>
+            <template x-for="chip in visibleChips" :key="chip.value">
+                <li class="elme-select__chip">
+                    <span
+                        class="elme-select__swatch"
+                        x-show="chipHasSwatch"
+                        :style="chipSwatchStyle"
+                        x-cloak
+                    ></span>
+                    <span class="elme-select__chip-label" x-text="chipLabel"></span>
+                    <button
+                        type="button"
+                        class="elme-select__chip-remove"
+                        @click.stop="removeChip"
+                        :data-value="chip.value"
+                        :aria-label="chipRemoveLabel"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M18 6 6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </li>
+            </template>
+            <li class="elme-select__chip-more" x-show="hasOverflowChips" x-text="overflowLabel" x-cloak></li>
+        </ul>
+        <button
+            type="button"
+            class="elme-select__trigger"
+            x-ref="trigger"
+            role="combobox"
+            :id="triggerId"
+            :aria-controls="listboxId"
+            :aria-expanded="isOpen"
+            :aria-activedescendant="activeDescendant"
+            aria-haspopup="listbox"
+            :aria-label="triggerAriaLabel"
+            :aria-invalid="isInvalid"
+            :aria-busy="isLoading"
+            :disabled="isDisabled"
+            @keydown="onTriggerKeydown"
+            @click.stop="toggle"
+        >
+            <span
+                class="elme-select__swatch"
+                x-show="showTriggerSwatch"
+                :style="triggerSwatchStyle"
+                x-cloak
+            ></span>
+            <img
+                class="elme-select__media"
+                x-show="showTriggerImage"
+                :src="triggerImage"
+                alt=""
+                width="20"
+                height="20"
+                x-cloak
+            >
+            <span
+                class="elme-select__icon"
+                x-show="showTriggerIcon"
+                x-html="triggerIconHtml"
+                x-cloak
+            ></span>
+            <span class="elme-select__value" :class="valueClasses" x-text="displayLabel"></span>
+        </button>
+        <span class="elme-select__spinner" x-show="isLoading" x-cloak aria-hidden="true"></span>
+        <svg
+            class="elme-select__chevron"
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+            x-show="isNotLoading"
+            x-cloak
+        >
+            <path d="m6 9 6 6 6-6"/>
+        </svg>
+    </div>
+
+    <div
+        class="elme-select__panel"
+        x-ref="panel"
+        x-show="isDesktopOpen"
+        x-cloak
+        @keydown="onPanelKeydown"
+        :style="panelStyle"
+    >
+        <div class="elme-select__search" x-show="isSearchable" x-cloak>
+            <label class="sr-only" :for="searchId"><?= $escaper->escapeHtml(__('Search options')) ?></label>
+            <input
+                type="search"
+                class="elme-select__search-input"
+                x-ref="search"
+                :id="searchId"
+                :value="query"
+                @input="onSearchInput"
+                @keydown="onSearchKeydown"
+                autocomplete="off"
+                placeholder="<?= $escaper->escapeHtmlAttr(__('Search')) ?>"
+            >
+        </div>
+        <ul
+            class="elme-select__list"
+            x-ref="listbox"
+            role="listbox"
+            :id="listboxId"
+            :aria-multiselectable="isMultiple"
+            :aria-label="listboxLabel"
+        >
+            <template x-for="row in visibleRows" :key="row.key">
+                <li
+                    :class="rowClasses"
+                    :id="optionDomId"
+                    :role="rowRole"
+                    :aria-selected="isOptionSelected"
+                    :aria-disabled="isOptionDisabled"
+                    :data-option-id="row.id"
+                    @click="selectOption"
+                    @mousemove="activateOption"
+                >
+                    <span x-show="isRowGroup" x-text="rowLabel"></span>
+                    <span class="elme-select__swatch" x-show="optionHasSwatch" :style="optionSwatchStyle" x-cloak></span>
+                    <img class="elme-select__media" x-show="optionHasImage" :src="optionImage" alt="" width="20" height="20" x-cloak>
+                    <span class="elme-select__icon" x-show="optionHasIcon" x-html="optionIconHtml" x-cloak></span>
+                    <span class="elme-select__option-label" x-show="isRowOption" x-html="optionLabelHtml"></span>
+                    <svg
+                        class="elme-select__check"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        aria-hidden="true"
+                        x-show="showOptionCheck"
+                        x-cloak
+                    >
+                        <path d="M20 6 9 17l-5-5"/>
+                    </svg>
+                </li>
+            </template>
+            <li class="elme-select__empty" x-show="isEmpty" x-text="emptyLabel" x-cloak></li>
+        </ul>
+    </div>
+
+    <template x-teleport="body">
+        <div
+            class="elme-select-sheet"
+            x-show="isSheetOpen"
+            x-cloak
+            x-ref="sheet"
+            :id="sheetId"
+            @keydown="onPanelKeydown"
+        >
+            <button
+                type="button"
+                class="elme-select-sheet__backdrop"
+                tabindex="-1"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Close')) ?>"
+                @click="close"
+            ></button>
+            <div
+                class="elme-select-sheet__panel"
+                x-ref="sheetPanel"
+                :style="sheetPanelStyle"
+                @touchstart.passive="onSheetTouchStart"
+                @touchmove="onSheetTouchMove"
+                @touchend="onSheetTouchEnd"
+            >
+                <div class="elme-select-sheet__handle" aria-hidden="true">
+                    <span class="elme-select-sheet__handle-bar"></span>
+                </div>
+                <h3 class="elme-select-sheet__title" x-text="sheetTitle"></h3>
+                <div class="elme-select__search" x-show="isSearchable" x-cloak>
+                    <label class="sr-only" :for="sheetSearchId"><?= $escaper->escapeHtml(__('Search options')) ?></label>
+                    <input
+                        type="search"
+                        class="elme-select__search-input"
+                        x-ref="sheetSearch"
+                        :id="sheetSearchId"
+                        :value="query"
+                        @input="onSearchInput"
+                        @keydown="onSearchKeydown"
+                        autocomplete="off"
+                        placeholder="<?= $escaper->escapeHtmlAttr(__('Search')) ?>"
+                    >
+                </div>
+                <ul
+                    class="elme-select__list"
+                    role="listbox"
+                    :id="sheetListboxId"
+                    :aria-multiselectable="isMultiple"
+                    :aria-label="listboxLabel"
+                >
+                    <template x-for="row in visibleRows" :key="row.key">
+                        <li
+                            :class="rowClasses"
+                            :id="sheetOptionDomId"
+                            :role="rowRole"
+                            :aria-selected="isOptionSelected"
+                            :aria-disabled="isOptionDisabled"
+                            :data-option-id="row.id"
+                            @click="selectOption"
+                            @mousemove="activateOption"
+                        >
+                            <span x-show="isRowGroup" x-text="rowLabel"></span>
+                            <span class="elme-select__swatch" x-show="optionHasSwatch" :style="optionSwatchStyle" x-cloak></span>
+                            <img class="elme-select__media" x-show="optionHasImage" :src="optionImage" alt="" width="20" height="20" x-cloak>
+                            <span class="elme-select__icon" x-show="optionHasIcon" x-html="optionIconHtml" x-cloak></span>
+                            <span class="elme-select__option-label" x-show="isRowOption" x-html="optionLabelHtml"></span>
+                            <svg
+                                class="elme-select__check"
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                aria-hidden="true"
+                                x-show="showOptionCheck"
+                                x-cloak
+                            >
+                                <path d="M20 6 9 17l-5-5"/>
+                            </svg>
+                        </li>
+                    </template>
+                    <li class="elme-select__empty" x-show="isEmpty" x-text="emptyLabel" x-cloak></li>
+                </ul>
+            </div>
+        </div>
+    </template>
+</template>
+<script>
+    function initElmeSelect() {
+        return {
+            open: false,
+            query: '',
+            rows: [],
+            activeId: null,
+            selectedValues: [],
+            multiple: false,
+            searchable: false,
+            loading: false,
+            disabled: false,
+            invalid: false,
+            isMobile: false,
+            chipMax: 2,
+            placeholder: '',
+            label: '',
+            emptyLabel: <?= /* @noEscape */ json_encode((string) __('No results')) ?>,
+            asyncUrl: '',
+            asyncDemo: false,
+            demoItems: [],
+            uid: '',
+            panelStyle: {},
+            sheetPanelStyle: {},
+            typeahead: '',
+            typeaheadTimer: null,
+            asyncTimer: null,
+            touchStartY: 0,
+            touchDeltaY: 0,
+            mediaQuery: null,
+            nativeObserver: null,
+            fieldObserver: null,
+            positionRaf: 0,
+            boundOnReposition: null,
+            boundOnDocPointer: null,
+            scrollLocked: false,
+
+            init() {
+                this.uid = 'elme-sel-' + Math.random().toString(36).slice(2, 9);
+                const native = this.nativeEl();
+                if (!native) {
+                    return;
+                }
+
+                const data = this.$root.dataset;
+                this.multiple = native.multiple || data.multiple === '1' || data.multiple === 'true';
+                if (data.searchable === '0' || data.searchable === 'false') {
+                    this.searchable = false;
+                } else if (data.searchable === '1' || data.searchable === 'true') {
+                    this.searchable = true;
+                } else {
+                    this.searchable = native.options.length >= 8;
+                }
+                this.loading = data.loading === '1' || data.loading === 'true';
+                this.chipMax = Math.max(1, parseInt(data.chipMax || '2', 10) || 2);
+                this.placeholder = data.placeholder
+                    || (native.options[0] && native.options[0].value === '' ? native.options[0].text : '')
+                    || <?= /* @noEscape */ json_encode((string) __('Choose an option')) ?>;
+                this.label = data.label || this.findLabelText(native) || this.placeholder;
+                this.asyncUrl = data.asyncUrl || '';
+                this.asyncDemo = data.asyncDemo === '1' || data.asyncDemo === 'true';
+                if (this.asyncDemo) {
+                    this.demoItems = this.buildDemoItems();
+                    this.searchable = true;
+                }
+
+                this.$root.classList.add('is-enhanced');
+                this.syncFromNative();
+                this.readDisabledInvalid();
+                this.watchNative();
+                this.setupMediaQuery();
+                this.boundOnReposition = () => this.schedulePosition();
+                this.boundOnDocPointer = (event) => this.onDocumentPointer(event);
+
+                // Keep Hyvä validation focus on the visible control
+                native.addEventListener('focus', () => {
+                    const trigger = this.ref('trigger');
+                    if (trigger && !this.disabled) {
+                        trigger.focus();
+                    }
+                });
+
+                this.$watch('open', (value) => {
+                    if (value) {
+                        this.onOpen();
+                    } else {
+                        this.onClose();
+                    }
+                });
+            },
+
+            destroy() {
+                this.unlockScroll();
+                this.teardownPositionListeners();
+                if (this.nativeObserver) {
+                    this.nativeObserver.disconnect();
+                }
+                if (this.fieldObserver) {
+                    this.fieldObserver.disconnect();
+                }
+                if (this.mediaQuery) {
+                    this.mediaQuery.removeEventListener('change', this.onMediaChange);
+                }
+                if (this.typeaheadTimer) {
+                    clearTimeout(this.typeaheadTimer);
+                }
+                if (this.asyncTimer) {
+                    clearTimeout(this.asyncTimer);
+                }
+            },
+
+            /**
+             * After dynamic template clone + Alpine.initTree, Alpine's $refs magic
+             * can stay empty while $root._x_refs is populated (QA FE-59). Prefer
+             * $refs, then _x_refs, then querySelector / id fallbacks.
+             */
+            ref(name) {
+                try {
+                    const fromMagic = this.$refs && this.$refs[name];
+                    if (fromMagic) {
+                        return fromMagic;
+                    }
+                } catch (e) {
+                    // ignore
+                }
+                const root = this.$root;
+                if (root && root._x_refs && root._x_refs[name]) {
+                    return root._x_refs[name];
+                }
+                if (root) {
+                    const local = root.querySelector('[x-ref="' + name + '"]');
+                    if (local) {
+                        return local;
+                    }
+                }
+                if (name === 'trigger') {
+                    return document.getElementById(this.triggerId());
+                }
+                if (name === 'search') {
+                    return document.getElementById(this.searchId());
+                }
+                if (name === 'sheetSearch') {
+                    return document.getElementById(this.sheetSearchId());
+                }
+                if (name === 'listbox') {
+                    return document.getElementById(this.listboxId());
+                }
+                if (name === 'panel' && root) {
+                    return root.querySelector('.elme-select__panel');
+                }
+                if (name === 'sheet') {
+                    return document.getElementById(this.sheetId());
+                }
+                if (name === 'sheetPanel') {
+                    const sheet = this.ref('sheet');
+                    return sheet ? sheet.querySelector('.elme-select-sheet__panel') : null;
+                }
+                return null;
+            },
+
+            nativeEl() {
+                return this.ref('native') || this.$root.querySelector('select');
+            },
+
+            findLabelText(native) {
+                if (native.getAttribute('aria-label')) {
+                    return native.getAttribute('aria-label');
+                }
+                if (native.id) {
+                    const label = document.querySelector('label[for="' + CSS.escape(native.id) + '"]');
+                    if (label) {
+                        return label.textContent.replace(/\s+/g, ' ').trim();
+                    }
+                }
+                const wrapping = native.closest('label');
+                if (wrapping) {
+                    return wrapping.textContent.replace(/\s+/g, ' ').trim();
+                }
+                return '';
+            },
+
+            buildDemoItems() {
+                const items = [];
+                for (let i = 1; i <= 320; i++) {
+                    const n = String(i).padStart(3, '0');
+                    items.push({
+                        value: 'SKU-' + n,
+                        label: 'SKU-' + n + ' Soft linen cushion ' + n,
+                        disabled: false,
+                        group: i <= 100 ? 'Cushions' : (i <= 200 ? 'Throws' : 'Bedding'),
+                        color: '',
+                        image: '',
+                        icon: ''
+                    });
+                }
+                return items;
+            },
+
+            setupMediaQuery() {
+                this.mediaQuery = window.matchMedia('(max-width: 767px)');
+                this.isMobile = this.mediaQuery.matches;
+                this.onMediaChange = () => {
+                    const wasOpen = this.open;
+                    this.isMobile = this.mediaQuery.matches;
+                    if (wasOpen) {
+                        this.$nextTick(() => {
+                            if (this.isMobile) {
+                                this.lockScroll();
+                                this.focusSearch();
+                            } else {
+                                this.unlockScroll();
+                                this.schedulePosition();
+                                this.focusSearch();
+                            }
+                        });
+                    }
+                };
+                this.mediaQuery.addEventListener('change', this.onMediaChange);
+            },
+
+            watchNative() {
+                const native = this.nativeEl();
+                if (!native) {
+                    return;
+                }
+                this.nativeObserver = new MutationObserver(() => {
+                    this.syncFromNative();
+                    this.readDisabledInvalid();
+                });
+                this.nativeObserver.observe(native, {
+                    attributes: true,
+                    attributeFilter: ['disabled', 'aria-invalid', 'multiple'],
+                    childList: true,
+                    subtree: true
+                });
+                native.addEventListener('change', () => this.syncFromNative());
+
+                const field = native.closest('.field');
+                if (field) {
+                    this.fieldObserver = new MutationObserver(() => this.readDisabledInvalid());
+                    this.fieldObserver.observe(field, { attributes: true, attributeFilter: ['class'] });
+                }
+            },
+
+            readDisabledInvalid() {
+                const native = this.nativeEl();
+                if (!native) {
+                    return;
+                }
+                this.disabled = native.disabled || this.$root.dataset.disabled === '1';
+                const field = native.closest('.field');
+                this.invalid = native.getAttribute('aria-invalid') === 'true'
+                    || (field && field.classList.contains('field-error'));
+                this.$root.classList.toggle('is-disabled', this.disabled);
+                this.$root.classList.toggle('is-error', this.invalid);
+                this.$root.classList.toggle('is-open', this.open);
+                this.$root.classList.toggle('is-loading', this.loading);
+            },
+
+            syncFromNative() {
+                const native = this.nativeEl();
+                if (!native) {
+                    return;
+                }
+                if (this.asyncDemo && this.demoItems.length) {
+                    const norm = this.normalize(this.query);
+                    const filtered = this.demoItems.filter((item) =>
+                        !norm
+                        || this.normalize(item.label).includes(norm)
+                        || this.normalize(item.value).includes(norm)
+                    ).slice(0, 80);
+                    this.rows = this.rowsFromDemo(filtered.length ? filtered : this.demoItems.slice(0, 40));
+                } else {
+                    this.rows = this.rowsFromSelect(native);
+                }
+                this.selectedValues = Array.from(native.selectedOptions).map((opt) => opt.value);
+                if (!this.multiple && this.selectedValues.length === 0 && native.value) {
+                    this.selectedValues = [native.value];
+                }
+            },
+
+            rowsFromSelect(native) {
+                const rows = [];
+                let groupLabel = '';
+                Array.from(native.children).forEach((child, index) => {
+                    if (child.tagName === 'OPTGROUP') {
+                        groupLabel = child.label || '';
+                        rows.push({
+                            kind: 'group',
+                            key: 'g-' + index + '-' + groupLabel,
+                            label: groupLabel,
+                            id: null,
+                            value: null,
+                            disabled: false,
+                            color: '',
+                            image: '',
+                            icon: ''
+                        });
+                        Array.from(child.children).forEach((opt, optIndex) => {
+                            rows.push(this.optionRow(opt, 'g' + index + '-' + optIndex, groupLabel));
+                        });
+                    } else if (child.tagName === 'OPTION') {
+                        rows.push(this.optionRow(child, 'o-' + index, ''));
+                    }
+                });
+                return rows;
+            },
+
+            rowsFromDemo(items) {
+                const rows = [];
+                let lastGroup = null;
+                items.forEach((item, index) => {
+                    if (item.group && item.group !== lastGroup) {
+                        lastGroup = item.group;
+                        rows.push({
+                            kind: 'group',
+                            key: 'dg-' + lastGroup,
+                            label: lastGroup,
+                            id: null,
+                            value: null,
+                            disabled: false,
+                            color: '',
+                            image: '',
+                            icon: ''
+                        });
+                    }
+                    rows.push({
+                        kind: 'option',
+                        key: 'd-' + item.value,
+                        id: 'd-' + index,
+                        value: item.value,
+                        label: item.label,
+                        disabled: !!item.disabled,
+                        color: item.color || '',
+                        image: item.image || '',
+                        icon: item.icon || '',
+                        group: item.group || ''
+                    });
+                });
+                return rows;
+            },
+
+            optionRow(opt, id, group) {
+                return {
+                    kind: 'option',
+                    key: id + '-' + opt.value,
+                    id: id,
+                    value: opt.value,
+                    label: (opt.textContent || '').trim(),
+                    disabled: opt.disabled,
+                    color: opt.dataset.color || opt.dataset.swatch || '',
+                    image: opt.dataset.image || '',
+                    icon: opt.dataset.icon || '',
+                    group: group || ''
+                };
+            },
+
+            optionRows() {
+                return this.rows.filter((row) => row.kind === 'option');
+            },
+
+            normalize(value) {
+                return String(value || '')
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLowerCase();
+            },
+
+            escapeHtml(value) {
+                return String(value || '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;');
+            },
+
+            highlight(label) {
+                const text = String(label || '');
+                const q = this.normalize(this.query);
+                if (!q) {
+                    return this.escapeHtml(text);
+                }
+                const lower = text.toLowerCase();
+                const normFull = this.normalize(text);
+                const idx = normFull.indexOf(q);
+                if (idx < 0) {
+                    return this.escapeHtml(text);
+                }
+                // Approximate highlight using case-insensitive match on the raw string
+                const rawIdx = lower.indexOf(this.query.toLowerCase());
+                if (rawIdx >= 0) {
+                    const end = rawIdx + this.query.length;
+                    return this.escapeHtml(text.slice(0, rawIdx))
+                        + '<mark>' + this.escapeHtml(text.slice(rawIdx, end)) + '</mark>'
+                        + this.escapeHtml(text.slice(end));
+                }
+                return this.escapeHtml(text);
+            },
+
+            iconSvg(name) {
+                const icons = {
+                    store: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/><path d="m3 9 2.45-4.9A2 2 0 0 1 7.24 3h9.52a2 2 0 0 1 1.8 1.1L21 9"/><path d="M12 3v6"/></svg>',
+                    palette: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>',
+                    building: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/></svg>',
+                    package: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/></svg>'
+                };
+                return icons[name] || '';
+            },
+
+            filteredOptionIds() {
+                const q = this.normalize(this.query);
+                return this.optionRows()
+                    .filter((row) => !q || this.normalize(row.label).includes(q) || this.normalize(row.value).includes(q))
+                    .map((row) => row.id);
+            },
+
+            visibleRows() {
+                const q = this.normalize(this.query);
+                if (!q) {
+                    return this.rows;
+                }
+                const matched = new Set(this.filteredOptionIds());
+                const out = [];
+                let pendingGroup = null;
+                this.rows.forEach((row) => {
+                    if (row.kind === 'group') {
+                        pendingGroup = row;
+                        return;
+                    }
+                    if (matched.has(row.id)) {
+                        if (pendingGroup) {
+                            out.push(pendingGroup);
+                            pendingGroup = null;
+                        }
+                        out.push(row);
+                    }
+                });
+                return out;
+            },
+
+            visibleOptions() {
+                return this.visibleRows().filter((row) => row.kind === 'option');
+            },
+
+            selectedOptions() {
+                const set = new Set(this.selectedValues);
+                return this.optionRows().filter((row) => set.has(row.value) && row.value !== '');
+            },
+
+            primarySelected() {
+                const selected = this.selectedOptions();
+                return selected.length ? selected[0] : null;
+            },
+
+            displayLabel() {
+                if (this.multiple) {
+                    if (!this.selectedOptions().length) {
+                        return this.placeholder;
+                    }
+                    return '';
+                }
+                const selected = this.primarySelected();
+                if (!selected || selected.value === '') {
+                    return this.placeholder;
+                }
+                return selected.label;
+            },
+
+            showChips() {
+                return this.multiple && this.selectedOptions().length > 0;
+            },
+
+            visibleChips() {
+                return this.selectedOptions().slice(0, this.chipMax);
+            },
+
+            hasOverflowChips() {
+                return this.selectedOptions().length > this.chipMax;
+            },
+
+            overflowLabel() {
+                const n = this.selectedOptions().length - this.chipMax;
+                return n > 0
+                    ? hyva.str(<?= /* @noEscape */ json_encode((string) __('%1 selected')) ?>, String(this.selectedOptions().length))
+                    : '';
+            },
+
+            chipLabel() {
+                return this.chip.label;
+            },
+
+            chipHasSwatch() {
+                return !!this.chip.color;
+            },
+
+            chipSwatchStyle() {
+                return this.chip.color ? { backgroundColor: this.chip.color } : {};
+            },
+
+            chipRemoveLabel() {
+                return hyva.str(<?= /* @noEscape */ json_encode((string) __('Remove %1')) ?>, this.chip.label);
+            },
+
+            showTriggerSwatch() {
+                return !this.multiple && !!(this.primarySelected() && this.primarySelected().color);
+            },
+
+            triggerSwatchStyle() {
+                const selected = this.primarySelected();
+                return selected && selected.color ? { backgroundColor: selected.color } : {};
+            },
+
+            showTriggerImage() {
+                return !this.multiple && !!(this.primarySelected() && this.primarySelected().image);
+            },
+
+            triggerImage() {
+                const selected = this.primarySelected();
+                return selected && selected.image ? selected.image : '';
+            },
+
+            showTriggerIcon() {
+                return !this.multiple && !!(this.primarySelected() && this.primarySelected().icon);
+            },
+
+            triggerIconHtml() {
+                const selected = this.primarySelected();
+                return selected && selected.icon ? this.iconSvg(selected.icon) : '';
+            },
+
+            valueClasses() {
+                const empty = this.multiple
+                    ? this.selectedOptions().length === 0
+                    : !(this.primarySelected() && this.primarySelected().value !== '');
+                return {
+                    'is-placeholder': empty,
+                    'sr-only': this.multiple && !empty
+                };
+            },
+
+            controlClasses() {
+                return {
+                    'is-open': this.open
+                };
+            },
+
+            isOpen() {
+                return this.open;
+            },
+
+            isDesktopOpen() {
+                return this.open && !this.isMobile;
+            },
+
+            isSheetOpen() {
+                return this.open && this.isMobile;
+            },
+
+            isSearchable() {
+                return this.searchable;
+            },
+
+            isMultiple() {
+                return this.multiple;
+            },
+
+            isLoading() {
+                return this.loading;
+            },
+
+            isNotLoading() {
+                return !this.loading;
+            },
+
+            isDisabled() {
+                return this.disabled;
+            },
+
+            isInvalid() {
+                return this.invalid;
+            },
+
+            isEmpty() {
+                return this.visibleOptions().length === 0;
+            },
+
+            triggerId() {
+                return this.uid + '-trigger';
+            },
+
+            listboxId() {
+                return this.uid + '-listbox';
+            },
+
+            sheetListboxId() {
+                return this.uid + '-sheet-listbox';
+            },
+
+            searchId() {
+                return this.uid + '-search';
+            },
+
+            sheetSearchId() {
+                return this.uid + '-sheet-search';
+            },
+
+            sheetId() {
+                return this.uid + '-sheet';
+            },
+
+            triggerAriaLabel() {
+                return this.label;
+            },
+
+            listboxLabel() {
+                return this.label;
+            },
+
+            sheetTitle() {
+                return this.label;
+            },
+
+            activeDescendant() {
+                if (!this.open || !this.activeId) {
+                    return '';
+                }
+                return (this.isMobile ? this.uid + '-sopt-' : this.uid + '-opt-') + this.activeId;
+            },
+
+            isRowGroup() {
+                return this.row && this.row.kind === 'group';
+            },
+
+            isRowOption() {
+                return this.row && this.row.kind === 'option';
+            },
+
+            rowLabel() {
+                return this.row ? this.row.label : '';
+            },
+
+            rowRole() {
+                return this.isRowGroup() ? 'presentation' : 'option';
+            },
+
+            rowClasses() {
+                if (this.isRowGroup()) {
+                    return { 'elme-select__group': true };
+                }
+                return {
+                    'elme-select__option': true,
+                    'is-active': this.activeId === this.row.id,
+                    'is-selected': this.selectedValues.includes(this.row.value),
+                    'is-disabled': !!this.row.disabled
+                };
+            },
+
+            optionDomId() {
+                if (!this.row || this.row.kind === 'group') {
+                    return null;
+                }
+                return this.uid + '-opt-' + this.row.id;
+            },
+
+            sheetOptionDomId() {
+                if (!this.row || this.row.kind === 'group') {
+                    return null;
+                }
+                return this.uid + '-sopt-' + this.row.id;
+            },
+
+            isOptionSelected() {
+                return this.isRowOption() && this.selectedValues.includes(this.row.value);
+            },
+
+            isOptionDisabled() {
+                return this.isRowOption() && !!this.row.disabled;
+            },
+
+            showOptionCheck() {
+                return this.isOptionSelected();
+            },
+
+            optionHasSwatch() {
+                return this.isRowOption() && !!this.row.color;
+            },
+
+            optionSwatchStyle() {
+                return this.row.color ? { backgroundColor: this.row.color } : {};
+            },
+
+            optionHasImage() {
+                return this.isRowOption() && !!this.row.image;
+            },
+
+            optionImage() {
+                return this.row && this.row.image ? this.row.image : '';
+            },
+
+            optionHasIcon() {
+                return this.isRowOption() && !!this.row.icon;
+            },
+
+            optionIconHtml() {
+                return this.row && this.row.icon ? this.iconSvg(this.row.icon) : '';
+            },
+
+            optionLabelHtml() {
+                return this.row ? this.highlight(this.row.label) : '';
+            },
+
+            onControlClick() {
+                if (this.disabled || this.loading) {
+                    return;
+                }
+                if (!this.open) {
+                    this.openList();
+                }
+            },
+
+            toggle() {
+                if (this.disabled || this.loading) {
+                    return;
+                }
+                if (this.open) {
+                    this.close();
+                } else {
+                    this.openList();
+                }
+            },
+
+            openList() {
+                if (this.disabled || this.loading) {
+                    return;
+                }
+                this.open = true;
+            },
+
+            close() {
+                this.open = false;
+            },
+
+            onOpen() {
+                this.readDisabledInvalid();
+                this.$root.classList.add('is-open');
+                const options = this.visibleOptions().filter((row) => !row.disabled);
+                const selected = options.find((row) => this.selectedValues.includes(row.value));
+                this.activeId = selected ? selected.id : (options[0] ? options[0].id : null);
+                if (this.isMobile) {
+                    this.lockScroll();
+                } else {
+                    this.schedulePosition();
+                    this.setupPositionListeners();
+                }
+                document.addEventListener('pointerdown', this.boundOnDocPointer, true);
+                // Position after x-show paints so panel has layout; refs via ref()
+                this.$nextTick(() => {
+                    if (!this.isMobile) {
+                        this.updatePosition();
+                    }
+                    this.focusSearch();
+                    this.scrollActiveIntoView();
+                });
+            },
+
+            onClose() {
+                this.$root.classList.remove('is-open');
+                this.query = '';
+                this.typeahead = '';
+                this.sheetPanelStyle = {};
+                this.unlockScroll();
+                this.teardownPositionListeners();
+                document.removeEventListener('pointerdown', this.boundOnDocPointer, true);
+                this.$nextTick(() => {
+                    const trigger = this.ref('trigger');
+                    if (trigger) {
+                        trigger.focus();
+                    }
+                });
+            },
+
+            focusSearch() {
+                if (!this.searchable) {
+                    const trigger = this.ref('trigger');
+                    if (trigger) {
+                        trigger.focus();
+                    }
+                    return;
+                }
+                const input = this.isMobile ? this.ref('sheetSearch') : this.ref('search');
+                if (input) {
+                    input.focus();
+                    input.select && input.select();
+                }
+            },
+
+            lockScroll() {
+                if (this.scrollLocked) {
+                    return;
+                }
+                this.scrollLocked = true;
+                document.documentElement.style.overflow = 'hidden';
+            },
+
+            unlockScroll() {
+                if (!this.scrollLocked) {
+                    return;
+                }
+                this.scrollLocked = false;
+                document.documentElement.style.overflow = '';
+            },
+
+            setupPositionListeners() {
+                window.addEventListener('resize', this.boundOnReposition);
+                window.addEventListener('scroll', this.boundOnReposition, true);
+            },
+
+            teardownPositionListeners() {
+                window.removeEventListener('resize', this.boundOnReposition);
+                window.removeEventListener('scroll', this.boundOnReposition, true);
+                if (this.positionRaf) {
+                    cancelAnimationFrame(this.positionRaf);
+                    this.positionRaf = 0;
+                }
+            },
+
+            schedulePosition() {
+                if (this.positionRaf) {
+                    cancelAnimationFrame(this.positionRaf);
+                }
+                this.positionRaf = requestAnimationFrame(() => {
+                    this.positionRaf = 0;
+                    this.updatePosition();
+                });
+            },
+
+            updatePosition() {
+                const triggerEl = this.ref('trigger');
+                const panel = this.ref('panel');
+                if (!this.open || this.isMobile || !triggerEl || !panel) {
+                    return;
+                }
+                const trigger = triggerEl.getBoundingClientRect();
+                const gap = 4;
+                const maxHeight = Math.min(320, window.innerHeight * 0.7);
+                panel.style.maxHeight = maxHeight + 'px';
+                const panelHeight = Math.min(panel.scrollHeight || maxHeight, maxHeight);
+                const spaceBelow = window.innerHeight - trigger.bottom - gap;
+                const spaceAbove = trigger.top - gap;
+                const placeAbove = spaceBelow < Math.min(panelHeight, 160) && spaceAbove > spaceBelow;
+                const width = Math.max(trigger.width, this.$root.getBoundingClientRect().width);
+                let left = trigger.left;
+                left = Math.min(Math.max(8, left), window.innerWidth - width - 8);
+                const top = placeAbove
+                    ? Math.max(8, trigger.top - panelHeight - gap)
+                    : trigger.bottom + gap;
+                this.panelStyle = {
+                    position: 'fixed',
+                    top: top + 'px',
+                    left: left + 'px',
+                    width: width + 'px',
+                    maxHeight: maxHeight + 'px',
+                    zIndex: '60'
+                };
+            },
+
+            onDocumentPointer(event) {
+                if (!this.open) {
+                    return;
+                }
+                const path = event.composedPath ? event.composedPath() : [];
+                if (path.includes(this.$root)) {
+                    return;
+                }
+                const panel = this.ref('panel');
+                if (panel && path.includes(panel)) {
+                    return;
+                }
+                const sheet = this.ref('sheet');
+                if (sheet && path.includes(sheet)) {
+                    return;
+                }
+                this.close();
+            },
+
+            onSearchInput() {
+                this.query = this.$event.target.value;
+                this.syncSearchMirrors();
+                if (this.asyncDemo || this.asyncUrl) {
+                    this.scheduleAsync();
+                }
+                this.$nextTick(() => {
+                    const options = this.visibleOptions().filter((row) => !row.disabled);
+                    this.activeId = options[0] ? options[0].id : null;
+                    this.schedulePosition();
+                });
+            },
+
+            syncSearchMirrors() {
+                const search = this.ref('search');
+                if (search && search.value !== this.query) {
+                    search.value = this.query;
+                }
+                const sheetSearch = this.ref('sheetSearch');
+                if (sheetSearch && sheetSearch.value !== this.query) {
+                    sheetSearch.value = this.query;
+                }
+            },
+
+            scheduleAsync() {
+                if (this.asyncTimer) {
+                    clearTimeout(this.asyncTimer);
+                }
+                this.loading = true;
+                this.readDisabledInvalid();
+                this.asyncTimer = setTimeout(() => this.runAsync(), 220);
+            },
+
+            async runAsync() {
+                const q = this.query;
+                try {
+                    if (this.asyncDemo) {
+                        const norm = this.normalize(q);
+                        const filtered = this.demoItems.filter((item) =>
+                            !norm
+                            || this.normalize(item.label).includes(norm)
+                            || this.normalize(item.value).includes(norm)
+                        ).slice(0, 80);
+                        this.rows = this.rowsFromDemo(filtered);
+                    } else if (this.asyncUrl) {
+                        const url = this.asyncUrl + (this.asyncUrl.includes('?') ? '&' : '?')
+                            + 'q=' + encodeURIComponent(q);
+                        const response = await fetch(url, { headers: { Accept: 'application/json' } });
+                        const data = await response.json();
+                        const items = Array.isArray(data) ? data : (data.items || []);
+                        this.rows = this.rowsFromDemo(items.map((item) => ({
+                            value: String(item.value ?? item.sku ?? ''),
+                            label: String(item.label ?? item.name ?? item.value ?? ''),
+                            disabled: !!item.disabled,
+                            group: item.group || '',
+                            color: item.color || '',
+                            image: item.image || '',
+                            icon: item.icon || ''
+                        })));
+                    }
+                } catch (e) {
+                    this.rows = [];
+                }
+                this.loading = false;
+                this.readDisabledInvalid();
+                const options = this.visibleOptions().filter((row) => !row.disabled);
+                this.activeId = options[0] ? options[0].id : null;
+                this.schedulePosition();
+            },
+
+            activateOption() {
+                const id = this.$el.dataset.optionId;
+                if (id) {
+                    this.activeId = id;
+                }
+            },
+
+            selectOption() {
+                const id = this.$el.dataset.optionId;
+                const row = this.optionRows().find((item) => item.id === id);
+                if (!row || row.disabled) {
+                    return;
+                }
+                this.applyValue(row.value);
+            },
+
+            applyValue(value) {
+                const native = this.nativeEl();
+                if (!native) {
+                    return;
+                }
+                if (this.multiple) {
+                    const next = new Set(this.selectedValues);
+                    if (next.has(value)) {
+                        next.delete(value);
+                    } else {
+                        next.add(value);
+                    }
+                    Array.from(native.options).forEach((opt) => {
+                        opt.selected = next.has(opt.value);
+                    });
+                    this.selectedValues = Array.from(next);
+                    native.dispatchEvent(new Event('input', { bubbles: true }));
+                    native.dispatchEvent(new Event('change', { bubbles: true }));
+                    this.$nextTick(() => this.schedulePosition());
+                } else {
+                    native.value = value;
+                    Array.from(native.options).forEach((opt) => {
+                        opt.selected = opt.value === value;
+                    });
+                    this.selectedValues = value === '' ? [] : [value];
+                    native.dispatchEvent(new Event('input', { bubbles: true }));
+                    native.dispatchEvent(new Event('change', { bubbles: true }));
+                    this.close();
+                }
+            },
+
+            removeChip() {
+                const value = this.$el.dataset.value;
+                if (!value) {
+                    return;
+                }
+                const native = this.nativeEl();
+                Array.from(native.options).forEach((opt) => {
+                    if (opt.value === value) {
+                        opt.selected = false;
+                    }
+                });
+                this.selectedValues = this.selectedValues.filter((item) => item !== value);
+                native.dispatchEvent(new Event('input', { bubbles: true }));
+                native.dispatchEvent(new Event('change', { bubbles: true }));
+            },
+
+            removeLastChip() {
+                const selected = this.selectedOptions();
+                if (!selected.length) {
+                    return;
+                }
+                const last = selected[selected.length - 1];
+                const native = this.nativeEl();
+                Array.from(native.options).forEach((opt) => {
+                    if (opt.value === last.value) {
+                        opt.selected = false;
+                    }
+                });
+                this.selectedValues = this.selectedValues.filter((item) => item !== last.value);
+                native.dispatchEvent(new Event('input', { bubbles: true }));
+                native.dispatchEvent(new Event('change', { bubbles: true }));
+            },
+
+            moveActive(delta) {
+                const options = this.visibleOptions().filter((row) => !row.disabled);
+                if (!options.length) {
+                    return;
+                }
+                let index = options.findIndex((row) => row.id === this.activeId);
+                if (index < 0) {
+                    index = delta > 0 ? -1 : 0;
+                }
+                index = (index + delta + options.length) % options.length;
+                this.activeId = options[index].id;
+                this.scrollActiveIntoView();
+            },
+
+            moveActiveToEdge(toEnd) {
+                const options = this.visibleOptions().filter((row) => !row.disabled);
+                if (!options.length) {
+                    return;
+                }
+                this.activeId = toEnd ? options[options.length - 1].id : options[0].id;
+                this.scrollActiveIntoView();
+            },
+
+            scrollActiveIntoView() {
+                if (!this.activeId) {
+                    return;
+                }
+                const id = (this.isMobile ? this.uid + '-sopt-' : this.uid + '-opt-') + this.activeId;
+                const el = document.getElementById(id);
+                if (el && el.scrollIntoView) {
+                    el.scrollIntoView({ block: 'nearest' });
+                }
+            },
+
+            commitActive() {
+                const row = this.optionRows().find((item) => item.id === this.activeId);
+                if (!row || row.disabled) {
+                    return;
+                }
+                this.applyValue(row.value);
+            },
+
+            typeAhead(char) {
+                if (this.searchable) {
+                    return;
+                }
+                this.typeahead += char.toLowerCase();
+                if (this.typeaheadTimer) {
+                    clearTimeout(this.typeaheadTimer);
+                }
+                this.typeaheadTimer = setTimeout(() => {
+                    this.typeahead = '';
+                }, 600);
+                const options = this.visibleOptions().filter((row) => !row.disabled && row.value !== '');
+                const match = options.find((row) => this.normalize(row.label).startsWith(this.normalize(this.typeahead)));
+                if (match) {
+                    this.activeId = match.id;
+                    if (!this.open) {
+                        this.applyValue(match.value);
+                    } else {
+                        this.scrollActiveIntoView();
+                    }
+                }
+            },
+
+            onTriggerKeydown() {
+                const event = this.$event;
+                const key = event.key;
+                if (this.disabled) {
+                    return;
+                }
+                if (key === 'ArrowDown' && event.altKey) {
+                    event.preventDefault();
+                    this.openList();
+                    return;
+                }
+                if (key === 'Enter' || key === ' ' || key === 'Spacebar') {
+                    if (!this.open) {
+                        event.preventDefault();
+                        this.openList();
+                        return;
+                    }
+                    event.preventDefault();
+                    if (this.multiple && key === ' ') {
+                        this.commitActive();
+                    } else if (key === 'Enter') {
+                        this.commitActive();
+                    } else if (!this.multiple) {
+                        this.commitActive();
+                    }
+                    return;
+                }
+                if (key === 'ArrowDown') {
+                    event.preventDefault();
+                    if (!this.open) {
+                        this.openList();
+                    } else {
+                        this.moveActive(1);
+                    }
+                    return;
+                }
+                if (key === 'ArrowUp') {
+                    event.preventDefault();
+                    if (!this.open) {
+                        this.openList();
+                    } else {
+                        this.moveActive(-1);
+                    }
+                    return;
+                }
+                if (key === 'Home' && this.open) {
+                    event.preventDefault();
+                    this.moveActiveToEdge(false);
+                    return;
+                }
+                if (key === 'End' && this.open) {
+                    event.preventDefault();
+                    this.moveActiveToEdge(true);
+                    return;
+                }
+                if (key === 'Escape') {
+                    if (this.open) {
+                        event.preventDefault();
+                        this.close();
+                    }
+                    return;
+                }
+                if (key === 'Backspace' && this.multiple && !this.open && this.selectedOptions().length) {
+                    event.preventDefault();
+                    this.removeLastChip();
+                    return;
+                }
+                if (key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+                    if (!this.open && !this.searchable) {
+                        this.typeAhead(key);
+                    } else if (this.open && !this.searchable) {
+                        event.preventDefault();
+                        this.typeAhead(key);
+                    }
+                }
+            },
+
+            onSearchKeydown() {
+                const event = this.$event;
+                const key = event.key;
+                if (key === 'ArrowDown') {
+                    event.preventDefault();
+                    this.moveActive(1);
+                    return;
+                }
+                if (key === 'ArrowUp') {
+                    event.preventDefault();
+                    this.moveActive(-1);
+                    return;
+                }
+                if (key === 'Home') {
+                    event.preventDefault();
+                    this.moveActiveToEdge(false);
+                    return;
+                }
+                if (key === 'End') {
+                    event.preventDefault();
+                    this.moveActiveToEdge(true);
+                    return;
+                }
+                if (key === 'Enter') {
+                    event.preventDefault();
+                    this.commitActive();
+                    return;
+                }
+                if (key === 'Escape') {
+                    event.preventDefault();
+                    this.close();
+                    return;
+                }
+                if (key === ' ' && this.multiple) {
+                    // allow typing spaces in search; Space alone with empty query toggles
+                    if (!this.query) {
+                        event.preventDefault();
+                        this.commitActive();
+                    }
+                }
+            },
+
+            onPanelKeydown() {
+                this.onSearchKeydown();
+            },
+
+            onSheetTouchStart() {
+                this.touchStartY = this.$event.touches[0].clientY;
+                this.touchDeltaY = 0;
+            },
+
+            onSheetTouchMove() {
+                const y = this.$event.touches[0].clientY;
+                this.touchDeltaY = y - this.touchStartY;
+                if (this.touchDeltaY > 0) {
+                    this.$event.preventDefault();
+                    this.sheetPanelStyle = {
+                        transform: 'translateY(' + this.touchDeltaY + 'px)'
+                    };
+                }
+            },
+
+            onSheetTouchEnd() {
+                if (this.touchDeltaY > 80) {
+                    this.close();
+                } else {
+                    this.sheetPanelStyle = {};
+                }
+                this.touchDeltaY = 0;
+            }
+        };
+    }
+
+    function elmeEnhanceSelects(root) {
+        const scope = root && root.querySelectorAll ? root : document;
+        const selects = scope.matches && scope.matches('select.form-select')
+            ? [scope]
+            : [];
+        scope.querySelectorAll && scope.querySelectorAll('select.form-select').forEach((el) => selects.push(el));
+
+        selects.forEach((select) => {
+            if (!select || select.dataset.elmeEnhanced === '1') {
+                return;
+            }
+            if (select.dataset.elmeSelectSkip === '1' || select.dataset.elmeSelectSkip === 'true') {
+                return;
+            }
+            if (select.closest('.elme-select')) {
+                select.dataset.elmeEnhanced = '1';
+                return;
+            }
+            // Skip multi-size list boxes that are meant to show as lists
+            if (select.size && select.size > 1) {
+                return;
+            }
+
+            const template = document.getElementById('elme-select-ui');
+            if (!template || typeof Alpine === 'undefined') {
+                return;
+            }
+
+            // Mark first so a MutationObserver pass cannot wrap the same select twice
+            select.dataset.elmeEnhanced = '1';
+
+            const wrap = document.createElement('div');
+            wrap.className = 'elme-select';
+
+            // Prefer searchable countries / long lists; allow per-select overrides
+            if (select.dataset.elmeSearchable) {
+                wrap.dataset.searchable = select.dataset.elmeSearchable;
+            }
+            if (select.dataset.elmeMultiple) {
+                wrap.dataset.multiple = select.dataset.elmeMultiple;
+            }
+            if (select.dataset.elmeLoading) {
+                wrap.dataset.loading = select.dataset.elmeLoading;
+            }
+            if (select.dataset.elmePlaceholder) {
+                wrap.dataset.placeholder = select.dataset.elmePlaceholder;
+            }
+            if (select.dataset.elmeLabel) {
+                wrap.dataset.label = select.dataset.elmeLabel;
+            }
+            if (select.dataset.elmeChipMax) {
+                wrap.dataset.chipMax = select.dataset.elmeChipMax;
+            }
+            if (select.dataset.elmeAsyncUrl) {
+                wrap.dataset.asyncUrl = select.dataset.elmeAsyncUrl;
+            }
+            if (select.dataset.elmeAsyncDemo) {
+                wrap.dataset.asyncDemo = select.dataset.elmeAsyncDemo;
+            }
+            if (select.disabled) {
+                wrap.dataset.disabled = '1';
+            }
+
+            const parent = select.parentNode;
+            parent.insertBefore(wrap, select);
+
+            // x-ignore: keep parent-scope @change / x-ref on the native select;
+            // initTree must not rebind those onto initElmeSelect.
+            select.classList.add('elme-select__native');
+            select.setAttribute('x-ignore', '');
+            select.setAttribute('tabindex', '-1');
+            wrap.appendChild(select);
+            wrap.appendChild(template.content.cloneNode(true));
+
+            // Set x-data after the tree is in place. Prefer Alpine's own init; only
+            // call initTree if nothing picked the node up (avoids stacking two copies).
+            wrap.setAttribute('x-data', 'initElmeSelect');
+            requestAnimationFrame(() => {
+                if (!wrap._x_dataStack || wrap._x_dataStack.length === 0) {
+                    Alpine.initTree(wrap);
+                }
+            });
+        });
+    }
+
+    window.elmeEnhanceSelects = elmeEnhanceSelects;
+
+    window.addEventListener('alpine:init', () => {
+        Alpine.data('initElmeSelect', initElmeSelect);
+    }, { once: true });
+
+    document.addEventListener('alpine:initialized', () => {
+        elmeEnhanceSelects(document);
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === 1) {
+                        elmeEnhanceSelects(node);
+                    }
+                });
+            });
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    }, { once: true });
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

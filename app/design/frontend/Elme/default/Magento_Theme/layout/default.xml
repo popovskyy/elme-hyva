@@ -16,10 +16,11 @@
                 <argument name="css_class" xsi:type="string">mb-6</argument>
             </arguments>
         </referenceBlock>
-        <!-- FE-03: toast stack (elme-toast window event); FE-60: button ripple -->
+        <!-- FE-03: toast stack; FE-60: button ripple; FE-59: custom select -->
         <referenceContainer name="before.body.end">
             <block name="elme.toast-stack" template="Magento_Theme::elme/toast-stack.phtml"/>
             <block name="elme.btn-ripple" template="Magento_Theme::elme/btn-ripple.phtml"/>
+            <block name="elme.select.js" template="Magento_Theme::elme/select-js.phtml"/>
         </referenceContainer>
     </body>
 </page>
