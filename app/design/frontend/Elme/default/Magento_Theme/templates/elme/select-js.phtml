@@ -179,6 +179,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             x-show="isSheetOpen"
             x-cloak
             x-ref="sheet"
+            :id="sheetId"
             @keydown="onPanelKeydown"
         >
             <button
@@ -336,8 +337,9 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
 
                 // Keep Hyvä validation focus on the visible control
                 native.addEventListener('focus', () => {
-                    if (this.$refs.trigger && !this.disabled) {
-                        this.$refs.trigger.focus();
+                    const trigger = this.ref('trigger');
+                    if (trigger && !this.disabled) {
+                        trigger.focus();
                     }
                 });
 
@@ -370,8 +372,57 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                 }
             },
 
+            /**
+             * After dynamic template clone + Alpine.initTree, Alpine's $refs magic
+             * can stay empty while $root._x_refs is populated (QA FE-59). Prefer
+             * $refs, then _x_refs, then querySelector / id fallbacks.
+             */
+            ref(name) {
+                try {
+                    const fromMagic = this.$refs && this.$refs[name];
+                    if (fromMagic) {
+                        return fromMagic;
+                    }
+                } catch (e) {
+                    // ignore
+                }
+                const root = this.$root;
+                if (root && root._x_refs && root._x_refs[name]) {
+                    return root._x_refs[name];
+                }
+                if (root) {
+                    const local = root.querySelector('[x-ref="' + name + '"]');
+                    if (local) {
+                        return local;
+                    }
+                }
+                if (name === 'trigger') {
+                    return document.getElementById(this.triggerId());
+                }
+                if (name === 'search') {
+                    return document.getElementById(this.searchId());
+                }
+                if (name === 'sheetSearch') {
+                    return document.getElementById(this.sheetSearchId());
+                }
+                if (name === 'listbox') {
+                    return document.getElementById(this.listboxId());
+                }
+                if (name === 'panel' && root) {
+                    return root.querySelector('.elme-select__panel');
+                }
+                if (name === 'sheet') {
+                    return document.getElementById(this.sheetId());
+                }
+                if (name === 'sheetPanel') {
+                    const sheet = this.ref('sheet');
+                    return sheet ? sheet.querySelector('.elme-select-sheet__panel') : null;
+                }
+                return null;
+            },
+
             nativeEl() {
-                return this.$refs.native || this.$root.querySelector('select');
+                return this.ref('native') || this.$root.querySelector('select');
             },
 
             findLabelText(native) {
@@ -816,6 +867,10 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                 return this.uid + '-sheet-search';
             },
 
+            sheetId() {
+                return this.uid + '-sheet';
+            },
+
             triggerAriaLabel() {
                 return this.label;
             },
@@ -961,7 +1016,11 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                     this.setupPositionListeners();
                 }
                 document.addEventListener('pointerdown', this.boundOnDocPointer, true);
+                // Position after x-show paints so panel has layout; refs via ref()
                 this.$nextTick(() => {
+                    if (!this.isMobile) {
+                        this.updatePosition();
+                    }
                     this.focusSearch();
                     this.scrollActiveIntoView();
                 });
@@ -976,20 +1035,22 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                 this.teardownPositionListeners();
                 document.removeEventListener('pointerdown', this.boundOnDocPointer, true);
                 this.$nextTick(() => {
-                    if (this.$refs.trigger) {
-                        this.$refs.trigger.focus();
+                    const trigger = this.ref('trigger');
+                    if (trigger) {
+                        trigger.focus();
                     }
                 });
             },
 
             focusSearch() {
                 if (!this.searchable) {
-                    if (this.$refs.trigger) {
-                        this.$refs.trigger.focus();
+                    const trigger = this.ref('trigger');
+                    if (trigger) {
+                        trigger.focus();
                     }
                     return;
                 }
-                const input = this.isMobile ? this.$refs.sheetSearch : this.$refs.search;
+                const input = this.isMobile ? this.ref('sheetSearch') : this.ref('search');
                 if (input) {
                     input.focus();
                     input.select && input.select();
@@ -1037,11 +1098,12 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             },
 
             updatePosition() {
-                if (!this.open || this.isMobile || !this.$refs.trigger || !this.$refs.panel) {
+                const triggerEl = this.ref('trigger');
+                const panel = this.ref('panel');
+                if (!this.open || this.isMobile || !triggerEl || !panel) {
                     return;
                 }
-                const trigger = this.$refs.trigger.getBoundingClientRect();
-                const panel = this.$refs.panel;
+                const trigger = triggerEl.getBoundingClientRect();
                 const gap = 4;
                 const maxHeight = Math.min(320, window.innerHeight * 0.7);
                 panel.style.maxHeight = maxHeight + 'px';
@@ -1073,10 +1135,12 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                 if (path.includes(this.$root)) {
                     return;
                 }
-                if (this.$refs.panel && path.includes(this.$refs.panel)) {
+                const panel = this.ref('panel');
+                if (panel && path.includes(panel)) {
                     return;
                 }
-                if (this.$refs.sheet && path.includes(this.$refs.sheet)) {
+                const sheet = this.ref('sheet');
+                if (sheet && path.includes(sheet)) {
                     return;
                 }
                 this.close();
@@ -1096,11 +1160,13 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             },
 
             syncSearchMirrors() {
-                if (this.$refs.search && this.$refs.search.value !== this.query) {
-                    this.$refs.search.value = this.query;
+                const search = this.ref('search');
+                if (search && search.value !== this.query) {
+                    search.value = this.query;
                 }
-                if (this.$refs.sheetSearch && this.$refs.sheetSearch.value !== this.query) {
-                    this.$refs.sheetSearch.value = this.query;
+                const sheetSearch = this.ref('sheetSearch');
+                if (sheetSearch && sheetSearch.value !== this.query) {
+                    sheetSearch.value = this.query;
                 }
             },
 
