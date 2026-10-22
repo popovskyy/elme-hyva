@@ -1,0 +1,59 @@
+/**
+ * Elme badges: product flags (Sale, New) and stock labels (In Stock, Low Stock).
+ * Usage: <span class="badge badge-sale">Sale</span>
+ */
+
+@utility badge {
+    display: inline-flex;
+    align-items: center;
+    gap: --spacing(1.5);
+    padding-block: --spacing(1);
+    padding-inline: --spacing(2);
+    font-size: var(--text-label);
+    line-height: var(--text-label--line-height);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    background-color: var(--badge-bg, transparent);
+    color: var(--badge-color, var(--color-ink));
+}
+
+@utility badge-sale {
+    --badge-bg: var(--color-promo);
+    --badge-color: var(--color-on-primary);
+}
+
+@utility badge-new {
+    --badge-bg: var(--color-primary);
+    --badge-color: var(--color-on-primary);
+}
+
+/*
+ * Stock labels are text with a coloured dot (the green and amber fail contrast as text on the page background).
+ * Used without .badge: <span class="badge-stock badge-stock-in">24 in stock</span>
+ */
+@utility badge-stock {
+    display: inline-flex;
+    align-items: center;
+    gap: --spacing(1.5);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    color: var(--color-ink);
+
+    &::before {
+        content: "";
+        inline-size: --spacing(2);
+        block-size: --spacing(2);
+        border-radius: calc(infinity * 1px);
+        background-color: var(--badge-dot);
+    }
+}
+
+@utility badge-stock-in {
+    --badge-dot: var(--color-success);
+}
+
+@utility badge-stock-low {
+    --badge-dot: var(--color-warning);
+}

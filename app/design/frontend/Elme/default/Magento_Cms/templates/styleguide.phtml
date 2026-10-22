@@ -1,0 +1,258 @@
+<?php
+/**
+ * /styleguide: every Elme UI kit component in each of its states, so QA checks them in one place.
+ * Hover, focus (Tab) and pressed states are live; disabled, loading and error are shown statically.
+ */
+
+declare(strict_types=1);
+
+use Elme\Styleguide\ViewModel\Styleguide;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var Styleguide $styleguide */
+$styleguide = $viewModels->require(Styleguide::class);
+$layout = $block->getLayout();
+
+$buttons = [
+    'btn-primary' => __('Primary'),
+    'btn-secondary' => __('Secondary'),
+    'btn-outline' => __('Outline'),
+    'btn-link' => __('Link'),
+];
+$selectOptions = [__('Choose an option'), __('Retailer'), __('Interior designer'), __('Hospitality')];
+$sectionClass = 'py-8 border-t border-divider';
+$captionClass = 'mb-2 text-label uppercase tracking-wide text-ink-subtle';
+?>
+<div class="pt-6 pb-12">
+    <h1 class="mb-4"><?= $escaper->escapeHtml(__('Style guide')) ?></h1>
+    <p class="max-w-2xl mb-8">
+        <?= $escaper->escapeHtml(__(
+            'Every UI kit component and its states. Hover, focus (press Tab) and pressed states are live; '
+            . 'disabled, loading and error are shown as they render.'
+        )) ?>
+    </p>
+
+    <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-buttons">
+        <h2 id="sg-buttons" class="mb-6"><?= $escaper->escapeHtml(__('Buttons')) ?></h2>
+        <div class="grid gap-6">
+            <?php foreach ($buttons as $variant => $name): ?>
+                <div>
+                    <p class="<?= /* @noEscape */ $captionClass ?>">
+                        <code>.btn.<?= $escaper->escapeHtml($variant) ?></code>
+                    </p>
+                    <div class="flex flex-wrap items-center gap-4">
+                        <button type="button" class="btn <?= $escaper->escapeHtmlAttr($variant) ?>">
+                            <?= $escaper->escapeHtml($name) ?>
+                        </button>
+                        <a href="#sg-buttons" class="btn <?= $escaper->escapeHtmlAttr($variant) ?>">
+                            <?= $escaper->escapeHtml(__('Link as button')) ?>
+                        </a>
+                        <button type="button" class="btn <?= $escaper->escapeHtmlAttr($variant) ?> is-active">
+                            <?= $escaper->escapeHtml(__('Active')) ?>
+                        </button>
+                        <button type="button" class="btn <?= $escaper->escapeHtmlAttr($variant) ?>" disabled>
+                            <?= $escaper->escapeHtml(__('Disabled')) ?>
+                        </button>
+                        <button type="button" class="btn <?= $escaper->escapeHtmlAttr($variant) ?>" aria-busy="true">
+                            <?= $escaper->escapeHtml(__('Loading')) ?>
+                        </button>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+            <div>
+                <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Full width (mobile forms)')) ?></p>
+                <button type="button" class="btn btn-primary w-full md:w-auto">
+                    <?= $escaper->escapeHtml(__('Apply for an account')) ?>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-fields">
+        <h2 id="sg-fields" class="mb-6"><?= $escaper->escapeHtml(__('Text fields')) ?></h2>
+        <div class="grid gap-x-8 gap-y-6 md:grid-cols-2 xl:grid-cols-3">
+            <div class="field">
+                <label class="label" for="sg-input"><?= $escaper->escapeHtml(__('Company name')) ?></label>
+                <input id="sg-input" type="text" class="form-input w-full" placeholder="<?= $escaper->escapeHtmlAttr(__('e.g. Bloom & Co')) ?>">
+            </div>
+            <div class="field required">
+                <label class="label" for="sg-input-required"><?= $escaper->escapeHtml(__('Email address')) ?></label>
+                <input id="sg-input-required" type="email" class="form-input w-full" value="buyer@example.com" required>
+            </div>
+            <div class="field">
+                <label class="label" for="sg-input-disabled"><?= $escaper->escapeHtml(__('ABN (disabled)')) ?></label>
+                <input id="sg-input-disabled" type="text" class="form-input w-full" value="51 824 753 556" disabled>
+            </div>
+            <div class="field required field-error">
+                <label class="label" for="sg-input-error"><?= $escaper->escapeHtml(__('Phone number (error)')) ?></label>
+                <input id="sg-input-error" type="tel" class="form-input w-full" value="12" aria-invalid="true"
+                       aria-describedby="sg-input-error-msg" required>
+                <ul class="messages" id="sg-input-error-msg">
+                    <li><?= $escaper->escapeHtml(__('Please enter a valid phone number.')) ?></li>
+                </ul>
+            </div>
+            <div class="field">
+                <label class="label" for="sg-select"><?= $escaper->escapeHtml(__('Business type')) ?></label>
+                <select id="sg-select" class="form-select w-full">
+                    <?php foreach ($selectOptions as $option): ?>
+                        <option><?= $escaper->escapeHtml($option) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="field">
+                <label class="label" for="sg-select-disabled"><?= $escaper->escapeHtml(__('Business type (disabled)')) ?></label>
+                <select id="sg-select-disabled" class="form-select w-full" disabled>
+                    <?php foreach ($selectOptions as $option): ?>
+                        <option><?= $escaper->escapeHtml($option) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="field required field-error">
+                <label class="label" for="sg-select-error"><?= $escaper->escapeHtml(__('Business type (error)')) ?></label>
+                <select id="sg-select-error" class="form-select w-full" aria-invalid="true"
+                        aria-describedby="sg-select-error-msg" required>
+                    <?php foreach ($selectOptions as $option): ?>
+                        <option><?= $escaper->escapeHtml($option) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <ul class="messages" id="sg-select-error-msg">
+                    <li><?= $escaper->escapeHtml(__('This is a required field.')) ?></li>
+                </ul>
+            </div>
+            <div class="field">
+                <label class="label" for="sg-textarea"><?= $escaper->escapeHtml(__('Delivery instructions')) ?></label>
+                <textarea id="sg-textarea" class="form-textarea w-full" rows="4"
+                          placeholder="<?= $escaper->escapeHtmlAttr(__('Additional comments & delivery instructions?')) ?>"></textarea>
+            </div>
+            <div class="field">
+                <label class="label" for="sg-textarea-disabled"><?= $escaper->escapeHtml(__('Delivery instructions (disabled)')) ?></label>
+                <textarea id="sg-textarea-disabled" class="form-textarea w-full" rows="4" disabled><?= $escaper->escapeHtml(__('Leave at the loading dock.')) ?></textarea>
+            </div>
+            <div class="field field-error">
+                <label class="label" for="sg-textarea-error"><?= $escaper->escapeHtml(__('Delivery instructions (error)')) ?></label>
+                <textarea id="sg-textarea-error" class="form-textarea w-full" rows="4" aria-invalid="true"
+                          aria-describedby="sg-textarea-error-msg"><?= $escaper->escapeHtml(str_repeat('Leave at the loading dock. ', 9)) ?></textarea>
+                <ul class="messages" id="sg-textarea-error-msg">
+                    <li><?= $escaper->escapeHtml(__('Please enter no more than 200 characters.')) ?></li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-choices">
+        <h2 id="sg-choices" class="mb-6"><?= $escaper->escapeHtml(__('Checkboxes and radios')) ?></h2>
+        <div class="grid gap-8 md:grid-cols-2">
+            <fieldset class="mt-0">
+                <legend class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Checkbox')) ?></legend>
+                <div class="grid gap-3">
+                    <div class="field choice">
+                        <input type="checkbox" id="sg-cb-1">
+                        <label for="sg-cb-1"><?= $escaper->escapeHtml(__('Receive emails on promotions')) ?></label>
+                    </div>
+                    <div class="field choice">
+                        <input type="checkbox" id="sg-cb-2" checked>
+                        <label for="sg-cb-2"><?= $escaper->escapeHtml(__('Delivery address same as company address')) ?></label>
+                    </div>
+                    <div class="field choice">
+                        <input type="checkbox" id="sg-cb-3" disabled>
+                        <label for="sg-cb-3"><?= $escaper->escapeHtml(__('Disabled')) ?></label>
+                    </div>
+                    <div class="field choice">
+                        <input type="checkbox" id="sg-cb-4" checked disabled>
+                        <label for="sg-cb-4"><?= $escaper->escapeHtml(__('Disabled, checked')) ?></label>
+                    </div>
+                    <div class="field field-error">
+                        <div class="field choice mt-0">
+                            <input type="checkbox" id="sg-cb-5" aria-invalid="true" aria-describedby="sg-cb-5-msg" required>
+                            <label for="sg-cb-5"><?= $escaper->escapeHtml(__('I agree to the Terms & Conditions (error)')) ?></label>
+                        </div>
+                        <ul class="messages" id="sg-cb-5-msg">
+                            <li><?= $escaper->escapeHtml(__('This is a required field.')) ?></li>
+                        </ul>
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset class="mt-0">
+                <legend class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Radio')) ?></legend>
+                <div class="grid gap-3">
+                    <div class="field choice">
+                        <input type="radio" name="sg-radio" id="sg-rd-1" checked>
+                        <label for="sg-rd-1"><?= $escaper->escapeHtml(__('Elme freight')) ?></label>
+                    </div>
+                    <div class="field choice">
+                        <input type="radio" name="sg-radio" id="sg-rd-2">
+                        <label for="sg-rd-2"><?= $escaper->escapeHtml(__('Pick up from warehouse')) ?></label>
+                    </div>
+                    <div class="field choice">
+                        <input type="radio" name="sg-radio-disabled" id="sg-rd-3" disabled>
+                        <label for="sg-rd-3"><?= $escaper->escapeHtml(__('Disabled')) ?></label>
+                    </div>
+                    <div class="field choice">
+                        <input type="radio" name="sg-radio-disabled" id="sg-rd-4" checked disabled>
+                        <label for="sg-rd-4"><?= $escaper->escapeHtml(__('Disabled, checked')) ?></label>
+                    </div>
+                    <div class="field field-error">
+                        <div class="field choice mt-0">
+                            <input type="radio" name="sg-radio-error" id="sg-rd-5" aria-invalid="true" aria-describedby="sg-rd-5-msg" required>
+                            <label for="sg-rd-5"><?= $escaper->escapeHtml(__('Account credit (error)')) ?></label>
+                        </div>
+                        <ul class="messages" id="sg-rd-5-msg">
+                            <li><?= $escaper->escapeHtml(__('Please select a payment method.')) ?></li>
+                        </ul>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </section>
+
+    <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-qty">
+        <h2 id="sg-qty" class="mb-6"><?= $escaper->escapeHtml(__('Quantity stepper')) ?></h2>
+        <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+                <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('No MOQ')) ?></p>
+                <?= /* @noEscape */ $styleguide->getQtyStepperHtml($layout, ['input_id' => 'sg-qty-1']) ?>
+            </div>
+            <div>
+                <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('MOQ 6')) ?></p>
+                <?= /* @noEscape */ $styleguide->getQtyStepperHtml($layout, ['input_id' => 'sg-qty-6', 'moq' => 6]) ?>
+            </div>
+            <div>
+                <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('MOQ 6, 30 in stock (type 40 for the error)')) ?></p>
+                <?= /* @noEscape */ $styleguide->getQtyStepperHtml($layout, ['input_id' => 'sg-qty-max', 'moq' => 6, 'qty' => 24, 'max' => 30]) ?>
+            </div>
+            <div>
+                <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Disabled')) ?></p>
+                <?= /* @noEscape */ $styleguide->getQtyStepperHtml($layout, ['input_id' => 'sg-qty-disabled', 'moq' => 6, 'disabled' => true]) ?>
+            </div>
+        </div>
+    </section>
+
+    <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-badges">
+        <h2 id="sg-badges" class="mb-6"><?= $escaper->escapeHtml(__('Badges')) ?></h2>
+        <p class="mb-4"><?= $escaper->escapeHtml(__('Labels, not controls: they have no hover, focus or disabled state.')) ?></p>
+        <div class="flex flex-wrap items-center gap-6">
+            <span class="badge badge-sale"><?= $escaper->escapeHtml(__('Sale')) ?></span>
+            <span class="badge badge-new"><?= $escaper->escapeHtml(__('New')) ?></span>
+            <span class="badge-stock badge-stock-in"><?= $escaper->escapeHtml(__('In Stock')) ?></span>
+            <span class="badge-stock badge-stock-low"><?= $escaper->escapeHtml(__('Low Stock')) ?></span>
+        </div>
+    </section>
+
+    <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-breadcrumbs">
+        <h2 id="sg-breadcrumbs" class="mb-2"><?= $escaper->escapeHtml(__('Breadcrumbs')) ?></h2>
+        <div class="-mx-(--container-gutter) md:-mx-(--container-gutter-desktop)">
+            <?= /* @noEscape */ $styleguide->getBreadcrumbsHtml($layout) ?>
+        </div>
+    </section>
+
+    <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-pager">
+        <h2 id="sg-pager" class="mb-6"><?= $escaper->escapeHtml(__('Pagination')) ?></h2>
+        <?= /* @noEscape */ $styleguide->getPagerHtml($layout) ?>
+    </section>
+</div>

@@ -1,0 +1,129 @@
+<?php
+/**
+ * Alpine component for Magento_Theme::elme/qty-stepper.phtml. Render once per page.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<script>
+    function initElmeQtyStepper() {
+        return {
+            moq: 1,
+            qty: 1,
+            max: 0,
+            productId: 0,
+            disabled: false,
+            hint: '',
+            note: '',
+            tone: 'hint',
+
+            init() {
+                const data = this.$root.dataset;
+                this.moq = Math.max(1, parseInt(data.moq, 10) || 1);
+                this.max = Math.max(0, parseInt(data.max, 10) || 0);
+                this.productId = parseInt(data.productId, 10) || 0;
+                this.disabled = data.disabled === '1';
+                this.hint = data.hint || '';
+                this.qty = this.toValidQty(parseInt(data.qty, 10) || this.moq);
+                this.showHint();
+            },
+
+            // Highest multiple of the MOQ the customer may order, or 0 when there is no limit
+            maxQty() {
+                return this.max ? Math.floor(this.max / this.moq) * this.moq : 0;
+            },
+
+            toValidQty(value) {
+                let qty = Math.max(this.moq, Math.ceil(value / this.moq) * this.moq);
+                const maxQty = this.maxQty();
+                if (maxQty && qty > maxQty) {
+                    qty = Math.max(this.moq, maxQty);
+                }
+                return qty;
+            },
+
+            setQty(qty) {
+                this.qty = qty;
+                if (this.productId) {
+                    this.$dispatch('update-qty-' + this.productId, qty);
+                }
+            },
+
+            showHint() {
+                this.note = this.hint;
+                this.tone = 'hint';
+            },
+
+            increment() {
+                this.showHint();
+                this.setQty(this.toValidQty(this.qty + this.moq));
+            },
+
+            decrement() {
+                this.showHint();
+                this.setQty(this.toValidQty(this.qty - this.moq));
+            },
+
+            onChange() {
+                const input = this.$event.target;
+                const typed = hyva.safeParseNumber(input.value);
+                const qty = this.toValidQty(typed);
+                const maxQty = this.maxQty();
+
+                if (maxQty && typed > maxQty) {
+                    this.note = hyva.str(this.$root.dataset.maxMessage, this.max, qty);
+                    this.tone = 'error';
+                } else if (typed !== qty) {
+                    this.note = hyva.str(this.$root.dataset.roundedMessage, this.moq, qty);
+                    this.tone = 'notice';
+                } else {
+                    this.showHint();
+                }
+
+                this.setQty(qty);
+                // Alpine skips the :value update when qty did not change (e.g. 6 -> typed 5 -> 6)
+                input.value = qty;
+            },
+
+            isDecrementDisabled() {
+                return this.disabled || this.qty <= this.moq;
+            },
+
+            isIncrementDisabled() {
+                const maxQty = this.maxQty();
+                return this.disabled || (maxQty > 0 && this.qty + this.moq > maxQty);
+            },
+
+            isError() {
+                return this.tone === 'error';
+            },
+
+            stepperClasses() {
+                return {
+                    'border-error': this.tone === 'error',
+                    'border-border hover:border-primary focus-within:border-primary': this.tone !== 'error',
+                    'opacity-50': this.disabled
+                };
+            },
+
+            noteClasses() {
+                return {
+                    'text-ink-subtle': this.tone === 'hint',
+                    'text-ink': this.tone === 'notice',
+                    'text-error-strong': this.tone === 'error'
+                };
+            }
+        }
+    }
+
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeQtyStepper', initElmeQtyStepper), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
