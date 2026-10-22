@@ -10,23 +10,20 @@
         line-height: var(--text-base--line-height);
     }
 
-    :where(h1, h2, h3, h4, h5, h6) {
+    /* Plain element selectors: :where() would lose to Tailwind preflight's `h1 { font-size: inherit }` */
+    h1, h2, h3, h4, h5, h6 {
         font-family: var(--font-heading);
         font-weight: 400;
         color: var(--color-ink);
     }
 
-    :where(h1) {
+    /* Production keeps h1, h4-h6 at one size; only h2/h3 grow at desktop (Overdose od-extend/_typography.less) */
+    h1 {
         font-size: var(--text-h1);
         line-height: var(--text-h1--line-height);
-
-        @variant lg {
-            font-size: var(--text-h1-desktop);
-            line-height: 1.1;
-        }
     }
 
-    :where(h2) {
+    h2 {
         font-size: var(--text-h2);
         line-height: var(--text-h2--line-height);
 
@@ -35,7 +32,7 @@
         }
     }
 
-    :where(h3) {
+    h3 {
         font-size: var(--text-h3);
         line-height: var(--text-h3--line-height);
 
@@ -44,23 +41,23 @@
         }
     }
 
-    :where(h4) {
+    h4 {
         font-size: var(--text-h4);
         line-height: var(--text-h4--line-height);
     }
 
-    :where(h5) {
+    h5 {
         font-size: var(--text-h5);
         line-height: var(--text-h5--line-height);
-
-        @variant lg {
-            font-size: var(--text-h5-desktop);
-        }
     }
 
-    :where(h6) {
+    h6 {
         font-size: var(--text-h6);
         line-height: var(--text-h6--line-height);
+    }
+
+    p {
+        color: var(--color-ink-subtle);
     }
 
     ::placeholder {
@@ -69,11 +66,53 @@
 }
 
 /*
- * CMS / Page Builder content is wrapped in .prose, which resets the heading font to `initial`
- * and makes headings 600. Elme headings are DM Serif Display 400 everywhere.
+ * CMS / Page Builder content is wrapped in .prose, which sets its own heading scale (3em, 2em, ... at 600),
+ * 500-weight links and 1em/1rem flow. Elme CMS content uses the base typography above and the old
+ * Luma spacing (h1 0/24, h2 18/24, h3 18/12, h4-h6 24/24, p 0/12, lists 0/18 with 12px between items).
  */
 @utility prose {
-    --h-family: var(--font-heading);
-    --h-weight: 400;
-    --h-color: var(--color-ink);
+    --text-flow: 0 --spacing(3);
+    --link-color: var(--color-ink);
+    --link-weight: 400;
+    --table-stroke: var(--color-border-light);
+    --table-bg: transparent;
+    --table-color: var(--color-ink);
+
+    :where(h1, h2, h3, h4, h5, h6) {
+        color: revert-layer;
+        font-family: revert-layer;
+        font-size: revert-layer;
+        font-weight: revert-layer;
+        line-height: revert-layer;
+    }
+
+    :where(h1) {
+        margin-block: 0 --spacing(6);
+    }
+
+    :where(h2) {
+        margin-block: --spacing(4.5) --spacing(6);
+    }
+
+    :where(h3) {
+        margin-block: --spacing(4.5) --spacing(3);
+    }
+
+    :where(h4, h5, h6) {
+        margin-block: --spacing(6);
+    }
+
+    :where(ul, ol) {
+        margin-block: 0 --spacing(4.5);
+        padding-inline-start: --spacing(10);
+    }
+
+    :where(li + li) {
+        margin-block-start: --spacing(3);
+    }
+
+    :where(hr) {
+        margin-block: --spacing(4);
+        border-color: var(--color-divider);
+    }
 }
