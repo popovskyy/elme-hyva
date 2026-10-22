@@ -16,13 +16,9 @@
     margin-block: --spacing(8);
 }
 
-/* Elme: breadcrumbs are the first thing in <main>; keep the old spacing (crumbs, then 32px, then the title) */
+/* Elme: breadcrumbs are the first thing in <main>; the gap to the title is the crumbs' own bottom padding */
 .page-main:has(> .breadcrumbs) {
     margin-top: 0;
-
-    > .breadcrumbs {
-        margin-bottom: --spacing(8);
-    }
 }
 
 /*
@@ -36,11 +32,6 @@
 
     > .page.messages {
         order: -1;
-
-        /* No empty strip between the header and the banner when there is no message */
-        section#messages:not(:has(.message)) {
-            padding-block: 0;
-        }
     }
 
     > .breadcrumbs {

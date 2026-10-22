@@ -82,4 +82,9 @@
         margin-inline: auto;
         padding-block: --spacing(3);
     }
+
+    /* Elme: no empty strip in the page when there is no message */
+    section#messages:not(:has(.message)) {
+        padding-block: 0;
+    }
 }
