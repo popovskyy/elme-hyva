@@ -1,0 +1,419 @@
+/**
+ * Elme: custom select (FE-59) — square 50px control, olive focus, desktop listbox + phone bottom sheet.
+ * Native <select> stays in the DOM (visually hidden when Alpine has enhanced it).
+ */
+
+@layer components {
+    .elme-select {
+        position: relative;
+        display: block;
+        width: 100%;
+    }
+
+    /* Native select: usable without JS; hidden once Alpine marks the wrapper */
+    .elme-select__native {
+        width: 100%;
+    }
+
+    .elme-select.is-enhanced .elme-select__native {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .elme-select__control {
+        display: none;
+    }
+
+    .elme-select.is-enhanced .elme-select__control {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: --spacing(1.5);
+        min-block-size: var(--form-height);
+        width: 100%;
+        padding-block: --spacing(1.5);
+        padding-inline: var(--form-px);
+        padding-inline-end: --spacing(10);
+        border: 1px solid var(--form-stroke);
+        border-radius: var(--form-radius);
+        background-color: var(--form-bg);
+        color: var(--form-color);
+        cursor: pointer;
+        transition: border-color var(--default-transition-duration) var(--default-transition-timing-function);
+    }
+
+    .elme-select.is-enhanced .elme-select__control:hover {
+        border-color: var(--color-primary);
+    }
+
+    .elme-select.is-enhanced.is-open .elme-select__control,
+    .elme-select.is-enhanced .elme-select__control:focus-within {
+        border-color: var(--color-olive);
+        outline: 1px solid var(--color-olive);
+        outline-offset: 0;
+    }
+
+    .elme-select.is-enhanced.is-error .elme-select__control,
+    .elme-select.is-enhanced.is-error .elme-select__control:focus-within {
+        border-color: var(--form-error-color);
+    }
+
+    .elme-select.is-enhanced.is-error .elme-select__control:focus-within {
+        outline-color: var(--color-olive);
+    }
+
+    .elme-select.is-enhanced.is-disabled .elme-select__control {
+        border-color: var(--color-border-light);
+        color: var(--color-placeholder);
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    .elme-select__trigger {
+        display: flex;
+        flex: 1 1 auto;
+        align-items: center;
+        gap: --spacing(2);
+        min-width: 0;
+        min-block-size: calc(var(--form-height) - --spacing(3));
+        padding: 0;
+        margin: 0;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        text-align: start;
+        cursor: inherit;
+    }
+
+    .elme-select__trigger:focus {
+        outline: none;
+    }
+
+    .elme-select__value {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .elme-select__value.is-placeholder {
+        color: var(--color-placeholder);
+    }
+
+    .elme-select__media {
+        flex-shrink: 0;
+        width: --spacing(5);
+        height: --spacing(5);
+        object-fit: cover;
+    }
+
+    .elme-select__swatch {
+        flex-shrink: 0;
+        width: --spacing(4);
+        height: --spacing(4);
+        border: 1px solid var(--color-border);
+    }
+
+    .elme-select__icon {
+        flex-shrink: 0;
+        width: --spacing(5);
+        height: --spacing(5);
+        color: var(--color-ink-muted);
+    }
+
+    .elme-select__chevron,
+    .elme-select__spinner {
+        position: absolute;
+        inset-inline-end: var(--form-px);
+        top: 50%;
+        translate: 0 -50%;
+        width: --spacing(5);
+        height: --spacing(5);
+        color: var(--color-ink-muted);
+        pointer-events: none;
+    }
+
+    .elme-select.is-open .elme-select__chevron {
+        rotate: 180deg;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .elme-select__chevron {
+            transition: rotate 150ms ease;
+        }
+    }
+
+    .elme-select__spinner {
+        border: 2px solid var(--color-border);
+        border-block-start-color: var(--color-ink);
+        border-radius: 50%;
+        animation: elme-spin 0.7s linear infinite;
+        color: transparent;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .elme-select__spinner {
+            animation: none;
+            border-color: var(--color-ink);
+        }
+    }
+
+    /* Chips (multi) */
+    .elme-select__chips {
+        display: flex;
+        flex: 1 1 auto;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: --spacing(1.5);
+        min-width: 0;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .elme-select__chip {
+        display: inline-flex;
+        align-items: center;
+        gap: --spacing(1);
+        max-width: 100%;
+        padding-block: --spacing(1);
+        padding-inline: --spacing(2);
+        background-color: var(--color-surface-muted);
+        color: var(--color-ink);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+    }
+
+    .elme-select__chip-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .elme-select__chip-remove {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: --spacing(4);
+        height: --spacing(4);
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--color-ink-muted);
+        cursor: pointer;
+    }
+
+    .elme-select__chip-remove:hover {
+        color: var(--color-ink);
+    }
+
+    .elme-select__chip-more {
+        color: var(--color-ink-muted);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+    }
+
+    /* Desktop listbox panel (position set in JS: fixed + flip/shift) */
+    .elme-select__panel {
+        z-index: 60;
+        display: flex;
+        flex-direction: column;
+        max-block-size: min(20rem, 70vh);
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-border);
+        box-shadow: none;
+        color: var(--color-ink);
+    }
+
+    .elme-select__search {
+        flex-shrink: 0;
+        padding: --spacing(2);
+        border-block-end: 1px solid var(--color-divider);
+    }
+
+    .elme-select__search-input {
+        width: 100%;
+        min-block-size: --spacing(10);
+        padding-block: --spacing(2);
+        padding-inline: --spacing(3);
+        border: 1px solid var(--form-stroke);
+        border-radius: var(--form-radius);
+        background: transparent;
+        color: var(--form-color);
+        font: inherit;
+    }
+
+    .elme-select__search-input:focus {
+        border-color: var(--color-olive);
+        outline: 1px solid var(--color-olive);
+        outline-offset: 0;
+    }
+
+    .elme-select__list {
+        flex: 1 1 auto;
+        margin: 0;
+        padding: --spacing(1);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        list-style: none;
+    }
+
+    .elme-select__group {
+        padding-block: --spacing(2);
+        padding-inline: --spacing(3);
+        color: var(--color-ink-subtle);
+        font-size: var(--text-label);
+        line-height: var(--text-label--line-height);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .elme-select__option {
+        display: flex;
+        align-items: center;
+        gap: --spacing(2);
+        min-block-size: --spacing(10);
+        padding-block: --spacing(2);
+        padding-inline: --spacing(3);
+        cursor: pointer;
+    }
+
+    .elme-select__option:hover,
+    .elme-select__option.is-active {
+        background-color: var(--color-surface-muted);
+    }
+
+    .elme-select__option.is-selected {
+        background-color: color-mix(in srgb, var(--color-secondary) 35%, transparent);
+    }
+
+    .elme-select__option.is-disabled {
+        color: var(--color-placeholder);
+        cursor: not-allowed;
+    }
+
+    .elme-select__option-label {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .elme-select__option-label mark {
+        background-color: color-mix(in srgb, var(--color-secondary) 55%, transparent);
+        color: inherit;
+        font-weight: 600;
+    }
+
+    .elme-select__check {
+        flex-shrink: 0;
+        width: --spacing(4);
+        height: --spacing(4);
+        color: var(--color-olive);
+    }
+
+    .elme-select__empty {
+        padding: --spacing(4) --spacing(3);
+        color: var(--color-ink-subtle);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+    }
+
+    /* Phone bottom sheet */
+    .elme-select-sheet {
+        position: fixed;
+        inset: 0;
+        z-index: 80;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+
+    .elme-select-sheet__backdrop {
+        position: absolute;
+        inset: 0;
+        background-color: color-mix(in srgb, var(--color-ink) 50%, transparent);
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+    }
+
+    .elme-select-sheet__panel {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        max-block-size: min(85vh, 40rem);
+        background-color: var(--color-surface);
+        border-block-start: 1px solid var(--color-border);
+        padding-block-end: env(safe-area-inset-bottom, 0);
+        touch-action: pan-y;
+    }
+
+    .elme-select-sheet__handle {
+        display: flex;
+        justify-content: center;
+        padding-block: --spacing(2);
+        flex-shrink: 0;
+    }
+
+    .elme-select-sheet__handle-bar {
+        width: --spacing(10);
+        height: --spacing(1);
+        background-color: var(--color-border);
+    }
+
+    .elme-select-sheet__title {
+        margin: 0;
+        padding-block: 0 --spacing(2);
+        padding-inline: --spacing(4);
+        font-family: var(--font-heading);
+        font-size: var(--text-h3);
+        line-height: var(--text-h3--line-height);
+        font-weight: 400;
+    }
+
+    .elme-select-sheet .elme-select__search {
+        padding-inline: --spacing(4);
+    }
+
+    .elme-select-sheet .elme-select__list {
+        padding-inline: --spacing(2);
+        padding-block-end: --spacing(4);
+    }
+
+    .elme-select-sheet .elme-select__option {
+        min-block-size: --spacing(12); /* 48px rows on phone */
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .elme-select__panel,
+        .elme-select-sheet__panel {
+            transition:
+                opacity 150ms ease,
+                translate 150ms ease;
+        }
+    }
+
+    /* Inline form-select next to a text label (toolbar / pager) stays content-sized */
+    .label > .elme-select,
+    .control > .elme-select {
+        display: inline-block;
+        width: auto;
+        min-width: 8rem;
+        vertical-align: middle;
+    }
+
+    .label > .elme-select.is-enhanced .elme-select__control,
+    .control > .elme-select.is-enhanced .elme-select__control {
+        min-width: 8rem;
+    }
+}
