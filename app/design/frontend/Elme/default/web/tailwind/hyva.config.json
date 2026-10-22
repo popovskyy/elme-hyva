@@ -38,6 +38,7 @@
         "success-light": "#C5EAD6",
         "olive": "#677858",
         "warning": "#F2B20C",
+        "warning-light": "#FDDCC7",
         "error": "#FF5942",
         "error-strong": "#D82C0D",
         "error-light": "#FFC3B8",

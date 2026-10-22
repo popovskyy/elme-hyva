@@ -16,8 +16,9 @@
                 <argument name="css_class" xsi:type="string">mb-6</argument>
             </arguments>
         </referenceBlock>
-        <!-- FE-60: delegated ink ripple for primary/secondary buttons (site-wide) -->
+        <!-- FE-03: toast stack (elme-toast window event); FE-60: button ripple -->
         <referenceContainer name="before.body.end">
+            <block name="elme.toast-stack" template="Magento_Theme::elme/toast-stack.phtml"/>
             <block name="elme.btn-ripple" template="Magento_Theme::elme/btn-ripple.phtml"/>
         </referenceContainer>
     </body>

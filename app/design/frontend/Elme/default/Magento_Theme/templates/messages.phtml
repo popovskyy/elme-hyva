@@ -1,0 +1,150 @@
+<?php
+/**
+ * Elme: page messages (success, error, notice, warning).
+ * In-flow under the header; closable; announced to assistive tech (role=alert + aria-live).
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Hyva\Theme\ViewModel\StoreConfig;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+/** @var StoreConfig $storeConfig */
+$storeConfig = $viewModels->require(StoreConfig::class);
+
+$defaultSuccessMessageTimeout = $storeConfig->getStoreConfig('hyva_theme_general/messages/success_message_timeout');
+?>
+<script>
+    <?php if ($defaultSuccessMessageTimeout): ?>
+    window.defaultSuccessMessageTimeout = <?= (int) $defaultSuccessMessageTimeout ?>;
+    <?php endif; ?>
+
+    function initMessages() {
+        return {
+            messages: [],
+            init() {
+                this.addMessages(window.mageMessages || []);
+            },
+            isEmpty() {
+                return this.messages.reduce(
+                    function (isEmpty, message) {
+                        return isEmpty && message === undefined
+                    }, true
+                )
+            },
+            hasMessages() {
+                return !this.isEmpty();
+            },
+            hasMessage() {
+                return !!this.message;
+            },
+            removeMessage() {
+                this.messages[this.index] = undefined;
+            },
+            addMessages(messages, hideAfter) {
+                messages.map((message) => {
+                    if (!message || !message.text || !message.text.trim()) return;
+                    const duplicate = this.messages.findIndex(
+                        (m) => m && m.type === message.type && m.text === message.text
+                    );
+                    const index = duplicate === -1
+                        ? this.messages.push(message) - 1
+                        : duplicate;
+                    if (hideAfter === undefined && message.type === 'success' && window.defaultSuccessMessageTimeout) {
+                        hideAfter = window.defaultSuccessMessageTimeout;
+                    }
+                    if (hideAfter) {
+                        this.setHideTimeOut(index, hideAfter);
+                    }
+                });
+            },
+            isDisplayed(message) {
+                return this.messages.some(
+                    (displayed) => displayed && displayed.type === message.type && displayed.text === message.text
+                );
+            },
+            setHideTimeOut(messageIndex, hideAfter) {
+                setTimeout((messageIndex) => {
+                    this.messages[messageIndex] = undefined;
+                }, hideAfter, messageIndex);
+            },
+            eventListeners: {
+                ['@messages-loaded.window'](event) {
+                    this.addMessages(event.detail.messages, event.detail.hideAfter)
+                },
+                ['@private-content-loaded.window'](event) {
+                    const data = event.detail.data;
+                    if (
+                        data.messages &&
+                        data.messages.messages &&
+                        data.messages.messages.length
+                    ) {
+                        this.addMessages(data.messages.messages);
+                    }
+                },
+                ['@clear-messages.window']() {
+                    this.messages = [];
+                },
+                ['@pageshow.window'](event) {
+                    if (event.persisted) {
+                        this.messages = [];
+                    };
+                }
+            },
+            getMessageUiId() {
+                return 'message-' + this.message.type;
+            },
+            getMessageLive() {
+                return this.message.type === 'error' ? 'assertive' : 'polite';
+            }
+        }
+    }
+
+    window.addEventListener('alpine:init', () => Alpine.data('initMessages', initMessages), {once: true})
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+<section
+    id="messages"
+    x-data="initMessages"
+    x-bind="eventListeners"
+    role="alert"
+    aria-live="polite"
+    aria-atomic="false"
+>
+    <template x-if="hasMessages">
+        <div class="messages container py-3">
+            <template x-for="(message, index) in messages" :key="index">
+                <div>
+                    <template x-if="hasMessage">
+                        <div
+                            class="message"
+                            :class="message.type"
+                            :ui-id="getMessageUiId"
+                            :aria-live="getMessageLive"
+                        >
+                            <span x-html-safe="message.text"></span>
+                            <button
+                                type="button"
+                                class="shrink-0 p-2 -me-2 text-ink-muted hover:text-ink"
+                                aria-label="<?= $escaper->escapeHtml(__('Close message')) ?>"
+                                @click.prevent="removeMessage"
+                            >
+                                <?= $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']); ?>
+                            </button>
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </div>
+    </template>
+</section>

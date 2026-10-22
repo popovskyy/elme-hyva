@@ -1,57 +1,83 @@
+/**
+ * Elme: page messages + toast stack (old Bart/jl _od-messages.less).
+ * In document flow under the header — never sticky/fixed over it (FE-03 QA).
+ */
+
 @layer components {
     .message {
         --message-color: var(--color-ink);
+        --message-bg: var(--color-surface-muted);
+        position: relative;
         display: flex;
         gap: --spacing(3);
         align-items: center;
         justify-content: space-between;
         width: 100%;
-        padding-block: --spacing(2.5);
+        min-height: --spacing(15);
+        padding-block: --spacing(3);
         padding-inline-start: --spacing(5);
         padding-inline-end: --spacing(4);
-        box-shadow: var(--shadow-sm);
-        border-radius: var(--radius-sm);
-        color: var(--color-ink);
-        font-weight: var(--font-weight-semibold);
-        line-height: var(--leading-tight);
-        margin-block-end: --spacing(2);
-        border-width: 2px;
+        border-width: 1px;
         border-color: var(--message-color);
-        background-color: color-mix(
-            in oklch,
-            var(--message-color) 7.5%,
-            var(--color-white)
-        );
+        border-radius: var(--radius-sm);
+        background-color: var(--message-bg);
+        color: var(--color-ink);
+        font-size: var(--text-note);
+        font-weight: 500;
+        line-height: var(--text-note--line-height);
+        margin-block-end: --spacing(2);
 
         &.error {
-            --message-color: var(--color-red-500);
+            --message-color: var(--color-ink);
+            --message-bg: var(--color-error-light);
         }
 
         &.success {
-            --message-color: var(--color-green-500);
+            --message-color: var(--color-olive);
+            --message-bg: var(--color-success-light);
         }
 
         &.info,
-        &.notice {
-            --message-color: var(--color-blue-500);
-        }
-
+        &.notice,
         &.warning {
-            --message-color: var(--color-yellow-500);
+            --message-color: var(--color-warning);
+            --message-bg: var(--color-warning-light);
         }
 
         a {
             text-decoration-line: underline;
         }
     }
+
+    /* Ephemeral toast: fixed under the header band, not over it */
+    .elme-toast-stack {
+        position: fixed;
+        z-index: 40;
+        inset-inline: 0;
+        top: var(--elme-header-offset, 1rem);
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(2);
+        align-items: center;
+        padding-inline: --spacing(5);
+        pointer-events: none;
+    }
+
+    .elme-toast-stack .message {
+        pointer-events: auto;
+        max-width: 25rem;
+        margin-block-end: 0;
+        box-shadow: var(--shadow-md);
+    }
 }
 
+/* Keep messages in the content column under the header (no sticky overlay) */
 .page.messages {
-    position: sticky;
-    top: 0;
-    z-index: 20;
+    position: relative;
+    z-index: 10;
 
-    .messages section#messages {
+    .messages,
+    section#messages {
         @apply container;
         margin-inline: auto;
         padding-block: --spacing(3);

@@ -300,6 +300,116 @@ $captionClass = 'mb-2 text-label uppercase tracking-wide text-ink-subtle';
         <h2 id="sg-pager" class="mb-6"><?= $escaper->escapeHtml(__('Pagination')) ?></h2>
         <?= /* @noEscape */ $styleguide->getPagerHtml($layout) ?>
     </section>
+
+    <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-messages" x-data="initElmeStyleguideFeedback">
+        <h2 id="sg-messages" class="mb-2"><?= $escaper->escapeHtml(__('Messages and toasts')) ?></h2>
+        <p class="max-w-2xl mb-6 text-ink-subtle">
+            <?= $escaper->escapeHtml(__(
+                'Page messages sit in the content column under the header (never over it). '
+                . 'Toasts float under --elme-header-offset and auto-dismiss. Screen readers get role=alert / aria-live.'
+            )) ?>
+        </p>
+        <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Static types')) ?></p>
+        <div class="grid gap-3 max-w-2xl mb-8" role="presentation">
+            <div class="message success" role="status">
+                <span><?= $escaper->escapeHtml(__('You saved the shopping list.')) ?></span>
+                <button type="button" class="shrink-0 p-2 -me-2 text-ink-muted" aria-label="<?= $escaper->escapeHtmlAttr(__('Close message')) ?>">
+                    <?= /* @noEscape */ $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
+                </button>
+            </div>
+            <div class="message error" role="alert">
+                <span><?= $escaper->escapeHtml(__('The account sign-in was incorrect or your account is disabled temporarily.')) ?></span>
+                <button type="button" class="shrink-0 p-2 -me-2 text-ink-muted" aria-label="<?= $escaper->escapeHtmlAttr(__('Close message')) ?>">
+                    <?= /* @noEscape */ $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
+                </button>
+            </div>
+            <div class="message notice" role="status">
+                <span><?= $escaper->escapeHtml(__('Add $120.00 more to place your order.')) ?></span>
+                <button type="button" class="shrink-0 p-2 -me-2 text-ink-muted" aria-label="<?= $escaper->escapeHtmlAttr(__('Close message')) ?>">
+                    <?= /* @noEscape */ $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
+                </button>
+            </div>
+            <div class="message warning" role="status">
+                <span><?= $escaper->escapeHtml(__('Only 4 left in stock for this finish.')) ?></span>
+                <button type="button" class="shrink-0 p-2 -me-2 text-ink-muted" aria-label="<?= $escaper->escapeHtmlAttr(__('Close message')) ?>">
+                    <?= /* @noEscape */ $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
+                </button>
+            </div>
+        </div>
+        <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Live toast (dispatches elme-toast)')) ?></p>
+        <div class="flex flex-wrap gap-3">
+            <button type="button" class="btn btn-outline" @click="toastSuccess">
+                <?= $escaper->escapeHtml(__('Success toast')) ?>
+            </button>
+            <button type="button" class="btn btn-outline" @click="toastError">
+                <?= $escaper->escapeHtml(__('Error toast')) ?>
+            </button>
+            <button type="button" class="btn btn-outline" @click="toastNotice">
+                <?= $escaper->escapeHtml(__('Notice toast')) ?>
+            </button>
+        </div>
+    </section>
+
+    <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-modal-drawer">
+        <h2 id="sg-modal-drawer" class="mb-6"><?= $escaper->escapeHtml(__('Modal and drawer')) ?></h2>
+        <?= /* @noEscape */ $styleguide->getFeedbackDemoHtml($layout) ?>
+    </section>
+
+    <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-loaders" x-data="initElmeStyleguideLoader">
+        <h2 id="sg-loaders" class="mb-6"><?= $escaper->escapeHtml(__('Loaders and skeletons')) ?></h2>
+        <div class="grid gap-8 lg:grid-cols-2">
+            <div>
+                <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Spinner')) ?></p>
+                <div class="elme-loader py-8 border border-divider">
+                    <span class="elme-spinner elme-spinner--lg" aria-hidden="true"></span>
+                    <span><?= $escaper->escapeHtml(__('Loading…')) ?></span>
+                </div>
+                <button type="button" class="btn btn-secondary mt-4" @click="flashPageLoader">
+                    <?= $escaper->escapeHtml(__('Flash page loader (1.2s)')) ?>
+                </button>
+                <div
+                    class="elme-loader elme-loader--page"
+                    x-show="pageLoading"
+                    x-cloak
+                    x-transition.opacity.duration.200ms
+                    role="status"
+                    aria-live="polite"
+                    aria-busy="true"
+                >
+                    <span class="elme-spinner elme-spinner--lg" aria-hidden="true"></span>
+                    <span><?= $escaper->escapeHtml(__('Loading…')) ?></span>
+                </div>
+            </div>
+            <div>
+                <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Skeleton (product card shape)')) ?></p>
+                <div class="grid grid-cols-2 gap-4 max-w-md" aria-hidden="true">
+                    <div class="space-y-3">
+                        <span class="elme-skeleton elme-skeleton--media block"></span>
+                        <span class="elme-skeleton elme-skeleton--title block"></span>
+                        <span class="elme-skeleton elme-skeleton--text block w-2/3"></span>
+                    </div>
+                    <div class="space-y-3">
+                        <span class="elme-skeleton elme-skeleton--media block"></span>
+                        <span class="elme-skeleton elme-skeleton--title block"></span>
+                        <span class="elme-skeleton elme-skeleton--text block w-1/2"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-empty">
+        <h2 id="sg-empty" class="mb-6"><?= $escaper->escapeHtml(__('Empty state')) ?></h2>
+        <div class="border border-divider">
+            <?= /* @noEscape */ $styleguide->getEmptyStateHtml($layout, [
+                'title' => __('Your cart is empty'),
+                'text' => __('Browse the catalogue to add products for your next order.'),
+                'icon' => 'shoppingBasket',
+                'cta_label' => __('Continue shopping'),
+                'cta_url' => '/',
+            ]) ?>
+        </div>
+    </section>
 </div>
 <script>
     // Demo only: fakes an 800ms add-to-cart request, then shows "Added" for 1.5s
@@ -334,6 +444,47 @@ $captionClass = 'mb-2 text-label uppercase tracking-wide text-ink-subtle';
         }
     }
 
-    window.addEventListener('alpine:init', () => Alpine.data('initElmeStyleguideAddDemo', initElmeStyleguideAddDemo), {once: true});
+    function initElmeStyleguideFeedback() {
+        return {
+            toastSuccess() {
+                this.$dispatch('elme-toast', {
+                    type: 'success',
+                    text: '<?= $escaper->escapeJs(__('Saved to your shopping list.')) ?>'
+                });
+            },
+            toastError() {
+                this.$dispatch('elme-toast', {
+                    type: 'error',
+                    text: '<?= $escaper->escapeJs(__('Could not update your cart. Please try again.')) ?>'
+                });
+            },
+            toastNotice() {
+                this.$dispatch('elme-toast', {
+                    type: 'notice',
+                    text: '<?= $escaper->escapeJs(__('Add $120.00 more to place your order.')) ?>'
+                });
+            }
+        }
+    }
+
+    function initElmeStyleguideLoader() {
+        return {
+            pageLoading: false,
+            timer: null,
+            flashPageLoader() {
+                clearTimeout(this.timer);
+                this.pageLoading = true;
+                this.timer = setTimeout(() => {
+                    this.pageLoading = false;
+                }, 1200);
+            }
+        }
+    }
+
+    window.addEventListener('alpine:init', () => {
+        Alpine.data('initElmeStyleguideAddDemo', initElmeStyleguideAddDemo);
+        Alpine.data('initElmeStyleguideFeedback', initElmeStyleguideFeedback);
+        Alpine.data('initElmeStyleguideLoader', initElmeStyleguideLoader);
+    }, {once: true});
 </script>
 <?php $hyvaCsp->registerInlineScript() ?>
