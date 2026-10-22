@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!-- /styleguide: every UI kit component and state on one page for QA; noindex, not linked anywhere -->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <!-- cms_page is removed below, and with it the title it sets from the CMS page -->
+        <title>Style guide</title>
+        <meta name="robots" content="NOINDEX,NOFOLLOW"/>
+    </head>
+    <body>
+        <referenceBlock name="cms_page" remove="true"/>
+        <!-- the head title would also render as a second H1; the template has its own -->
+        <referenceBlock name="page.main.title" remove="true"/>
+        <referenceContainer name="content">
+            <block name="elme.styleguide" template="Magento_Cms::styleguide.phtml"/>
+        </referenceContainer>
+        <referenceContainer name="before.body.end">
+            <block name="elme.qty-stepper.js" template="Magento_Theme::elme/qty-stepper-js.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

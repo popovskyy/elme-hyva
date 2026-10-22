@@ -1,0 +1,74 @@
+<?php
+/**
+ * Hyvä Themes - https://hyva.io
+ * Copyright © Hyvä Themes. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+declare(strict_types=1);
+
+use Magento\Theme\Block\Html\Breadcrumbs;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var Breadcrumbs $block */
+/** @var array[] $crumbs */
+
+if (!$crumbs && !is_array($crumbs)) {
+    return '';
+}
+
+// The rendering of the application/ld+json BreadcrumbList can be disabled by setting this flag in layout XML
+$skipLinkedDataJsonSchema = $block->getData('skip_ld_json_schema');
+$schemaBreadcrumbs = [];
+$crumbsCount = 1;
+$currentPageUrl = preg_replace('/[?#].*$/', '', $block->getUrl('', ['_current' => true, '_use_rewrite' => true]));
+?>
+
+<?php /* Elme: 12px charcoal crumbs on the page background, "/" separator (old _breadcrumbs.less) */ ?>
+<nav class="breadcrumbs" aria-label="<?= $escaper->escapeHtmlAttr(__('Breadcrumb')) ?>">
+    <div class="container">
+        <ol class="items list-reset pt-4 pb-5 lg:pb-10 flex flex-wrap text-breadcrumbs leading-4 text-ink">
+            <?php foreach ($crumbs as $crumbName => $crumbInfo): ?>
+                <li class="item flex <?= $escaper->escapeHtmlAttr($crumbName) ?>">
+                <?php if (!$crumbInfo['first']): ?>
+                    <span aria-hidden="true" class="separator px-2">/</span>
+                <?php endif; ?>
+                <?php if ($crumbInfo['link']): ?>
+                    <a
+                        href="<?= $escaper->escapeUrl($crumbInfo['link']) ?>"
+                        class="text-ink no-underline underline-offset-2 hover:underline hover:text-link-hover"
+                        <?php if ($crumbInfo['title']): ?>
+                            aria-label="<?= $escaper->escapeHtmlAttr($crumbInfo['title']) ?>"
+                        <?php endif; ?>
+                    ><?= $escaper->escapeHtml($crumbInfo['label']) ?></a>
+                <?php elseif ($crumbInfo['last']): ?>
+                    <a
+                        href="<?= $escaper->escapeUrl($currentPageUrl) ?>"
+                        class="text-ink no-underline"
+                        aria-current="page"
+                    ><?= $escaper->escapeHtml($crumbInfo['label']) ?></a>
+                <?php else: ?>
+                    <?= $escaper->escapeHtml($crumbInfo['label']) ?>
+                <?php endif; ?>
+                </li>
+                <?php if (! $skipLinkedDataJsonSchema) {
+                    $schemaBreadcrumbs[] = [
+                        "@type" => "ListItem",
+                        "position" => $crumbsCount,
+                        "item" => [
+                            "@id" => $crumbInfo['last'] ? $currentPageUrl : $crumbInfo['link'],
+                            "name" => $crumbInfo['label']
+                        ]
+                    ];
+                } ?>
+            <?php $crumbsCount++; endforeach ?>
+        </ol>
+    </div>
+</nav>
+
+<?php if (! $skipLinkedDataJsonSchema): ?>
+    <script type="application/ld+json">
+        { "@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": <?= /* @noEscape */ json_encode($schemaBreadcrumbs) ?> }
+    </script>
+<?php endif; ?>

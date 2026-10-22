@@ -1,0 +1,67 @@
+<?php
+/**
+ * FE-60: one delegated pointerdown listener for .btn-primary / .btn-secondary ink ripples.
+ * CSP-safe (no Alpine, no per-button handlers). Skips disabled, loading, and reduced motion.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<script>
+    (function () {
+        const SELECTOR = '.btn.btn-primary, .btn.btn-secondary';
+
+        function prefersReducedMotion() {
+            return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        }
+
+        function isRippleBlocked(btn) {
+            return btn.disabled
+                || btn.getAttribute('aria-disabled') === 'true'
+                || btn.classList.contains('is-loading')
+                || btn.getAttribute('aria-busy') === 'true';
+        }
+
+        function spawnRipple(btn, event) {
+            const rect = btn.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            const size = Math.ceil(Math.hypot(
+                Math.max(x, rect.width - x),
+                Math.max(y, rect.height - y)
+            ) * 2);
+
+            const ink = document.createElement('span');
+            ink.className = 'btn-ripple';
+            ink.setAttribute('aria-hidden', 'true');
+            ink.style.width = size + 'px';
+            ink.style.height = size + 'px';
+            ink.style.left = (x - size / 2) + 'px';
+            ink.style.top = (y - size / 2) + 'px';
+            btn.appendChild(ink);
+            ink.addEventListener('animationend', () => ink.remove(), { once: true });
+        }
+
+        document.addEventListener('pointerdown', (event) => {
+            if (event.button != null && event.button !== 0) {
+                return;
+            }
+            if (prefersReducedMotion()) {
+                return;
+            }
+            const btn = event.target.closest(SELECTOR);
+            if (!btn || isRippleBlocked(btn)) {
+                return;
+            }
+            spawnRipple(btn, event);
+        });
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

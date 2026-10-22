@@ -360,6 +360,7 @@ return [
         'Magento_Wishlist' => 1,
         'Magento_WishlistAnalytics' => 1,
         'Magento_WishlistGraphQl' => 1,
+        'Elme_Styleguide' => 1,
         'Hyva_Theme' => 1,
         'Hyva_Email' => 1,
         'Hyva_ThemeFallback' => 1,
