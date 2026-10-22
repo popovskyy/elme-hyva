@@ -1,6 +1,6 @@
 # Elme Hyvä — Frontend Tickets
 
-57 frontend tickets to port elmeliving.com to the new Magento 2.4.9 + Hyvä storefront in 11 epics, plus 12 UX tickets (Epic 11) that fix weak spots of the current site. Logged-out pages were checked on production on 22 Oct 2026; logged-in features (prices, cart, quick order, account) come from the old theme Bart/el and modules ElmeLiving/\*, because we had no trade login.
+58 frontend tickets to port elmeliving.com to the new Magento 2.4.9 + Hyvä storefront in 11 epics, plus 12 UX tickets (Epic 11) that fix weak spots of the current site. Logged-out pages were checked on production on 22 Oct 2026; logged-in features (prices, cart, quick order, account) come from the old theme Bart/el and modules ElmeLiving/\*, because we had no trade login.
 
 ## How to use
 
@@ -18,7 +18,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 
 ## Overview
 
-57 FE + 12 UX tickets. **Depends on** lists tickets to finish first and open decisions (D1–D11, last section) that change the scope.
+58 FE + 12 UX tickets. **Depends on** lists tickets to finish first and open decisions (D1–D11, last section) that change the scope.
 
 | ID | Ticket | Epic | Depends on | Status |
 | --- | --- | --- | --- | --- |
@@ -79,6 +79,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-55 | SEO markup: structured data, breadcrumbs, meta, canonical | 10 Cross-cutting | FE-18, FE-25 | To do |
 | FE-56 | Final QA pass: devices, accessibility, performance, visual compare | 10 Cross-cutting | all | To do |
 | FE-57 | Content Studio for Open Source + Hyvä (copy of Bart_ContentStudio) | 0 Foundation | FE-01, D11 | To do |
+| FE-58 | Theme preview image (media/preview.png) in Elme + Hyvä style | 0 Foundation | FE-01 | To do |
 | UX-01 | No empty or broken blocks | 11 UX | FE-12, FE-16, FE-17 | To do |
 | UX-02 | Guest path to a trade account | 11 UX | FE-06, FE-07, FE-19, FE-26 | To do |
 | UX-03 | Products above the fold on mobile PLP | 11 UX | FE-18, FE-19, FE-20 | To do |
@@ -164,6 +165,18 @@ Everything else builds on these four. Ship them first, so other tickets reuse th
 - [ ] Export entries as ZIP locally, import on staging: same entries and images
 - [ ] Storefront loads no RequireJS or LESS from the module; no CSP errors
 - [ ] Type picker shows only Elme types, no `compare_mattress` or blog types
+
+### FE-58 Theme preview image
+
+**Scope:** replace `app/design/frontend/Elme/default/media/preview.png` (today a copy of the Hyvä default picture) with a preview in Elme style: warm off-white, sage/olive accents, DM Serif Display wordmark "Elme Living", a small "Hyvä" tag, ideally a cropped desktop screenshot of the new storefront. Same size as the Hyvä preview: 400 × 277 px PNG.
+
+**Ref:** `vendor/hyva-themes/magento2-default-theme/media/preview.png` (size); tokens in `web/tailwind/hyva.config.json`; logo `web/images/logo.svg`
+
+**QA:**
+
+- [ ] Admin → Content → Design → Themes shows the new preview for Elme/default
+- [ ] Image is 400 × 277 px, crisp, under 150 KB
+- [ ] It reads as Elme at a glance (palette, type) and says it is the Hyvä build
 
 ## Epic 1 — Header and navigation
 

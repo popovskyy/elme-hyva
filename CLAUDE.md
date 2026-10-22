@@ -30,7 +30,7 @@ New Elme Living storefront (moving off the shared Adobe Commerce instance `m2-ba
 
 ## Roadmap
 
-Frontend tickets (FE-01…FE-57, UX-01…UX-12, epics, dependencies, QA checks, decisions D1–D11): `docs/frontend-tickets.md`. Update the Status column and decisions there when a ticket or decision changes.
+Frontend tickets (FE-01…FE-58, UX-01…UX-12, epics, dependencies, QA checks, decisions D1–D11): `docs/frontend-tickets.md`. Update the Status column and decisions there when a ticket or decision changes.
 
 ## Source of truth for the old site
 
