@@ -106,6 +106,10 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                 return this.tone === 'error';
             },
 
+            isNotice() {
+                return this.tone === 'notice';
+            },
+
             stepperClasses() {
                 return {
                     'border-error': this.tone === 'error',
@@ -117,7 +121,8 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             noteClasses() {
                 return {
                     'text-ink-subtle': this.tone === 'hint',
-                    'text-ink': this.tone === 'notice',
+                    // A changed quantity reads darker and medium weight, next to an info icon
+                    'text-ink font-medium': this.tone === 'notice',
                     'text-error-strong': this.tone === 'error'
                 };
             }

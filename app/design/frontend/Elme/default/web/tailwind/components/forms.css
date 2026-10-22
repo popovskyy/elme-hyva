@@ -45,8 +45,13 @@
     ) {
         transition: border-color var(--default-transition-duration) var(--default-transition-timing-function);
 
-        &:hover:not(:disabled, :focus, :checked) {
+        &:hover:not(:disabled, :focus, :checked, :user-invalid, [aria-invalid="true"]) {
             border-color: var(--color-primary);
+        }
+
+        /* Elme: an invalid field stays red on focus; the charcoal focus outline still shows */
+        &:is(:user-invalid, [aria-invalid="true"]):focus {
+            border-color: var(--form-error-color);
         }
 
         &:disabled {
@@ -171,6 +176,14 @@
                 line-height: var(--text-xs--line-height);
             }
         }
+    }
+
+    /* Elme: helper text under a field (expected format), the same 13px note as the qty stepper hint */
+    .field-note {
+        margin-block-start: --spacing(1);
+        color: var(--color-ink-subtle);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
     }
 
     /* Elme: 11px labels above the field (@form-field-label__font-size) */

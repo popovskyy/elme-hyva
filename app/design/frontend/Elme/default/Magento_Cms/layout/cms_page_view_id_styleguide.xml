@@ -3,6 +3,8 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <head>
+        <!-- cms_page is removed below, and with it the title it sets from the CMS page -->
+        <title>Style guide</title>
         <meta name="robots" content="NOINDEX,NOFOLLOW"/>
     </head>
     <body>

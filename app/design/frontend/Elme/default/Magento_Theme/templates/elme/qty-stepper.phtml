@@ -20,11 +20,17 @@
 
 declare(strict_types=1);
 
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 
 /** @var Template $block */
 /** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
 
 $moq = max(1, (int) $block->getData('moq'));
 $qty = (int) $block->getData('qty') ?: $moq;
@@ -33,7 +39,12 @@ $name = (string) ($block->getData('name') ?: 'qty');
 $inputId = (string) ($block->getData('input_id') ?: 'qty-' . bin2hex(random_bytes(4)));
 $label = (string) ($block->getData('label') ?: __('Qty'));
 $disabled = (bool) $block->getData('disabled');
-$hint = $moq > 1 ? (string) __('Sold in multiples of %1', $moq) : '';
+// The customer sees the MOQ and the stock ceiling before typing, e.g. "Sold in multiples of 6 · 30 available"
+$hint = implode(' · ', array_filter([
+    $moq > 1 ? (string) __('Sold in multiples of %1', $moq) : '',
+    $max ? (string) __('%1 available', $max) : '',
+]));
+$noteIconAttributes = ['aria-hidden' => 'true', 'class' => 'shrink-0'];
 $buttonClass = 'flex items-center justify-center w-11 shrink-0 text-lg text-ink transition-colors'
     . ' hover:bg-surface-muted active:bg-sand-light disabled:bg-transparent disabled:text-placeholder'
     . ' focus-visible:-outline-offset-2';
@@ -78,8 +89,8 @@ $buttonClass = 'flex items-center justify-center w-11 shrink-0 text-lg text-ink 
             inputmode="numeric"
             class="w-16 h-full min-h-0 px-1 border-0 border-x border-border bg-transparent text-center
                    hover:border-border [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none
-                   [&::-webkit-outer-spin-button]:appearance-none focus-visible:outline-2
-                   focus-visible:-outline-offset-2"
+                   [&::-webkit-outer-spin-button]:appearance-none aria-invalid:outline-0
+                   focus-visible:outline-2 focus-visible:-outline-offset-2"
             aria-describedby="<?= $escaper->escapeHtmlAttr($inputId) ?>-note"
             :value="qty"
             :aria-invalid="isError"
@@ -98,9 +109,16 @@ $buttonClass = 'flex items-center justify-center w-11 shrink-0 text-lg text-ink 
     </div>
     <p
         id="<?= $escaper->escapeHtmlAttr($inputId) ?>-note"
-        class="mt-1 text-note"
+        class="field-note flex items-start gap-1"
         :class="noteClasses"
         role="status"
-        x-text="note"
-    ><?= $escaper->escapeHtml($hint) ?></p>
+    >
+        <template x-if="isNotice">
+            <?= $lucideIcons->infoHtml('', 15, 15, $noteIconAttributes) ?>
+        </template>
+        <template x-if="isError">
+            <?= $lucideIcons->circleAlertHtml('', 15, 15, $noteIconAttributes) ?>
+        </template>
+        <span x-text="note"><?= $escaper->escapeHtml($hint) ?></span>
+    </p>
 </div>

@@ -1,5 +1,5 @@
 /**
- * Elme badges: product flags (Sale, New) and stock labels (In Stock, Low Stock).
+ * Elme badges: product flags (Sale, New) and stock labels (in stock, low, out of stock, made to order).
  * Usage: <span class="badge badge-sale">Sale</span>
  */
 
@@ -31,7 +31,8 @@
 
 /*
  * Stock labels are text with a coloured dot (the green and amber fail contrast as text on the page background).
- * Used without .badge: <span class="badge-stock badge-stock-in">24 in stock</span>
+ * Used without .badge, always with the number or date: <span class="badge-stock badge-stock-in">24 in stock</span>
+ * in: 10 or more · low: 1-9 ("Only 4 left") · out: 0, with the dock date when Pronto has one · order: made to order
  */
 @utility badge-stock {
     display: inline-flex;
@@ -56,4 +57,12 @@
 
 @utility badge-stock-low {
     --badge-dot: var(--color-warning);
+}
+
+@utility badge-stock-out {
+    --badge-dot: var(--color-error);
+}
+
+@utility badge-stock-order {
+    --badge-dot: var(--color-accent-dark);
 }

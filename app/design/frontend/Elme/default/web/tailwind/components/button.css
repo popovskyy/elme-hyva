@@ -84,6 +84,44 @@
     }
 }
 
+/*
+ * Elme: "done" confirmation after loading (e.g. a check and "Added" for 1.5s, then back to "Add to cart").
+ * Both labels share one grid cell, so the button keeps its width; .is-done on the button crossfades them.
+ * <button class="btn btn-primary"><span class="btn-swap"><span>Add to cart</span><span class="btn-swap-done">…Added</span></span></button>
+ * Announce the result in a separate role="status" element.
+ */
+.btn-swap {
+    display: grid;
+
+    & > * {
+        grid-area: 1 / 1;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        gap: --spacing(1.5);
+        transition-property: opacity, visibility;
+        transition-duration: var(--default-transition-duration);
+        transition-timing-function: var(--default-transition-timing-function);
+    }
+
+    & > .btn-swap-done,
+    .is-done & > :not(.btn-swap-done) {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .is-done & > .btn-swap-done {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        & > * {
+            transition: none;
+        }
+    }
+}
+
 /* Elme: charcoal, sage on hover (@button-primary__hover__background) */
 @utility btn-primary {
     --btn-stroke: var(--color-primary);
