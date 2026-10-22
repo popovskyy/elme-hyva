@@ -115,4 +115,14 @@
         margin-block: --spacing(4);
         border-color: var(--color-divider);
     }
+
+    /* A link styled as .btn keeps the button's label colour and weight, not the prose link ones */
+    :where(.btn) {
+        color: var(--btn-color);
+        font-weight: 500;
+
+        &:hover {
+            text-decoration-line: var(--btn-hover-decoration, none);
+        }
+    }
 }
