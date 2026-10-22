@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Page Builder moves the breadcrumbs, the H1 and the category header out of <main>. Keep them inside it:
+ * <main> has no gutters (only .columns gets the container), so the category header can still run full width.
+ */
+-->
+<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_layout.xsd">
+    <move element="columns.top" destination="main.content" before="-"/>
+    <move element="category.view.container" destination="main.content" after="columns.top"/>
+
+    <!-- Page Builder's wrappers carry .page-main (main's margins); Luma used it for gutters, here that is .container -->
+    <referenceContainer name="category.image.wrapper" htmlTag="div" htmlClass="container"/>
+    <referenceContainer name="category.cms.wrapper" htmlTag="div" htmlClass="container"/>
+</layout>

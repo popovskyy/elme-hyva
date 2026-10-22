@@ -11,11 +11,19 @@
             </arguments>
         </referenceBlock>
         <!-- Page titles take the Elme h1 style from elme.css instead of Hyvä's text-3xl font-bold -->
+        <!-- FE-04: layouts whose CMS banner/hero holds the H1 do not render the page title at all (see title.phtml) -->
         <referenceBlock name="page.main.title">
             <arguments>
                 <argument name="css_class" xsi:type="string">mb-6</argument>
+                <argument name="skip_on_page_layouts" xsi:type="array">
+                    <item name="banner-breadcrumbs" xsi:type="string">banner-breadcrumbs</item>
+                    <item name="cms-full-width" xsi:type="string">cms-full-width</item>
+                </argument>
             </arguments>
         </referenceBlock>
+        <!-- FE-04: breadcrumbs live inside <main>, before the H1, on every layout; the skip link lands on the H1 -->
+        <move element="breadcrumbs" destination="columns.top" before="-"/>
+        <move element="skip_to_content.target" destination="columns.top" before="page.main.title"/>
         <!-- FE-03: toast stack; FE-60: button ripple; FE-59: custom select -->
         <referenceContainer name="before.body.end">
             <block name="elme.toast-stack" template="Magento_Theme::elme/toast-stack.phtml"/>

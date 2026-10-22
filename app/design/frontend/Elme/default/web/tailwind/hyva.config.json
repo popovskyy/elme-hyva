@@ -82,6 +82,10 @@
         "gutter": "20px",
         "gutter-desktop": "40px"
       },
+      "aside": {
+        "width": "240px",
+        "width-desktop": "288px"
+      },
       "radius": {
         "xs": "0px",
         "sm": "0px",

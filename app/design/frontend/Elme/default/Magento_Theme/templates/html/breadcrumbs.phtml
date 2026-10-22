@@ -43,11 +43,7 @@ $currentPageUrl = preg_replace('/[?#].*$/', '', $block->getUrl('', ['_current' =
                         <?php endif; ?>
                     ><?= $escaper->escapeHtml($crumbInfo['label']) ?></a>
                 <?php elseif ($crumbInfo['last']): ?>
-                    <a
-                        href="<?= $escaper->escapeUrl($currentPageUrl) ?>"
-                        class="text-ink no-underline"
-                        aria-current="page"
-                    ><?= $escaper->escapeHtml($crumbInfo['label']) ?></a>
+                    <span aria-current="page"><?= $escaper->escapeHtml($crumbInfo['label']) ?></span>
                 <?php else: ?>
                     <?= $escaper->escapeHtml($crumbInfo['label']) ?>
                 <?php endif; ?>

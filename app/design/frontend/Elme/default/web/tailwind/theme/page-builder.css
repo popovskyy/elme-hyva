@@ -31,7 +31,8 @@
     }
 }
 
-body:where(:not([class*="-full-width"])) {
+/* Elme: banner + breadcrumbs has a gutterless <main> too, so its contained rows keep the container padding */
+body:where(:not([class*="-full-width"], .page-layout-banner-breadcrumbs)) {
     [data-content-type="row"][data-appearance="contained"] {
         padding-inline: 0;
     }
