@@ -47,6 +47,12 @@ $captionClass = 'mb-2 text-label uppercase tracking-wide text-ink-subtle';
 
     <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-buttons">
         <h2 id="sg-buttons" class="mb-6"><?= $escaper->escapeHtml(__('Buttons')) ?></h2>
+        <p class="max-w-2xl mb-6 text-ink-subtle">
+            <?= $escaper->escapeHtml(__(
+                'Primary and secondary: a light sheen sweeps on hover; click or tap to start an ink ripple from that point. '
+                . 'Disabled and loading never ripple. With reduced motion, only the colour change remains.'
+            )) ?>
+        </p>
         <div class="grid gap-6">
             <?php foreach ($buttons as $variant => $name): ?>
                 <div>

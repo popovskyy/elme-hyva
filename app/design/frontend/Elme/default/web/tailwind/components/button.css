@@ -74,6 +74,7 @@
             border-inline-end-color: transparent;
             border-radius: calc(infinity * 1px);
             animation: btn-spin 0.8s linear infinite;
+            z-index: 2;
         }
     }
 }
@@ -81,6 +82,41 @@
 @keyframes btn-spin {
     to {
         rotate: 1turn;
+    }
+}
+
+/*
+ * Elme FE-60: ink bubble from the exact pointer-down point (span.btn-ripple, see elme/btn-ripple.phtml).
+ * Light sweep (::before) lives on .btn-primary / .btn-secondary below.
+ */
+.btn-ripple {
+    position: absolute;
+    border-radius: calc(infinity * 1px);
+    background: var(--btn-ripple, color-mix(in srgb, var(--color-on-primary) 35%, transparent));
+    transform: scale(0);
+    pointer-events: none;
+    z-index: 1;
+    animation: btn-ripple-out 620ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes btn-ripple-out {
+    0% {
+        transform: scale(0);
+        opacity: 0.55;
+    }
+    70% {
+        opacity: 0.28;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn-ripple {
+        animation: none;
+        opacity: 0;
     }
 }
 
@@ -127,6 +163,7 @@
     --btn-stroke: var(--color-primary);
     --btn-bg: var(--color-primary);
     --btn-color: var(--color-on-primary);
+    --btn-ripple: color-mix(in srgb, var(--color-on-primary) 40%, transparent);
 
     --btn-hover-stroke: var(--color-secondary);
     --btn-hover-bg: var(--color-secondary);
@@ -135,6 +172,47 @@
     --btn-active-stroke: #0000;
     --btn-active-bg: var(--color-primary);
     --btn-active-color: var(--color-on-primary);
+
+    /* Elme FE-60: light sheen sweeps across on hover (demo B); ::after stays free for loading spinner */
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    -webkit-tap-highlight-color: transparent;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: -40%;
+        bottom: -40%;
+        left: -35%;
+        width: 42%;
+        background: linear-gradient(
+            105deg,
+            transparent 0%,
+            color-mix(in srgb, var(--color-on-primary) 0%, transparent) 35%,
+            color-mix(in srgb, var(--color-on-primary) 38%, transparent) 50%,
+            color-mix(in srgb, var(--color-on-primary) 0%, transparent) 65%,
+            transparent 100%
+        );
+        transform: translateX(-120%) skewX(-18deg);
+        transition: transform 650ms cubic-bezier(0.22, 1, 0.36, 1);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    &:is(:hover, :focus-visible)::before {
+        transform: translateX(320%) skewX(-18deg);
+    }
+
+    &:is(:disabled, [aria-disabled="true"], .is-loading, [aria-busy="true"])::before {
+        content: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &::before {
+            content: none;
+        }
+    }
 }
 
 /* Elme: transparent with a charcoal outline, fills charcoal on hover (@button__border / @button__hover__background) */
@@ -142,6 +220,7 @@
     --btn-stroke: var(--color-primary);
     --btn-bg: transparent;
     --btn-color: var(--color-primary);
+    --btn-ripple: color-mix(in srgb, var(--color-primary) 22%, transparent);
 
     --btn-hover-stroke: var(--color-primary);
     --btn-hover-bg: var(--color-primary);
@@ -150,6 +229,53 @@
     --btn-active-stroke: #0000;
     --btn-active-bg: var(--color-primary);
     --btn-active-color: var(--color-on-primary);
+
+    /* Elme FE-60: same light sweep once the fill is on; ink switches to on-primary on hover */
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    -webkit-tap-highlight-color: transparent;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: -40%;
+        bottom: -40%;
+        left: -35%;
+        width: 42%;
+        background: linear-gradient(
+            105deg,
+            transparent 0%,
+            color-mix(in srgb, var(--color-on-primary) 0%, transparent) 35%,
+            color-mix(in srgb, var(--color-on-primary) 45%, transparent) 50%,
+            color-mix(in srgb, var(--color-on-primary) 0%, transparent) 65%,
+            transparent 100%
+        );
+        transform: translateX(-120%) skewX(-18deg);
+        transition: transform 650ms cubic-bezier(0.22, 1, 0.36, 1);
+        z-index: 0;
+        pointer-events: none;
+        opacity: 0;
+    }
+
+    &:is(:hover, :focus-visible) {
+        --btn-ripple: color-mix(in srgb, var(--color-on-primary) 35%, transparent);
+
+        &::before {
+            opacity: 1;
+            transform: translateX(320%) skewX(-18deg);
+        }
+    }
+
+    &:is(:disabled, [aria-disabled="true"], .is-loading, [aria-busy="true"])::before {
+        content: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &::before {
+            content: none;
+        }
+    }
 }
 
 /* Elme: grey outline that darkens on hover, for low-emphasis actions next to a primary one */
