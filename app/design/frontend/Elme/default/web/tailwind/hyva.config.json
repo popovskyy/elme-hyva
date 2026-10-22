@@ -24,6 +24,7 @@
         "ink": "#3A3935",
         "ink-muted": "#676F78",
         "ink-subtle": "#797D81",
+        "link-hover": "#899991",
         "page": "#F5F4EF",
         "surface": "#FFFFFF",
         "surface-muted": "#F8F8F8",
@@ -63,6 +64,8 @@
         "h6--line-height": "22px",
         "label": "11px",
         "label--line-height": "13px",
+        "note": "13px",
+        "note--line-height": "15px",
         "breadcrumbs": "12px"
       },
       "breakpoint": {
@@ -95,7 +98,8 @@
         "color": "#3A3935",
         "active-color": "#3A3935",
         "py": "14px",
-        "px": "12px"
+        "px": "12px",
+        "height": "50px"
       },
       "btn": {
         "min-height": "50px",

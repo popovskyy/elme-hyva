@@ -20,7 +20,7 @@
     /* Elme: 50px high, 8px 24px, 1px border, 15px/500 with .5px tracking (old _buttons.less) */
     min-height: var(--btn-min-height);
     padding-block: --spacing(2);
-    padding-inline: var(--btn-padding-x);
+    padding-inline: var(--btn-padding-inline, var(--btn-padding-x));
     border-radius: var(--radius-lg);
     border-width: 1px;
     border-color: var(--btn-stroke);
@@ -39,7 +39,7 @@
         border-color: var(--btn-hover-stroke, var(--btn-stroke));
         background-color: var(--btn-hover-bg, var(--btn-bg));
         color: var(--btn-hover-color, var(--btn-color));
-        text-decoration: none;
+        text-decoration-line: var(--btn-hover-decoration, none);
     }
 
     &:is(:active, .is-active, [aria-current="page"], [aria-current="true"]) {
@@ -48,10 +48,77 @@
         color: var(--btn-active-color, var(--btn-color));
     }
 
+    /* Elme: a disabled button keeps its variant colours at half opacity (Bart/jl _buttons.less) */
     &:is(:disabled, [aria-disabled="true"]) {
-        border-color: var(--btn-disabled-stroke, var(--color-gray-200));
-        background-color: var(--btn-disabled-bg, var(--color-gray-50));
-        color: var(--btn-disabled-color, var(--color-gray-500));
+        border-color: var(--btn-disabled-stroke, var(--btn-stroke));
+        background-color: var(--btn-disabled-bg, var(--btn-bg));
+        color: var(--btn-disabled-color, var(--btn-color));
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Elme: loading keeps the button's size, hides the label and spins a 20px ring in the label colour */
+    &:is(.is-loading, [aria-busy="true"]) {
+        position: relative;
+        color: transparent;
+        pointer-events: none;
+
+        &::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            inline-size: --spacing(5);
+            block-size: --spacing(5);
+            margin: auto;
+            border: 2px solid var(--btn-color);
+            border-inline-end-color: transparent;
+            border-radius: calc(infinity * 1px);
+            animation: btn-spin 0.8s linear infinite;
+        }
+    }
+}
+
+@keyframes btn-spin {
+    to {
+        rotate: 1turn;
+    }
+}
+
+/*
+ * Elme: "done" confirmation after loading (e.g. a check and "Added" for 1.5s, then back to "Add to cart").
+ * Both labels share one grid cell, so the button keeps its width; .is-done on the button crossfades them.
+ * <button class="btn btn-primary"><span class="btn-swap"><span>Add to cart</span><span class="btn-swap-done">…Added</span></span></button>
+ * Announce the result in a separate role="status" element.
+ */
+.btn-swap {
+    display: grid;
+
+    & > * {
+        grid-area: 1 / 1;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        gap: --spacing(1.5);
+        transition-property: opacity, visibility;
+        transition-duration: var(--default-transition-duration);
+        transition-timing-function: var(--default-transition-timing-function);
+    }
+
+    & > .btn-swap-done,
+    .is-done & > :not(.btn-swap-done) {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .is-done & > .btn-swap-done {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        & > * {
+            transition: none;
+        }
     }
 }
 
@@ -83,6 +150,38 @@
     --btn-active-stroke: #0000;
     --btn-active-bg: var(--color-primary);
     --btn-active-color: var(--color-on-primary);
+}
+
+/* Elme: grey outline that darkens on hover, for low-emphasis actions next to a primary one */
+@utility btn-outline {
+    --btn-stroke: var(--color-border);
+    --btn-bg: transparent;
+    --btn-color: var(--color-primary);
+
+    --btn-hover-stroke: var(--color-primary);
+    --btn-hover-bg: transparent;
+    --btn-hover-color: var(--color-primary);
+
+    --btn-active-stroke: var(--color-primary);
+    --btn-active-bg: var(--color-surface-muted);
+    --btn-active-color: var(--color-primary);
+}
+
+/* Elme: text action (old a.action / .lib-button-as-link), underlined, sage-grey on hover */
+@utility btn-link {
+    --btn-stroke: transparent;
+    --btn-bg: transparent;
+    --btn-color: var(--color-primary);
+
+    --btn-hover-bg: transparent;
+    --btn-hover-color: var(--color-link-hover);
+    --btn-active-bg: transparent;
+    --btn-active-color: var(--color-link-hover);
+    --btn-padding-inline: 0;
+    --btn-hover-decoration: underline;
+
+    text-decoration-line: underline;
+    text-underline-offset: 0.25em;
 }
 
 .btn-size-lg {

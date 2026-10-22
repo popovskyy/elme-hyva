@@ -1,0 +1,124 @@
+<?php
+/**
+ * Quantity stepper that only allows multiples of the product's minimum order quantity (MOQ).
+ * +/− step by the MOQ; a typed value is rounded up to the next multiple and a message says so.
+ *
+ * Needs the Alpine component from Magento_Theme::elme/qty-stepper-js.phtml once per page
+ * (layout: block "elme.qty-stepper.js" in "before.body.end").
+ *
+ * Block data:
+ * - moq        (int, default 1)
+ * - qty        (int, default moq)
+ * - max        (int, optional: highest orderable qty, e.g. stock; 0 = no limit)
+ * - name       (string, default "qty")
+ * - input_id   (string, default "qty-<random>")
+ * - label      (string, default "Qty"; visually hidden unless show_label)
+ * - show_label (bool)
+ * - product_id (int, optional: dispatches "update-qty-<product_id>" like Hyvä's PDP qty field)
+ * - disabled   (bool)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+$moq = max(1, (int) $block->getData('moq'));
+$qty = (int) $block->getData('qty') ?: $moq;
+$max = max(0, (int) $block->getData('max'));
+$name = (string) ($block->getData('name') ?: 'qty');
+$inputId = (string) ($block->getData('input_id') ?: 'qty-' . bin2hex(random_bytes(4)));
+$label = (string) ($block->getData('label') ?: __('Qty'));
+$disabled = (bool) $block->getData('disabled');
+// The customer sees the MOQ and the stock ceiling before typing, e.g. "Sold in multiples of 6 · 30 available"
+$hint = implode(' · ', array_filter([
+    $moq > 1 ? (string) __('Sold in multiples of %1', $moq) : '',
+    $max ? (string) __('%1 available', $max) : '',
+]));
+$noteIconAttributes = ['aria-hidden' => 'true', 'class' => 'shrink-0'];
+$buttonClass = 'flex items-center justify-center w-11 shrink-0 text-lg text-ink transition-colors'
+    . ' hover:bg-surface-muted active:bg-sand-light disabled:bg-transparent disabled:text-placeholder'
+    . ' focus-visible:-outline-offset-2';
+?>
+<div
+    class="elme-qty-stepper"
+    x-data="initElmeQtyStepper"
+    data-moq="<?= (int) $moq ?>"
+    data-qty="<?= (int) $qty ?>"
+    data-max="<?= (int) $max ?>"
+    data-product-id="<?= (int) $block->getData('product_id') ?>"
+    data-disabled="<?= $disabled ? '1' : '0' ?>"
+    data-hint="<?= $escaper->escapeHtmlAttr($hint) ?>"
+    data-rounded-message="<?= $escaper->escapeHtmlAttr(__('Sold in multiples of %1. Quantity changed to %2.')) ?>"
+    data-max-message="<?= $escaper->escapeHtmlAttr(__('Only %1 available. Quantity changed to %2.')) ?>"
+>
+    <label
+        for="<?= $escaper->escapeHtmlAttr($inputId) ?>"
+        class="<?= $block->getData('show_label') ? 'field-label' : 'sr-only' ?>"
+    ><?= $escaper->escapeHtml($label) ?></label>
+    <div
+        class="inline-flex h-(--form-height) border bg-surface transition-colors"
+        :class="stepperClasses"
+    >
+        <button
+            type="button"
+            class="<?= $escaper->escapeHtmlAttr($buttonClass) ?>"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('Decrease quantity by %1', $moq)) ?>"
+            aria-controls="<?= $escaper->escapeHtmlAttr($inputId) ?>"
+            @click="decrement"
+            :disabled="isDecrementDisabled"
+            <?= $disabled || $qty <= $moq ? 'disabled' : '' ?>
+        >&minus;</button>
+        <input
+            type="number"
+            id="<?= $escaper->escapeHtmlAttr($inputId) ?>"
+            name="<?= $escaper->escapeHtmlAttr($name) ?>"
+            value="<?= (int) $qty ?>"
+            min="<?= (int) $moq ?>"
+            step="<?= (int) $moq ?>"
+            <?php if ($max): ?>max="<?= (int) $max ?>"<?php endif; ?>
+            inputmode="numeric"
+            class="w-16 h-full min-h-0 px-1 border-0 border-x border-border bg-transparent text-center
+                   hover:border-border [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none
+                   [&::-webkit-outer-spin-button]:appearance-none aria-invalid:not-focus-visible:outline-0
+                   focus-visible:outline-2 focus-visible:-outline-offset-2"
+            aria-describedby="<?= $escaper->escapeHtmlAttr($inputId) ?>-note"
+            :value="qty"
+            :aria-invalid="isError"
+            @change="onChange"
+            <?= $disabled ? 'disabled' : '' ?>
+        >
+        <button
+            type="button"
+            class="<?= $escaper->escapeHtmlAttr($buttonClass) ?>"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('Increase quantity by %1', $moq)) ?>"
+            aria-controls="<?= $escaper->escapeHtmlAttr($inputId) ?>"
+            @click="increment"
+            :disabled="isIncrementDisabled"
+            <?= $disabled ? 'disabled' : '' ?>
+        >+</button>
+    </div>
+    <p
+        id="<?= $escaper->escapeHtmlAttr($inputId) ?>-note"
+        class="field-note flex items-start gap-1"
+        :class="noteClasses"
+        role="status"
+    >
+        <template x-if="isNotice">
+            <?= $lucideIcons->infoHtml('', 15, 15, $noteIconAttributes) ?>
+        </template>
+        <template x-if="isError">
+            <?= $lucideIcons->circleAlertHtml('', 15, 15, $noteIconAttributes) ?>
+        </template>
+        <span x-text="note"><?= $escaper->escapeHtml($hint) ?></span>
+    </p>
+</div>

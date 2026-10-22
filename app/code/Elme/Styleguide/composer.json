@@ -1,0 +1,18 @@
+{
+    "name": "elme/module-styleguide",
+    "description": "The /styleguide CMS page that shows every Elme UI kit component and state",
+    "type": "magento2-module",
+    "require": {
+        "php": "~8.3.0||~8.4.0",
+        "magento/framework": "*",
+        "magento/module-cms": "*"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Elme\\Styleguide\\": ""
+        }
+    }
+}
