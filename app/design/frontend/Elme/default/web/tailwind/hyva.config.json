@@ -10,6 +10,9 @@
       },
       {
         "src": "app/code/Elme/LoginOnly"
+      },
+      {
+        "src": "app/code/Elme/Theme"
       }
     ],
     "exclude": []
