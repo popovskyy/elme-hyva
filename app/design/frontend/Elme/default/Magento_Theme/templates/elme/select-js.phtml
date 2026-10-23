@@ -1103,20 +1103,23 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                 if (!this.open || this.isMobile || !triggerEl || !panel) {
                     return;
                 }
-                const trigger = triggerEl.getBoundingClientRect();
+                // Align to the visible control box, not the inner trigger button —
+                // the trigger is inset by form padding, which shifted the panel a few px.
+                const controlEl = this.$root.querySelector('.elme-select__control') || triggerEl;
+                const box = controlEl.getBoundingClientRect();
                 const gap = 4;
                 const maxHeight = Math.min(320, window.innerHeight * 0.7);
                 panel.style.maxHeight = maxHeight + 'px';
                 const panelHeight = Math.min(panel.scrollHeight || maxHeight, maxHeight);
-                const spaceBelow = window.innerHeight - trigger.bottom - gap;
-                const spaceAbove = trigger.top - gap;
+                const spaceBelow = window.innerHeight - box.bottom - gap;
+                const spaceAbove = box.top - gap;
                 const placeAbove = spaceBelow < Math.min(panelHeight, 160) && spaceAbove > spaceBelow;
-                const width = Math.max(trigger.width, this.$root.getBoundingClientRect().width);
-                let left = trigger.left;
+                const width = box.width;
+                let left = box.left;
                 left = Math.min(Math.max(8, left), window.innerWidth - width - 8);
                 const top = placeAbove
-                    ? Math.max(8, trigger.top - panelHeight - gap)
-                    : trigger.bottom + gap;
+                    ? Math.max(8, box.top - panelHeight - gap)
+                    : box.bottom + gap;
                 this.panelStyle = {
                     position: 'fixed',
                     top: top + 'px',
