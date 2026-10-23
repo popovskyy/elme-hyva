@@ -1,0 +1,65 @@
+<?php
+/**
+ * FE-06: header search form. Autocomplete → FE-22.
+ * Native GET to catalogsearch/result with named q; works with JS off.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Magento\Search\Helper\Data as SearchHelper;
+
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundThis
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+/** @var SearchHelper $helper */
+$helper = $this->helper(SearchHelper::class);
+
+$placeholder = (string) __('Search products by style, rooms');
+$inputId = (string) ($block->getData('input_id') ?: 'search');
+$minLength = (int) $helper->getMinQueryLength();
+?>
+<div class="elme-header-search w-full text-ink">
+    <search title="<?= $escaper->escapeHtmlAttr(__('Store')) ?>" role="search">
+        <form
+            class="form minisearch relative flex w-full"
+            action="<?= $escaper->escapeUrl($helper->getResultUrl()) ?>"
+            method="get"
+        >
+            <label class="sr-only" for="<?= $escaper->escapeHtmlAttr($inputId) ?>">
+                <?= $escaper->escapeHtml(__('Search')) ?>
+            </label>
+            <input
+                id="<?= $escaper->escapeHtmlAttr($inputId) ?>"
+                type="search"
+                autocomplete="off"
+                name="<?= $escaper->escapeHtmlAttr($helper->getQueryParamName()) ?>"
+                value="<?= /** @noEscape */ $helper->getEscapedQueryText() ?>"
+                placeholder="<?= $escaper->escapeHtmlAttr($placeholder) ?>"
+                maxlength="<?= $escaper->escapeHtmlAttr($helper->getMaxQueryLength()) ?>"
+                minlength="<?= $escaper->escapeHtmlAttr((string) $minLength) ?>"
+                class="form-input grow w-full min-h-11 lg:min-h-10 py-2 pe-10 text-note
+                       border-border bg-surface text-ink placeholder:text-placeholder"
+            >
+            <button
+                type="submit"
+                class="absolute inset-y-0 end-0 inline-flex items-center justify-center px-3
+                       text-ink bg-transparent border-0"
+                title="<?= $escaper->escapeHtmlAttr(__('Search')) ?>"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Search')) ?>"
+            >
+                <?= $lucideIcons->searchHtml('', 20, 20, ['aria-hidden' => 'true']); ?>
+            </button>
+        </form>
+    </search>
+</div>

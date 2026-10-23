@@ -8,6 +8,27 @@
                    template="Magento_Theme::html/header-promo.phtml"
                    before="skip_to_content"/>
         </referenceContainer>
+        <!-- FE-06: desktop header chrome + sticky bar; hide compare (not on Elme) -->
+        <referenceBlock name="header-content">
+            <arguments>
+                <argument name="show_compare" xsi:type="boolean">false</argument>
+                <argument name="show_wishlist" xsi:type="boolean">false</argument>
+            </arguments>
+            <block name="header-contact"
+                   as="header-contact"
+                   template="Magento_Theme::html/header/contact-link.phtml"/>
+            <block name="header-search-mobile"
+                   template="Magento_Theme::html/header/search-form.phtml">
+                <arguments>
+                    <argument name="input_id" xsi:type="string">search-mobile</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+        <referenceBlock name="header-search">
+            <arguments>
+                <argument name="input_id" xsi:type="string">search</argument>
+            </arguments>
+        </referenceBlock>
         <referenceBlock name="logo">
             <arguments>
                 <argument name="logo_file" xsi:type="string">images/logo.svg</argument>

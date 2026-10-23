@@ -1,0 +1,34 @@
+<?php
+/**
+ * FE-06: Contact Us link in the header chrome.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+$contactUrl = $block->getUrl('contact');
+?>
+<a
+    href="<?= $escaper->escapeUrl($contactUrl) ?>"
+    class="elme-header__contact hidden lg:inline-flex flex-col items-center justify-center gap-0.5
+           min-w-16 min-h-11 px-1 text-ink no-underline hover:text-ink
+           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+>
+    <span class="inline-flex" aria-hidden="true">
+        <?= $lucideIcons->mailHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+    </span>
+    <span class="text-breadcrumbs leading-3 whitespace-nowrap">
+        <?= $escaper->escapeHtml(__('Contact Us')) ?>
+    </span>
+</a>

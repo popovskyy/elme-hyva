@@ -126,3 +126,33 @@
         }
     }
 }
+
+/*
+ * FE-06: sticky header (parity with Bart/el od-widget.sticky-header).
+ * When scrolled past the USP strip, .page-header is fixed; promo hides; body padding
+ * prevents jump. scroll-padding-top is set in header.phtml for anchors / skip links.
+ */
+@layer components {
+    .page-header.is-sticky {
+        position: fixed;
+        top: 0;
+        inset-inline: 0;
+        z-index: 30;
+        background-color: var(--color-surface);
+
+        .header-promo {
+            display: none;
+        }
+    }
+
+    .elme-header {
+        /* Keep account / cart slots from shifting the logo when private content fills in */
+        .elme-header__account,
+        .elme-header__cart-btn,
+        .elme-header__qo-btn,
+        .elme-header__contact,
+        .elme-header__login {
+            flex-shrink: 0;
+        }
+    }
+}

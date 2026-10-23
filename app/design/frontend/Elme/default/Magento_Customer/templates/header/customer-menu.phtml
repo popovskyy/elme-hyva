@@ -1,0 +1,107 @@
+<?php
+/**
+ * FE-06: account control in the header.
+ * Guest: "Log in/Sign up" → login. Logged in: first name from private content + account menu.
+ * Name never baked into FPC HTML.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Customer\Block\Account\Customer;
+use Magento\Customer\Model\Account\Redirect;
+use Magento\Framework\Escaper;
+
+/** @var Customer $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+/** @var ViewModelRegistry $viewModels */
+
+$loggedIn = $block->customerLoggedIn();
+$loginUrl = $block->getUrl('customer/account/login');
+?>
+
+<?php if (!$loggedIn): ?>
+    <a
+        id="customer-menu-login"
+        class="elme-header__login inline-flex items-center justify-center min-h-11 px-1
+               text-breadcrumbs leading-4 text-ink whitespace-nowrap no-underline hover:text-ink
+               focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        href="<?= $escaper->escapeUrl($loginUrl) ?>"
+        onclick="hyva.setCookie && hyva.setCookie(
+            '<?= $escaper->escapeJs(Redirect::LOGIN_REDIRECT_URL) ?>',
+            window.location.href,
+            1
+        )"
+    ><?= $escaper->escapeHtml(__('Log in/Sign up')) ?></a>
+<?php else: ?>
+    <div
+        class="relative inline-block elme-header__account min-w-16"
+        x-data="initCustomerMenu"
+        x-bind="eventListeners"
+        @private-content-loaded.window="onPrivateContentLoaded"
+    >
+        <button
+            type="button"
+            id="customer-menu"
+            class="inline-flex flex-col items-center justify-center gap-0.5 min-h-11 min-w-16 px-1
+                   text-ink bg-transparent border-0 cursor-pointer
+                   focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            @click="toggleOpen"
+            :aria-expanded="open"
+            aria-haspopup="true"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('My Account')) ?>"
+        >
+            <span
+                class="text-breadcrumbs leading-4 text-accent-dark font-medium whitespace-nowrap max-w-28 truncate"
+                x-text="displayName"
+                x-cloak
+            ></span>
+            <span class="text-breadcrumbs leading-3 sr-only lg:not-sr-only lg:inline" x-show="isNameEmpty" x-cloak>
+                <?= $escaper->escapeHtml(__('Account')) ?>
+            </span>
+        </button>
+        <nav
+            class="z-40 absolute right-0 w-48 mt-2 py-2 px-1 shadow-lg bg-surface border border-border overflow-auto"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('My Account')) ?>"
+            x-show="open"
+            x-transition
+            x-cloak
+        >
+            <?= $block->getChildHtml('header.customer.logged.in.links') ?>
+        </nav>
+    </div>
+    <script>
+        function initCustomerMenu() {
+            return hyva.createBooleanObject('open', false, {
+                firstname: '',
+                onPrivateContentLoaded() {
+                    const customer = this.$event.detail.data.customer || {};
+                    this.firstname = customer.firstname || '';
+                },
+                displayName() {
+                    return this.firstname;
+                },
+                isNameEmpty() {
+                    return !this.firstname;
+                },
+                eventListeners: {
+                    ['@pageshow.window'](event) {
+                        if (event.persisted) {
+                            this.setOpenFalse()
+                        }
+                    },
+                    ['@keyup.escape']() {
+                        this.setOpenFalse()
+                    },
+                    ['@click.outside']() {
+                        this.setOpenFalse()
+                    }
+                }
+            })
+        }
+        window.addEventListener('alpine:init', () => Alpine.data('initCustomerMenu', initCustomerMenu), {once: true})
+    </script>
+    <?php $hyvaCsp->registerInlineScript() ?>
+<?php endif; ?>
