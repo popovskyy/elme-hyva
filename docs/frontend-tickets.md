@@ -981,7 +981,7 @@ These decisions change the scope of the tickets named in **Affects**. Make them 
 | --- | --- | --- | --- | --- |
 | D1 | Search and recommendations engine | Algolia InstantSearch + Algolia Recommend | Keep Algolia (Hyvä compat module) · native OpenSearch + Hyvä autocomplete, related/upsell from admin | FE-17, FE-22, FE-23, FE-30 |
 | D2 | Layered navigation | Aheadworks Layered Navigation | Aheadworks + Hyvä compat · Hyvä native filters with our own ranges and chips | FE-21, FE-23 |
-| D3 | Menu source | Snowdog Menu (built in admin) | Snowdog Menu + Hyvä compat · Magento category tree | FE-08, FE-09 |
+| D3 | Menu source | Snowdog Menu (built in admin) | **Decided:** Snowdog Menu (`snowdog/module-menu` ≥2.24, native Hyvä templates; no separate compat module). Local patch for Symfony `execute(): int` on Magento 2.4.9. | FE-08, FE-09 |
 | D4 | Product reviews | Yotpo enabled, not visible to guests | Keep Yotpo · drop reviews | FE-25, FE-43 |
 | D5 | Lookbook hotspots | MGS Lookbook | **Decided:** Content Studio type `lookbook` (FE-57) | FE-49, FE-16 |
 | D6 | PDP stock / delivery data | Pronto stock, shipment service, Fusedship rates, showroom stock | Which of these exist on the new instance at launch | FE-31 |

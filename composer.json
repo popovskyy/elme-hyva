@@ -8,6 +8,7 @@
     ],
     "config": {
         "allow-plugins": {
+            "cweagans/composer-patches": true,
             "dealerdirect/phpcodesniffer-composer-installer": true,
             "laminas/laminas-dependency-plugin": true,
             "magento/*": true,
@@ -23,7 +24,9 @@
         "magento/composer": "^1.10.1-beta1",
         "magento/composer-dependency-version-audit-plugin": "~0.1",
         "magento/composer-root-update-plugin": "^2.0.4",
-        "magento/product-community-edition": "2.4.9"
+        "magento/product-community-edition": "2.4.9",
+        "cweagans/composer-patches": "^1.7",
+        "snowdog/module-menu": "^2.29"
     },
     "autoload": {
         "exclude-from-classmap": [
@@ -114,7 +117,12 @@
         }
     },
     "extra": {
-        "magento-force": "override"
+        "magento-force": "override",
+        "patches": {
+            "snowdog/module-menu": {
+                "PHP 8 / Symfony Console: NodesValidatorCommand::execute must return int (Magento 2.4.9)": "patches/snowdog-module-menu-symfony-execute-return-type.patch"
+            }
+        }
     },
     "replace": {
         "hyva-themes/magento2-mollie-theme-bundle": "*"

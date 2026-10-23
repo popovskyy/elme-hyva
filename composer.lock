@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "864cfd3750ebf64d2d57463d27409594",
+    "content-hash": "a3e45d2030d632a1e115276dfbcadfb0",
     "packages": [
         {
             "name": "2tvenom/cborencode",
@@ -1397,6 +1397,54 @@
                 }
             ],
             "time": "2024-05-06T16:37:16+00:00"
+        },
+        {
+            "name": "cweagans/composer-patches",
+            "version": "1.7.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/cweagans/composer-patches.git",
+                "reference": "e190d4466fe2b103a55467dfa83fc2fecfcaf2db"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/cweagans/composer-patches/zipball/e190d4466fe2b103a55467dfa83fc2fecfcaf2db",
+                "reference": "e190d4466fe2b103a55467dfa83fc2fecfcaf2db",
+                "shasum": ""
+            },
+            "require": {
+                "composer-plugin-api": "^1.0 || ^2.0",
+                "php": ">=5.3.0"
+            },
+            "require-dev": {
+                "composer/composer": "~1.0 || ~2.0",
+                "phpunit/phpunit": "~4.6"
+            },
+            "type": "composer-plugin",
+            "extra": {
+                "class": "cweagans\\Composer\\Patches"
+            },
+            "autoload": {
+                "psr-4": {
+                    "cweagans\\Composer\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Cameron Eagans",
+                    "email": "me@cweagans.net"
+                }
+            ],
+            "description": "Provides a way to patch Composer packages.",
+            "support": {
+                "issues": "https://github.com/cweagans/composer-patches/issues",
+                "source": "https://github.com/cweagans/composer-patches/tree/1.7.3"
+            },
+            "time": "2022-12-20T22:53:13+00:00"
         },
         {
             "name": "dasprid/enum",
@@ -21783,6 +21831,59 @@
                 "source": "https://github.com/Seldaek/signal-handler/tree/2.0.2"
             },
             "time": "2023-09-03T09:24:00+00:00"
+        },
+        {
+            "name": "snowdog/module-menu",
+            "version": "2.29.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/SnowdogApps/magento2-menu.git",
+                "reference": "f7bb102a2034230daa0334bc811bfdda3630425b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/SnowdogApps/magento2-menu/zipball/f7bb102a2034230daa0334bc811bfdda3630425b",
+                "reference": "f7bb102a2034230daa0334bc811bfdda3630425b",
+                "shasum": ""
+            },
+            "require": {
+                "magento/framework": "100.1.*|101.0.*|102.0.*|103.0.*",
+                "magento/module-backend": "100.1.*|100.2.*|101.0.*|102.0.*",
+                "magento/module-catalog": "101.0.*|102.0.*|103.0.*|104.0.*",
+                "magento/module-cms": "101.0.*|102.0.*|103.0.*|104.0.*",
+                "magento/module-graph-ql": "100.3.*|100.4.*",
+                "magento/module-import-export": "100.3.*|101.0.*",
+                "magento/module-media-storage": "100.3.*|100.4.*",
+                "symfony/yaml": ">=3.2"
+            },
+            "require-dev": {
+                "magento/magento-coding-standard": "^5.0"
+            },
+            "type": "magento2-module",
+            "autoload": {
+                "files": [
+                    "registration.php"
+                ],
+                "psr-4": {
+                    "Snowdog\\Menu\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Kamil Balwierz",
+                    "email": "kamil@snow.dog"
+                }
+            ],
+            "description": "Provides powerful menu editor to replace category based menus in Magento 2",
+            "support": {
+                "issues": "https://github.com/SnowdogApps/magento2-menu/issues",
+                "source": "https://github.com/SnowdogApps/magento2-menu/tree/2.29.0"
+            },
+            "time": "2025-07-09T10:16:39+00:00"
         },
         {
             "name": "spomky-labs/aes-key-wrap",
