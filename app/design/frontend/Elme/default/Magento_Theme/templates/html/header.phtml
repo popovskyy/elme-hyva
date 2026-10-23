@@ -1,7 +1,9 @@
 <?php
 /**
  * FE-06: Elme desktop header + sticky bar.
- * Mega menu markup → FE-08; search autocomplete → FE-22; mini-cart drawer → FE-32; QO panel → FE-41.
+ * FE-07: mobile chrome — burger, centred logo, search toggle, account/cart.
+ * Mega menu markup → FE-08; mobile drawer → FE-09; search autocomplete → FE-22;
+ * mini-cart drawer → FE-32; QO panel → FE-41.
  */
 
 declare(strict_types=1);
@@ -177,6 +179,9 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
             },
 
             searchEscape() {
+                if (!this.searchOpen) {
+                    return;
+                }
                 this.searchClose();
             },
 
@@ -206,31 +211,35 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
      class="elme-header relative z-30 w-full border-b border-border bg-surface"
      x-data="initHeader"
      @private-content-loaded.window="getData"
+     @keydown.escape.window="searchEscape"
 >
-    <div class="container flex flex-wrap lg:flex-nowrap items-center gap-2 lg:gap-2.5 w-full py-2.5 lg:py-3.5">
-        <!-- Logo -->
-        <div class="order-2 lg:order-0 flex-1 lg:flex-none flex justify-center lg:justify-start shrink-0">
-            <div class="w-32 lg:w-44">
+    <div class="elme-header__bar container grid grid-cols-[auto_minmax(0,1fr)_auto] lg:flex lg:flex-nowrap
+                items-center gap-1 lg:gap-2.5 w-full py-1.5 lg:py-3.5">
+        <!-- Burger / mega menu slot (drawer chrome → FE-09; mega → FE-08) -->
+        <div class="elme-header__nav shrink-0 lg:order-2 lg:flex-1 lg:min-w-0">
+            <?= $block->getChildHtml('topmenu') ?>
+        </div>
+
+        <!-- Logo: centred in the middle column on mobile, left on desktop -->
+        <div class="elme-header__logo flex items-center justify-center min-w-0 lg:order-1 lg:justify-start lg:shrink-0">
+            <div class="w-28 sm:w-32 lg:w-44">
                 <?= $block->getChildHtml('logo') ?>
             </div>
         </div>
 
-        <!-- Main menu slot (FE-08 fills mega menu) -->
-        <div class="order-1 lg:order-0 lg:flex-1 min-w-0">
-            <?= $block->getChildHtml('topmenu') ?>
-        </div>
-
         <!-- Desktop search (always a real GET form; FE-22 adds autocomplete) -->
-        <div class="hidden lg:block order-0 grow max-w-md min-w-36 xl:min-w-48">
+        <div class="hidden lg:block lg:order-3 grow max-w-md min-w-36 xl:min-w-48">
             <?= $block->getChildHtml('header-search') ?>
         </div>
 
-        <div class="order-3 flex items-center gap-2 md:gap-3 shrink-0 ml-auto lg:ml-0">
-            <!-- Mobile search toggle (FE-07 owns full mobile header) -->
+        <div class="elme-header__actions flex items-center gap-0.5 shrink-0 lg:order-4">
+            <!-- Mobile search toggle -->
             <button
                 type="button"
                 id="menu-search-icon"
-                class="lg:hidden btn bg-transparent border-transparent p-1 text-ink"
+                class="lg:hidden inline-flex items-center justify-center
+                       min-w-11 min-h-11 p-0 text-ink bg-transparent border-0
+                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 @click.prevent="toggleSearch"
                 @keydown.window="searchShortcut"
                 aria-label="<?= $escaper->escapeHtmlAttr(__('Toggle search form')) ?>"
@@ -253,7 +262,8 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
                         type="button"
                         id="menu-cart-icon"
                         class="relative elme-header__cart-btn inline-flex flex-col items-center justify-center
-                               min-w-11 min-h-11 p-1 text-ink bg-transparent border-0"
+                               min-w-11 min-h-11 p-1 text-ink bg-transparent border-0
+                               focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                         x-ref="cartButton"
                         :aria-label="cartAriaLabel"
                         @click="toggleCart"
@@ -275,7 +285,8 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
                         id="menu-cart-icon"
                         href="<?= $escaper->escapeUrl($cartUrl) ?>"
                         class="relative elme-header__cart-btn inline-flex flex-col items-center justify-center
-                               min-w-11 min-h-11 p-1 text-ink"
+                               min-w-11 min-h-11 p-1 text-ink
+                               focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                         :aria-label="cartAriaLabel"
                         aria-label="<?= $escaper->escapeHtmlAttr(__('View cart')) ?>"
                     >
@@ -292,11 +303,12 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
                     </a>
                 <?php endif; ?>
 
-                <!-- Quick Order cart icon (panel → FE-41); count from private content when available -->
+                <!-- Quick Order cart (desktop); hidden on mobile like Bart/el wishlist slot -->
                 <a
                     href="<?= $escaper->escapeUrl($qoCartUrl) ?>"
-                    class="relative elme-header__qo-btn inline-flex flex-col items-center justify-center gap-0.5
-                           min-w-20 min-h-11 p-1 text-ink no-underline hover:text-ink"
+                    class="relative elme-header__qo-btn hidden lg:inline-flex flex-col items-center justify-center gap-0.5
+                           min-w-20 min-h-11 p-1 text-ink no-underline hover:text-ink
+                           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                     aria-label="<?= $escaper->escapeHtmlAttr(__('Quick Order cart')) ?>"
                 >
                     <span class="relative inline-flex">
@@ -319,16 +331,29 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
         </div>
     </div>
 
-    <!-- Mobile search panel (FE-07 owns full mobile header chrome) -->
+    <!-- Mobile search panel -->
     <div
         id="search-content"
-        class="lg:hidden absolute z-10 inset-x-0 top-full w-full border-t border-border shadow-sm bg-surface p-3"
+        class="lg:hidden absolute z-10 inset-x-0 top-full w-full border-t border-border shadow-sm bg-surface"
         x-cloak
         x-show="searchOpen"
         @click.outside="searchClose"
-        @keydown.escape="searchEscape"
     >
-        <?= $block->getChildHtml('header-search-mobile') ?>
+        <div class="container flex items-center gap-2 py-3">
+            <div class="grow min-w-0">
+                <?= $block->getChildHtml('header-search-mobile') ?>
+            </div>
+            <button
+                type="button"
+                class="inline-flex items-center justify-center shrink-0
+                       min-w-11 min-h-11 p-0 text-ink bg-transparent border-0
+                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                @click="searchClose"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Close search')) ?>"
+            >
+                <?= $lucideIcons->xHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
+            </button>
+        </div>
     </div>
 
     <?php if ($isLoggedIn): ?>
