@@ -1,0 +1,25 @@
+<?php
+/**
+ * "Sign in" links (data-elme-sign-in) bring the customer back to the page they clicked on. The referer is added
+ * on click because the links sit in block-cached product tiles shared between pages.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<script>
+    document.addEventListener('click', (event) => {
+        const link = event.target.closest('a[data-elme-sign-in]');
+        if (link) {
+            link.href = link.href.replace(/referer\/[^/]+\/?$/, '').replace(/\/?$/, '/') + 'referer/' + hyva.getUenc() + '/';
+        }
+    });
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

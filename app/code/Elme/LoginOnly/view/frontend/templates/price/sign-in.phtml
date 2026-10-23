@@ -1,0 +1,28 @@
+<?php
+/**
+ * "Sign in to see pricing": shown to guests wherever a price would be (PLP, PDP, sliders, widgets).
+ * Rendered by Elme\LoginOnly\Plugin\PriceRenderPlugin and as the PDP price block for guests.
+ */
+
+declare(strict_types=1);
+
+use Elme\LoginOnly\ViewModel\LoginOnly;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+$signInLink = sprintf(
+    '<a href="%s" class="font-bold underline underline-offset-2 hover:text-link-hover" data-elme-sign-in>%s</a>',
+    $escaper->escapeUrl($loginOnly->getLoginUrl()),
+    $escaper->escapeHtml(__('Sign in'))
+);
+?>
+<p class="elme-sign-in-price text-sm text-ink">
+    <?= /* @noEscape */ __('%1 to see pricing', $signInLink) ?>
+</p>

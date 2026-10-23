@@ -1,0 +1,25 @@
+{
+    "name": "elme/module-login-only",
+    "description": "Login-only shopping: no prices, qty or add to cart for guests, guest redirects to login, per-customer prices loaded outside the full page cache",
+    "type": "magento2-module",
+    "require": {
+        "php": "~8.3.0||~8.4.0",
+        "hyva-themes/magento2-theme-module": "*",
+        "magento/framework": "*",
+        "magento/module-catalog": "*",
+        "magento/module-checkout": "*",
+        "magento/module-cms": "*",
+        "magento/module-configurable-product": "*",
+        "magento/module-customer": "*",
+        "magento/module-swatches": "*",
+        "magento/module-wishlist": "*"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Elme\\LoginOnly\\": ""
+        }
+    }
+}

@@ -1,0 +1,44 @@
+<?php
+/**
+ * The logged-in customer's own price. The HTML only holds a placeholder (it is cached per customer group);
+ * the price loads per customer from /customer-price/prices once the page is rendered.
+ * Needs Elme_LoginOnly::js/customer-price.phtml once per page (added for logged-in customers on every page).
+ *
+ * Block data: product_id (or a block with getProduct()), show_tax_label.
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+$productId = (int) ($block->getData('product_id') ?: $block->getProduct()?->getId());
+if (!$productId) {
+    return;
+}
+?>
+<div class="price-box elme-customer-price flex flex-wrap items-baseline gap-x-2 min-h-6"
+     x-data="initElmeCustomerPrice"
+     @configurable-selection-changed.window="onOptionsChanged"
+     data-product-id="<?= /* @noEscape */ $productId ?>"
+>
+    <span class="elme-skeleton h-5 w-20 self-center" x-show="isLoading" aria-hidden="true"></span>
+    <span class="sr-only" x-show="isLoading"><?= $escaper->escapeHtml(__('Loading your price')) ?></span>
+    <template x-if="hasDiscount">
+        <span class="old-price">
+            <span class="sr-only"><?= $escaper->escapeHtml(__('Regular Price')) ?></span>
+            <span class="price" x-text="regularPrice"></span>
+        </span>
+    </template>
+    <template x-if="isReady">
+        <span class="final-price">
+            <span class="price" x-text="finalPrice"></span>
+            <?php if ($block->getData('show_tax_label')): ?>
+                <span class="text-sm text-ink-muted"><?= $escaper->escapeHtml(__('ex. GST')) ?></span>
+            <?php endif; ?>
+        </span>
+    </template>
+</div>

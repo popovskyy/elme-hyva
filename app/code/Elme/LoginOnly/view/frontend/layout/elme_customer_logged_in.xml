@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!--
+    Every page for logged-in customers (handle added by Elme\LoginOnly\Observer\AddLoginStateHandle).
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="before.body.end">
+            <block name="elme.customer-price.js" template="Elme_LoginOnly::js/customer-price.phtml"/>
+        </referenceContainer>
+
+        <!-- PDP: the customer's own price, loaded after render -->
+        <referenceBlock name="product.info.price" template="Elme_LoginOnly::price/customer-price.phtml">
+            <arguments>
+                <argument name="show_tax_label" xsi:type="boolean">true</argument>
+            </arguments>
+        </referenceBlock>
+    </body>
+</page>
