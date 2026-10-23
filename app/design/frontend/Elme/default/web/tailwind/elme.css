@@ -154,5 +154,33 @@
         .elme-header__login {
             flex-shrink: 0;
         }
+
+        /*
+         * FE-07: Hyvä mobile menu burger (drawer → FE-09) must meet 44 × 44 tap target.
+         * Button lives in vendor mobile.phtml; style it here until FE-09 owns the chrome.
+         */
+        .elme-header__nav [x-data="initMobileMenu"] > button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: --spacing(11);
+            min-height: --spacing(11);
+            padding: 0;
+            color: var(--color-ink);
+            background-color: transparent;
+            border-color: transparent;
+        }
+
+        .elme-header__logo img {
+            width: 100%;
+            height: auto;
+            max-height: --spacing(7);
+        }
+
+        @variant lg {
+            .elme-header__logo img {
+                max-height: none;
+            }
+        }
     }
 }
