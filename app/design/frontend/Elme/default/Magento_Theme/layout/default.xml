@@ -2,6 +2,12 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
+        <!-- FE-05: dusty-blue USP strip; CMS block header_promo; login swaps Stockist / Inspiration -->
+        <referenceContainer name="header.container">
+            <block name="elme.header.promo"
+                   template="Magento_Theme::html/header-promo.phtml"
+                   before="skip_to_content"/>
+        </referenceContainer>
         <referenceBlock name="logo">
             <arguments>
                 <argument name="logo_file" xsi:type="string">images/logo.svg</argument>

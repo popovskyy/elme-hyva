@@ -1,0 +1,39 @@
+<?php
+/**
+ * FE-05: dusty-blue USP strip above the header. Content from CMS block header_promo;
+ * login state picks Become a Stockist (guest) or Inspiration (logged in). See HeaderPromo ViewModel.
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\HeaderPromo;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$promo = $viewModels->require(HeaderPromo::class);
+if (!$promo->shouldRender()) {
+    return;
+}
+$usp = $promo->getUspText();
+$label = $promo->getLinkLabel();
+$url = $promo->getLinkUrl();
+?>
+<div class="header-promo bg-accent text-on-primary">
+    <div class="container flex items-center justify-between gap-3 w-full py-1 lg:py-0.5
+                min-h-11 lg:min-h-9">
+        <p class="header-promo__usp m-0 flex-1 min-w-0 line-clamp-2 text-breadcrumbs leading-5
+                  font-medium text-on-primary text-left"><?= $escaper->escapeHtml($usp) ?></p>
+        <a class="header-promo__link shrink-0 inline-flex items-center justify-center
+                  min-h-11 px-1 whitespace-nowrap text-breadcrumbs leading-5 font-medium
+                  text-on-primary underline underline-offset-2 decoration-on-primary/80
+                  hover:decoration-on-primary
+                  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+                  focus-visible:outline-on-primary"
+           href="<?= $escaper->escapeUrl($url) ?>"><?= $escaper->escapeHtml($label) ?></a>
+    </div>
+</div>
