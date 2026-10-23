@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Hyvä puts the left sidebar before the main column in the DOM. Keep the H1 and the content first in the
+ * source; page-layout.css still shows the sidebar on the left (desktop) and above the content (mobile).
+ */
+-->
+<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_layout.xsd">
+    <move element="div.sidebar.main" destination="columns" after="main"/>
+</layout>

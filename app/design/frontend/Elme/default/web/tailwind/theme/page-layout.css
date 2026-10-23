@@ -4,9 +4,66 @@
     min-height: 100vh;
 }
 
+/* Elme: content stops at the container width and centres on wider screens, full-width layouts included */
+#maincontent {
+    width: 100%;
+    max-width: var(--container-max-width);
+    margin-inline: auto;
+}
+
 .page-main {
     flex-grow: 1;
     margin-block: --spacing(8);
+}
+
+/* Elme: breadcrumbs are the first thing in <main>; the gap to the title is the crumbs' own bottom padding */
+.page-main:has(> .breadcrumbs) {
+    margin-top: 0;
+}
+
+/*
+ * Elme: banner + breadcrumbs (About, Careers, Outlet). <main> has no gutters and its first CMS section is the
+ * banner; the trail is a zero-height bar that overflows onto the banner, so it never pushes it down. Messages,
+ * when there are any, go above the banner. The dark chip keeps white text readable on any image (4.5:1+).
+ */
+.page-layout-banner-breadcrumbs #maincontent {
+    display: flex;
+    flex-direction: column;
+
+    > .page.messages {
+        order: -1;
+    }
+
+    > .breadcrumbs {
+        position: relative;
+        z-index: 10;
+        height: 0;
+
+        ol {
+            width: fit-content;
+            margin-top: --spacing(4);
+            padding: --spacing(1.5) --spacing(3);
+            background-color: color-mix(in oklab, var(--color-ink) 75%, transparent);
+            color: var(--color-on-primary);
+        }
+
+        a,
+        a:hover {
+            color: var(--color-on-primary);
+        }
+
+        a:focus-visible {
+            outline-color: var(--color-on-primary);
+        }
+    }
+}
+
+/*
+ * Elme: category full width. Hyvä gives the category header .container; here it runs edge to edge and only
+ * its image and CMS block wrappers are contained (Magento_PageBuilder/page_layout/category-full-width.xml).
+ */
+.page-layout-category-full-width .category-view {
+    padding-inline: 0;
 }
 
 .columns {
@@ -15,9 +72,14 @@
     gap: --spacing(4) --spacing(8);
 }
 
+/* Elme: the left sidebar comes after the main column in the DOM (2columns-left.xml); show it above it on mobile */
+.page-layout-2columns-left .columns > .sidebar-main {
+    order: -1;
+}
+
 @variant md {
     :is([class*="page-layout-2columns-"], .page-layout-3columns) {
-        --sidebar-width: 240px;
+        --sidebar-width: var(--aside-width);
         --main-width: minmax(0px, 1fr);
         --page-layout: var(--sidebar-width) var(--main-width);
 
@@ -35,6 +97,12 @@
         .columns > .column.main {
             grid-column-start: 2;
         }
+
+        /* Elme: pinned to the first cell, since it now follows the main column in the DOM */
+        .columns > .sidebar-main {
+            grid-column-start: 1;
+            grid-row-start: 1;
+        }
     }
 
     .page-layout-2columns-right {
@@ -49,7 +117,7 @@
 @variant lg {
     [class*="page-layout-2columns-"],
     .page-layout-3columns {
-        --sidebar-width: 320px;
+        --sidebar-width: var(--aside-width-desktop);
     }
 }
 

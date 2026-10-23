@@ -1,0 +1,46 @@
+<?php
+/**
+ * Hyvä Themes - https://hyva.io
+ * Copyright © Hyvä Themes. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\PageConfig;
+use Magento\Framework\Escaper;
+use Magento\Theme\Block\Html\Title;
+
+/** @var Escaper $escaper */
+/** @var Title $block */
+/** @var ViewModelRegistry $viewModels */
+
+// Elme: on layouts where the CMS banner/hero holds the H1 (layout argument skip_on_page_layouts) render nothing,
+// so the page never has a second, hidden H1. Page layouts cannot remove blocks, hence the check here.
+$pageLayout = $viewModels->require(PageConfig::class)->getPageLayout();
+if (in_array($pageLayout, $block->getData('skip_on_page_layouts') ?? [], true)) {
+    return;
+}
+
+$headingTag = $block->getData('heading_tag') ?: 'h1';
+$cssClasses = $block->getCssClasses() ?? $block->getCssClass() ?? 'text-3xl font-bold mb-6';
+$wrapperCssClasses = $block->getWrapperCssClasses()
+    ?? $block->getData('maybe_purged_tailwind_section_classes')
+    ?? 'container flex flex-col md:flex-row flex-wrap';
+$baseAttribute = $block->getAddBaseAttribute();
+
+$titleHtml = trim((string)$block->getPageHeading()) ?: '';
+?>
+<?php if ($titleHtml): ?>
+    <div class="<?= $escaper->escapeHtmlAttr($wrapperCssClasses) ?>">
+        <<?= $escaper->escapeHtmlAttr($headingTag) ?>
+            class="page-title <?= $escaper->escapeHtmlAttr($cssClasses); ?>"
+            <?= $escaper->escapeHtmlAttr($baseAttribute, false); ?>
+            data-ui-id="page-title-wrapper"
+        >
+            <?= $escaper->escapeHtml($titleHtml) ?>
+        </<?= $escaper->escapeHtmlAttr($headingTag) ?>>
+        <?= $block->getChildHtml() ?>
+    </div>
+<?php endif; ?>

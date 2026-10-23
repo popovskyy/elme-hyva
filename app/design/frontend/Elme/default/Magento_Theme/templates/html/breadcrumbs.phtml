@@ -28,7 +28,7 @@ $currentPageUrl = preg_replace('/[?#].*$/', '', $block->getUrl('', ['_current' =
 <?php /* Elme: 12px charcoal crumbs on the page background, "/" separator (old _breadcrumbs.less) */ ?>
 <nav class="breadcrumbs" aria-label="<?= $escaper->escapeHtmlAttr(__('Breadcrumb')) ?>">
     <div class="container">
-        <ol class="items list-reset pt-4 pb-5 lg:pb-10 flex flex-wrap text-breadcrumbs leading-4 text-ink">
+        <ol class="items list-reset pt-4 pb-5 lg:pb-8 flex flex-wrap text-breadcrumbs leading-4 text-ink">
             <?php foreach ($crumbs as $crumbName => $crumbInfo): ?>
                 <li class="item flex <?= $escaper->escapeHtmlAttr($crumbName) ?>">
                 <?php if (!$crumbInfo['first']): ?>
@@ -43,11 +43,7 @@ $currentPageUrl = preg_replace('/[?#].*$/', '', $block->getUrl('', ['_current' =
                         <?php endif; ?>
                     ><?= $escaper->escapeHtml($crumbInfo['label']) ?></a>
                 <?php elseif ($crumbInfo['last']): ?>
-                    <a
-                        href="<?= $escaper->escapeUrl($currentPageUrl) ?>"
-                        class="text-ink no-underline"
-                        aria-current="page"
-                    ><?= $escaper->escapeHtml($crumbInfo['label']) ?></a>
+                    <span aria-current="page"><?= $escaper->escapeHtml($crumbInfo['label']) ?></span>
                 <?php else: ?>
                     <?= $escaper->escapeHtml($crumbInfo['label']) ?>
                 <?php endif; ?>
