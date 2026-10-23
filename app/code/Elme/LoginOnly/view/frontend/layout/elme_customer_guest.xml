@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+    Every page for guests (handle added by Elme\LoginOnly\Observer\AddLoginStateHandle).
+    Guests get no prices, qty inputs or add to cart in the HTML.
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="before.body.end">
+            <block name="elme.sign-in-link.js" template="Elme_LoginOnly::js/sign-in-link.phtml"/>
+        </referenceContainer>
+
+        <!-- PDP -->
+        <referenceBlock name="product.info.price" template="Elme_LoginOnly::price/sign-in.phtml"/>
+        <referenceBlock name="opengraph.general" template="Elme_LoginOnly::product/view/opengraph/general.phtml"/>
+        <referenceBlock name="product.price.tier" remove="true"/>
+        <referenceBlock name="product.info.quantity" remove="true"/>
+        <referenceBlock name="product.info.addtocart" remove="true"/>
+        <referenceBlock name="addtocart.shortcut.buttons" remove="true"/>
+        <!-- Stores the PDP price in localStorage for the recently viewed widget -->
+        <referenceBlock name="recently_viewed_products.register_view" remove="true"/>
+        <!-- Guests have no wishlist; the sidebar template carries add to cart buttons -->
+        <referenceBlock name="wishlist_sidebar" remove="true"/>
+    </body>
+</page>

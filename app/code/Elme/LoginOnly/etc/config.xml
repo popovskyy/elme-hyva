@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <customer>
+            <startup>
+                <!-- After "Sign in to see pricing" the customer lands back on the page they came from -->
+                <redirect_dashboard>0</redirect_dashboard>
+            </startup>
+        </customer>
+    </default>
+</config>

@@ -1,0 +1,124 @@
+<?php
+/**
+ * Loads the logged-in customer's prices for Elme_LoginOnly::price/customer-price.phtml placeholders.
+ *
+ * window.elmeCustomerPrices.get(productId) returns a promise of {final, regular, final_formatted,
+ * regular_formatted} or null. Ids asked for in the same tick go out as one request. Prices are kept in memory
+ * for the page only (never in localStorage), so a shared computer never shows the last customer's prices.
+ */
+
+declare(strict_types=1);
+
+use Elme\LoginOnly\ViewModel\LoginOnly;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+?>
+<script>
+    window.elmeCustomerPrices = window.elmeCustomerPrices || (() => {
+        const url = '<?= $escaper->escapeJs($loginOnly->getPricesUrl()) ?>';
+        const batchSize = 200;
+        const prices = new Map();
+        let queue = new Map();
+        let timer = null;
+
+        function request(batch) {
+            const ids = Array.from(batch.keys());
+            fetch(url + '?ids=' + ids.join(','), {
+                credentials: 'same-origin',
+                headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}
+            })
+                .then(response => response.ok ? response.json() : {})
+                .catch(() => ({}))
+                .then(data => batch.forEach((resolve, id) => resolve(data[id] || null)));
+        }
+
+        function flush() {
+            const batch = Array.from(queue.entries());
+            queue = new Map();
+            timer = null;
+            for (let i = 0; i < batch.length; i += batchSize) {
+                request(new Map(batch.slice(i, i + batchSize)));
+            }
+        }
+
+        return {
+            get(productId) {
+                if (!prices.has(productId)) {
+                    prices.set(productId, new Promise(resolve => queue.set(productId, resolve)));
+                    timer = timer || setTimeout(flush, 0);
+                }
+                return prices.get(productId);
+            }
+        };
+    })();
+
+    function initElmeCustomerPrice() {
+        return {
+            productId: 0,
+            requestedId: 0,
+            state: 'loading',
+            price: null,
+
+            init() {
+                this.productId = parseInt(this.$root.dataset.productId, 10) || 0;
+                this.load(this.productId);
+            },
+
+            load(productId) {
+                this.requestedId = productId;
+                this.state = 'loading';
+                window.elmeCustomerPrices.get(productId).then(price => {
+                    if (productId !== this.requestedId) {
+                        return;
+                    }
+                    this.price = price;
+                    this.state = price ? 'ready' : 'unavailable';
+                });
+            },
+
+            // PDP configurable: show the chosen child's price, the "from" price while the selection is partial
+            onOptionsChanged() {
+                const detail = this.$event.detail || {};
+                if (parseInt(detail.productId, 10) !== this.productId) {
+                    return;
+                }
+                const productId = parseInt(detail.productIndex, 10) || this.productId;
+                if (productId !== this.requestedId) {
+                    this.load(productId);
+                }
+            },
+
+            isLoading() {
+                return this.state === 'loading';
+            },
+
+            isReady() {
+                return this.state === 'ready';
+            },
+
+            hasDiscount() {
+                return this.isReady() && this.price.regular > this.price.final;
+            },
+
+            finalPrice() {
+                return this.price ? this.price.final_formatted : '';
+            },
+
+            regularPrice() {
+                return this.price ? this.price.regular_formatted : '';
+            }
+        }
+    }
+
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeCustomerPrice', initElmeCustomerPrice), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
