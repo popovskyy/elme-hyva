@@ -163,11 +163,10 @@
     },
     {
       "provider": "local",
-      "name": "DM Serif Display",
+      "name": "DMSerifDisplay",
       "cssVariable": "--font-heading",
       "fallbacks": [
-        "Georgia",
-        "serif"
+        "sans-serif"
       ],
       "variants": [
         {
