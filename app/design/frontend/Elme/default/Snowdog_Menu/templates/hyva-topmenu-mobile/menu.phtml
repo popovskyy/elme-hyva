@@ -131,6 +131,7 @@ $menuClass = $menu->getCssClass() ?: 'main-menu';
         return {
             open: false,
             stack: [],
+            panelsReady: false,
 
             menuListeners: {
                 ['@keydown.window.escape']() {
@@ -139,6 +140,21 @@ $menuClass = $menu->getCssClass() ?: 'main-menu';
                     }
                     this.closeMenu();
                 }
+            },
+
+            init() {
+                // Submenu panels are rendered inside root <li>s by Snowdog; reparent
+                // them as siblings so root can be inert without trapping its children.
+                const container = this.$root.querySelector('.elme-mobile-menu__panels');
+                if (container) {
+                    container.querySelectorAll(
+                        '.elme-mobile-menu__panel:not(.elme-mobile-menu__panel--root)'
+                    ).forEach((panel) => {
+                        container.appendChild(panel);
+                    });
+                }
+                this.panelsReady = true;
+                this.syncPanels();
             },
 
             openMenu() {
@@ -212,6 +228,18 @@ $menuClass = $menu->getCssClass() ?: 'main-menu';
                 }
                 this.stack.pop();
                 this.syncPanels();
+                this.$nextTick(() => {
+                    const top = this.stack.length ? this.stack[this.stack.length - 1] : 'root';
+                    const panel = this.$root.querySelector(
+                        '.elme-mobile-menu__panel[data-panel-id="' + top + '"]'
+                    );
+                    const focusable = panel && panel.querySelector(
+                        'button:not([disabled]), a[href]:not([tabindex="-1"])'
+                    );
+                    if (focusable) {
+                        focusable.focus();
+                    }
+                });
             },
 
             syncPanels() {
@@ -224,10 +252,19 @@ $menuClass = $menu->getCssClass() ?: 'main-menu';
                     const isAncestor = !isRoot && stack.indexOf(id) !== -1;
                     panel.classList.toggle('is-active', isTop);
                     panel.classList.toggle('is-open', isAncestor || isTop);
-                    panel.hidden = !(isTop || isAncestor || isRoot);
+                    // Keep ancestor/root in the layout for the slide stack, but only the
+                    // active panel stays in the tab order (QA: focus must not escape).
                     if (isRoot) {
                         panel.hidden = false;
                         panel.classList.toggle('is-covered', top !== null);
+                    } else {
+                        panel.hidden = !(isTop || isAncestor);
+                    }
+                    panel.inert = !isTop;
+                    if (isTop) {
+                        panel.removeAttribute('aria-hidden');
+                    } else {
+                        panel.setAttribute('aria-hidden', 'true');
                     }
                 });
             }

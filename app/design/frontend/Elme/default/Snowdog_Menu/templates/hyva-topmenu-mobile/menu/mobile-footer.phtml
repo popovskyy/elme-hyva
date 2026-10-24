@@ -1,34 +1,56 @@
 <?php
 /**
- * FE-09: mobile drawer bottom links — Account, Quick Order, Contact, Become a Stockist.
+ * FE-09: mobile drawer bottom links (SEO + idea: auth-aware).
+ * Logged-in: Quick Order, My Account, Contact (no stockist — matches FE-05).
+ * Guest: Trade login, Contact, Become a Stockist (no Quick Order).
  */
 
 declare(strict_types=1);
 
+use Elme\LoginOnly\ViewModel\LoginOnly;
+use Hyva\Theme\Model\ViewModelRegistry;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 
 /** @var Template $block */
 /** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
 
-$links = [
-    [
-        'label' => __('My Account'),
-        'url' => $block->getUrl('customer/account'),
-    ],
-    [
-        'label' => __('Quick Order'),
-        'url' => $block->getUrl('quick_order'),
-    ],
-    [
-        'label' => __('Contact'),
-        'url' => $block->getUrl('contact'),
-    ],
-    [
-        'label' => __('Become a Stockist'),
-        'url' => $block->getUrl('', ['_direct' => 'become-a-stockist']),
-    ],
-];
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+$isLoggedIn = $loginOnly->isLoggedIn();
+
+if ($isLoggedIn) {
+    $links = [
+        [
+            'label' => __('Quick Order'),
+            'url' => $block->getUrl('quick_order'),
+        ],
+        [
+            'label' => __('My Account'),
+            'url' => $block->getUrl('customer/account'),
+        ],
+        [
+            'label' => __('Contact'),
+            'url' => $block->getUrl('contact'),
+        ],
+    ];
+} else {
+    $links = [
+        [
+            'label' => __('Trade login'),
+            'url' => $block->getUrl('customer/account/login'),
+        ],
+        [
+            'label' => __('Contact'),
+            'url' => $block->getUrl('contact'),
+        ],
+        [
+            'label' => __('Become a Stockist'),
+            'url' => $block->getUrl('', ['_direct' => 'become-a-stockist']),
+        ],
+    ];
+}
 ?>
 <ul class="elme-mobile-menu__footer-list list-none m-0 p-0 flex flex-col">
     <?php foreach ($links as $link): ?>
