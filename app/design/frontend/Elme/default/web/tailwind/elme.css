@@ -303,6 +303,344 @@
     html.elme-mobile-menu-open {
         overflow: hidden;
     }
+
+    /*
+     * FE-08: desktop mega menu (Snowdog hyva-topmenu-desktop → Elme look).
+     * Full BEM selectors (no &__): Tailwind v4 nesting turns &__foo into __foo.main-menu.
+     */
+    .main-menu.navigation {
+        --menu-panel-width: 1000px;
+        --menu-promo-width: 240px;
+        position: relative;
+        z-index: 40;
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
+    }
+
+    .main-menu.navigation .main-menu__list {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 0;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    /* Items stay in normal flow (no position:relative) so level-1 panels
+       position against .main-menu — same place for every top item. Gap to the
+       panel is covered by header:hover in Alpine leave handling. */
+    .main-menu.navigation .main-menu__item {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        margin: 0;
+        flex-shrink: 0;
+    }
+
+    .main-menu.navigation .main-menu__link {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: --spacing(1);
+        padding: --spacing(2) --spacing(1.5);
+        color: var(--color-ink);
+        font-size: var(--text-base);
+        font-weight: 400;
+        line-height: 1.4;
+        text-transform: capitalize;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: color 150ms ease;
+
+        &:hover {
+            color: var(--color-ink);
+            text-decoration: none;
+        }
+
+        &:focus-visible {
+            color: var(--color-ink);
+            text-decoration: none;
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
+        }
+
+        &.current {
+            font-weight: 600;
+        }
+    }
+
+    .main-menu.navigation .main-menu__item--parent > .main-menu__trigger > .main-menu__link::after {
+        content: '';
+        width: 10px;
+        height: 10px;
+        background: no-repeat center / contain
+            url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjUiIHZpZXdCb3g9IjAgMCA4IDUiIGZpbGw9Im5vbmUiPjxwYXRoIGQ9Ik03LjUgMC41TDQgNEwwLjUgMC41IiBzdHJva2U9IiMzQTM5MzUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==");
+        transition: transform 200ms ease;
+        translate: 0 1px;
+    }
+
+    .main-menu.navigation .main-menu__item--parent > .main-menu__trigger > .main-menu__link::before {
+        content: '';
+        position: absolute;
+        inset-inline: 0;
+        bottom: 0;
+        height: 1px;
+        width: 0;
+        background: var(--color-ink);
+        transition: width 200ms ease;
+    }
+
+    .main-menu.navigation .main-menu__item.is-open > .main-menu__trigger > .main-menu__link::after,
+    .main-menu.navigation .main-menu__item:hover > .main-menu__trigger > .main-menu__link::after {
+        transform: rotate(180deg);
+    }
+
+    .main-menu.navigation .main-menu__item.is-open > .main-menu__trigger > .main-menu__link::before,
+    .main-menu.navigation .main-menu__item:hover > .main-menu__trigger > .main-menu__link::before {
+        width: 100%;
+    }
+
+    .main-menu.navigation .main-menu__item.promo > .main-menu__trigger > .main-menu__link,
+    .main-menu.navigation .main-menu__item.sale > .main-menu__trigger > .main-menu__link {
+        color: var(--color-promo);
+    }
+
+    .main-menu.navigation .main-menu__inner-wrapper--level1 {
+        position: absolute;
+        /* top/left set in JS: flush under #header, viewport-centered */
+        top: 100%;
+        left: 0;
+        z-index: 50;
+        width: min(100vw - 2rem, var(--menu-panel-width, 1000px));
+        max-width: calc(100vw - 2rem);
+        padding: --spacing(8) --spacing(8) --spacing(12);
+        background: var(--color-surface);
+        border-bottom-left-radius: var(--radius-menu, 0px);
+        border-bottom-right-radius: var(--radius-menu, 0px);
+        box-shadow: 0 12px 32px rgb(46 48 50 / 0.12);
+        opacity: 0;
+        transform: translateY(-4px);
+        pointer-events: none;
+        transition:
+            opacity 200ms ease,
+            transform 200ms ease;
+    }
+
+    .main-menu.navigation .main-menu__inner-wrapper--level1.is-open {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    .main-menu.navigation .main-menu__inner-wrapper--level1[hidden] {
+        display: none !important;
+    }
+
+    .main-menu.navigation .main-menu__inner-wrapper--level1._has-cms-child-node {
+        padding-inline-end: calc(var(--menu-promo-width, 240px) + --spacing(16));
+    }
+
+    .main-menu.navigation .main-menu__inner-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .main-menu.navigation .main-menu__inner-list--level1 {
+        column-count: 5;
+        column-gap: --spacing(8);
+    }
+
+    .main-menu.navigation .main-menu__inner-wrapper--level1._has-cms-child-node .main-menu__inner-list--level1 {
+        column-count: 3;
+    }
+
+    .main-menu.navigation .main-menu__inner-item {
+        break-inside: avoid;
+        margin: 0 0 --spacing(2.5);
+    }
+
+    .main-menu.navigation .main-menu__inner-item--level1 > .main-menu__inner-link {
+        display: block;
+        margin-bottom: --spacing(2.5);
+        font-weight: 800;
+        color: var(--color-ink);
+        text-decoration: none;
+    }
+
+    .main-menu.navigation .main-menu__inner-link {
+        display: block;
+        color: var(--color-ink);
+        font-size: var(--text-base);
+        line-height: 1.4;
+        text-decoration: none;
+        transition: color 150ms ease;
+
+        &:hover,
+        &:focus-visible {
+            color: var(--color-link-hover);
+            text-decoration: none;
+        }
+
+        &.current {
+            font-weight: 600;
+        }
+    }
+
+    .main-menu.navigation .main-menu__inner-list--level2,
+    .main-menu.navigation .main-menu__inner-list--level3 {
+        margin: 0;
+        padding: 0;
+    }
+
+    .main-menu.navigation .main-menu__promo-slot,
+    .main-menu [data-node-type='cms_block'] {
+        break-inside: avoid;
+        list-style: none;
+    }
+
+    .main-menu.navigation .main-menu__inner-wrapper--level1._has-cms-child-node [data-node-type='cms_block'] {
+        position: absolute;
+        top: --spacing(10);
+        right: --spacing(10);
+        width: var(--menu-promo-width, 240px);
+        margin: 0;
+    }
+
+    .main-menu.navigation .menu-promo {
+        overflow: hidden;
+        border-radius: var(--radius-menu-promo, 0px);
+        background: var(--color-cool-light);
+        transition: transform 200ms ease, box-shadow 200ms ease;
+    }
+
+    .main-menu.navigation .menu-promo--sand {
+        background: var(--color-sand-light);
+    }
+
+    .main-menu.navigation .menu-promo__link {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(5);
+        padding: --spacing(6);
+        color: var(--color-ink);
+        text-decoration: none;
+    }
+
+    .main-menu.navigation .menu-promo__media {
+        display: block;
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        border-radius: calc(var(--radius-menu-promo, 0px) - 2px);
+        overflow: hidden;
+        background: var(--color-cool-light);
+        transform: scale(1);
+        transition: transform 280ms ease;
+    }
+
+    .main-menu.navigation .menu-promo__media img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .main-menu.navigation .menu-promo--sand .main-menu.navigation .menu-promo__media {
+        background: var(--color-sand-light);
+    }
+
+    .main-menu.navigation .menu-promo__heading {
+        display: block;
+        margin-bottom: --spacing(1);
+        font-size: var(--text-h5);
+        font-weight: 700;
+        line-height: var(--text-h5--line-height);
+    }
+
+    .main-menu.navigation .menu-promo__cta {
+        display: inline-flex;
+        align-items: center;
+        gap: --spacing(1.5);
+        font-size: var(--text-note);
+        color: var(--color-ink);
+        transition: gap 200ms ease;
+
+        &::after {
+            content: '';
+            width: 16px;
+            height: 16px;
+            background: no-repeat center / contain
+                url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNOS4zMzMzMyAzLjMzMzMzTDE0IDhNMTQgOEwyIDgiIHN0cm9rZT0iIzNBMzkzNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+");
+        }
+    }
+
+    .main-menu.navigation .menu-promo:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgb(46 48 50 / 0.12);
+
+        .main-menu.navigation .menu-promo__media {
+            transform: scale(1.04);
+        }
+
+        .main-menu.navigation .menu-promo__cta {
+            gap: --spacing(2.5);
+        }
+    }
+
+    .main-menu.navigation .menu-overlay {
+        display: none;
+    }
+
+    .main-menu.navigation .menu-overlay:not([hidden]) {
+        display: block;
+        position: fixed;
+        /* top set in JS to #header bottom so overlay never covers top-level links */
+        top: var(--elme-header-bottom, 0px);
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 25;
+        background: rgb(46 48 50 / 0.3);
+        pointer-events: auto;
+        opacity: 1;
+        transition: opacity 200ms ease;
+    }
+
+    @variant lg {
+        .main-menu.navigation .main-menu__link {
+            font-size: var(--text-base);
+            /* Tighter than production — 15px labels need the room so Sale clears search. */
+            padding-inline: --spacing(0.5);
+            gap: --spacing(0.5);
+        }
+
+        body.menu-active .page-header {
+            z-index: 40;
+        }
+    }
+
+    /* Cap mid-desktop padding so Sale clears search at 1025/1440. Roomier from 2xl. */
+    @variant xl {
+        .main-menu.navigation .main-menu__link {
+            padding-inline: --spacing(1);
+            gap: --spacing(0.5);
+        }
+    }
+
+    @variant 2xl {
+        .main-menu.navigation .main-menu__link {
+            padding-inline: --spacing(2.5);
+            gap: --spacing(1);
+        }
+    }
+
+    @variant 3xl {
+        .main-menu.navigation .main-menu__link {
+            padding-inline: --spacing(5);
+            gap: --spacing(1.5);
+        }
+    }
 }
 
 /*

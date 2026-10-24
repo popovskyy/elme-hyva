@@ -1,0 +1,59 @@
+<?php
+/**
+ * FE-08: custom URL node — BEM link classes matching Bart/el mega menu.
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Snowdog\Menu\Block\NodeType\CustomUrl;
+
+/** @var CustomUrl $block */
+/** @var Escaper $escaper */
+
+$menuClass = $block->getMenuClass() ?: 'main-menu';
+$content = (string) $block->getContent();
+$url = '';
+if ($content !== '') {
+    if (preg_match('#^(https?:)?//#i', $content)) {
+        $url = $content;
+    } else {
+        // Keep production-style paths (…/flowers-plants.html) without Magento adding a trailing slash.
+        $url = rtrim($block->getBaseUrl(), '/') . '/' . ltrim($content, '/');
+    }
+}
+
+$titleRaw = (string) $block->getTitle();
+preg_match('/\{(.*?)\}/', $titleRaw, $matches);
+$subtitle = $matches[1] ?? '';
+$cleanTitle = trim(preg_replace('/\{.*?\}/', '', $titleRaw) ?? '');
+$classLink = $block->getIsRoot() ? $menuClass . '__link' : $menuClass . '__inner-link';
+$nodeClasses = trim((string) $block->getNodeClasses());
+if ($nodeClasses !== '') {
+    $classLink .= ' ' . $nodeClasses;
+}
+
+$attrs = [];
+if ($block->getId()) {
+    $attrs[] = 'data-menu="menu-' . $escaper->escapeHtmlAttr((string) $block->getId()) . '"';
+}
+if ($block->getTarget()) {
+    $attrs[] = 'target="_blank" rel="noopener"';
+}
+?>
+<?php if ($block->getIsViewAllLink()): ?>
+    <?php return; ?>
+<?php endif; ?>
+
+<a <?php if ($url): ?>href="<?= $escaper->escapeUrl($url) ?>"<?php endif; ?>
+   class="<?= $escaper->escapeHtmlAttr($classLink) ?>"
+    <?= /* @noEscape */ implode(' ', $attrs) ?>>
+    <span class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__item-text">
+        <?= $escaper->escapeHtml($cleanTitle) ?>
+    </span>
+    <?php if ($subtitle !== ''): ?>
+        <span class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__item-subtitle">
+            <?= $escaper->escapeHtml($subtitle) ?>
+        </span>
+    <?php endif; ?>
+</a>

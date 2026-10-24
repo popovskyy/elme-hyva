@@ -1,0 +1,19 @@
+<?php
+/**
+ * FE-08: CMS promo tile inside the mega panel.
+ *
+ * Not rendered today: sub_menu.phtml skips cms_block nodes until real CMS art
+ * replaces gradient placeholders (idea-designer). Keep this template for re-enable.
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Snowdog\Menu\Block\NodeType\CmsBlock;
+
+/** @var CmsBlock $block */
+/** @var Escaper $escaper */
+?>
+<div class="main-menu__promo-slot">
+    <?= /* @noEscape */ $block->getHtml($block->getId(), $block->getLevel()) ?>
+</div>

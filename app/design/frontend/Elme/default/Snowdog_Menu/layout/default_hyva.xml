@@ -8,7 +8,10 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
-        <!-- Own block so FE-08's remove of stock topmenu-mobile cannot blank the burger -->
+        <!-- Desktop mega sits in the header nav slot, same row as logo and search -->
+        <move element="topmenu-desktop" destination="topmenu_generic" after="-"/>
+
+        <!-- Own block so a remove of stock topmenu-mobile cannot blank the burger -->
         <referenceBlock name="topmenu-mobile" remove="true"/>
         <referenceBlock name="topmenu_generic">
             <block name="elme.topmenu.mobile"

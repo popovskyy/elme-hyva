@@ -209,17 +209,6 @@ $menuClass = $menu->getCssClass() ?: 'main-menu';
                 }
                 this.stack.push(id);
                 this.syncPanels();
-                this.$nextTick(() => {
-                    const panel = this.$root.querySelector(
-                        '.elme-mobile-menu__panel[data-panel-id="' + id + '"]'
-                    );
-                    const focusable = panel && panel.querySelector(
-                        'button:not([disabled]), a[href]:not([tabindex="-1"])'
-                    );
-                    if (focusable) {
-                        focusable.focus();
-                    }
-                });
             },
 
             goBack() {
@@ -228,27 +217,41 @@ $menuClass = $menu->getCssClass() ?: 'main-menu';
                 }
                 this.stack.pop();
                 this.syncPanels();
-                this.$nextTick(() => {
-                    const top = this.stack.length ? this.stack[this.stack.length - 1] : 'root';
-                    const panel = this.$root.querySelector(
-                        '.elme-mobile-menu__panel[data-panel-id="' + top + '"]'
-                    );
-                    const focusable = panel && panel.querySelector(
-                        'button:not([disabled]), a[href]:not([tabindex="-1"])'
-                    );
-                    if (focusable) {
-                        focusable.focus();
-                    }
-                });
+            },
+
+            // Chrome refuses aria-hidden / hidden on an ancestor that still contains
+            // focus. Move focus onto the panel that stays active before hiding the rest.
+            focusPanel(panel) {
+                const focusable = panel.querySelector(
+                    'button:not([disabled]), a[href]:not([tabindex="-1"])'
+                );
+                if (focusable) {
+                    focusable.focus();
+                }
             },
 
             syncPanels() {
                 const stack = this.stack;
                 const top = stack.length ? stack[stack.length - 1] : null;
-                this.$root.querySelectorAll('.elme-mobile-menu__panel').forEach((panel) => {
+                const panels = Array.from(this.$root.querySelectorAll('.elme-mobile-menu__panel'));
+                const next = panels.find((panel) => {
+                    const id = panel.getAttribute('data-panel-id');
+                    return top === null ? id === 'root' : id === top;
+                });
+                if (next) {
+                    next.hidden = false;
+                    next.inert = false;
+                    next.removeAttribute('aria-hidden');
+                    const active = document.activeElement;
+                    if (active && active !== document.body && !next.contains(active)
+                        && this.$root.contains(active)) {
+                        this.focusPanel(next);
+                    }
+                }
+                panels.forEach((panel) => {
                     const id = panel.getAttribute('data-panel-id');
                     const isRoot = id === 'root';
-                    const isTop = top === null ? isRoot : id === top;
+                    const isTop = panel === next;
                     const isAncestor = !isRoot && stack.indexOf(id) !== -1;
                     panel.classList.toggle('is-active', isTop);
                     panel.classList.toggle('is-open', isAncestor || isTop);

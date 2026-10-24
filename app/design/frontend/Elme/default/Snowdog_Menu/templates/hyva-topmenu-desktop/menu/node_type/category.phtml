@@ -1,0 +1,48 @@
+<?php
+/**
+ * FE-08: category node — same chrome as custom_url for mixed trees.
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Snowdog\Menu\Block\NodeType\Category;
+
+/** @var Category $block */
+/** @var Escaper $escaper */
+
+$menuClass = $block->getMenuClass() ?: 'main-menu';
+$nodeId = $block->getId();
+$categoryUrl = $block->getCategoryUrl($nodeId) ?: '#';
+
+$titleRaw = (string) $block->getTitle();
+preg_match('/\{(.*?)\}/', $titleRaw, $matches);
+$subtitle = $matches[1] ?? '';
+$cleanTitle = trim(preg_replace('/\{.*?\}/', '', $titleRaw) ?? '');
+$classLink = $block->getIsRoot() ? $menuClass . '__link' : $menuClass . '__inner-link';
+if ($block->isCurrentCategory($nodeId)) {
+    $classLink .= ' current';
+}
+$nodeClasses = trim((string) $block->getNodeClasses());
+if ($nodeClasses !== '') {
+    $classLink .= ' ' . $nodeClasses;
+}
+?>
+<?php if ($block->getIsViewAllLink()): ?>
+    <?php return; ?>
+<?php endif; ?>
+
+<a href="<?= $escaper->escapeUrl($categoryUrl) ?>"
+   class="<?= $escaper->escapeHtmlAttr($classLink) ?>"
+    <?php if ($nodeId): ?>
+        data-menu="menu-<?= $escaper->escapeHtmlAttr((string) $nodeId) ?>"
+    <?php endif; ?>>
+    <span class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__item-text">
+        <?= $escaper->escapeHtml($cleanTitle) ?>
+    </span>
+    <?php if ($subtitle !== ''): ?>
+        <span class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__item-subtitle">
+            <?= $escaper->escapeHtml($subtitle) ?>
+        </span>
+    <?php endif; ?>
+</a>
