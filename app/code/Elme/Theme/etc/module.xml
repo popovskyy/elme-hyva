@@ -5,6 +5,7 @@
         <sequence>
             <module name="Magento_Cms"/>
             <module name="Elme_LoginOnly"/>
+            <module name="Snowdog_Menu"/>
         </sequence>
     </module>
 </config>

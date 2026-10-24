@@ -1,0 +1,121 @@
+<?php
+/**
+ * FE-09: drill-down submenu panel (Back + View all + children).
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Snowdog\Menu\Block\Menu;
+
+/** @var Menu $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+if (!$block->getMenu()) {
+    return;
+}
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+$menuClass = $block->getMenu()->getCssClass() ?: 'main-menu';
+$parentNode = $block->getParentNode();
+$parentId = (string) $parentNode->getId();
+$level = (int) $block->getLevel();
+$titleRaw = (string) $parentNode->getTitle();
+$cleanTitle = trim((string) preg_replace('/\{.*?\}/', '', $titleRaw));
+?>
+<div class="elme-mobile-menu__panel elme-mobile-menu__panel--level<?= (int) $level ?> flex flex-col h-full"
+     data-panel-id="<?= $escaper->escapeHtmlAttr($parentId) ?>"
+     hidden>
+    <div class="elme-mobile-menu__sub-header shrink-0 flex items-center gap-2
+                border-b border-border px-3 py-2 min-h-14">
+        <button type="button"
+                class="elme-mobile-menu__back inline-flex items-center gap-1.5 shrink-0
+                       min-h-11 px-2 text-sm font-medium uppercase tracking-wide text-ink
+                       bg-transparent border-0
+                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+                       focus-visible:outline-primary"
+                @click="goBack"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Back')) ?>">
+            <?= $lucideIcons->arrowLeftHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+            <span><?= $escaper->escapeHtml(__('Back')) ?></span>
+        </button>
+        <p class="elme-mobile-menu__sub-title flex-1 min-w-0 m-0 text-center font-heading
+                  font-normal text-base text-ink truncate">
+            <?= $escaper->escapeHtml($cleanTitle) ?>
+        </p>
+        <button type="button"
+                class="inline-flex items-center justify-center shrink-0 min-w-11 min-h-11 p-0
+                       text-ink bg-transparent border-0
+                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+                       focus-visible:outline-primary"
+                @click="closeMenu"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Close menu')) ?>">
+            <?= $lucideIcons->xHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
+        </button>
+    </div>
+
+    <div class="elme-drawer__body flex-1 min-h-0 !pt-0 !px-0 overflow-y-auto overscroll-y-contain">
+        <ul class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-list
+                   <?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-list--level<?= (int) $level ?>
+                   elme-mobile-menu__list">
+            <?php if ($block->isViewAllLinkAllowed($parentNode->getType())): ?>
+                <li class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-item
+                           <?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-item--all
+                           <?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-item--level<?= (int) $level ?>">
+                    <?php
+                    // Temporarily mark as view-all so node template emits "View all {title}".
+                    echo /* @noEscape */ $block->renderViewAllLink($parentNode);
+                    ?>
+                </li>
+            <?php endif; ?>
+
+            <?php foreach ($block->getSubmenuNodes() as $node): ?>
+                <?php
+                if ($node->getType() === 'cms_block') {
+                    continue;
+                }
+                $childrenLevel = $node->getLevel() + 1;
+                $children = $block->getNodes($childrenLevel, $node);
+                $node->setIsParent((bool) $children);
+                $nodeId = (string) $node->getId();
+                $nodeTitleRaw = (string) $node->getTitle();
+                $nodeTitle = trim((string) preg_replace('/\{.*?\}/', '', $nodeTitleRaw));
+                $extraClasses = trim((string) $node->getClasses());
+                $parentClass = $children ? ' ' . $menuClass . '__inner-item--parent' : '';
+                $itemClass = trim(
+                    $menuClass . '__inner-item '
+                    . $menuClass . '__inner-item--level' . $level
+                    . $parentClass
+                    . ($extraClasses ? ' ' . $extraClasses : '')
+                );
+                ?>
+                <li class="<?= $escaper->escapeHtmlAttr($itemClass) ?>"
+                    data-node-id="<?= $escaper->escapeHtmlAttr($nodeId) ?>"
+                    data-node-type="<?= $escaper->escapeHtmlAttr((string) $node->getType()) ?>">
+                    <?php if ($children): ?>
+                        <button type="button"
+                                class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-link elme-mobile-menu__row"
+                                data-node-id="<?= $escaper->escapeHtmlAttr($nodeId) ?>"
+                                @click="openPanel"
+                                aria-haspopup="true">
+                            <span class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__item-text">
+                                <?= $escaper->escapeHtml($nodeTitle) ?>
+                            </span>
+                            <span class="elme-mobile-menu__chevron" aria-hidden="true">
+                                <?= $lucideIcons->chevronRightHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                            </span>
+                        </button>
+                        <?= /* @noEscape */ $block->renderSubmenu($children, $node, $childrenLevel) ?>
+                    <?php else: ?>
+                        <?= /* @noEscape */ $block->renderMenuNode($node) ?>
+                    <?php endif; ?>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+</div>

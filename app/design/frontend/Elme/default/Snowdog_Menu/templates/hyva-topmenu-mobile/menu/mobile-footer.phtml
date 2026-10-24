@@ -1,0 +1,45 @@
+<?php
+/**
+ * FE-09: mobile drawer bottom links — Account, Quick Order, Contact, Become a Stockist.
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+$links = [
+    [
+        'label' => __('My Account'),
+        'url' => $block->getUrl('customer/account'),
+    ],
+    [
+        'label' => __('Quick Order'),
+        'url' => $block->getUrl('quick_order'),
+    ],
+    [
+        'label' => __('Contact'),
+        'url' => $block->getUrl('contact'),
+    ],
+    [
+        'label' => __('Become a Stockist'),
+        'url' => $block->getUrl('', ['_direct' => 'become-a-stockist']),
+    ],
+];
+?>
+<ul class="elme-mobile-menu__footer-list list-none m-0 p-0 flex flex-col">
+    <?php foreach ($links as $link): ?>
+        <li class="border-b border-border last:border-b-0">
+            <a href="<?= $escaper->escapeUrl($link['url']) ?>"
+               class="elme-mobile-menu__footer-link flex items-center min-h-11 px-5 py-3
+                      text-base text-ink no-underline hover:text-ink
+                      focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+                      focus-visible:outline-primary">
+                <?= $escaper->escapeHtml($link['label']) ?>
+            </a>
+        </li>
+    <?php endforeach; ?>
+</ul>

@@ -15,7 +15,12 @@
         "src": "app/code/Elme/Theme"
       }
     ],
-    "exclude": []
+    "exclude": [
+      {
+        "src": "vendor/snowdog/module-menu",
+        "comment": "Snowdog TW source uses hover:snowdog-menu-text-hover (@apply) which fails on Tailwind v4; Elme ships its own menu CSS (FE-08/FE-09)"
+      }
+    ]
   },
   "tokens": {
     "values": {

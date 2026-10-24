@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-09: mobile menu drawer (Snowdog hyva-topmenu-mobile).
+ * Desktop mega menu lives in FE-08 (topmenu-desktop → topmenu_generic).
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!-- Own block so FE-08's remove of stock topmenu-mobile cannot blank the burger -->
+        <referenceBlock name="topmenu-mobile" remove="true"/>
+        <referenceBlock name="topmenu_generic">
+            <block name="elme.topmenu.mobile"
+                   class="Snowdog\Menu\Block\Menu">
+                <arguments>
+                    <argument name="menu" xsi:type="string">hyva-topmenu-mobile</argument>
+                </arguments>
+                <block name="mobile.menu.footer"
+                       as="mobile.menu.footer"
+                       template="Snowdog_Menu::hyva-topmenu-mobile/menu/mobile-footer.phtml"/>
+            </block>
+        </referenceBlock>
+    </body>
+</page>

@@ -367,7 +367,7 @@ return [
         'Hyva_Email' => 1,
         'Hyva_ThemeFallback' => 1,
         'Hyva_OrderCancellationWebapi' => 1,
-        'Elme_Theme' => 1,
+        'Snowdog_Menu' => 1,
         'Hyva_LumaCheckout' => 1,
         'PayPal_Braintree' => 1,
         'PayPal_BraintreeCustomerBalance' => 1,
@@ -376,6 +376,6 @@ return [
         'PayPal_BraintreeGiftWrapping' => 1,
         'PayPal_BraintreeGraphQl' => 1,
         'PayPal_BraintreeReward' => 1,
-        'Snowdog_Menu' => 1
+        'Elme_Theme' => 1
     ]
 ];
