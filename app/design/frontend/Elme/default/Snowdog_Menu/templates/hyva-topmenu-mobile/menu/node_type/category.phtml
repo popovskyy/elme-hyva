@@ -1,0 +1,53 @@
+<?php
+/**
+ * FE-09: category node (leaf link or "View all {title}").
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Snowdog\Menu\Block\NodeType\Category;
+
+/** @var Category $block */
+/** @var Escaper $escaper */
+
+$menuClass = $block->getMenuClass() ?: 'main-menu';
+$nodeId = $block->getId();
+$categoryUrl = $block->getCategoryUrl($nodeId) ?: '';
+$titleRaw = (string) $block->getTitle();
+$cleanTitle = trim((string) preg_replace('/\{.*?\}/', '', $titleRaw));
+$isRoot = (bool) $block->getIsRoot();
+$classLink = $isRoot ? $menuClass . '__link' : $menuClass . '__inner-link';
+$nodeClasses = trim((string) $block->getNodeClasses());
+if ($nodeClasses !== '') {
+    $classLink .= ' ' . $nodeClasses;
+}
+?>
+<?php if ($block->getIsViewAllLink()): ?>
+    <?php if ($categoryUrl === ''): ?>
+        <?php return; ?>
+    <?php endif; ?>
+    <a href="<?= $escaper->escapeUrl($categoryUrl) ?>"
+       class="<?= $escaper->escapeHtmlAttr($classLink) ?> elme-mobile-menu__view-all"
+       <?php if ($nodeId): ?>data-menu="menu-<?= $escaper->escapeHtmlAttr((string) $nodeId) ?>"<?php endif; ?>>
+        <?= $escaper->escapeHtml(__('View all %1', $cleanTitle)) ?>
+    </a>
+    <?php return; ?>
+<?php endif; ?>
+
+<?php if ($categoryUrl === ''): ?>
+    <span class="<?= $escaper->escapeHtmlAttr($classLink) ?> elme-mobile-menu__row">
+        <span class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__item-text">
+            <?= $escaper->escapeHtml($cleanTitle) ?>
+        </span>
+    </span>
+    <?php return; ?>
+<?php endif; ?>
+
+<a href="<?= $escaper->escapeUrl($categoryUrl) ?>"
+   class="<?= $escaper->escapeHtmlAttr($classLink) ?> elme-mobile-menu__row"
+   <?php if ($nodeId): ?>data-menu="menu-<?= $escaper->escapeHtmlAttr((string) $nodeId) ?>"<?php endif; ?>>
+    <span class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__item-text">
+        <?= $escaper->escapeHtml($cleanTitle) ?>
+    </span>
+</a>

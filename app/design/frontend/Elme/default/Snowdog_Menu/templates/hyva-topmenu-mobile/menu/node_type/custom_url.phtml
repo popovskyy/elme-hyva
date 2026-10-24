@@ -1,0 +1,69 @@
+<?php
+/**
+ * FE-09: custom URL node (leaf link or "View all {title}").
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Snowdog\Menu\Block\NodeType\CustomUrl;
+
+/** @var CustomUrl $block */
+/** @var Escaper $escaper */
+
+$menuClass = $block->getMenuClass() ?: 'main-menu';
+$content = (string) $block->getContent();
+$url = '';
+if ($content !== '') {
+    if (preg_match('#^(https?:)?//#i', $content) || str_starts_with($content, '/')) {
+        $url = $content;
+    } else {
+        $url = rtrim($block->getBaseUrl(), '/') . '/' . ltrim($content, '/');
+    }
+}
+
+$titleRaw = (string) $block->getTitle();
+$cleanTitle = trim((string) preg_replace('/\{.*?\}/', '', $titleRaw));
+$nodeClasses = trim((string) $block->getNodeClasses());
+$isRoot = (bool) $block->getIsRoot();
+$classLink = $isRoot ? $menuClass . '__link' : $menuClass . '__inner-link';
+if ($nodeClasses !== '') {
+    $classLink .= ' ' . $nodeClasses;
+}
+
+$attrs = [];
+if ($block->getId()) {
+    $attrs[] = 'data-menu="menu-' . $escaper->escapeHtmlAttr((string) $block->getId()) . '"';
+}
+if ($block->getTarget()) {
+    $attrs[] = 'target="_blank" rel="noopener"';
+}
+?>
+<?php if ($block->getIsViewAllLink()): ?>
+    <?php if ($url === ''): ?>
+        <?php return; ?>
+    <?php endif; ?>
+    <a href="<?= $escaper->escapeUrl($url) ?>"
+       class="<?= $escaper->escapeHtmlAttr($classLink) ?> elme-mobile-menu__view-all"
+        <?= /* @noEscape */ implode(' ', $attrs) ?>>
+        <?= $escaper->escapeHtml(__('View all %1', $cleanTitle)) ?>
+    </a>
+    <?php return; ?>
+<?php endif; ?>
+
+<?php if ($url === ''): ?>
+    <span class="<?= $escaper->escapeHtmlAttr($classLink) ?> elme-mobile-menu__row">
+        <span class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__item-text">
+            <?= $escaper->escapeHtml($cleanTitle) ?>
+        </span>
+    </span>
+    <?php return; ?>
+<?php endif; ?>
+
+<a href="<?= $escaper->escapeUrl($url) ?>"
+   class="<?= $escaper->escapeHtmlAttr($classLink) ?> elme-mobile-menu__row"
+    <?= /* @noEscape */ implode(' ', $attrs) ?>>
+    <span class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__item-text">
+        <?= $escaper->escapeHtml($cleanTitle) ?>
+    </span>
+</a>
