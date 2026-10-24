@@ -57,5 +57,25 @@
             <block name="elme.btn-ripple" template="Magento_Theme::elme/btn-ripple.phtml"/>
             <block name="elme.select.js" template="Magento_Theme::elme/select-js.phtml"/>
         </referenceContainer>
+
+        <!-- FE-10: Elme footer (logo, CMS link columns, social, payments) -->
+        <referenceBlock name="footer-content">
+            <block name="footer.logo"
+                   as="footer.logo"
+                   template="Magento_Theme::html/footer/logo.phtml"/>
+            <block name="footer.links"
+                   as="footer.links"
+                   template="Magento_Theme::html/footer/links.phtml"/>
+            <block name="footer.social"
+                   as="footer.social"
+                   template="Magento_Theme::html/footer/social.phtml"/>
+            <block name="footer.payments"
+                   as="footer.payments"
+                   template="Magento_Theme::html/footer/payments.phtml"/>
+            <container name="footer.newsletter" as="footer.newsletter" label="Footer newsletter (FE-11)"/>
+        </referenceBlock>
+        <referenceBlock name="footer-static-links" remove="true"/>
+        <referenceBlock name="footer-cms-content" remove="true"/>
+        <referenceBlock name="footer-copyright" remove="true"/>
     </body>
 </page>

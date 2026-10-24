@@ -304,3 +304,34 @@
         overflow: hidden;
     }
 }
+
+/*
+ * FE-10 footer: mobile accordion panels (Alpine toggles .is-open).
+ * From md, columns stay open; chevron / trigger are hidden via Tailwind.
+ */
+@layer components {
+    .elme-footer__column-panel {
+        display: none;
+        padding-top: --spacing(3);
+    }
+
+    .elme-footer__column-panel.is-open {
+        display: block;
+    }
+
+    .elme-footer__column-chevron.is-open {
+        transform: rotate(180deg);
+    }
+
+    @variant md {
+        .elme-footer__column-panel {
+            display: block;
+            padding-top: 0;
+        }
+
+        .elme-footer__column-chevron {
+            display: none;
+        }
+    }
+
+}
