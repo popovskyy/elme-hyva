@@ -609,8 +609,8 @@
 
     @variant lg {
         .main-menu.navigation .main-menu__link {
-            font-size: var(--text-base);
-            /* Tighter than production — 15px labels need the room so Sale clears search. */
+            /* 15px labels and tighter padding than production so Sale clears search; base size from 2xl. */
+            font-size: var(--text-nav);
             padding-inline: --spacing(0.5);
             gap: --spacing(0.5);
         }
@@ -630,6 +630,7 @@
 
     @variant 2xl {
         .main-menu.navigation .main-menu__link {
+            font-size: var(--text-base);
             padding-inline: --spacing(2.5);
             gap: --spacing(1);
         }
