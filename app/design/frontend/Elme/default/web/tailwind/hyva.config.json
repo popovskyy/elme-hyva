@@ -56,8 +56,9 @@
         "promo": "#CB4867"
       },
       "text": {
-        "base": "15px",
-        "base--line-height": "20px",
+        "base": "16px",
+        "base--line-height": "22px",
+        "nav": "15px",
         "h1": "27px",
         "h1--line-height": "35px",
         "h1-desktop": "60px",
