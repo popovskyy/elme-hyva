@@ -1,0 +1,40 @@
+<?php
+/**
+ * FE-10: Visa / Mastercard payment icons (CMS block footer_payment_block).
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\Footer;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$footer = $viewModels->require(Footer::class);
+$icons = $footer->getPaymentIcons();
+if ($icons === []) {
+    return;
+}
+?>
+<ul class="elme-footer__payments payments-block list-none m-0 p-0 flex items-center gap-2.5"
+    aria-label="<?= $escaper->escapeHtmlAttr(__('Accepted payment methods')) ?>">
+    <?php foreach ($icons as $icon): ?>
+        <li class="m-0 p-0">
+            <img class="elme-footer__payment-icon block h-auto max-h-6 w-auto"
+                 src="<?= $escaper->escapeUrl($icon['src']) ?>"
+                 alt="<?= $escaper->escapeHtmlAttr($icon['alt']) ?>"
+                <?php if (!empty($icon['width'])): ?>
+                    width="<?= (int) $icon['width'] ?>"
+                <?php endif; ?>
+                <?php if (!empty($icon['height'])): ?>
+                    height="<?= (int) $icon['height'] ?>"
+                <?php endif; ?>
+                 loading="lazy"
+                 decoding="async"/>
+        </li>
+    <?php endforeach; ?>
+</ul>

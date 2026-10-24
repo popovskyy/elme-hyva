@@ -1,0 +1,33 @@
+<?php
+/**
+ * FE-10: footer store logo (footer-logo.svg).
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\Footer;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$footer = $viewModels->require(Footer::class);
+$homeUrl = $block->getUrl('');
+$alt = (string) __('Elme Living');
+?>
+<a class="elme-footer__logo inline-block mb-8 md:mb-0
+          focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+   href="<?= $escaper->escapeUrl($homeUrl) ?>"
+   title="<?= $escaper->escapeHtmlAttr($alt) ?>"
+   aria-label="<?= $escaper->escapeHtmlAttr(__('Store logo')) ?>">
+    <img class="elme-footer__logo-img block w-auto max-w-36 h-auto"
+         src="<?= $escaper->escapeUrl($footer->getLogoUrl()) ?>"
+         alt="<?= $escaper->escapeHtmlAttr($alt) ?>"
+         width="138"
+         height="69"
+         loading="lazy"
+         decoding="async"/>
+</a>
