@@ -9,6 +9,7 @@ use DOMElement;
 use DOMXPath;
 use Elme\LoginOnly\Model\LoginState;
 use Magento\Cms\Api\GetBlockByIdentifierInterface;
+use Magento\Cms\Model\ResourceModel\Block\CollectionFactory as BlockCollectionFactory;
 use Magento\Cms\Model\Template\FilterProvider;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\UrlInterface;
@@ -44,6 +45,7 @@ class HeaderPromo implements ArgumentInterface
 
     public function __construct(
         private readonly GetBlockByIdentifierInterface $getBlockByIdentifier,
+        private readonly BlockCollectionFactory $blockCollectionFactory,
         private readonly FilterProvider $filterProvider,
         private readonly StoreManagerInterface $storeManager,
         private readonly LoginState $loginState,
@@ -122,18 +124,16 @@ class HeaderPromo implements ArgumentInterface
             'inspiration_href' => '',
         ];
 
+        $storeId = (int) $this->storeManager->getStore()->getId();
         try {
-            $storeId = (int) $this->storeManager->getStore()->getId();
+            // Core loader only returns active blocks for a store.
             $block = $this->getBlockByIdentifier->execute(self::BLOCK_ID, $storeId);
         } catch (NoSuchEntityException) {
-            $this->blockActive = null;
+            $this->blockActive = $this->blockExists($storeId) ? false : null;
             return $this->slots;
         }
 
-        $this->blockActive = (bool) $block->getIsActive();
-        if (!$this->blockActive) {
-            return $this->slots;
-        }
+        $this->blockActive = true;
 
         $html = (string) $block->getContent();
         if ($html === '') {
@@ -148,6 +148,17 @@ class HeaderPromo implements ArgumentInterface
 
         $this->slots = $this->parseSlots($html);
         return $this->slots;
+    }
+
+    /**
+     * Whether header_promo exists for the store (or all stores), active or not.
+     */
+    private function blockExists(int $storeId): bool
+    {
+        $collection = $this->blockCollectionFactory->create();
+        $collection->addFieldToFilter('identifier', self::BLOCK_ID);
+        $collection->addStoreFilter($storeId);
+        return $collection->getSize() > 0;
     }
 
     /**

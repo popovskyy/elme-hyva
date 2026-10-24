@@ -2,6 +2,8 @@
 /**
  * FE-05: dusty-blue USP strip above the header. Content from CMS block header_promo;
  * login state picks Become a Stockist (guest) or Inspiration (logged in). See HeaderPromo ViewModel.
+ * Ink text, not white: white on accent is ~2.3:1. Below md only the centred USP shows; the link
+ * lives in the mobile drawer footer.
  */
 
 declare(strict_types=1);
@@ -23,17 +25,17 @@ $usp = $promo->getUspText();
 $label = $promo->getLinkLabel();
 $url = $promo->getLinkUrl();
 ?>
-<div class="header-promo bg-accent text-on-primary">
-    <div class="container flex items-center justify-between gap-3 w-full py-1 lg:py-0.5
-                min-h-11 lg:min-h-9">
-        <p class="header-promo__usp m-0 flex-1 min-w-0 line-clamp-2 text-breadcrumbs leading-5
-                  font-medium text-on-primary text-left"><?= $escaper->escapeHtml($usp) ?></p>
-        <a class="header-promo__link shrink-0 inline-flex items-center justify-center
-                  min-h-11 px-1 whitespace-nowrap text-breadcrumbs leading-5 font-medium
-                  text-on-primary underline underline-offset-2 decoration-on-primary/80
-                  hover:decoration-on-primary
+<div class="header-promo bg-accent text-ink">
+    <div class="container flex items-center justify-center md:justify-between gap-4 w-full
+                py-2 md:py-1.5">
+        <p class="header-promo__usp m-0 flex-1 min-w-0 line-clamp-2 text-sm leading-5 font-medium
+                  text-ink text-center text-balance md:text-left"><?= $escaper->escapeHtml($usp) ?></p>
+        <a class="header-promo__link hidden md:inline-flex shrink-0 items-center min-h-8
+                  whitespace-nowrap text-sm leading-5 font-semibold text-ink
+                  underline underline-offset-4 decoration-ink/40 hover:decoration-ink
+                  transition-[text-decoration-color] duration-150
                   focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
-                  focus-visible:outline-on-primary"
+                  focus-visible:outline-ink"
            href="<?= $escaper->escapeUrl($url) ?>"><?= $escaper->escapeHtml($label) ?></a>
     </div>
 </div>
