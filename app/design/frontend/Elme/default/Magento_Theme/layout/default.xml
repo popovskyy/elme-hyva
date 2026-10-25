@@ -27,6 +27,7 @@
         <referenceBlock name="header-search">
             <arguments>
                 <argument name="input_id" xsi:type="string">search</argument>
+                <argument name="show_shortcut" xsi:type="boolean">true</argument>
             </arguments>
         </referenceBlock>
         <referenceBlock name="logo">

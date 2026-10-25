@@ -1,6 +1,6 @@
 <?php
 /**
- * FE-06: Contact Us link in the header chrome.
+ * FE-06: Contact Us link in the header chrome (desktop; on mobile it lives in the drawer footer).
  */
 
 declare(strict_types=1);
@@ -21,14 +21,10 @@ $contactUrl = $block->getUrl('contact');
 ?>
 <a
     href="<?= $escaper->escapeUrl($contactUrl) ?>"
-    class="elme-header__contact hidden lg:inline-flex flex-col items-center justify-center gap-0.5
-           min-w-16 min-h-11 px-1 text-ink no-underline hover:text-ink
-           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+    class="elme-header__action elme-header__contact hidden lg:inline-flex"
 >
-    <span class="inline-flex" aria-hidden="true">
-        <?= $lucideIcons->mailHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+    <span class="elme-header__icon" aria-hidden="true">
+        <?= $lucideIcons->messageSquareHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
     </span>
-    <span class="text-breadcrumbs leading-3 whitespace-nowrap">
-        <?= $escaper->escapeHtml(__('Contact Us')) ?>
-    </span>
+    <span class="elme-header__label elme-header__label--tip-2xl"><?= $escaper->escapeHtml(__('Contact Us')) ?></span>
 </a>

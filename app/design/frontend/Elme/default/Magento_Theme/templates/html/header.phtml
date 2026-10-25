@@ -1,6 +1,6 @@
 <?php
 /**
- * FE-06: Elme desktop header + sticky bar.
+ * FE-06: Elme desktop header + sticky bar (CSS position: sticky, see elme.css).
  * FE-07: mobile chrome — burger, centred logo, search toggle, account/cart.
  * Mega menu markup → FE-08; mobile drawer → FE-09; search autocomplete → FE-22;
  * mini-cart drawer → FE-32; QO panel → FE-41.
@@ -41,78 +41,86 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
         return {
             searchOpen: false,
             cart: {},
+            cartLoaded: false,
+            cartBumped: false,
             qoCount: 0,
+            qoBumped: false,
             isCartOpen: false,
-            stuck: false,
             pageHeader: null,
             promo: null,
+            promoH: 0,
+            rowH: 0,
+            stuck: false,
+            isMac: /Mac|iPhone|iPad|iPod/.test(navigator.userAgentData?.platform || navigator.platform || ''),
 
             init() {
-                this.pageHeader = this.$root.closest('header.page-header');
-                this.promo = this.pageHeader
-                    ? this.pageHeader.querySelector('.header-promo')
-                    : null;
-                this.onScroll();
+                this.pageHeader = this.$root.closest('.page-header');
+                this.promo = this.pageHeader ? this.pageHeader.querySelector('.header-promo') : null;
+                this.measure();
+                if ('ResizeObserver' in window) {
+                    const observer = new ResizeObserver(() => this.measure());
+                    observer.observe(this.$root);
+                    if (this.promo) {
+                        observer.observe(this.promo);
+                    }
+                }
                 window.addEventListener('scroll', () => this.onScroll(), {passive: true});
-                window.addEventListener('resize', () => this.onResize(), {passive: true});
-            },
-
-            onResize() {
-                if (this.stuck) {
-                    this.applyStickyOffset();
-                } else {
-                    this.updateScrollPadding();
+                if (this.isMac) {
+                    document.querySelectorAll('[data-elme-shortcut-hint]').forEach((el) => {
+                        el.textContent = '⌘K';
+                    });
                 }
             },
 
-            onScroll() {
-                const promoH = this.promo ? this.promo.offsetHeight : 0;
-                if (window.scrollY > promoH) {
-                    this.stick();
-                } else {
-                    this.unstick();
+            /**
+             * Sticky is pure CSS (.page-header position: sticky; top: -promo height). JS only measures:
+             * --elme-promo-h for that top, --elme-header-h for scroll-padding-top (anchors), and
+             * --elme-header-offset for toasts.
+             */
+            measure() {
+                this.promoH = this.promo ? this.promo.offsetHeight : 0;
+                this.rowH = this.$root.offsetHeight;
+                if (this.pageHeader) {
+                    this.pageHeader.style.setProperty('--elme-promo-h', this.promoH + 'px');
                 }
+                document.documentElement.style.setProperty('--elme-header-h', this.rowH + 'px');
+                this.onScroll(true);
             },
 
-            stick() {
-                if (!this.pageHeader || this.stuck) {
+            onScroll(force) {
+                const stuck = window.scrollY > this.promoH;
+                if (stuck === this.stuck && force !== true) {
                     return;
                 }
-                this.stuck = true;
-                this.pageHeader.classList.add('is-sticky');
-                this.$nextTick(() => this.applyStickyOffset());
-            },
-
-            unstick() {
-                if (!this.pageHeader || !this.stuck) {
-                    this.updateScrollPadding();
-                    return;
+                this.stuck = stuck;
+                if (this.pageHeader) {
+                    this.pageHeader.classList.toggle('is-stuck', stuck);
                 }
-                this.stuck = false;
-                this.pageHeader.classList.remove('is-sticky');
-                document.body.style.paddingTop = '';
-                this.updateScrollPadding();
-            },
-
-            applyStickyOffset() {
-                const h = Math.ceil(this.$root.getBoundingClientRect().height);
-                document.body.style.paddingTop = h + 'px';
-                document.documentElement.style.scrollPaddingTop = h + 'px';
-            },
-
-            updateScrollPadding() {
-                const promoH = this.promo && !this.stuck ? this.promo.offsetHeight : 0;
-                const h = Math.ceil(this.$root.getBoundingClientRect().height) + promoH;
-                document.documentElement.style.scrollPaddingTop = h + 'px';
+                const offset = (stuck ? this.rowH : this.promoH + this.rowH) + 16;
+                document.documentElement.style.setProperty('--elme-header-offset', offset + 'px');
             },
 
             getData() {
                 const data = this.$event.detail.data || {};
-                this.cart = data.cart ?? {};
-                const qo = data.quickorder ?? data['elme-qo-cart'] ?? data.qo_cart ?? null;
-                if (qo && typeof qo === 'object') {
-                    this.qoCount = qo.summary_count ?? qo.count ?? qo.items_qty ?? 0;
+                const previous = this.summaryCount();
+                this.cart = data.cart || {};
+                this.cartBumped = this.cartLoaded && this.summaryCount() > previous;
+                this.cartLoaded = true;
+                // FE-41: Quick Order cart count, if it ships as a customer-data section
+                if (data.quick_order) {
+                    this.applyQoCount(data.quick_order.summary_count);
                 }
+            },
+
+            // FE-41: or the Quick Order mini-cart dispatches `elme-qo-count` with {count}
+            setQoCount() {
+                this.applyQoCount((this.$event.detail || {}).count);
+            },
+
+            applyQoCount(value) {
+                const count = parseInt(value, 10) || 0;
+                this.qoBumped = count > this.qoCount;
+                this.qoCount = count;
             },
 
             summaryCount() {
@@ -128,20 +136,37 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
             },
 
             qoCountLabel() {
-                return this.qoCount || 0;
+                return this.qoCount;
+            },
+
+            cartBadgeClass() {
+                return {'is-bumped': this.cartBumped};
+            },
+
+            qoBadgeClass() {
+                return {'is-bumped': this.qoBumped};
+            },
+
+            clearBump() {
+                this.cartBumped = false;
+                this.qoBumped = false;
+            },
+
+            countLabel(count) {
+                if (!count) {
+                    return '<?= $escaper->escapeJs(__('empty')) ?>';
+                }
+                return Math.abs(count) > 1
+                    ? hyva.str('<?= $escaper->escapeJs(__('%1 items')) ?>', count)
+                    : hyva.str('<?= $escaper->escapeJs(__('%1 item')) ?>', count);
             },
 
             cartAriaLabel() {
-                return '<?= $escaper->escapeJs($showMiniCart ? __('Toggle minicart') : __('View cart')) ?>, ' +
-                    (this.isCartEmpty() ? '<?= $escaper->escapeJs(__('Cart is empty')) ?>' : (
-                        Math.abs(this.summaryCount()) > 1 ?
-                            hyva.str('<?= $escaper->escapeJs(__('%1 items')) ?>', this.summaryCount()) :
-                            hyva.str('<?= $escaper->escapeJs(__('%1 item')) ?>', this.summaryCount())
-                    ));
+                return '<?= $escaper->escapeJs(__('Cart')) ?>, ' + this.countLabel(this.summaryCount());
             },
 
-            isCartEmpty() {
-                return !this.cart.summary_count;
+            qoAriaLabel() {
+                return '<?= $escaper->escapeJs(__('Quick Order')) ?>, ' + this.countLabel(this.qoCount);
             },
 
             toggleCart() {
@@ -166,11 +191,6 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
                 }
             },
 
-            toggleSearchOpen() {
-                this.searchOpen = true;
-                this.focusMobileSearch();
-            },
-
             searchClose() {
                 this.searchOpen = false;
                 if (this.$refs.searchButton) {
@@ -179,24 +199,27 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
             },
 
             searchEscape() {
-                if (!this.searchOpen) {
+                if (this.searchOpen) {
+                    this.searchClose();
+                }
+            },
+
+            // Ctrl K / ⌘K: the desktop field when it is visible, else the mobile search panel
+            searchShortcut() {
+                const e = this.$event;
+                const modifier = this.isMac ? e.metaKey : e.ctrlKey;
+                if (!modifier || e.altKey || e.shiftKey || (e.key || '').toLowerCase() !== 'k') {
                     return;
                 }
-                this.searchClose();
-            },
-
-            isMac: /Mac|iPod|iPhone|iPad/.test(navigator.platform),
-
-            textShortcutModifier() {
-                return this.isMac ? '⌘ K' : 'Ctrl+K';
-            },
-
-            searchShortcut(e) {
-                const modifier = this.isMac ? e.metaKey : e.ctrlKey;
-                if (modifier && e.key === 'k') {
-                    e.preventDefault();
-                    this.toggleSearchOpen();
+                e.preventDefault();
+                const desktop = document.getElementById('search');
+                if (desktop && desktop.offsetParent !== null) {
+                    desktop.focus();
+                    desktop.select();
+                    return;
                 }
+                this.searchOpen = true;
+                this.focusMobileSearch();
             }
         }
     }
@@ -208,13 +231,15 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
 <?php $hyvaCsp->registerInlineScript() ?>
 
 <div id="header"
-     class="elme-header relative z-30 w-full border-b border-border bg-surface"
+     class="elme-header<?= $isLoggedIn ? ' elme-header--signed-in' : '' ?> relative z-30 w-full border-b border-divider bg-surface"
      x-data="initHeader"
      @private-content-loaded.window="getData"
+     @elme-qo-count.window="setQoCount"
      @keydown.escape.window="searchEscape"
+     @keydown.window="searchShortcut"
 >
     <div class="elme-header__bar container grid grid-cols-[auto_minmax(0,1fr)_auto] lg:flex lg:flex-nowrap
-                items-center gap-1 lg:gap-2.5 w-full py-1.5 lg:py-3.5">
+                items-center gap-1 lg:gap-3 xl:gap-4 w-full py-1.5 lg:py-3">
         <!-- Burger / mega menu slot (drawer chrome → FE-09; mega → FE-08) -->
         <div class="elme-header__nav shrink-0 lg:order-2 lg:shrink lg:min-w-0">
             <?= $block->getChildHtml('topmenu') ?>
@@ -227,27 +252,28 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
             </div>
         </div>
 
-        <!-- Desktop search (always a real GET form; FE-22 adds autocomplete) -->
-        <div class="hidden lg:block lg:order-3 lg:flex-1 lg:min-w-44 lg:max-w-sm xl:max-w-md">
+        <!-- Search field from xl (always a real GET form; FE-22 adds autocomplete). Below xl the menu needs
+             the room: a search icon opens the full-width panel instead. -->
+        <div class="hidden xl:block lg:order-3 xl:flex-1 xl:min-w-44 xl:max-w-md 2xl:max-w-lg">
             <?= $block->getChildHtml('header-search') ?>
         </div>
 
-        <div class="elme-header__actions flex items-center gap-0.5 shrink-0 lg:order-4">
-            <!-- Mobile search toggle -->
+        <div class="elme-header__actions flex items-center gap-0.5 lg:gap-1 xl:gap-2 shrink-0 lg:order-4 lg:ms-auto">
+            <!-- Search toggle below xl -->
             <button
                 type="button"
                 id="menu-search-icon"
-                class="lg:hidden inline-flex items-center justify-center
-                       min-w-11 min-h-11 p-0 text-ink bg-transparent border-0
-                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                class="elme-header__action xl:hidden"
                 @click.prevent="toggleSearch"
-                @keydown.window="searchShortcut"
-                aria-label="<?= $escaper->escapeHtmlAttr(__('Toggle search form')) ?>"
                 aria-haspopup="true"
+                aria-controls="search-content"
                 :aria-expanded="searchOpen"
                 x-ref="searchButton"
             >
-                <?= $lucideIcons->searchHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
+                <span class="elme-header__icon" aria-hidden="true">
+                    <?= $lucideIcons->searchHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+                </span>
+                <span class="elme-header__label elme-header__label--tip-xl"><?= $escaper->escapeHtml(__('Search')) ?></span>
             </button>
 
             <?= $block->getChildHtml('additional') ?>
@@ -257,84 +283,64 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
             <?= $block->getChildHtml('header-contact') ?>
 
             <?php if ($isLoggedIn): ?>
+                <!-- Quick Order cart (desktop; FE-41 adds the panel). Named apart from the mini-cart. -->
+                <a
+                    href="<?= $escaper->escapeUrl($qoCartUrl) ?>"
+                    class="elme-header__action elme-header__qo-btn hidden lg:inline-flex"
+                    :aria-label="qoAriaLabel"
+                >
+                    <span class="elme-header__icon" aria-hidden="true">
+                        <?= $lucideIcons->clipboardListHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+                        <span
+                            class="elme-header__badge"
+                            :class="qoBadgeClass"
+                            x-text="qoCountLabel"
+                            x-show="hasQoCount"
+                            x-cloak
+                            @animationend="clearBump"
+                        ></span>
+                    </span>
+                    <span class="elme-header__label elme-header__label--tip-xl"><?= $escaper->escapeHtml(__('Quick Order')) ?></span>
+                </a>
+
                 <?php if ($showMiniCart): ?>
                     <button
                         type="button"
                         id="menu-cart-icon"
-                        class="relative elme-header__cart-btn inline-flex flex-col items-center justify-center
-                               min-w-11 min-h-11 p-1 text-ink bg-transparent border-0
-                               focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                        class="elme-header__action elme-header__cart-btn"
                         x-ref="cartButton"
                         :aria-label="cartAriaLabel"
                         @click="toggleCart"
-                        aria-label="<?= $escaper->escapeHtmlAttr(__('Toggle minicart')) ?>"
                     >
-                        <?= $lucideIcons->shoppingCartHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
-                        <span
-                            x-text="summaryCount"
-                            x-show="hasSummaryCount"
-                            x-cloak
-                            class="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1
-                                   rounded-full bg-accent-dark text-on-primary text-breadcrumbs leading-4
-                                   font-semibold text-center tabular-nums"
-                            aria-hidden="true"
-                        ></span>
-                    </button>
                 <?php else: ?>
                     <a
                         id="menu-cart-icon"
                         href="<?= $escaper->escapeUrl($cartUrl) ?>"
-                        class="relative elme-header__cart-btn inline-flex flex-col items-center justify-center
-                               min-w-11 min-h-11 p-1 text-ink
-                               focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                        class="elme-header__action elme-header__cart-btn"
                         :aria-label="cartAriaLabel"
-                        aria-label="<?= $escaper->escapeHtmlAttr(__('View cart')) ?>"
                     >
-                        <?= $lucideIcons->shoppingCartHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
-                        <span
-                            x-text="summaryCount"
-                            x-show="hasSummaryCount"
-                            x-cloak
-                            class="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1
-                                   rounded-full bg-accent-dark text-on-primary text-breadcrumbs leading-4
-                                   font-semibold text-center tabular-nums"
-                            aria-hidden="true"
-                        ></span>
-                    </a>
                 <?php endif; ?>
-
-                <!-- Quick Order cart (desktop); hidden on mobile like Bart/el wishlist slot -->
-                <a
-                    href="<?= $escaper->escapeUrl($qoCartUrl) ?>"
-                    class="relative elme-header__qo-btn hidden lg:inline-flex flex-col items-center justify-center gap-0.5
-                           min-w-20 min-h-11 p-1 text-ink no-underline hover:text-ink
-                           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                    aria-label="<?= $escaper->escapeHtmlAttr(__('Quick Order cart')) ?>"
-                >
-                    <span class="relative inline-flex">
-                        <?= $lucideIcons->clipboardListHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
-                        <span
-                            x-text="qoCountLabel"
-                            x-show="hasQoCount"
-                            x-cloak
-                            class="absolute -top-1.5 -right-2 min-w-4 h-4 px-1
-                                   rounded-full bg-accent-dark text-on-primary text-breadcrumbs leading-4
-                                   font-semibold text-center tabular-nums"
-                            aria-hidden="true"
-                        ></span>
-                    </span>
-                    <span class="text-breadcrumbs leading-3 whitespace-nowrap">
-                        <?= $escaper->escapeHtml(__('Cart')) ?>
-                    </span>
-                </a>
+                        <span class="elme-header__icon" aria-hidden="true">
+                            <?= $lucideIcons->shoppingCartHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+                            <span
+                                class="elme-header__badge"
+                                :class="cartBadgeClass"
+                                x-text="summaryCount"
+                                x-show="hasSummaryCount"
+                                x-cloak
+                                @animationend="clearBump"
+                            ></span>
+                        </span>
+                        <span class="elme-header__label elme-header__label--tip-xl"><?= $escaper->escapeHtml(__('Cart')) ?></span>
+                <?= $showMiniCart ? '</button>' : '</a>' ?>
             <?php endif; ?>
         </div>
     </div>
 
-    <!-- Mobile search panel -->
+    <!-- Search panel below xl -->
     <div
         id="search-content"
-        class="lg:hidden absolute z-10 inset-x-0 top-full w-full border-t border-border shadow-sm bg-surface"
+        class="xl:hidden absolute z-10 inset-x-0 top-full w-full border-t border-divider shadow-sm bg-surface"
         x-cloak
         x-show="searchOpen"
         @click.outside="searchClose"
@@ -345,13 +351,13 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
             </div>
             <button
                 type="button"
-                class="inline-flex items-center justify-center shrink-0
-                       min-w-11 min-h-11 p-0 text-ink bg-transparent border-0
-                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                class="elme-header__action"
                 @click="searchClose"
                 aria-label="<?= $escaper->escapeHtmlAttr(__('Close search')) ?>"
             >
-                <?= $lucideIcons->xHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
+                <span class="elme-header__icon" aria-hidden="true">
+                    <?= $lucideIcons->xHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+                </span>
             </button>
         </div>
     </div>

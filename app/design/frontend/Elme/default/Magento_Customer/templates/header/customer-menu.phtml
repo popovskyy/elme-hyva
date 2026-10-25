@@ -1,9 +1,8 @@
 <?php
 /**
- * FE-06: account control in the header.
- * FE-07: mobile uses account icon (44 × 44); desktop keeps "Log in/Sign up" / name.
- * Guest → login. Logged in: first name from private content + account menu.
- * Name never baked into FPC HTML.
+ * FE-06: account control in the header. FE-07: icon only below lg (label stays the accessible name).
+ * Guest → login (UX-02 owns the wording: change $guestLabel only). Logged in: first name from private
+ * content + account menu. The name is never baked into FPC HTML.
  */
 
 declare(strict_types=1);
@@ -25,32 +24,30 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
 
 $loggedIn = $block->customerLoggedIn();
 $loginUrl = $block->getUrl('customer/account/login');
+$guestLabel = __('Log in/Sign up');
 ?>
 
 <?php if (!$loggedIn): ?>
     <a
         id="customer-menu-login"
-        class="elme-header__login inline-flex items-center justify-center min-w-11 min-h-11 px-1
-               text-breadcrumbs leading-4 text-ink whitespace-nowrap no-underline hover:text-ink
-               focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        class="elme-header__action elme-header__login"
         href="<?= $escaper->escapeUrl($loginUrl) ?>"
-        aria-label="<?= $escaper->escapeHtmlAttr(__('Log in/Sign up')) ?>"
-        onclick="hyva.setCookie && hyva.setCookie(
-            '<?= $escaper->escapeJs(Redirect::LOGIN_REDIRECT_URL) ?>',
-            window.location.href,
-            1
-        )"
     >
-        <span class="lg:hidden inline-flex" aria-hidden="true">
-            <?= $lucideIcons->circleUserHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
+        <span class="elme-header__icon" aria-hidden="true">
+            <?= $lucideIcons->userRoundHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
         </span>
-        <span class="hidden lg:inline">
-            <?= $escaper->escapeHtml(__('Log in/Sign up')) ?>
-        </span>
+        <span class="elme-header__label"><?= $escaper->escapeHtml($guestLabel) ?></span>
     </a>
+    <script>
+        // Back to this page after login
+        document.getElementById('customer-menu-login').addEventListener('click', () => {
+            hyva.setCookie('<?= $escaper->escapeJs(Redirect::LOGIN_REDIRECT_URL) ?>', window.location.href, 1);
+        });
+    </script>
+    <?php $hyvaCsp->registerInlineScript() ?>
 <?php else: ?>
     <div
-        class="relative inline-block elme-header__account min-w-11"
+        class="relative elme-header__account shrink-0"
         x-data="initCustomerMenu"
         x-bind="eventListeners"
         @private-content-loaded.window="onPrivateContentLoaded"
@@ -58,33 +55,41 @@ $loginUrl = $block->getUrl('customer/account/login');
         <button
             type="button"
             id="customer-menu"
-            class="inline-flex flex-col items-center justify-center gap-0.5 min-h-11 min-w-11 px-1
-                   text-ink bg-transparent border-0 cursor-pointer
-                   focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            class="elme-header__action"
+            x-ref="trigger"
             @click="toggleOpen"
             :aria-expanded="open"
             aria-haspopup="true"
-            aria-label="<?= $escaper->escapeHtmlAttr(__('My Account')) ?>"
+            aria-controls="customer-menu-panel"
         >
-            <span class="lg:hidden inline-flex" aria-hidden="true">
-                <?= $lucideIcons->circleUserHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
+            <span class="elme-header__icon" aria-hidden="true">
+                <?= $lucideIcons->userRoundHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
             </span>
-            <span
-                class="hidden lg:inline text-breadcrumbs leading-4 text-accent-dark font-medium whitespace-nowrap max-w-28 truncate"
-                x-text="displayName"
-                x-cloak
-            ></span>
-            <span class="hidden lg:inline text-breadcrumbs leading-3" x-show="isNameEmpty" x-cloak>
-                <?= $escaper->escapeHtml(__('Account')) ?>
+            <span class="elme-header__label elme-header__label--tip-2xl">
+                <span class="max-w-24 truncate" x-text="displayName"><?= $escaper->escapeHtml(__('Account')) ?></span>
+                <span class="elme-header__chevron" aria-hidden="true">
+                    <?= $lucideIcons->chevronDownHtml('', 12, 12, ['aria-hidden' => 'true']) ?>
+                </span>
             </span>
         </button>
         <nav
-            class="z-40 absolute right-0 w-48 mt-2 py-2 px-1 shadow-lg bg-surface border border-border overflow-auto"
+            id="customer-menu-panel"
+            class="elme-account-menu absolute end-0 top-full z-40 mt-2 w-56 py-2
+                   bg-surface border border-divider shadow-lg"
             aria-label="<?= $escaper->escapeHtmlAttr(__('My Account')) ?>"
             x-show="open"
-            x-transition
+            x-transition:enter="transition ease-out duration-150"
+            x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-100"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
             x-cloak
         >
+            <p class="px-4 pt-1 pb-2 mb-2 border-b border-divider text-note text-ink-muted" x-show="hasName">
+                <?= $escaper->escapeHtml(__('Signed in as')) ?>
+                <span class="block text-base text-ink font-medium truncate" x-text="fullName"></span>
+            </p>
             <?= $block->getChildHtml('header.customer.logged.in.links') ?>
         </nav>
     </div>
@@ -92,15 +97,20 @@ $loginUrl = $block->getUrl('customer/account/login');
         function initCustomerMenu() {
             return hyva.createBooleanObject('open', false, {
                 firstname: '',
+                fullname: '',
                 onPrivateContentLoaded() {
                     const customer = this.$event.detail.data.customer || {};
                     this.firstname = customer.firstname || '';
+                    this.fullname = customer.fullname || this.firstname;
                 },
                 displayName() {
-                    return this.firstname;
+                    return this.firstname || '<?= $escaper->escapeJs(__('Account')) ?>';
                 },
-                isNameEmpty() {
-                    return !this.firstname;
+                fullName() {
+                    return this.fullname;
+                },
+                hasName() {
+                    return !!this.fullname;
                 },
                 eventListeners: {
                     ['@pageshow.window'](event) {
@@ -109,7 +119,10 @@ $loginUrl = $block->getUrl('customer/account/login');
                         }
                     },
                     ['@keyup.escape']() {
-                        this.setOpenFalse()
+                        if (this.open) {
+                            this.setOpenFalse();
+                            this.$refs.trigger.focus();
+                        }
                     },
                     ['@click.outside']() {
                         this.setOpenFalse()
