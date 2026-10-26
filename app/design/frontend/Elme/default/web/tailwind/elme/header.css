@@ -3,10 +3,14 @@
  * .page-header is position: sticky with a negative top equal to the USP strip height (--elme-promo-h,
  * measured in header.phtml): the strip scrolls away, the header row stays. It never leaves the flow,
  * so the page cannot jump. .is-stuck only adds the shadow. Anchors clear the row via scroll-padding-top.
+ * FE-60: below lg the row slides up on scroll down and back on scroll up (.is-hidden). Transform only, so
+ * nothing below moves. --elme-header-offset (row height, 0px while hidden) is set on <html> in header.phtml.
  */
 @layer components {
     html {
-        scroll-padding-top: calc(var(--elme-header-h, 0px) + --spacing(4));
+        scroll-padding-top: calc(var(--elme-header-offset, 0px) + --spacing(4));
+        /* scroll-padding-top already clears the row; no extra :target margin from preflight */
+        --anchor-offset: 0px;
     }
 
     .page-header {
@@ -14,6 +18,37 @@
         top: calc(var(--elme-promo-h, 0px) * -1);
         z-index: 30;
         background-color: var(--color-surface);
+    }
+
+    @variant max-lg {
+        .page-header {
+            transition: transform 200ms ease-out;
+        }
+
+        /* Move by the row height only (the USP strip is already above the screen), so the row and
+           .elme-sticky-below-header travel the same distance in the same 200ms */
+        .page-header.is-hidden {
+            transform: translateY(calc(var(--elme-promo-h, 0px) - 100%));
+        }
+
+        .page-header.is-hidden .elme-header {
+            box-shadow: none;
+        }
+    }
+
+    /* Sticky bars under the header (PLP Filters / Sort, PDP add to cart) follow the row as it hides and shows */
+    .elme-sticky-below-header {
+        position: sticky;
+        top: var(--elme-header-offset, 0px);
+        z-index: 20;
+        transition: top 200ms ease-out;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .page-header,
+        .elme-sticky-below-header {
+            transition: none;
+        }
     }
 
     .elme-header {

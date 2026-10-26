@@ -51,6 +51,11 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
             promoH: 0,
             rowH: 0,
             stuck: false,
+            headerHidden: false,
+            scrollAnchor: 0,
+            scrollQueued: false,
+            holdUntil: 0,
+            desktopMq: window.matchMedia('(min-width: 1025px)'), // = lg: the row never hides there
             isMac: /Mac|iPhone|iPad|iPod/.test(navigator.userAgentData?.platform || navigator.platform || ''),
 
             init() {
@@ -64,13 +69,20 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
                         observer.observe(this.promo);
                     }
                 }
-                window.addEventListener('scroll', () => this.onScroll(), {passive: true});
+                window.addEventListener('scroll', () => this.queueScroll(), {passive: true});
+                window.addEventListener('hashchange', () => this.holdShown());
+                document.addEventListener('click', (event) => this.onLinkClick(event), true);
+                this.desktopMq.addEventListener('change', () => this.setHidden(false));
+                // Keyboard users tabbing into a hidden row get it back
+                this.$root.addEventListener('focusin', () => this.setHidden(false));
             },
 
             /**
-             * Sticky is pure CSS (.page-header position: sticky; top: -promo height). JS only measures:
-             * --elme-promo-h for that top, --elme-header-h for scroll-padding-top (anchors), and
-             * --elme-header-offset for toasts.
+             * Sticky is pure CSS (.page-header position: sticky; top: -promo height). JS measures
+             * --elme-promo-h for that top and, below lg, hides the row on scroll down (.is-hidden).
+             * On <html>: --elme-header-offset = row height while the row is shown, 0px while hidden
+             * (scroll-padding-top, sticky bars under the header); --elme-header-row-bottom = where the
+             * row ends on screen (toasts). --elme-header-bottom belongs to the desktop mega menu.
              */
             measure() {
                 this.promoH = this.promo ? this.promo.offsetHeight : 0;
@@ -78,28 +90,124 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
                 if (this.pageHeader) {
                     this.pageHeader.style.setProperty('--elme-promo-h', this.promoH + 'px');
                 }
-                document.documentElement.style.setProperty('--elme-header-h', this.rowH + 'px');
                 this.onScroll(true);
             },
 
-            onScroll(force) {
-                const stuck = window.scrollY > this.promoH;
-                if (stuck === this.stuck && force !== true) {
+            // Read scrollY once per frame
+            queueScroll() {
+                if (this.scrollQueued) {
                     return;
                 }
-                this.stuck = stuck;
-                if (this.pageHeader) {
-                    this.pageHeader.classList.toggle('is-stuck', stuck);
+                this.scrollQueued = true;
+                requestAnimationFrame(() => {
+                    this.scrollQueued = false;
+                    this.onScroll();
+                });
+            },
+
+            onScroll(force) {
+                const y = window.scrollY;
+                const stuck = y > this.promoH;
+                if (stuck !== this.stuck || force === true) {
+                    this.stuck = stuck;
+                    if (this.pageHeader) {
+                        this.pageHeader.classList.toggle('is-stuck', stuck);
+                    }
+                    this.syncOffsets();
                 }
-                const offset = (stuck ? this.rowH : this.promoH + this.rowH) + 16;
-                document.documentElement.style.setProperty('--elme-header-offset', offset + 'px');
+                this.updateHidden(y);
+            },
+
+            updateHidden(y) {
+                // iOS rubber band: scrollY runs below 0 or past the end while bouncing
+                const maxY = document.documentElement.scrollHeight - window.innerHeight;
+                if (y < 0 || y > maxY + 1) {
+                    return;
+                }
+                const now = performance.now();
+                if (now < this.holdUntil) {
+                    this.holdUntil = Math.max(this.holdUntil, now + 150);
+                }
+                if (this.desktopMq.matches || y <= this.promoH + this.rowH || now < this.holdUntil) {
+                    this.setHidden(false);
+                    this.scrollAnchor = y;
+                    return;
+                }
+                // The anchor follows the furthest point in the current direction; ~8px back flips it
+                if (this.headerHidden) {
+                    if (y > this.scrollAnchor) {
+                        this.scrollAnchor = y;
+                    } else if (this.scrollAnchor - y > 8) {
+                        this.setHidden(false);
+                        this.scrollAnchor = y;
+                    }
+                    return;
+                }
+                if (y < this.scrollAnchor || this.keepShown()) {
+                    this.scrollAnchor = y;
+                } else if (y - this.scrollAnchor > 8) {
+                    this.setHidden(true);
+                    this.scrollAnchor = y;
+                }
+            },
+
+            keepShown() {
+                if (this.searchOpen
+                    || document.documentElement.classList.contains('elme-mobile-menu-open')
+                    || document.querySelector('dialog[open]')
+                    || this.$root.querySelector('[aria-expanded="true"]')) {
+                    return true;
+                }
+                const active = document.activeElement;
+                return !!active && this.$root.contains(active) && active.matches(':focus-visible');
+            },
+
+            setHidden(hidden) {
+                if (hidden === this.headerHidden) {
+                    return;
+                }
+                this.headerHidden = hidden;
+                if (this.pageHeader) {
+                    this.pageHeader.classList.toggle('is-hidden', hidden);
+                }
+                this.syncOffsets();
+            },
+
+            syncOffsets() {
+                const offset = this.headerHidden ? 0 : this.rowH;
+                const style = document.documentElement.style;
+                style.setProperty('--elme-header-offset', offset + 'px');
+                style.setProperty('--elme-header-row-bottom', (this.stuck ? offset : this.promoH + this.rowH) + 'px');
+            },
+
+            // Anchor jumps (smooth scroll) keep the row shown, so the target lines up under it
+            holdShown() {
+                this.holdUntil = performance.now() + 400;
+                this.setHidden(false);
+            },
+
+            onLinkClick(event) {
+                const link = event.target.closest ? event.target.closest('a[href*="#"]') : null;
+                if (link && link.hash && link.pathname === window.location.pathname) {
+                    this.holdShown();
+                }
             },
 
             getData() {
                 const data = this.$event.detail.data || {};
                 const previous = this.summaryCount();
                 this.cart = data.cart || {};
-                this.cartBumped = this.cartLoaded && this.summaryCount() > previous;
+                const bumped = this.cartLoaded && this.summaryCount() > previous;
+                // Added to cart while the row is hidden: bring it back, then bump the count once it is in view
+                if (this.cartLoaded && this.summaryCount() !== previous && this.headerHidden) {
+                    this.setHidden(false);
+                    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 200;
+                    setTimeout(() => {
+                        this.cartBumped = bumped;
+                    }, delay);
+                } else {
+                    this.cartBumped = bumped;
+                }
                 this.cartLoaded = true;
                 // FE-41: Quick Order cart count, if it ships as a customer-data section
                 if (data.quick_order) {
