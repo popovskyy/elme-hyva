@@ -54,7 +54,7 @@
         position: fixed;
         z-index: 40;
         inset-inline: 0;
-        top: calc(var(--elme-header-bottom, 0px) + --spacing(4));
+        top: calc(var(--elme-header-row-bottom, 0px) + --spacing(4));
         display: flex;
         flex-direction: column;
         gap: --spacing(2);

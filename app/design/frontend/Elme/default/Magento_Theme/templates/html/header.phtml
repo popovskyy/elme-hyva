@@ -81,8 +81,8 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
              * Sticky is pure CSS (.page-header position: sticky; top: -promo height). JS measures
              * --elme-promo-h for that top and, below lg, hides the row on scroll down (.is-hidden).
              * On <html>: --elme-header-offset = row height while the row is shown, 0px while hidden
-             * (scroll-padding-top, sticky bars under the header); --elme-header-bottom = where the row
-             * ends on screen (toasts).
+             * (scroll-padding-top, sticky bars under the header); --elme-header-row-bottom = where the
+             * row ends on screen (toasts). --elme-header-bottom belongs to the desktop mega menu.
              */
             measure() {
                 this.promoH = this.promo ? this.promo.offsetHeight : 0;
@@ -177,7 +177,7 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
                 const offset = this.headerHidden ? 0 : this.rowH;
                 const style = document.documentElement.style;
                 style.setProperty('--elme-header-offset', offset + 'px');
-                style.setProperty('--elme-header-bottom', (this.stuck ? offset : this.promoH + this.rowH) + 'px');
+                style.setProperty('--elme-header-row-bottom', (this.stuck ? offset : this.promoH + this.rowH) + 'px');
             },
 
             // Anchor jumps (smooth scroll) keep the row shown, so the target lines up under it
