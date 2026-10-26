@@ -1,0 +1,184 @@
+<?php
+/**
+ * FE-11: footer newsletter "Be the first to know" (email + arrow button).
+ * Posts to the core newsletter/subscriber/new with fetch; Elme_Newsletter answers JSON, so the result shows
+ * inline in the live region and the URL never changes. Without JS the form posts and redirects as in core.
+ * The signup popup is a Klaviyo form (D7), loaded with the other third-party scripts (FE-54).
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Hyva\Theme\ViewModel\ReCaptcha;
+use Magento\Framework\Escaper;
+use Magento\Newsletter\Block\Subscribe;
+
+/** @var Subscribe $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+// Do not replace this with $viewModels->require(ReCaptcha::class); that might break the dependency
+// on the Magento_ReCaptchaNewsletter module
+/** @var ReCaptcha|null $recaptcha */
+$recaptcha = $block->getData('viewModelRecaptcha');
+?>
+<div class="elme-newsletter w-full md:max-w-80 mb-4" x-data="initElmeNewsletterForm">
+    <h3 id="footer-newsletter-heading"
+        class="elme-newsletter__title m-0 mb-5 font-heading font-normal text-h2 leading-4 tracking-wide text-ink">
+        <?= $escaper->escapeHtml(__('Be the first to know')) ?>
+    </h3>
+    <p id="footer-newsletter-text" class="elme-newsletter__text m-0 mb-2 md:mb-7 text-nav leading-5 text-ink">
+        <?= $escaper->escapeHtml(__('Subscribe for all the latest trends.')) ?>
+    </p>
+    <form id="newsletter-validate-detail"
+          class="form subscribe"
+          action="<?= $escaper->escapeUrl($block->getFormActionUrl()) ?>"
+          method="post"
+          novalidate
+          aria-labelledby="footer-newsletter-heading"
+          @submit.prevent="submitForm">
+        <label for="newsletter-subscribe" class="sr-only">
+            <?= $escaper->escapeHtml(__('Email address')) ?>
+        </label>
+        <div class="relative">
+            <input id="newsletter-subscribe"
+                   name="email"
+                   type="email"
+                   required
+                   autocomplete="email"
+                   inputmode="email"
+                   spellcheck="false"
+                   class="elme-newsletter__input block w-full m-0 pt-5 pb-4 pl-0 pr-12
+                          bg-transparent border-0 border-b border-secondary rounded-none
+                          text-sm leading-5 tracking-wide text-ink placeholder:text-ink-subtle
+                          outline-0 focus:border-primary aria-invalid:border-error-strong
+                          aria-invalid:focus:border-error-strong"
+                   placeholder="<?= $escaper->escapeHtmlAttr(__('Enter your email')) ?>"
+                   aria-describedby="footer-newsletter-text footer-newsletter-status"
+                   :aria-invalid="isInvalid"
+                   @input="clearError">
+            <?= $block->getBlockHtml('formkey') ?>
+            <?= $recaptcha ? $recaptcha->getInputHtml(ReCaptcha::RECAPTCHA_FORM_ID_NEWSLETTER) : '' ?>
+            <button type="submit"
+                    class="elme-newsletter__submit absolute right-0 top-1/2 -translate-y-1/2
+                           inline-flex items-center justify-end min-w-11 min-h-11 p-0
+                           bg-transparent border-0 text-primary cursor-pointer
+                           transition-colors duration-150 ease-out hover:text-link-hover
+                           disabled:cursor-wait disabled:opacity-50
+                           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+                           focus-visible:outline-primary"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Subscribe')) ?>"
+                    :disabled="isLoading"
+                    :aria-busy="isLoading">
+                <?= $lucideIcons->moveRightHtml('', 30, 30, ['aria-hidden' => 'true', 'stroke-width' => '1.25']) ?>
+            </button>
+        </div>
+        <p id="footer-newsletter-status"
+           class="elme-newsletter__status m-0 mt-2 min-h-5 text-note leading-5"
+           :class="statusClass"
+           aria-live="polite"
+           x-text="message"></p>
+    </form>
+    <?= $recaptcha ? $recaptcha->getLegalNoticeHtml(ReCaptcha::RECAPTCHA_FORM_ID_NEWSLETTER) : '' ?>
+</div>
+<script>
+    function initElmeNewsletterForm() {
+        // Stricter than type="email": the server rejects addresses without a dot in the domain
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+        return {
+            status: '',
+            message: '',
+            errors: 0,
+            hasCaptchaToken: 0,
+
+            isLoading() {
+                return this.status === 'loading';
+            },
+            isInvalid() {
+                return this.status === 'invalid';
+            },
+            statusClass() {
+                return {
+                    'text-error-strong': this.status === 'invalid' || this.status === 'error',
+                    'text-olive': this.status === 'success'
+                };
+            },
+            clearError() {
+                if (this.status === 'invalid' || this.status === 'error') {
+                    this.status = '';
+                    this.message = '';
+                }
+            },
+            showResult(success, message) {
+                this.status = success ? 'success' : 'error';
+                this.message = message;
+            },
+            validateEmail(input) {
+                input.value = input.value.trim();
+                if (input.value === '') {
+                    return '<?= $escaper->escapeJs(__('Please enter your email address.')) ?>';
+                }
+                if (!input.validity.valid || !emailPattern.test(input.value)) {
+                    return '<?= $escaper->escapeJs(__('Please enter a valid email address.')) ?>';
+                }
+                return '';
+            },
+            submitForm() {
+                if (this.isLoading()) {
+                    return;
+                }
+                // Do not rename $form, the variable is expected to be declared in the recaptcha output
+                const $form = this.$root.querySelector('form');
+                const input = $form.elements.email;
+                const error = this.validateEmail(input);
+                if (error) {
+                    this.status = 'invalid';
+                    this.message = error;
+                    input.focus();
+                    return;
+                }
+
+                <?= $recaptcha ? $recaptcha->getValidationJsHtml(ReCaptcha::RECAPTCHA_FORM_ID_NEWSLETTER) : '' ?>
+
+                if (this.errors !== 0) {
+                    return;
+                }
+
+                const body = new FormData($form);
+                body.set('form_key', hyva.getFormKey());
+                this.status = 'loading';
+                this.message = '';
+
+                fetch($form.action, {
+                    method: 'POST',
+                    body,
+                    headers: {'X-Requested-With': 'XMLHttpRequest'}
+                })
+                    .then((response) => response.json())
+                    .then((result) => {
+                        this.showResult(Boolean(result.success), String(result.message || ''));
+                        if (result.success) {
+                            input.value = '';
+                        }
+                    })
+                    .catch(() => {
+                        this.showResult(false, '<?= $escaper->escapeJs(__('Something went wrong with the subscription. Please try again.')) ?>');
+                    });
+            }
+        };
+    }
+
+    window.addEventListener(
+        'alpine:init',
+        () => Alpine.data('initElmeNewsletterForm', initElmeNewsletterForm),
+        {once: true}
+    );
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
