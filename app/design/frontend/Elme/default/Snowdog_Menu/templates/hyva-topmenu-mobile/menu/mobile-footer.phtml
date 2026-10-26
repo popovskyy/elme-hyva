@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 use Elme\LoginOnly\ViewModel\LoginOnly;
 use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 
@@ -18,48 +19,56 @@ use Magento\Framework\View\Element\Template;
 
 /** @var LoginOnly $loginOnly */
 $loginOnly = $viewModels->require(LoginOnly::class);
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
 $isLoggedIn = $loginOnly->isLoggedIn();
 
-if ($isLoggedIn) {
-    $links = [
-        [
-            'label' => __('Quick Order'),
-            'url' => $block->getUrl('quick_order'),
-        ],
-        [
-            'label' => __('My Account'),
-            'url' => $block->getUrl('customer/account'),
-        ],
-        [
-            'label' => __('Contact'),
-            'url' => $block->getUrl('contact'),
-        ],
-    ];
-} else {
-    $links = [
-        [
-            'label' => __('Trade login'),
-            'url' => $block->getUrl('customer/account/login'),
-        ],
-        [
-            'label' => __('Contact'),
-            'url' => $block->getUrl('contact'),
-        ],
-        [
-            'label' => __('Become a Stockist'),
-            'url' => $block->getUrl('', ['_direct' => 'become-a-stockist']),
-        ],
-    ];
-}
+// auth: customer / guest / null (both). The Snowdog menu block is block-cached without the login state, so
+// this server-side pick is only the first guess: menu.phtml syncAuthLinks() corrects it from private content.
+$links = [
+    [
+        'label' => __('Quick Order'),
+        'icon' => 'clipboard-list',
+        'url' => $block->getUrl('quick_order'),
+        'auth' => 'customer',
+    ],
+    [
+        'label' => __('My Account'),
+        'icon' => 'user-round',
+        'url' => $block->getUrl('customer/account'),
+        'auth' => 'customer',
+    ],
+    [
+        'label' => __('Trade login'),
+        'icon' => 'log-in',
+        'url' => $block->getUrl('customer/account/login'),
+        'auth' => 'guest',
+    ],
+    [
+        'label' => __('Contact'),
+        'icon' => 'message-square',
+        'url' => $block->getUrl('contact'),
+        'auth' => null,
+    ],
+    [
+        'label' => __('Become a Stockist'),
+        'icon' => 'store',
+        'url' => $block->getUrl('', ['_direct' => 'become-a-stockist']),
+        'auth' => 'guest',
+    ],
+];
 ?>
 <ul class="elme-mobile-menu__footer-list list-none m-0 p-0 flex flex-col">
     <?php foreach ($links as $link): ?>
-        <li class="border-b border-border last:border-b-0">
+        <?php $auth = $link['auth']; ?>
+        <li<?php if ($auth): ?> data-elme-auth="<?= $escaper->escapeHtmlAttr($auth) ?>"<?php endif; ?>
+            <?= $auth && ($auth === 'customer') !== $isLoggedIn ? 'hidden' : '' ?>>
             <a href="<?= $escaper->escapeUrl($link['url']) ?>"
-               class="elme-mobile-menu__footer-link flex items-center min-h-11 px-5 py-3
+               class="elme-mobile-menu__footer-link flex items-center gap-3 min-h-11 px-5 py-3
                       text-base text-ink no-underline hover:text-ink
                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
                       focus-visible:outline-primary">
+                <?= $lucideIcons->renderHtml($link['icon'], 'shrink-0 text-ink-muted', 20, 20, ['aria-hidden' => 'true']) ?>
                 <?= $escaper->escapeHtml($link['label']) ?>
             </a>
         </li>

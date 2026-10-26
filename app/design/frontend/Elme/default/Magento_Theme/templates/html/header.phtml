@@ -65,11 +65,6 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
                     }
                 }
                 window.addEventListener('scroll', () => this.onScroll(), {passive: true});
-                if (this.isMac) {
-                    document.querySelectorAll('[data-elme-shortcut-hint]').forEach((el) => {
-                        el.textContent = '⌘K';
-                    });
-                }
             },
 
             /**
@@ -193,8 +188,10 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
 
             searchClose() {
                 this.searchOpen = false;
-                if (this.$refs.searchButton) {
-                    this.$refs.searchButton.focus();
+                const toggle = [...this.$root.querySelectorAll('[data-elme-search-toggle]')]
+                    .find((el) => el.offsetParent !== null);
+                if (toggle) {
+                    toggle.focus();
                 }
             },
 
@@ -238,11 +235,30 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
      @keydown.escape.window="searchEscape"
      @keydown.window="searchShortcut"
 >
-    <div class="elme-header__bar container grid grid-cols-[auto_minmax(0,1fr)_auto] lg:flex lg:flex-nowrap
-                items-center gap-1 lg:gap-3 xl:gap-4 w-full py-1.5 lg:py-3">
-        <!-- Burger / mega menu slot (drawer chrome → FE-09; mega → FE-08) -->
-        <div class="elme-header__nav shrink-0 lg:order-2 lg:shrink lg:min-w-0">
-            <?= $block->getChildHtml('topmenu') ?>
+    <div class="elme-header__bar container grid grid-cols-[1fr_auto_1fr] lg:flex lg:flex-nowrap
+                items-center gap-2 lg:gap-6 xl:gap-5 2xl:gap-8 w-full py-1.5 lg:py-3">
+        <!-- Mobile: burger + search on the left, account + cart on the right, so the logo sits in the
+             page centre. From lg this wrapper is display: contents and its children join the flex row. -->
+        <div class="flex items-center justify-self-start -ms-2.5 lg:contents">
+            <!-- Burger / mega menu slot (drawer chrome → FE-09; mega → FE-08) -->
+            <div class="elme-header__nav shrink-0 lg:order-2 lg:shrink lg:min-w-0">
+                <?= $block->getChildHtml('topmenu') ?>
+            </div>
+
+            <button
+                type="button"
+                class="elme-header__action lg:hidden"
+                @click.prevent="toggleSearch"
+                aria-haspopup="true"
+                aria-controls="search-content"
+                :aria-expanded="searchOpen"
+                data-elme-search-toggle
+            >
+                <span class="elme-header__icon" aria-hidden="true">
+                    <?= $lucideIcons->searchHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+                </span>
+                <span class="elme-header__label"><?= $escaper->escapeHtml(__('Search')) ?></span>
+            </button>
         </div>
 
         <!-- Logo: centred in the middle column on mobile, left on desktop -->
@@ -254,33 +270,33 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
 
         <!-- Search field from xl (always a real GET form; FE-22 adds autocomplete). Below xl the menu needs
              the room: a search icon opens the full-width panel instead. -->
-        <div class="hidden xl:block lg:order-3 xl:flex-1 xl:min-w-44 xl:max-w-md 2xl:max-w-lg">
+        <div class="hidden xl:block lg:order-3 xl:flex-1 xl:min-w-52 xl:max-w-md 2xl:max-w-lg 3xl:max-w-xl">
             <?= $block->getChildHtml('header-search') ?>
         </div>
 
-        <div class="elme-header__actions flex items-center gap-0.5 lg:gap-1 xl:gap-2 shrink-0 lg:order-4 lg:ms-auto">
-            <!-- Search toggle below xl -->
+        <div class="elme-header__actions flex items-center justify-self-end -me-2.5 lg:me-0 gap-0 lg:gap-1 2xl:gap-2
+                    shrink-0 lg:order-4 lg:ms-auto">
+            <!-- Search toggle from lg to xl (below lg it sits next to the burger) -->
             <button
                 type="button"
                 id="menu-search-icon"
-                class="elme-header__action xl:hidden"
+                class="elme-header__action hidden lg:inline-flex xl:hidden"
                 @click.prevent="toggleSearch"
                 aria-haspopup="true"
                 aria-controls="search-content"
                 :aria-expanded="searchOpen"
-                x-ref="searchButton"
+                data-elme-search-toggle
             >
                 <span class="elme-header__icon" aria-hidden="true">
                     <?= $lucideIcons->searchHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
                 </span>
-                <span class="elme-header__label elme-header__label--tip-xl"><?= $escaper->escapeHtml(__('Search')) ?></span>
+                <span class="elme-header__label"><?= $escaper->escapeHtml(__('Search')) ?></span>
             </button>
 
             <?= $block->getChildHtml('additional') ?>
 
             <?= $block->getChildHtml('customer') ?>
 
-            <?= $block->getChildHtml('header-contact') ?>
 
             <?php if ($isLoggedIn): ?>
                 <!-- Quick Order cart (desktop; FE-41 adds the panel). Named apart from the mini-cart. -->
@@ -300,7 +316,7 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
                             @animationend="clearBump"
                         ></span>
                     </span>
-                    <span class="elme-header__label elme-header__label--tip-xl"><?= $escaper->escapeHtml(__('Quick Order')) ?></span>
+                    <span class="elme-header__label"><?= $escaper->escapeHtml(__('Quick Order')) ?></span>
                 </a>
 
                 <?php if ($showMiniCart): ?>
@@ -331,7 +347,7 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
                                 @animationend="clearBump"
                             ></span>
                         </span>
-                        <span class="elme-header__label elme-header__label--tip-xl"><?= $escaper->escapeHtml(__('Cart')) ?></span>
+                        <span class="elme-header__label"><?= $escaper->escapeHtml(__('Cart')) ?></span>
                 <?= $showMiniCart ? '</button>' : '</a>' ?>
             <?php endif; ?>
         </div>
@@ -351,7 +367,7 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
             </div>
             <button
                 type="button"
-                class="elme-header__action"
+                class="elme-header__action -me-2.5"
                 @click="searchClose"
                 aria-label="<?= $escaper->escapeHtmlAttr(__('Close search')) ?>"
             >

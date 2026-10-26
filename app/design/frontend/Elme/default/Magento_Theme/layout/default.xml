@@ -2,7 +2,7 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
-        <!-- FE-05: dusty-blue USP strip; CMS block header_promo; login swaps Stockist / Inspiration -->
+        <!-- FE-05: USP strip with Contact Us; CMS block header_promo; login swaps Stockist / Inspiration -->
         <referenceContainer name="header.container">
             <block name="elme.header.promo"
                    template="Magento_Theme::html/header-promo.phtml"
@@ -14,9 +14,6 @@
                 <argument name="show_compare" xsi:type="boolean">false</argument>
                 <argument name="show_wishlist" xsi:type="boolean">false</argument>
             </arguments>
-            <block name="header-contact"
-                   as="header-contact"
-                   template="Magento_Theme::html/header/contact-link.phtml"/>
             <block name="header-search-mobile"
                    template="Magento_Theme::html/header/search-form.phtml">
                 <arguments>
@@ -27,7 +24,6 @@
         <referenceBlock name="header-search">
             <arguments>
                 <argument name="input_id" xsi:type="string">search</argument>
-                <argument name="show_shortcut" xsi:type="boolean">true</argument>
             </arguments>
         </referenceBlock>
         <referenceBlock name="logo">

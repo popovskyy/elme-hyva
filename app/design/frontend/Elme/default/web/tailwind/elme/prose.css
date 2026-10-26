@@ -1,0 +1,61 @@
+/*
+ * CMS / Page Builder content is wrapped in .prose, which sets its own heading scale (3em, 2em, ... at 600),
+ * 500-weight links and 1em/1rem flow. Elme CMS content uses the base typography (typography.css) and the old
+ * Luma spacing (h1 0/24, h2 18/24, h3 18/12, h4-h6 24/24, p 0/12, lists 0/18 with 12px between items).
+ */
+@utility prose {
+    --text-flow: 0 --spacing(3);
+    --link-color: var(--color-ink);
+    --link-weight: 400;
+    --table-stroke: var(--color-border-light);
+    --table-bg: transparent;
+    --table-color: var(--color-ink);
+
+    :where(h1, h2, h3, h4, h5, h6) {
+        color: revert-layer;
+        font-family: revert-layer;
+        font-size: revert-layer;
+        font-weight: revert-layer;
+        line-height: revert-layer;
+    }
+
+    :where(h1) {
+        margin-block: 0 --spacing(6);
+    }
+
+    :where(h2) {
+        margin-block: --spacing(4.5) --spacing(6);
+    }
+
+    :where(h3) {
+        margin-block: --spacing(4.5) --spacing(3);
+    }
+
+    :where(h4, h5, h6) {
+        margin-block: --spacing(6);
+    }
+
+    :where(ul, ol) {
+        margin-block: 0 --spacing(4.5);
+        padding-inline-start: --spacing(10);
+    }
+
+    :where(li + li) {
+        margin-block-start: --spacing(3);
+    }
+
+    :where(hr) {
+        margin-block: --spacing(4);
+        border-color: var(--color-divider);
+    }
+
+    /* A link styled as .btn keeps the button's label colour and weight, not the prose link ones */
+    :where(.btn) {
+        color: var(--btn-color);
+        font-weight: 500;
+
+        &:hover {
+            text-decoration-line: var(--btn-hover-decoration, none);
+        }
+    }
+}

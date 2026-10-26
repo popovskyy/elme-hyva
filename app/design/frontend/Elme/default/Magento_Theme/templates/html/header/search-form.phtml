@@ -28,8 +28,6 @@ $helper = $this->helper(SearchHelper::class);
 $placeholder = (string) __('Search products by style, rooms');
 $inputId = (string) ($block->getData('input_id') ?: 'search');
 $minLength = (int) $helper->getMinQueryLength();
-// Desktop field only: Ctrl K / ⌘K hint (header.phtml binds the shortcut and swaps the label on Mac)
-$showShortcut = (bool) $block->getData('show_shortcut');
 ?>
 <div class="elme-header-search w-full text-ink">
     <search title="<?= $escaper->escapeHtmlAttr(__('Store')) ?>" role="search">
@@ -51,9 +49,8 @@ $showShortcut = (bool) $block->getData('show_shortcut');
                 placeholder="<?= $escaper->escapeHtmlAttr($placeholder) ?>"
                 maxlength="<?= $escaper->escapeHtmlAttr($helper->getMaxQueryLength()) ?>"
                 minlength="<?= $escaper->escapeHtmlAttr((string) $minLength) ?>"
-                <?php if ($showShortcut): ?>aria-keyshortcuts="Control+K Meta+K"<?php endif; ?>
-                class="elme-header-search__input form-input grow w-full min-h-11 py-2 ps-11
-                       <?= $showShortcut ? 'pe-16' : 'pe-3' ?> text-note text-ink placeholder:text-placeholder"
+                class="elme-header-search__input form-input grow w-full min-h-11 py-2 ps-11 pe-3
+                       text-note text-ink text-ellipsis placeholder:text-placeholder"
             >
             <button
                 type="submit"
@@ -64,15 +61,6 @@ $showShortcut = (bool) $block->getData('show_shortcut');
             >
                 <?= $lucideIcons->searchHtml('', 20, 20, ['aria-hidden' => 'true']); ?>
             </button>
-            <?php if ($showShortcut): ?>
-                <kbd
-                    class="elme-header-search__kbd pointer-events-none absolute end-3 top-1/2 -translate-y-1/2
-                           inline-flex items-center px-1.5 py-0.5 border border-border bg-surface
-                           font-sans text-label font-medium text-ink-muted whitespace-nowrap"
-                    data-elme-shortcut-hint
-                    aria-hidden="true"
-                ><?= $escaper->escapeHtml(__('Ctrl K')) ?></kbd>
-            <?php endif; ?>
         </form>
     </search>
 </div>

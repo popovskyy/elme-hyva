@@ -1,0 +1,66 @@
+/**
+ * Elme Living base typography (old Bart/el _typography.less).
+ * Values come from hyva.config.json (tokens.values: colours, type scale; fonts).
+ */
+
+@layer base {
+    body {
+        font-family: var(--font-sans);
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
+    }
+
+    /* Plain element selectors: :where() would lose to Tailwind preflight's `h1 { font-size: inherit }` */
+    h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-heading);
+        font-weight: 400;
+        color: var(--color-ink);
+    }
+
+    /* Production keeps h1, h4-h6 at one size; only h2/h3 grow at desktop (Overdose od-extend/_typography.less) */
+    h1 {
+        font-size: var(--text-h1);
+        line-height: var(--text-h1--line-height);
+    }
+
+    h2 {
+        font-size: var(--text-h2);
+        line-height: var(--text-h2--line-height);
+
+        @variant lg {
+            font-size: var(--text-h2-desktop);
+        }
+    }
+
+    h3 {
+        font-size: var(--text-h3);
+        line-height: var(--text-h3--line-height);
+
+        @variant lg {
+            font-size: var(--text-h3-desktop);
+        }
+    }
+
+    h4 {
+        font-size: var(--text-h4);
+        line-height: var(--text-h4--line-height);
+    }
+
+    h5 {
+        font-size: var(--text-h5);
+        line-height: var(--text-h5--line-height);
+    }
+
+    h6 {
+        font-size: var(--text-h6);
+        line-height: var(--text-h6--line-height);
+    }
+
+    p {
+        color: var(--color-ink-subtle);
+    }
+
+    ::placeholder {
+        color: var(--color-placeholder);
+    }
+}

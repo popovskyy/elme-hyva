@@ -71,6 +71,8 @@ $menu = $block->getMenu();
                 leaveTimer: null,
                 suppressTimer: null,
                 hoverDelay: 220,
+                // Matches the panel / overlay transition in elme/mega-menu.css
+                fadeMs: 200,
                 suppressHover: false,
                 _onResize: null,
 
@@ -98,8 +100,6 @@ $menu = $block->getMenu();
                             this.$nextTick(() => {
                                 requestAnimationFrame(() => this.clampOpenPanel());
                             });
-                        } else {
-                            this.clearPanelOffsets();
                         }
                     });
                     this.syncPanels();
@@ -123,14 +123,63 @@ $menu = $block->getMenu();
                         item.classList.toggle('is-open', open);
                         item.classList.toggle('menu-active', open);
                     });
-                    this.$root.querySelectorAll('.main-menu__inner-wrapper--level1').forEach((panel) => {
+                    const panels = Array.from(this.$root.querySelectorAll('.main-menu__inner-wrapper--level1'));
+                    // Moving from one top item to another: swap panels without the fade, so two
+                    // half-transparent panels never show on top of each other.
+                    const swap = id !== null && panels.some((panel) => !panel.hidden && panel.dataset.submenuId !== id);
+                    panels.forEach((panel) => {
                         const open = id !== null && panel.dataset.submenuId === id;
-                        panel.hidden = !open;
-                        panel.classList.toggle('is-open', open);
+                        this.fade(panel, open, swap, () => {
+                            panel.style.left = '';
+                            panel.style.top = '';
+                            panel.style.width = '';
+                        });
                     });
                     const overlay = this.$root.querySelector('.menu-overlay');
                     if (overlay) {
-                        overlay.hidden = id === null;
+                        this.fade(overlay, id !== null, false, () => {
+                            overlay.style.top = '';
+                            document.documentElement.style.removeProperty('--elme-header-bottom');
+                        });
+                    }
+                },
+
+                /**
+                 * Show / hide an element with the CSS opacity transition on .is-open: unhide, then add the
+                 * class a frame later; on close remove the class and set [hidden] once the fade is over.
+                 */
+                fade(el, open, instant, onHidden) {
+                    if (el._closeTimer) {
+                        clearTimeout(el._closeTimer);
+                        el._closeTimer = null;
+                    }
+                    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                    const animate = !instant && !reduced;
+                    if (open) {
+                        el.hidden = false;
+                        const show = () => el.classList.add('is-open');
+                        if (animate) {
+                            requestAnimationFrame(show);
+                        } else {
+                            show();
+                        }
+                        return;
+                    }
+                    el.classList.remove('is-open');
+                    if (el.hidden) {
+                        return;
+                    }
+                    const finish = () => {
+                        if (el.classList.contains('is-open')) {
+                            return;
+                        }
+                        el.hidden = true;
+                        onHidden();
+                    };
+                    if (animate) {
+                        el._closeTimer = setTimeout(finish, this.fadeMs + 40);
+                    } else {
+                        finish();
                     }
                 },
 
@@ -145,23 +194,10 @@ $menu = $block->getMenu();
                     }
                 },
 
-                clearPanelOffsets() {
-                    this.$root.querySelectorAll('.main-menu__inner-wrapper--level1').forEach((panel) => {
-                        panel.style.left = '';
-                        panel.style.top = '';
-                        panel.style.width = '';
-                    });
-                    const overlay = this.$root.querySelector('.menu-overlay');
-                    if (overlay) {
-                        overlay.style.top = '';
-                    }
-                    document.documentElement.style.removeProperty('--elme-header-bottom');
-                },
-
                 /**
-                 * Flush the level-1 panel to #header bottom and center it in the viewport.
-                 * Panels are position:absolute against .main-menu (items are not relative), so
-                 * every top item opens the panel in the same place — not under that li.
+                 * Flush the level-1 panel to #header bottom, full viewport width (its content sits in
+                 * .container, aligned with the header row). Panels are position:absolute against
+                 * .main-menu (items are not relative), so every top item opens in the same place.
                  */
                 clampOpenPanel() {
                     const id = this.openId;
@@ -178,38 +214,22 @@ $menu = $block->getMenu();
                     const menuRect = this.$root.getBoundingClientRect();
                     const headerRect = header
                         ? header.getBoundingClientRect()
-                        : { bottom: menuRect.bottom };
-                    const margin = 16;
-                    const vw = window.innerWidth;
+                        : { left: 0, bottom: menuRect.bottom, width: document.documentElement.clientWidth };
 
-                    // Flush under the sticky header chrome (offset vs .main-menu).
+                    // Same box as #header (full bleed, scrollbar gutter excluded), so the panel's .container
+                    // lines up with the header row and never adds a horizontal scroll.
                     panel.style.top = Math.max(0, headerRect.bottom - menuRect.top) + 'px';
+                    panel.style.left = (headerRect.left - menuRect.left) + 'px';
+                    panel.style.width = headerRect.width + 'px';
 
-                    // Measure natural width, then center in the viewport (same for all items).
-                    panel.style.left = '0px';
-                    panel.style.width = '';
-                    const width = Math.max(panel.offsetWidth, panel.getBoundingClientRect().width);
-                    const usable = Math.max(0, vw - (margin * 2));
-                    let clampedLeft;
-                    if (width >= usable) {
-                        clampedLeft = margin;
-                        panel.style.width = usable + 'px';
-                    } else {
-                        const preferredLeft = (vw - width) / 2;
-                        const maxViewportLeft = vw - margin - width;
-                        clampedLeft = Math.max(margin, Math.min(preferredLeft, maxViewportLeft));
-                    }
-                    panel.style.left = (clampedLeft - menuRect.left) + 'px';
-
-                    // Correct residual overflow after layout (promo rail / columns).
-                    let after = panel.getBoundingClientRect();
-                    if (after.right > vw - margin) {
-                        const shift = after.right - (vw - margin);
-                        panel.style.left = (clampedLeft - menuRect.left - shift) + 'px';
-                        after = panel.getBoundingClientRect();
-                    }
-                    if (after.left < margin) {
-                        panel.style.left = (margin - menuRect.left) + 'px';
+                    // Hover bridge (::after on the open trigger, see mega-menu.css) over the header padding
+                    // between the link and the panel, so a slow pointer does not close the panel on the way.
+                    const trigger = this.$root.querySelector(
+                        '.main-menu__item.is-open > .main-menu__trigger'
+                    );
+                    if (trigger) {
+                        const gap = headerRect.bottom - trigger.getBoundingClientRect().bottom;
+                        this.$root.style.setProperty('--elme-menu-bridge', Math.max(0, gap) + 'px');
                     }
 
                     const overlay = this.$root.querySelector('.menu-overlay');
@@ -247,7 +267,7 @@ $menu = $block->getMenu();
                     this.clearTimers();
                     this.openId = null;
                     document.body.classList.remove('menu-active');
-                    this.clearPanelOffsets();
+                    // Offsets stay until the close fade finishes (fade() onHidden).
                     // Esc/overlay: briefly ignore hover so a stuck :hover does not reopen,
                     // then clear so the next intentional hover works without leave+re-enter.
                     if (fromKeyboard) {
@@ -289,8 +309,8 @@ $menu = $block->getMenu();
                         if (this.openId !== el.dataset.nodeId) {
                             return;
                         }
-                        // Still over this item, its open panel, or the header chrome
-                        // (padding between the link and the flush panel — ::after is unreliable).
+                        // Still over this item (its trigger bridge counts) or its open panel. Not #header:
+                        // the overlay lives in the header, so header:hover would keep the panel open.
                         if (el.matches(':hover')) {
                             return;
                         }
@@ -298,10 +318,6 @@ $menu = $block->getMenu();
                             '.main-menu__inner-wrapper--level1[data-submenu-id="' + this.openId + '"]'
                         );
                         if (panel && !panel.hidden && panel.matches(':hover')) {
-                            return;
-                        }
-                        const header = document.getElementById('header');
-                        if (header && header.matches(':hover')) {
                             return;
                         }
                         this.closeAll(false);

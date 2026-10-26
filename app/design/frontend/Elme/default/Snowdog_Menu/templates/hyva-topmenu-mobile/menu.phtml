@@ -53,7 +53,7 @@ $menuClass = $menu->getCssClass() ?: 'main-menu';
         <div class="elme-mobile-menu__shell elme-drawer elme-drawer-start flex flex-col h-full min-h-0"
              @click="stopShellClick"
              role="document">
-            <div class="elme-mobile-menu__panels relative flex-1 min-h-0 overflow-hidden">
+            <div class="elme-mobile-menu__panels relative flex-1 min-h-0 overflow-clip">
                 <div class="elme-mobile-menu__panel elme-mobile-menu__panel--root is-active flex flex-col h-full"
                      data-panel-id="root">
                     <div class="elme-drawer__header shrink-0">
@@ -139,6 +139,9 @@ $menuClass = $menu->getCssClass() ?: 'main-menu';
                         return;
                     }
                     this.closeMenu();
+                },
+                ['@private-content-loaded.window']() {
+                    this.syncAuthLinks();
                 }
             },
 
@@ -161,34 +164,61 @@ $menuClass = $menu->getCssClass() ?: 'main-menu';
                 this.open = true;
                 this.stack = [];
                 this.syncPanels();
-                if (this.$refs.drawer && !this.$refs.drawer.open) {
-                    this.$refs.drawer.showModal();
+                const drawer = this.$refs.drawer;
+                if (drawer && !drawer.open) {
+                    drawer.showModal();
                 }
                 document.documentElement.classList.add('elme-mobile-menu-open');
+                const show = () => {
+                    if (drawer) {
+                        drawer.classList.add('is-shown');
+                    }
+                };
+                if (this.motionMs() === 0) {
+                    show();
+                } else {
+                    requestAnimationFrame(show);
+                }
                 this.$nextTick(() => {
-                    if (this.$refs.drawer) {
-                        hyva.trapFocus(this.$refs.drawer);
+                    if (drawer) {
+                        hyva.trapFocus(drawer);
                     }
                 });
             },
 
             closeMenu() {
-                if (!this.open && !(this.$refs.drawer && this.$refs.drawer.open)) {
+                const drawer = this.$refs.drawer;
+                if (this._closing) {
+                    return;
+                }
+                if (!this.open && !(drawer && drawer.open)) {
                     return;
                 }
                 this.open = false;
-                this.stack = [];
-                this.syncPanels();
-                document.documentElement.classList.remove('elme-mobile-menu-open');
-                if (this.$refs.drawer && this.$refs.drawer.open) {
-                    this.$refs.drawer.close();
+                if (drawer) {
+                    drawer.classList.remove('is-shown');
                 }
-                hyva.releaseFocus();
-                this.$nextTick(() => {
-                    if (this.$refs.openBtn) {
-                        this.$refs.openBtn.focus();
+                const finish = () => {
+                    this._closing = false;
+                    this.stack = [];
+                    this.syncPanels();
+                    document.documentElement.classList.remove('elme-mobile-menu-open');
+                    if (drawer && drawer.open) {
+                        drawer.close();
                     }
-                });
+                    hyva.releaseFocus();
+                    this.$nextTick(() => {
+                        if (this.$refs.openBtn) {
+                            this.$refs.openBtn.focus();
+                        }
+                    });
+                };
+                this._closing = true;
+                if (this.motionMs() === 0) {
+                    finish();
+                } else {
+                    this._closeTimer = setTimeout(finish, this.motionMs() + 40);
+                }
             },
 
             onDialogClick() {
@@ -200,6 +230,17 @@ $menuClass = $menu->getCssClass() ?: 'main-menu';
 
             stopShellClick() {
                 this.$event.stopPropagation();
+            },
+
+            // Footer links per login state (mobile-footer.phtml data-elme-auth). The menu block is cached
+            // without the login state, so the customer section decides, not the server render.
+            syncAuthLinks() {
+                const data = this.$event.detail.data || {};
+                const customer = data.customer || {};
+                const state = customer.firstname || customer.fullname ? 'customer' : 'guest';
+                this.$root.querySelectorAll('[data-elme-auth]').forEach((el) => {
+                    el.hidden = el.dataset.elmeAuth !== state;
+                });
             },
 
             openPanel() {
@@ -219,6 +260,43 @@ $menuClass = $menu->getCssClass() ?: 'main-menu';
                 this.syncPanels();
             },
 
+            motionMs() {
+                return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280;
+            },
+
+            setSubPanel(panel, open) {
+                if (panel._closeTimer) {
+                    clearTimeout(panel._closeTimer);
+                    panel._closeTimer = null;
+                }
+                const ms = this.motionMs();
+                if (open) {
+                    panel.hidden = false;
+                    const show = () => panel.classList.add('is-open');
+                    if (ms === 0) {
+                        show();
+                    } else {
+                        requestAnimationFrame(show);
+                    }
+                    return;
+                }
+                panel.classList.remove('is-open');
+                if (panel.hidden) {
+                    return;
+                }
+                const finish = () => {
+                    if (panel.classList.contains('is-open')) {
+                        return;
+                    }
+                    panel.hidden = true;
+                };
+                if (ms === 0) {
+                    finish();
+                } else {
+                    panel._closeTimer = setTimeout(finish, ms + 40);
+                }
+            },
+
             // Chrome refuses aria-hidden / hidden on an ancestor that still contains
             // focus. Move focus onto the panel that stays active before hiding the rest.
             focusPanel(panel) {
@@ -226,7 +304,9 @@ $menuClass = $menu->getCssClass() ?: 'main-menu';
                     'button:not([disabled]), a[href]:not([tabindex="-1"])'
                 );
                 if (focusable) {
-                    focusable.focus();
+                    // preventScroll: the incoming panel is still off to the right; a plain focus() would
+                    // scroll .elme-mobile-menu__panels and make the slide jump.
+                    focusable.focus({ preventScroll: true });
                 }
             },
 
@@ -254,14 +334,11 @@ $menuClass = $menu->getCssClass() ?: 'main-menu';
                     const isTop = panel === next;
                     const isAncestor = !isRoot && stack.indexOf(id) !== -1;
                     panel.classList.toggle('is-active', isTop);
-                    panel.classList.toggle('is-open', isAncestor || isTop);
-                    // Keep ancestor/root in the layout for the slide stack, but only the
-                    // active panel stays in the tab order (QA: focus must not escape).
                     if (isRoot) {
                         panel.hidden = false;
                         panel.classList.toggle('is-covered', top !== null);
                     } else {
-                        panel.hidden = !(isTop || isAncestor);
+                        this.setSubPanel(panel, isTop || isAncestor);
                     }
                     panel.inert = !isTop;
                     if (isTop) {

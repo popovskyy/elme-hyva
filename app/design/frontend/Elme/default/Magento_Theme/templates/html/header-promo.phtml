@@ -1,9 +1,9 @@
 <?php
 /**
- * FE-05: dusty-blue USP strip above the header. Content from CMS block header_promo;
+ * FE-05: USP strip above the header. Content from CMS block header_promo;
  * login state picks Become a Stockist (guest) or Inspiration (logged in). See HeaderPromo ViewModel.
- * Ink text, not white: white on accent is ~2.3:1. Below md only the centred USP shows; the link
- * lives in the mobile drawer footer.
+ * Right side: that link from md, Contact Us from lg (moved out of the header row so the search field
+ * keeps its width). Below md only the centred USP shows; both links live in the mobile drawer footer.
  */
 
 declare(strict_types=1);
@@ -24,18 +24,28 @@ if (!$promo->shouldRender()) {
 $usp = $promo->getUspText();
 $label = $promo->getLinkLabel();
 $url = $promo->getLinkUrl();
+$contactUrl = $block->getUrl('contact');
 ?>
-<div class="header-promo bg-accent text-ink">
+<div class="header-promo bg-secondary text-ink">
     <div class="container flex items-center justify-center md:justify-between gap-4 w-full
                 py-2 md:py-1.5">
-        <p class="header-promo__usp m-0 flex-1 min-w-0 line-clamp-2 text-sm leading-5 font-medium
+        <p class="header-promo__usp m-0 flex-1 min-w-0 line-clamp-2 text-sm leading-5 font-semibold
                   text-ink text-center text-balance md:text-left"><?= $escaper->escapeHtml($usp) ?></p>
-        <a class="header-promo__link hidden md:inline-flex shrink-0 items-center min-h-8
-                  whitespace-nowrap text-sm leading-5 font-semibold text-ink
-                  underline underline-offset-4 decoration-ink/40 hover:decoration-ink
-                  transition-[text-decoration-color] duration-150
-                  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
-                  focus-visible:outline-ink"
-           href="<?= $escaper->escapeUrl($url) ?>"><?= $escaper->escapeHtml($label) ?></a>
+        <div class="header-promo__links hidden md:flex shrink-0 items-center gap-6">
+            <a class="header-promo__link hidden lg:inline-flex shrink-0 items-center min-h-8
+                      whitespace-nowrap text-sm leading-5 font-semibold text-ink
+                      underline underline-offset-4 decoration-ink/40 hover:decoration-ink
+                      transition-[text-decoration-color] duration-150
+                      focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+                      focus-visible:outline-ink"
+               href="<?= $escaper->escapeUrl($contactUrl) ?>"><?= $escaper->escapeHtml(__('Contact Us')) ?></a>
+            <a class="header-promo__link hidden md:inline-flex shrink-0 items-center min-h-8
+                      whitespace-nowrap text-sm leading-5 font-semibold text-ink
+                      underline underline-offset-4 decoration-ink/40 hover:decoration-ink
+                      transition-[text-decoration-color] duration-150
+                      focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+                      focus-visible:outline-ink"
+               href="<?= $escaper->escapeUrl($url) ?>"><?= $escaper->escapeHtml($label) ?></a>
+        </div>
     </div>
 </div>

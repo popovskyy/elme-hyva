@@ -1,0 +1,291 @@
+/*
+ * FE-06: sticky header (parity with Bart/el od-widget.sticky-header).
+ * .page-header is position: sticky with a negative top equal to the USP strip height (--elme-promo-h,
+ * measured in header.phtml): the strip scrolls away, the header row stays. It never leaves the flow,
+ * so the page cannot jump. .is-stuck only adds the shadow. Anchors clear the row via scroll-padding-top.
+ */
+@layer components {
+    html {
+        scroll-padding-top: calc(var(--elme-header-h, 0px) + --spacing(4));
+    }
+
+    .page-header {
+        position: sticky;
+        top: calc(var(--elme-promo-h, 0px) * -1);
+        z-index: 30;
+        background-color: var(--color-surface);
+    }
+
+    .elme-header {
+        transition: box-shadow 200ms ease-out, border-color 200ms ease-out;
+    }
+
+    .page-header.is-stuck .elme-header {
+        border-bottom-color: transparent;
+        box-shadow:
+            0 1px 0 var(--color-divider),
+            0 8px 20px -12px color-mix(in oklab, var(--color-ink) 40%, transparent);
+    }
+
+    .elme-header .elme-header__logo img {
+        width: 100%;
+        height: auto;
+        max-height: --spacing(7);
+
+        @variant lg {
+            max-height: none;
+        }
+    }
+
+    .elme-header .elme-header__logo a {
+        display: block;
+        transition: opacity 150ms ease-out;
+
+        @media (hover: hover) {
+            &:hover {
+                opacity: 0.7;
+            }
+        }
+    }
+
+    /*
+     * Header actions (search toggle, account, Contact Us, Cart, Quick Order): Lucide icon above a label.
+     * The label is the accessible name. Below lg it is visually hidden (icon only). From lg it sits under
+     * the icon (signed in: see the tooltip rules below). Hover: icon turns accent-dark and lifts 1px, the
+     * label gets the menu-style underline.
+     */
+    .elme-header__action {
+        position: relative;
+        display: inline-flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        gap: --spacing(1);
+        min-width: --spacing(11);
+        min-height: --spacing(11);
+        padding: --spacing(1);
+        color: var(--color-ink);
+        background: transparent;
+        border: 0;
+        text-decoration: none;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+
+        &:hover {
+            color: var(--color-ink);
+            text-decoration: none;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
+        }
+    }
+
+    .elme-header__icon {
+        position: relative;
+        display: inline-flex;
+        transition: color 150ms ease-out, translate 200ms ease-out;
+    }
+
+    .elme-header__label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    .elme-header__chevron {
+        display: inline-flex;
+        transition: rotate 200ms ease-out;
+    }
+
+    .elme-header__action[aria-expanded='true'] .elme-header__chevron {
+        rotate: 180deg;
+    }
+
+    @media (hover: hover) {
+        .elme-header__action:hover .elme-header__icon {
+            color: var(--color-accent-dark);
+            translate: 0 -1px;
+        }
+    }
+
+    .elme-header__action[aria-expanded='true'] .elme-header__icon {
+        color: var(--color-accent-dark);
+    }
+
+    @variant lg {
+        .elme-header__label {
+            position: static;
+            display: inline-flex;
+            align-items: center;
+            gap: --spacing(0.5);
+            width: auto;
+            height: auto;
+            overflow: visible;
+            clip-path: none;
+            padding-bottom: 2px;
+            background: linear-gradient(currentColor, currentColor) no-repeat 50% 100% / 0 1px;
+            font-size: var(--text-note);
+            line-height: var(--text-note--line-height);
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            transition: background-size 200ms ease-out;
+        }
+
+        @media (hover: hover) {
+            .elme-header__action:hover .elme-header__label {
+                background-size: 100% 1px;
+            }
+        }
+
+        .elme-header__action[aria-expanded='true'] .elme-header__label {
+            background-size: 100% 1px;
+        }
+    }
+
+    /*
+     * Signed in, the row has two more actions (Quick Order, Cart). Below 2xl they do not all fit with labels, so
+     * every action is icon only and its label is a tooltip under the icon: the icons share one line instead of
+     * some sitting higher above a label. Labels come back for all of them from 2xl.
+     */
+    @variant lg {
+        @variant max-2xl {
+            .elme-header--signed-in .elme-header__label {
+                position: absolute;
+                top: calc(100% + --spacing(1));
+                left: 50%;
+                z-index: 50;
+                padding: --spacing(1) --spacing(2);
+                background: var(--color-ink);
+                color: var(--color-on-primary);
+                font-size: var(--text-label);
+                line-height: var(--text-label--line-height);
+                opacity: 0;
+                pointer-events: none;
+                translate: -50% --spacing(-1);
+                transition: opacity 150ms ease-out, translate 150ms ease-out;
+            }
+
+            .elme-header--signed-in .elme-header__action:focus-visible .elme-header__label {
+                opacity: 1;
+                translate: -50% 0;
+            }
+
+            @media (hover: hover) {
+                .elme-header--signed-in .elme-header__action:hover .elme-header__label {
+                    opacity: 1;
+                    translate: -50% 0;
+                    transition-delay: 300ms;
+                }
+            }
+
+            .elme-header--signed-in .elme-header__action[aria-expanded='true'] .elme-header__label {
+                opacity: 0;
+            }
+        }
+    }
+
+    /* Cart / Quick Order count on the icon; pops when it goes up */
+    .elme-header__badge {
+        position: absolute;
+        top: --spacing(-1.5);
+        right: --spacing(-2.5);
+        min-width: --spacing(4.5);
+        height: --spacing(4.5);
+        padding-inline: --spacing(1);
+        border-radius: 9999px;
+        box-shadow: 0 0 0 2px var(--color-surface);
+        background-color: var(--color-accent-dark);
+        color: var(--color-on-primary);
+        font-size: var(--text-label);
+        line-height: --spacing(4.5);
+        font-weight: 600;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .elme-header__badge.is-bumped {
+        animation: elme-badge-pop 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
+    }
+
+    @keyframes elme-badge-pop {
+        40% {
+            scale: 1.3;
+        }
+    }
+
+    /* Account dropdown: Hyvä sortable-item links restyled */
+    .elme-account-menu {
+        transform-origin: top right;
+
+        a {
+            display: block;
+            padding: --spacing(2) --spacing(4);
+            color: var(--color-ink);
+            font-size: var(--text-nav);
+            line-height: var(--text-base--line-height);
+            text-decoration: none;
+            transition: background-color 150ms ease-out, padding 150ms ease-out;
+
+            &:hover {
+                background-color: var(--color-page);
+                color: var(--color-ink);
+                text-decoration: none;
+            }
+
+            &:focus-visible {
+                outline: 2px solid var(--color-ink);
+                outline-offset: -2px;
+            }
+        }
+
+        .delimiter {
+            margin-block: --spacing(2);
+            border-color: var(--color-divider);
+        }
+    }
+
+    /* Search field: warm fill, border on hover, ink ring on focus */
+    .elme-header-search__input {
+        background-color: var(--color-page);
+        border-color: transparent;
+        transition: border-color 150ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out;
+
+        &:hover {
+            border-color: var(--color-border);
+        }
+
+        &:focus {
+            border-color: var(--color-ink);
+            background-color: var(--color-surface);
+            box-shadow: 0 0 0 1px var(--color-ink);
+            outline: none;
+        }
+
+        &::-webkit-search-cancel-button {
+            display: none;
+        }
+    }
+
+    .elme-header-search__submit {
+        transition: color 150ms ease-out;
+
+        &:hover {
+            color: var(--color-accent-dark);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: -4px;
+        }
+    }
+}

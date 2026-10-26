@@ -1,7 +1,10 @@
 <?php
 /**
- * FE-08: mega panel — CSS columns of level-1 categories with nested level-2/3 links.
+ * FE-08: mega panel - heading with "View all", then CSS columns of level-1 categories with nested
+ * level-2/3 links.
  * Promo CMS rail (cms_block) uses real Elme photography in menu_promo_* blocks.
+ * The panel is full-bleed under the header; its content sits in the header's container, so the first
+ * column lines up with the logo and the promo rail with the header actions.
  */
 
 declare(strict_types=1);
@@ -21,51 +24,71 @@ $menu = $block->getMenu();
     $level = (int) $block->getLevel();
     $parentId = (string) $parentNode->getId();
     $title = (string) $parentNode->getTitle();
+    $cleanTitle = trim((string) preg_replace('/\{.*?\}/', '', $title));
     ?>
 
     <?php if ($level === 1): ?>
         <?php
-        $hasCmsPromo = false;
-        foreach ($block->getSubmenuNodes() as $probeNode) {
-            if ((string) $probeNode->getType() === 'cms_block') {
-                $hasCmsPromo = true;
-                break;
+        $columnNodes = [];
+        $promoNodes = [];
+        foreach ($block->getSubmenuNodes() as $submenuNode) {
+            if ((string) $submenuNode->getType() === 'cms_block') {
+                $promoNodes[] = $submenuNode;
+            } else {
+                $columnNodes[] = $submenuNode;
             }
         }
-        $level1WrapperClass = trim(
-            $menuClass . '__inner-wrapper ' .
-            $menuClass . '__inner-wrapper--level1' .
-            ($hasCmsPromo ? ' _has-cms-child-node' : '')
-        );
+        $renderLevel1Item = function ($node) use ($block, $escaper, $menuClass): string {
+            $nodeType = (string) $node->getType();
+            $childrenLevel = $node->getLevel() + 1;
+            $children = $block->getNodes($childrenLevel, $node);
+            $node->setIsParent((bool) $children);
+            $nodeClasses = trim((string) $node->getClasses());
+            $liClass = trim(
+                $menuClass . '__inner-item ' .
+                $menuClass . '__inner-item--level1' .
+                ($children ? ' ' . $menuClass . '__inner-item--parent' : '') .
+                ($nodeClasses ? ' ' . $nodeClasses : '')
+            );
+            return '<li class="' . $escaper->escapeHtmlAttr($liClass) . '"'
+                . ' data-node-type="' . $escaper->escapeHtmlAttr($nodeType) . '">'
+                . $block->renderMenuNode($node)
+                . $block->renderSubmenu($children, $node, $childrenLevel)
+                . '</li>';
+        };
         ?>
         <div id="submenu-<?= $escaper->escapeHtmlAttr($parentId) ?>"
-             class="<?= $escaper->escapeHtmlAttr($level1WrapperClass) ?>"
+             class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-wrapper
+                    <?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-wrapper--level1"
              data-submenu-id="<?= $escaper->escapeHtmlAttr($parentId) ?>"
              hidden
              role="region"
-             aria-label="<?= $escaper->escapeHtmlAttr(__('Submenu for %1', $title)) ?>">
-            <ul class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-list <?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-list--level1">
-                <?php foreach ($block->getSubmenuNodes() as $node): ?>
-                    <?php
-                    $nodeType = (string) $node->getType();
-                    $childrenLevel = $node->getLevel() + 1;
-                    $children = $block->getNodes($childrenLevel, $node);
-                    $node->setIsParent((bool) $children);
-                    $nodeClasses = trim((string) $node->getClasses());
-                    $liClass = trim(
-                        $menuClass . '__inner-item ' .
-                        $menuClass . '__inner-item--level1' .
-                        ($children ? ' ' . $menuClass . '__inner-item--parent' : '') .
-                        ($nodeClasses ? ' ' . $nodeClasses : '')
-                    );
-                    ?>
-                    <li class="<?= $escaper->escapeHtmlAttr($liClass) ?>"
-                        data-node-type="<?= $escaper->escapeHtmlAttr($nodeType) ?>">
-                        <?= /* @noEscape */ $block->renderMenuNode($node) ?>
-                        <?= /* @noEscape */ $block->renderSubmenu($children, $node, $childrenLevel) ?>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
+             aria-label="<?= $escaper->escapeHtmlAttr(__('Submenu for %1', $cleanTitle)) ?>">
+            <div class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__panel container">
+                <div class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__panel-head">
+                    <p class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__panel-title">
+                        <?= $escaper->escapeHtml($cleanTitle) ?>
+                    </p>
+                    <?php if ($block->isViewAllLinkAllowed($parentNode->getType())): ?>
+                        <?= /* @noEscape */ $block->renderViewAllLink($parentNode) ?>
+                    <?php endif; ?>
+                </div>
+                <div class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__panel-body">
+                    <ul class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-list
+                               <?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-list--level1">
+                        <?php foreach ($columnNodes as $node): ?>
+                            <?= /* @noEscape */ $renderLevel1Item($node) ?>
+                        <?php endforeach; ?>
+                    </ul>
+                    <?php if ($promoNodes): ?>
+                        <ul class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__promo-list">
+                            <?php foreach ($promoNodes as $node): ?>
+                                <?= /* @noEscape */ $renderLevel1Item($node) ?>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+                </div>
+            </div>
         </div>
     <?php elseif ($level > 1): ?>
         <ul class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-list <?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-list--level<?= (int) $level ?>">

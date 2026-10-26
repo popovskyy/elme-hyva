@@ -42,6 +42,13 @@ if ($block->getTarget()) {
 }
 ?>
 <?php if ($block->getIsViewAllLink()): ?>
+    <?php if ($url === ''): ?>
+        <?php return; ?>
+    <?php endif; ?>
+    <a href="<?= $escaper->escapeUrl($url) ?>"
+       class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__view-all btn btn-outline btn-size-sm">
+        <?= $escaper->escapeHtml(__('View all %1', $cleanTitle)) ?>
+    </a>
     <?php return; ?>
 <?php endif; ?>
 

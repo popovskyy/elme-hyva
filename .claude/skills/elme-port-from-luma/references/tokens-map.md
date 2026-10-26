@@ -12,9 +12,9 @@ https://www.elmeliving.com/ on 2026-10-21. "Uses" = occurrences in the `Bart/el`
 |---|---|---|---|
 | `primary` | `#3A3935` | `@jl-color-brand-primary` (244 uses), `@heading__color__base` | text, headings, primary button, borders, breadcrumbs |
 | `on-primary` | `#FFFFFF` | `@jl-color-brand-primary-alt` | text on primary |
-| `secondary` | `#ADBBA1` | `@jl-color-brand-secondary` | primary button hover, pager border, label accent |
+| `secondary` | `#ADBBA1` | `@jl-color-brand-secondary` | top bar, primary button hover, pager border, label accent |
 | `tertiary` | `#D4C8B3` | `@jl-color-brand-tertiary` | sand accents |
-| `accent` | `#98A8BB` | none - CMS content on the live site | top bar, category tiles, banners |
+| `accent` | `#98A8BB` | none - CMS content on the live site | category tiles, banners |
 | `accent-dark` | `#68839C` | `@jl-background-color-blue`, `@jl-form-element-input-focus-border-color` | input focus |
 | `ink` | `#3A3935` | `@jl-color-brand-primary` | body text (`--color-fg`) |
 | `ink-muted` | `#676F78` | `@jl-p-color-primary` (69) | secondary paragraphs |
@@ -50,7 +50,7 @@ https://www.elmeliving.com/ on 2026-10-21. "Uses" = occurrences in the `Bart/el`
 | `text-label` | 11px/13px | `@form-field-label__font-size` |
 | `text-breadcrumbs` | 12px | `@breadcrumbs__font-size` |
 
-All headings are weight 400; `elme.css` sets them, including inside `.prose` (CMS content).
+All headings are weight 400; `elme/typography.css` sets them, and `elme/prose.css` keeps that scale inside `.prose` (CMS content).
 
 ## Layout
 

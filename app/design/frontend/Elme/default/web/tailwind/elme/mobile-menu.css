@@ -1,0 +1,193 @@
+@layer components {
+    /*
+     * FE-09: mobile menu drawer (full-bleed off-canvas + drill-down panels).
+     * Sub-panels sit next to the root panel and slide over it inside .elme-mobile-menu__panels.
+     */
+    /* Full-viewport dialog; white shell is the drawer. Overlay click = dialog itself. */
+    .elme-mobile-menu {
+        position: fixed;
+        inset: 0;
+        width: auto;
+        max-width: none;
+        max-inline-size: none;
+        height: auto;
+        max-height: none;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        overflow: hidden;
+    }
+
+    .elme-mobile-menu[open] {
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    .elme-mobile-menu::backdrop {
+        background-color: color-mix(in oklab, var(--color-ink) 40%, transparent);
+        opacity: 0;
+        transition: opacity 280ms ease-out;
+    }
+
+    .elme-mobile-menu.is-shown::backdrop {
+        opacity: 1;
+    }
+
+    /* Phone: full-screen sheet. From md, a left drawer with room to tap the scrim. */
+    .elme-mobile-menu__shell.elme-drawer {
+        position: relative;
+        width: 100%;
+        max-inline-size: 100%;
+        height: 100%;
+        margin: 0;
+        background-color: var(--color-surface);
+        transform: translateX(-100%);
+        transition: transform 280ms ease-out;
+    }
+
+    .elme-mobile-menu.is-shown .elme-mobile-menu__shell {
+        transform: none;
+    }
+
+    @variant md {
+        .elme-mobile-menu__shell.elme-drawer {
+            width: min(24rem, calc(100% - --spacing(12)));
+        }
+    }
+
+    .elme-mobile-menu__panels {
+        position: relative;
+    }
+
+    .elme-mobile-menu__panel--root {
+        transition: transform 280ms ease-out;
+    }
+
+    /* Block root list while a sub-panel is open; nested panels re-enable hits. */
+    .elme-mobile-menu__panel--root.is-covered {
+        pointer-events: none;
+        transform: translateX(-24%);
+    }
+
+    .elme-mobile-menu__panel--root.is-covered .elme-mobile-menu__panel {
+        pointer-events: auto;
+    }
+
+    /* Sub-panels are moved next to the root panel (menu.phtml init), so they cover .elme-mobile-menu__panels.
+       Not position: fixed: the shell has no transform once open, and fixed would cover the whole viewport.
+       .elme-mobile-menu__panels is overflow: clip (not hidden) so focus cannot scroll it mid-slide. */
+    .elme-mobile-menu__panel:not(.elme-mobile-menu__panel--root) {
+        position: absolute;
+        inset: 0;
+        z-index: 60;
+        background-color: var(--color-surface);
+        transform: translateX(100%);
+        pointer-events: none;
+        transition: transform 280ms ease-out;
+    }
+
+    .elme-mobile-menu__panel:not(.elme-mobile-menu__panel--root).is-open {
+        transform: none;
+        pointer-events: auto;
+    }
+
+    .elme-mobile-menu__list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Koala list: type only, no rules between rows or around the chrome. */
+    .elme-mobile-menu .elme-drawer__header,
+    .elme-mobile-menu .elme-drawer__footer,
+    .elme-mobile-menu__sub-header,
+    .elme-mobile-menu__list > li,
+    .elme-mobile-menu__footer-list > li {
+        border: 0;
+    }
+
+    .elme-mobile-nav .main-menu__link::before,
+    .elme-mobile-nav .main-menu__link::after,
+    .elme-mobile-menu .main-menu__link::before,
+    .elme-mobile-menu .main-menu__link::after,
+    .elme-mobile-menu .main-menu__inner-link::before,
+    .elme-mobile-menu .main-menu__inner-link::after {
+        content: none;
+    }
+
+    .elme-mobile-menu__row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: --spacing(3);
+        width: 100%;
+        min-height: --spacing(11);
+        padding-block: --spacing(4);
+        padding-inline: --spacing(5);
+        margin: 0;
+        color: var(--color-ink);
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
+        font-weight: 500;
+        text-align: start;
+        text-decoration: none;
+        text-transform: capitalize;
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+    }
+
+    .elme-mobile-menu__row:hover,
+    .elme-mobile-menu__row:focus-visible {
+        color: var(--color-ink);
+        text-decoration: none;
+    }
+
+    .elme-mobile-menu__chevron {
+        display: inline-flex;
+        color: var(--color-primary);
+        flex-shrink: 0;
+    }
+
+    .elme-mobile-menu__view-all {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-height: --spacing(11);
+        padding-block: --spacing(4);
+        padding-inline: --spacing(5);
+        color: var(--color-ink);
+        font-size: var(--text-base);
+        font-weight: 500;
+        text-decoration: underline;
+        text-underline-offset: 0.15em;
+    }
+
+    .elme-mobile-menu__view-all:hover {
+        text-decoration: none;
+    }
+
+    .elme-mobile-menu__footer {
+        padding: 0;
+    }
+
+    .elme-mobile-menu__footer-list {
+        background-color: var(--color-surface);
+    }
+
+    html.elme-mobile-menu-open {
+        overflow: hidden;
+        /* preflight reserves a scrollbar gutter; drop it so the sheet reaches the screen edge */
+        scrollbar-gutter: auto;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .elme-mobile-menu::backdrop,
+        .elme-mobile-menu__shell.elme-drawer,
+        .elme-mobile-menu__panel--root,
+        .elme-mobile-menu__panel:not(.elme-mobile-menu__panel--root) {
+            transition: none;
+        }
+    }
+}
