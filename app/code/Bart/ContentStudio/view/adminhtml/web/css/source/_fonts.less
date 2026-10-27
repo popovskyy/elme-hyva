@@ -8,6 +8,11 @@
 //  module rather than referenced across areas because adminhtml cannot resolve
 //  a frontend theme's assets.
 //
+//  Module notation in url(), not `../fonts/`: this partial is also compiled
+//  into the backend theme's own styles.css (Magento @magento_imports every
+//  module's css/source/_module.less), where a relative path points at the
+//  backend theme and 404s. ModuleNotation rewrites it for either stylesheet.
+//
 //  Karla is a grotesque with actual personality - slightly condensed, open
 //  apertures, a distinctive `a` and `g` - so the editor reads as a considered
 //  tool rather than another Inter/Roboto admin panel. DM Serif Display appears
@@ -20,7 +25,7 @@
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: url('../fonts/Karla/Karla-Regular.woff2') format('woff2');
+    src: url('Bart_ContentStudio::fonts/Karla/Karla-Regular.woff2') format('woff2');
 }
 
 @font-face {
@@ -28,7 +33,7 @@
     font-style: normal;
     font-weight: 500;
     font-display: swap;
-    src: url('../fonts/Karla/Karla-Medium.woff2') format('woff2');
+    src: url('Bart_ContentStudio::fonts/Karla/Karla-Medium.woff2') format('woff2');
 }
 
 @font-face {
@@ -36,7 +41,7 @@
     font-style: normal;
     font-weight: 600;
     font-display: swap;
-    src: url('../fonts/Karla/Karla-SemiBold.woff2') format('woff2');
+    src: url('Bart_ContentStudio::fonts/Karla/Karla-SemiBold.woff2') format('woff2');
 }
 
 @font-face {
@@ -44,7 +49,7 @@
     font-style: normal;
     font-weight: 700;
     font-display: swap;
-    src: url('../fonts/Karla/Karla-Bold.woff2') format('woff2');
+    src: url('Bart_ContentStudio::fonts/Karla/Karla-Bold.woff2') format('woff2');
 }
 
 @font-face {
@@ -52,5 +57,5 @@
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: url('../fonts/DMSerifDisplay/DMSerifDisplay-Regular.woff2') format('woff2');
+    src: url('Bart_ContentStudio::fonts/DMSerifDisplay/DMSerifDisplay-Regular.woff2') format('woff2');
 }
