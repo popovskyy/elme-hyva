@@ -264,9 +264,9 @@ define([
      * be one the entry is actually assigned to: the preview asks for
      * `all_stores` (so every brand is switchable), which makes `targets[0]`
      * the first active store view in the system rather than one this entry
-     * belongs to - an entry scoped to Sleeping Giant alone would otherwise
-     * open under James Lane's theme, the exact confusion the picker exists to
-     * prevent. `storeIds` of `[0]` means "all", matches nothing here, and
+     * belongs to - an entry scoped to a second store view alone would
+     * otherwise open under the first one's theme, the exact confusion the
+     * picker exists to prevent. `storeIds` of `[0]` means "all", matches nothing here, and
      * correctly falls through to the first active view.
      *
      * @param {Object} ctx - The editor's mutable state and dom refs.
