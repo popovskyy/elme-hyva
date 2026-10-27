@@ -15,7 +15,10 @@
         "src": "app/code/Elme/Theme"
       },
       {
-        "src": "app/code/Bart/ContentStudio"
+        "src": "app/code/Bart/ContentStudio/view/frontend"
+      },
+      {
+        "src": "app/code/Bart/ContentStudio/Controller/Adminhtml/Entry/PreviewFrame.php"
       }
     ],
     "exclude": [
