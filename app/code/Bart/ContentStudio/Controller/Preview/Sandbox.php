@@ -7,6 +7,7 @@ namespace Bart\ContentStudio\Controller\Preview;
 use Bart\ContentStudio\Model\Preview\DraftContext;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\ActionInterface;
+use Magento\Framework\App\ViewInterface;
 use Magento\Framework\Controller\Result\ForwardFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\View\Result\PageFactory;
@@ -26,14 +27,28 @@ use Magento\Framework\View\Result\PageFactory;
 class Sandbox implements ActionInterface, HttpGetActionInterface
 {
     /**
+     * `$view` is not used here, only created before the result page. The
+     * legacy App\View builds a Result\Page of its own when it is constructed,
+     * and every Result\Page puts its builder into the shared Page\Config. A
+     * controller that extends Action gets App\View early through its Context;
+     * this one would get it during layout generation instead (a
+     * Magento_Swatches product renderer in the default layout asks for it),
+     * and the late builder makes Magento build the layout a second time. The
+     * second build leaves Hyva's head.additional scripts (BASE_URL, the `hyva`
+     * object) without a parent, so the page ships without them and every
+     * Alpine component on it fails.
+     *
      * @param DraftContext $draftContext
      * @param PageFactory $resultPageFactory
      * @param ForwardFactory $resultForwardFactory
+     * @param ViewInterface $view
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function __construct(
         private readonly DraftContext $draftContext,
         private readonly PageFactory $resultPageFactory,
-        private readonly ForwardFactory $resultForwardFactory
+        private readonly ForwardFactory $resultForwardFactory,
+        ViewInterface $view
     ) {
     }
 
