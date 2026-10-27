@@ -17,7 +17,9 @@ use Bart\ContentStudio\Model\Schema\SchemaValidator;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Exception\CouldNotSaveException;
+use Magento\Framework\UrlInterface;
 use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -342,6 +344,42 @@ class ImportTest extends TestCase
         $this->import->importBatch([$this->payload('hero', ['sg'])]);
     }
 
+    /**
+     * Export collapses a value that starts with a media base URL into
+     * `{{media url="..."}}`, and an image or url field rejects that form. The
+     * import has to expand it back before validation, or an exported ZIP with
+     * one uploaded image cannot be imported anywhere.
+     */
+    public function testAMediaDirectiveIsExpandedToThisSitesMediaUrlBeforeValidation(): void
+    {
+        $store = $this->createMock(Store::class);
+        $store->method('getBaseUrl')->with(UrlInterface::URL_TYPE_MEDIA)->willReturn('https://elme.test/media/');
+        $this->storeManager = $this->createMock(StoreManagerInterface::class);
+        $this->storeManager->method('getStore')->willReturnCallback(
+            fn ($code = null): StoreInterface => $code === 'sg' ? $this->storeWithId(2) : $store
+        );
+
+        $expanded = [
+            'image' => 'https://elme.test/media/bart_content_studio/a b.jpg',
+            'items' => [['link' => 'https://elme.test/media/catalogue.pdf']],
+            'text' => 'Inline {{media url="kept.jpg"}} stays for the render filter.',
+            'count' => 3,
+        ];
+        $validator = $this->createMock(SchemaValidator::class);
+        $validator->expects($this->once())->method('normalize')->with(self::TYPE, $expanded)->willReturnArgument(1);
+        $validator->expects($this->once())->method('validate')->with(self::TYPE, $expanded)->willReturn([]);
+        $this->replaceValidator($validator);
+
+        $report = $this->import->importBatch([$this->payload('hero', ['sg'], [
+            'image' => '{{media url="bart_content_studio/a b.jpg"}}',
+            'items' => [['link' => '{{media url="catalogue.pdf"}}']],
+            'text' => 'Inline {{media url="kept.jpg"}} stays for the render filter.',
+            'count' => 3,
+        ])]);
+
+        $this->assertSame('created', $report[0]['status']);
+    }
+
     public function testAnEmptyBatchCommitsNothingInteresting(): void
     {
         $this->connection->expects($this->once())->method('commit');
@@ -420,12 +458,21 @@ class ImportTest extends TestCase
                     throw new \Magento\Framework\Exception\NoSuchEntityException(__('No such store.'));
                 }
 
-                $store = $this->createMock(StoreInterface::class);
-                $store->method('getId')->willReturn($codeToId[(string)$code]);
-
-                return $store;
+                return $this->storeWithId($codeToId[(string)$code]);
             }
         );
+    }
+
+    /**
+     * @param int $storeId
+     * @return StoreInterface&MockObject
+     */
+    private function storeWithId(int $storeId): StoreInterface
+    {
+        $store = $this->createMock(StoreInterface::class);
+        $store->method('getId')->willReturn($storeId);
+
+        return $store;
     }
 
     /**

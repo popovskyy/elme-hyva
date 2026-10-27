@@ -14,6 +14,7 @@ use Bart\ContentStudio\Model\Schema\SchemaValidator;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\UrlInterface;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -28,6 +29,11 @@ use Magento\Store\Model\StoreManagerInterface;
  */
 class Import
 {
+    // Exactly what Export::collapseMediaUrl() writes, and nothing around it.
+    private const MEDIA_DIRECTIVE_PATTERN = '~^\{\{media url="(.*)"\}\}$~s';
+
+    private ?string $mediaBaseUrl = null;
+
     /**
      * @param EntryFactory $entryFactory
      * @param EntryRepositoryInterface $entryRepository
@@ -112,7 +118,7 @@ class Import
 
         $warnings = [];
         $storeIds = $this->resolveStoreIds((array)($payload['stores'] ?? []), $warnings);
-        $data = is_array($payload['data'] ?? null) ? $payload['data'] : [];
+        $data = is_array($payload['data'] ?? null) ? $this->expandMedia($payload['data']) : [];
         $normalized = $this->validator->normalize($typeCode, $data);
         $errors = $this->validator->validate($typeCode, $normalized);
 
@@ -236,6 +242,41 @@ class Import
         } catch (\Exception $e) {
             return null;
         }
+    }
+
+    /**
+     * The inverse of Export::collapseMedia(): a value that is exactly
+     * `{{media url="..."}}` becomes this site's media URL again, the same
+     * absolute URL an upload in the editor stores. Without it an image or url
+     * field fails validation ("must start with /, http:// or https://") and the
+     * whole ZIP is refused. A directive inside a longer text is left alone;
+     * Block\Entry resolves it on render.
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    private function expandMedia(mixed $value): mixed
+    {
+        if (is_string($value) && preg_match(self::MEDIA_DIRECTIVE_PATTERN, $value, $match)) {
+            return $this->getMediaBaseUrl() . '/' . $match[1];
+        }
+
+        if (is_array($value)) {
+            return array_map(fn ($item) => $this->expandMedia($item), $value);
+        }
+
+        return $value;
+    }
+
+    /**
+     * @return string
+     */
+    private function getMediaBaseUrl(): string
+    {
+        return $this->mediaBaseUrl ??= rtrim(
+            $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA),
+            '/'
+        );
     }
 
     /**

@@ -13,11 +13,11 @@ use Magento\Store\Model\StoreManagerInterface;
  * Builds a portable export payload for one entry.
  *
  * Store assignment is exported as codes, not ids - ids are meaningless
- * across environments (see plan section 9). Absolute media URLs are collapsed to
- * `{{media url="..."}}`; the render pipeline (Block\Entry::getConfigJson())
- * already resolves that directive per-request, so import does not need to
- * expand it back - storing it raw is the portable, correct form, same as a
- * CMS block's own content.
+ * across environments (see plan section 9). A value that starts with a media
+ * base URL is collapsed to `{{media url="..."}}`, so the file names no domain.
+ * Import::expandMedia() turns it back into the importing site's media URL
+ * before validation: image and url fields accept only "/", "http://" and
+ * "https://", and the editor needs a real URL to show the image.
  */
 class Export
 {
