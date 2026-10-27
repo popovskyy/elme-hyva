@@ -72,8 +72,11 @@ Only `code` and `label` are required. `standalone="true"` makes it appear in the
 **2. The template**, as named in `template`. It receives `$block` =
 `Bart\ContentStudio\Block\Entry`; `$block->getContent()` is the entry data.
 Tailwind and tokens only (`app/design/frontend/Elme/default/web/tailwind/
-hyva.config.json`); `Elme_Theme` and `Bart_ContentStudio` are both in that
-file's `tailwind.include`, so classes in their templates are compiled. Rebuild
+hyva.config.json`); `Elme_Theme` is in that file's `tailwind.include`, so
+classes in its templates are compiled. Of this module only `view/frontend` and
+`Controller/Adminhtml/Entry/PreviewFrame.php` are included: the whole module
+would also scan this file and the admin JS, and any word there that is a
+utility name (`snap`, `invert`) would land in the storefront CSS. Rebuild
 the theme CSS after a template change (`npm run build` in the theme's
 `web/tailwind`).
 
@@ -456,6 +459,7 @@ Built like Page Builder's own `block` type (`vendor/magento/module-page-builder`
 |---|---|
 | `view/adminhtml/pagebuilder/content_type/content_studio.xml` | the type: `menu_section="add_content"`, parents `root-container` `row` `column` `tab-item`, Block's style properties |
 | `view/adminhtml/ui_component/bart_content_studio_pagebuilder_form.xml` | edit form: Page Builder's `block-chooser` + a hidden `identifier` |
+| `view/adminhtml/layout/bart_content_studio_pagebuilder_form.xml` | the form's layout handle; Page Builder loads the form through `mui/index/render_handle` with `handle=<form name>` |
 | `view/adminhtml/ui_component/bart_content_studio_pagebuilder_select_grid.xml` | the picker grid, searchable by title and identifier |
 | `Ui/DataProvider/PageBuilderSelectDataProvider.php` | narrows the picker to `standalone="true"` types, the widget chooser's set |
 | `Controller/Adminhtml/Pagebuilder/Metadata.php` | title, type and status of one identifier (default store view); `[]` = not found |
@@ -508,7 +512,7 @@ message.
 | `etc/content_types.xml` / `.xsd` | the schema; this module declares no types (Elme's: `Elme_Theme/etc/content_types.xml`) |
 | `Model/Schema/` | reader -> converter -> cached `Data` -> `Config` facade |
 | `Model/Entry*`, `Model/ResourceModel/` | entity, store scoping, optimistic locking |
-| `Model/ImportExport/` | JSON/ZIP export + import, all-or-nothing |
+| `Model/ImportExport/` | JSON/ZIP export + import, all-or-nothing. Export collapses a value that starts with a media base URL to `{{media url="..."}}`; import expands exactly that form back to the importing site's media URL before validation (image and url fields accept only `/`, `http://`, `https://`) |
 | `Block/Entry.php` | storefront renderer; also the `bart_content_studio_entry` widget |
 | `Model/Preview/` | draft token storage, request context, storefront target resolution |
 | `Plugin/Preview/DraftEntryPlugin.php` | serves the draft in place of the stored entry (frontend only) |
@@ -677,6 +681,13 @@ class directly (`$om->get(...)`/`$om->create(...)`).
 
 ## Traps that have already cost time
 
+- **A Page Builder form needs a layout handle with its own name.** Page Builder
+  asks `mui/index/render_handle/?namespace=<form>&handle=<form>`; without
+  `view/adminhtml/layout/<form>.xml` (a `<uiComponent>` in `content`, as
+  Page Builder's `pagebuilder_block_form.xml`) the answer is 200 with an empty
+  body, and the "Edit" slide-out spins forever with no error anywhere. A stage
+  element whose content already holds the directive still renders, which hides
+  it.
 - **A frontend controller that does not extend `Action` must still create
   `App\ViewInterface` before its result page.** `Controller\Preview\Sandbox`
   takes it in the constructor and never uses it. Without that, App\View was
