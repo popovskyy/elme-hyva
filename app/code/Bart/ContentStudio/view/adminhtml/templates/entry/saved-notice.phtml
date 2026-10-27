@@ -1,0 +1,18 @@
+<?php
+/**
+ * Carries no markup of its own - the editor redirects here with `?saved=...`
+ * after writing an entry, and this only exists to boot the module that turns
+ * that flag into a toast. Bound with "*" because there is no element to hang
+ * it on; the work is entirely against location.search.
+ *
+ * @var \Magento\Backend\Block\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<script type="text/x-magento-init">
+{
+    "*": {
+        "Bart_ContentStudio/js/grid/saved-notice": {}
+    }
+}
+</script>

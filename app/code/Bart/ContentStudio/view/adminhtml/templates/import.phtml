@@ -1,0 +1,52 @@
+<?php
+/**
+ * @var \Bart\ContentStudio\Block\Adminhtml\Import $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<div class="studio-import">
+    <form id="studio-import-form"
+          class="studio-import__form"
+          action="<?= $escaper->escapeUrl($block->getImportUrl()) ?>"
+          method="post"
+          enctype="multipart/form-data">
+        <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>"/>
+
+        <label class="studio-import__dropzone" id="studio-import-dropzone" for="studio-import-file">
+            <input type="file" id="studio-import-file" name="import_file" accept=".json,.zip" hidden/>
+            <span class="studio-import__dropzone-label" data-import-filename>
+                <?= $escaper->escapeHtml(__('Drop a .json or .zip export here, or click to browse')) ?>
+            </span>
+        </label>
+
+        <div class="studio-meta-bar">
+            <label class="studio-meta-bar__field">
+                <span class="studio-field__label"><?= $escaper->escapeHtml(__('Import Mode')) ?></span>
+                <select name="import_mode" class="studio-input studio-select">
+                    <?php foreach ($block->getImportModeOptions() as $option): ?>
+                        <option value="<?= $escaper->escapeHtmlAttr($option['value']) ?>">
+                            <?= $escaper->escapeHtml((string)$option['label']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </label>
+        </div>
+
+        <div class="studio-import__actions">
+            <a class="studio-btn" href="<?= $escaper->escapeUrl($block->getBackUrl()) ?>">
+                <?= $escaper->escapeHtml(__('Back')) ?>
+            </a>
+            <button type="submit" class="studio-btn studio-btn--primary" id="studio-import-submit" disabled>
+                <?= $escaper->escapeHtml(__('Import')) ?>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script type="text/x-magento-init">
+{
+    "#studio-import-form": {
+        "Bart_ContentStudio/js/import": {}
+    }
+}
+</script>

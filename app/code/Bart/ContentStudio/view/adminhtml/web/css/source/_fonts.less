@@ -1,0 +1,56 @@
+//
+//  Content Studio typography.
+//
+//  Karla (UI) and DM Serif Display (editorial accents) are both OFL and were
+//  already shipping in the Elme Living frontend theme, so nothing is fetched
+//  from a CDN - the admin keeps working offline and under CSP, which was the
+//  original reason for self-hosting (plan section 11). The files are copied into this
+//  module rather than referenced across areas because adminhtml cannot resolve
+//  a frontend theme's assets.
+//
+//  Karla is a grotesque with actual personality - slightly condensed, open
+//  apertures, a distinctive `a` and `g` - so the editor reads as a considered
+//  tool rather than another Inter/Roboto admin panel. DM Serif Display appears
+//  only at brand moments (splash, top bar, panel titles): a little editorial
+//  weight where the eye lands first, never in dense UI.
+//
+
+@font-face {
+    font-family: 'Karla';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('../fonts/Karla/Karla-Regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Karla';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('../fonts/Karla/Karla-Medium.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Karla';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('../fonts/Karla/Karla-SemiBold.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Karla';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('../fonts/Karla/Karla-Bold.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'DM Serif Display';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('../fonts/DMSerifDisplay/DMSerifDisplay-Regular.woff2') format('woff2');
+}

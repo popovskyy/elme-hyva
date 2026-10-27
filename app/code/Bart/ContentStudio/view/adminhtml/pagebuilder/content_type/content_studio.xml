@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<!--
+    "Content Studio" in Page Builder's Add Content section, next to Block.
+
+    Built like Page Builder's own `block` type (Magento_PageBuilder
+    content_type/block.xml): the saved HTML is a widget directive, the same one
+    the "Content Studio Entry" widget inserts, so the storefront renders it
+    through Block\Entry with no Page Builder JS. The stage shows the entry in an
+    <iframe> of entry/previewFrame instead of pasting its HTML into the admin
+    page: the theme's styles.css would restyle the whole admin, and without it
+    the entry is unstyled.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_PageBuilder:etc/content_type.xsd">
+    <type name="content_studio"
+          label="Content Studio"
+          component="Magento_PageBuilder/js/content-type"
+          preview_component="Bart_ContentStudio/js/content-type/content-studio/preview"
+          form="bart_content_studio_pagebuilder_form"
+          menu_section="add_content"
+          icon="cs-pagebuilder-icon"
+          sortOrder="2"
+          translate="label">
+        <parents default_policy="deny">
+            <parent name="root-container" policy="allow"/>
+            <parent name="row" policy="allow"/>
+            <parent name="column" policy="allow"/>
+            <parent name="tab-item" policy="allow"/>
+        </parents>
+        <children default_policy="deny"/>
+        <appearances>
+            <appearance default="true"
+                        name="default"
+                        preview_template="Bart_ContentStudio/content-type/content-studio/default/preview"
+                        master_template="Bart_ContentStudio/content-type/content-studio/default/master"
+                        reader="Magento_PageBuilder/js/master-format/read/configurable">
+                <elements>
+                    <element name="main">
+                        <style name="text_align" source="text_align"/>
+                        <style name="border" source="border_style" converter="Magento_PageBuilder/js/converter/style/border-style"/>
+                        <style name="border_color" source="border_color"/>
+                        <style name="border_width" source="border_width" converter="Magento_PageBuilder/js/converter/style/border-width"/>
+                        <style name="border_radius" source="border_radius" converter="Magento_PageBuilder/js/converter/style/remove-px"/>
+                        <style name="display" source="display" converter="Magento_PageBuilder/js/converter/style/display" preview_converter="Magento_PageBuilder/js/converter/style/preview/display"/>
+                        <style name="margins" storage_key="margins_and_padding" reader="Magento_PageBuilder/js/property/margins" converter="Magento_PageBuilder/js/converter/style/margins"/>
+                        <style name="padding" storage_key="margins_and_padding" reader="Magento_PageBuilder/js/property/paddings" converter="Magento_PageBuilder/js/converter/style/paddings"/>
+                        <attribute name="name" source="data-content-type"/>
+                        <attribute name="appearance" source="data-appearance"/>
+                        <html name="html"/>
+                        <css name="css_classes"/>
+                    </element>
+                </elements>
+                <converters>
+                    <converter component="Bart_ContentStudio/js/content-type/content-studio/mass-converter/widget-directive"
+                               name="widget_directive">
+                        <config>
+                            <item name="html_variable" value="html"/>
+                        </config>
+                    </converter>
+                </converters>
+            </appearance>
+        </appearances>
+        <additional_data>
+            <item name="chooserConfig" xsi:type="array">
+                <item name="dataUrl" xsi:type="object">Bart\ContentStudio\Model\PageBuilder\MetadataUrl</item>
+            </item>
+            <item name="previewConfig" xsi:type="array">
+                <item name="frameUrl" xsi:type="object">Bart\ContentStudio\Model\PageBuilder\PreviewFrameUrl</item>
+                <item name="metadataUrl" xsi:type="object">Bart\ContentStudio\Model\PageBuilder\MetadataUrl</item>
+            </item>
+        </additional_data>
+    </type>
+</config>

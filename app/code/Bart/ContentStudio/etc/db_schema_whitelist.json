@@ -1,0 +1,37 @@
+{
+    "bart_content_studio_entry": {
+        "column": {
+            "entry_id": true,
+            "identifier": true,
+            "type": true,
+            "title": true,
+            "is_active": true,
+            "data": true,
+            "version": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "index": {
+            "BART_CONTENT_STUDIO_ENTRY_IDENTIFIER": true,
+            "BART_CONTENT_STUDIO_ENTRY_TYPE": true,
+            "BART_CONTENT_STUDIO_ENTRY_TITLE_IDENTIFIER": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "bart_content_studio_entry_store": {
+        "column": {
+            "entry_id": true,
+            "store_id": true
+        },
+        "index": {
+            "BART_CS_ENTRY_STORE_STORE_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "BART_CS_ENTRY_STORE_ENTRY_ID_BART_CS_ENTRY_ENTRY_ID": true,
+            "BART_CS_ENTRY_STORE_STORE_ID_STORE_STORE_ID": true
+        }
+    }
+}

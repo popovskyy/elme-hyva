@@ -1,0 +1,46 @@
+<?php
+/**
+ * @var \Bart\ContentStudio\Block\Preview\Sandbox $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$entryHtml = $block->getEntryHtml();
+$typeLabel = $block->getTypeLabel();
+$expiresAt = $block->getExpiresAt();
+?>
+<?php // Fixed and out of the flow, so the block below starts exactly where it
+      // would on a real page and this cannot be mistaken for part of the
+      // design. z-50 keeps it above the sticky header (z-30) and its menus.
+      // The outer bar only centres; it lets clicks through to the page. ?>
+<div class="pointer-events-none fixed inset-x-4 bottom-4 z-50 flex justify-center">
+    <aside class="pointer-events-auto flex min-w-0 items-center gap-2 rounded-full bg-primary px-4 py-2
+                  text-note text-on-primary shadow-lg [&.is-expired]:bg-error-strong"
+           aria-label="<?= $escaper->escapeHtmlAttr(__('Draft preview')) ?>">
+        <span class="size-2 shrink-0 animate-pulse rounded-full bg-secondary motion-reduce:animate-none"
+              aria-hidden="true"></span>
+        <span class="shrink-0 font-bold uppercase tracking-wider"><?= $escaper->escapeHtml(__('Draft')) ?></span>
+        <span class="min-w-0 truncate font-mono"><?= $escaper->escapeHtml($block->getIdentifier()) ?></span>
+        <?php if ($typeLabel !== ''): ?>
+            <span class="hidden shrink-0 opacity-60 md:inline" aria-hidden="true">&middot;</span>
+            <span class="hidden shrink-0 md:inline"><?= $escaper->escapeHtml($typeLabel) ?></span>
+        <?php endif; ?>
+        <?php if ($expiresAt > 0): ?>
+            <span class="shrink-0 opacity-60" aria-hidden="true">&middot;</span>
+            <?php // badge.js counts this down and adds `is-expired` to the capsule. ?>
+            <span class="shrink-0 tabular-nums"
+                  data-cs-expires="<?= (int)$expiresAt ?>"
+                  data-label-expired="<?= $escaper->escapeHtmlAttr(__('link expired')) ?>">
+                <?= $escaper->escapeHtml(__('unsaved')) ?>
+            </span>
+        <?php endif; ?>
+    </aside>
+</div>
+
+<?php if ($entryHtml === ''): ?>
+    <?php // Reachable only when the type's own template rendered nothing, e.g.
+          // a required field is still empty. ?>
+    <p class="py-12 text-center text-ink-muted">
+        <?= $escaper->escapeHtml(__('This entry rendered nothing, so there is nothing to preview yet.')) ?>
+    </p>
+<?php else: ?>
+    <?= /* @noEscape */ $entryHtml ?>
+<?php endif; ?>

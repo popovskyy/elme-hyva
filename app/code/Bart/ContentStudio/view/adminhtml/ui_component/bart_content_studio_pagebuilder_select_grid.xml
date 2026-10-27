@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Entry picker for the "Content Studio" Page Builder type, shaped like Page
+    Builder's pagebuilder_block_select_grid. Offers the same set the widget
+    chooser (Block/Adminhtml/Widget/Chooser.php) offers: entries of
+    standalone="true" types only (PageBuilderSelectDataProvider). The search box
+    is the main listing's: title, identifier or a numeric entry ID.
+
+    The single-select column is keyed by `identifier`, not `entry_id`: the
+    identifier is what the widget directive stores.
+-->
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">bart_content_studio_pagebuilder_select_grid.bart_content_studio_pagebuilder_select_grid_data_source</item>
+        </item>
+    </argument>
+    <settings>
+        <spinner>columns</spinner>
+        <deps>
+            <dep>bart_content_studio_pagebuilder_select_grid.bart_content_studio_pagebuilder_select_grid_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="bart_content_studio_pagebuilder_select_grid_data_source">
+        <argument name="data" xsi:type="array">
+            <item name="js_config" xsi:type="array">
+                <item name="component" xsi:type="string">Magento_Ui/js/grid/provider</item>
+            </item>
+        </argument>
+        <settings>
+            <storageConfig>
+                <param name="indexField" xsi:type="string">entry_id</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Bart_ContentStudio::entry</aclResource>
+        <dataProvider class="Bart\ContentStudio\Ui\DataProvider\PageBuilderSelectDataProvider"
+                      name="bart_content_studio_pagebuilder_select_grid_data_source">
+            <settings>
+                <requestFieldName>entry_id</requestFieldName>
+                <primaryFieldName>entry_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <listingToolbar name="listing_top">
+        <filterSearch name="q" class="Bart\ContentStudio\Ui\Component\Listing\Filters\KeywordSearch">
+            <settings>
+                <label translate="true">Search</label>
+                <placeholder translate="true">Search title or identifier...</placeholder>
+            </settings>
+        </filterSearch>
+        <filters name="listing_filters"/>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+    <columns name="columns">
+        <settings>
+            <childDefaults>
+                <param name="clickAction" xsi:type="string">view</param>
+                <param name="actionField" xsi:type="string">actions</param>
+                <param name="controlVisibility" xsi:type="boolean">true</param>
+            </childDefaults>
+        </settings>
+        <column name="entry_id" sortOrder="10">
+            <settings>
+                <label translate="true">ID</label>
+                <filter>textRange</filter>
+                <sorting>desc</sorting>
+            </settings>
+        </column>
+        <column name="title" sortOrder="20">
+            <settings>
+                <dataType>text</dataType>
+                <filter>text</filter>
+                <label translate="true">Title</label>
+            </settings>
+        </column>
+        <column name="identifier" sortOrder="30">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Identifier</label>
+            </settings>
+        </column>
+        <column name="type" component="Magento_Ui/js/grid/columns/select" sortOrder="40">
+            <settings>
+                <filter>select</filter>
+                <options class="Bart\ContentStudio\Model\Config\Source\ContentType"/>
+                <dataType>select</dataType>
+                <label translate="true">Content Type</label>
+            </settings>
+        </column>
+        <column name="is_active" component="Magento_Ui/js/grid/columns/select" sortOrder="50">
+            <settings>
+                <filter>select</filter>
+                <dataType>select</dataType>
+                <label translate="true">Status</label>
+                <options>
+                    <option name="inactive" xsi:type="array">
+                        <item name="value" xsi:type="string">0</item>
+                        <item name="label" xsi:type="string" translate="true">Disabled</item>
+                    </option>
+                    <option name="active" xsi:type="array">
+                        <item name="value" xsi:type="string">1</item>
+                        <item name="label" xsi:type="string" translate="true">Enabled</item>
+                    </option>
+                </options>
+            </settings>
+        </column>
+        <column name="updated_at" class="Magento\Ui\Component\Listing\Columns\Date"
+                component="Magento_Ui/js/grid/columns/date" sortOrder="60">
+            <settings>
+                <filter>dateRange</filter>
+                <dataType>date</dataType>
+                <label translate="true">Updated</label>
+            </settings>
+        </column>
+        <selectionsColumn name="ids" component="Magento_PageBuilder/js/grid/cells/single-select">
+            <settings>
+                <indexField>identifier</indexField>
+            </settings>
+        </selectionsColumn>
+    </columns>
+</listing>

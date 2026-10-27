@@ -1,0 +1,2682 @@
+//
+// Content Studio admin UI.
+//
+// Nothing here targets a bare tag (button, input, select, ...) - Magento admin
+// ships global styles on those selectors, and the only reliable way to keep
+// this module visually independent is to scope every rule to a `.studio-*`
+// class. See plan section 3.
+//
+// Visual direction lives in _tokens.less: warm paper canvas, white cards,
+// eucalyptus for anything actionable. The shape language here follows from
+// that - content sits on floating cards with soft warm shadows, controls are
+// generous (44px), and DM Serif Display appears only where the eye lands
+// first (splash, brand, panel titles) so the dense UI stays in Karla.
+//
+
+@import '_fonts.less';
+@import '_tokens.less';
+@import '_preview.less';
+// After _preview.less: the review stage re-scales rules that file sets.
+@import '_review.less';
+@import '_grid.less';
+@import '_grid-preview.less';
+@import '_targets.less';
+
+// ---------------------------------------------------------------------------
+// Page shell
+//
+// The stock admin .page-wrapper is only as tall as its content and carries a
+// white background, so a short page used to leave a mismatched slab of body
+// colour below it. Filling the viewport fixes that and makes the canvas read
+// as one continuous surface.
+// ---------------------------------------------------------------------------
+
+.studio-page {
+    background: var(--studio-color-canvas);
+
+    .page-wrapper {
+        // menu.wrapper is removed on Studio pages, but Magento's stock rule
+        // still reserves `8.8rem` for it - reclaim the full width.
+        width: 100%;
+        min-height: 100vh;
+        margin-left: 0;
+        padding-right: 0;
+        background: radial-gradient(120% 60% at 50% 0%, #fdfbf7 0%, rgba(253, 251, 247, 0) 60%), var(--studio-color-canvas);
+    }
+}
+
+.studio-editor-page .page-wrapper {
+    // The stock admin content column padding fights a full-bleed 3-pane editor.
+    padding-right: 0;
+}
+
+// ---------------------------------------------------------------------------
+// Full-bleed page reset (see plan section 3a) - bart_content_studio_full_bleed.xml
+// strips the Magento chrome blocks, but Magento's own compiled admin CSS
+// bundle (styles.css / styles-old.css) still ships on every admin page and
+// still styles bare tags. This resets the page to a blank slate so nothing
+// leaks through, scoped to .studio-editor-page so it never touches the rest
+// of the admin.
+//
+// The grid page is deliberately excluded from the bare-tag reset: it renders
+// Magento's own ui_component markup, which *depends* on the stock admin
+// styles for its controls. _grid.less re-skins that markup instead.
+// ---------------------------------------------------------------------------
+
+// Wrapped in :where() so the whole reset carries zero specificity from the
+// page class. Written plainly, `.studio-editor-page button` scores 0-1-1 and
+// beats every single-class component rule below it - which is exactly what
+// happened: the reset's `color: inherit` outranked `.studio-btn--primary`'s
+// own colour, and the Save button rendered dark text on a dark green fill.
+// A reset has to be the weakest thing in the file, not the strongest.
+:where(.studio-editor-page) {
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    ul,
+    ol {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p {
+        margin: 0;
+    }
+
+    img {
+        display: block;
+        max-width: 100%;
+    }
+
+    button {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: none;
+        font: inherit;
+        color: inherit;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Entry splash - the branded moment on arriving in the module.
+//
+// A full-viewport overlay rather than an in-page block, so it covers whatever
+// the page is still assembling underneath (the ui_component grid on the
+// listing, the editor's own skeleton in the editor). splash.js removes it
+// once the page is interactive and only replays it once per browser session,
+// so moving between Studio pages does not re-run the animation every time.
+// ---------------------------------------------------------------------------
+
+.studio-splash {
+    position: fixed;
+    inset: 0;
+    // Above Magento's own page loader overlay (@loader-overlay__z-index: 9999),
+    // otherwise the stock spinner renders on top and the splash is never seen.
+    z-index: 10000;
+    font-family: var(--studio-font-ui);
+
+    // An opaque base under both halves. The halves are each clipped to their
+    // own side and the green one *wipes in* from the right edge, so until the
+    // wipe reaches the seam at 50% there is a vertical band that neither half
+    // covers - and the admin page showed straight through it.
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: var(--studio-color-bg);
+        transition: opacity 504ms var(--studio-ease-out) 168ms;
+    }
+
+    &.is-leaving {
+        pointer-events: none;
+    }
+
+    &.is-leaving::before {
+        opacity: 0;
+    }
+
+    &[hidden] {
+        display: none;
+    }
+}
+
+// Two full-screen copies of the same wordmark, each clipped to one side. They
+// are positioned identically, so the seam cuts through the letters themselves
+// rather than sitting between two separate blocks of text.
+.studio-splash__half {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--studio-space-6);
+    // The exit: see the curtain rules below.
+    transition: transform 560ms var(--studio-ease-in-out);
+}
+
+.studio-splash__half--light {
+    clip-path: inset(0 50% 0 0);
+    background: var(--studio-color-bg);
+    color: var(--studio-color-accent);
+}
+
+// Wipes in from the right edge to the middle: the green side arrives, it does
+// not simply exist. One element, once, on a deliberate hero moment.
+.studio-splash__half--dark {
+    clip-path: inset(0 0 0 50%);
+    background: var(--studio-color-accent);
+    color: var(--studio-color-bg);
+    animation: studio-splash-wipe 744ms var(--studio-ease-out) both;
+}
+
+// Leaving: the wordmark tears along the seam it was already split by and the
+// two halves ride out through opposite edges, so the editor is revealed rather
+// than faded into. 101% rather than 100% - a hairline of the half was still
+// catching the edge at some zoom levels.
+.studio-splash.is-leaving .studio-splash__half--light {
+    transform: translateX(-101%);
+}
+
+.studio-splash.is-leaving .studio-splash__half--dark {
+    transform: translateX(101%);
+}
+
+.studio-splash__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--studio-space-4);
+    text-align: center;
+}
+
+// Wide-tracked caps in the sans, sitting over the serif wordmark: the house
+// name reads as a byline above the product's own title rather than competing
+// with it. Everything cascades top to bottom, ~80ms apart.
+.studio-splash__eyebrow {
+    margin: 0;
+    color: currentColor;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .42em;
+    text-indent: .3em;
+    text-transform: uppercase;
+    opacity: .55;
+    animation: studio-splash-rise 744ms var(--studio-ease-out) both;
+}
+
+.studio-splash__mark {
+    width: 96px;
+    height: 96px;
+    color: currentColor;
+    animation: studio-splash-mark 864ms var(--studio-ease-out) 96ms both;
+}
+
+.studio-splash__title {
+    margin: 0;
+    color: currentColor;
+    font-family: var(--studio-font-display);
+    font-size: ~'clamp(56px, 9.5vw, 128px)';
+    font-weight: 400;
+    letter-spacing: -.02em;
+    line-height: 1.05;
+    white-space: nowrap;
+    animation: studio-splash-reveal 912ms var(--studio-ease-out) 168ms both;
+}
+
+.studio-splash__tagline {
+    margin: 0;
+    max-width: 460px;
+    color: currentColor;
+    font-size: 19px;
+    line-height: 1.5;
+    opacity: .75;
+    animation: studio-splash-rise 744ms var(--studio-ease-out) 360ms both;
+}
+
+.studio-splash__rule {
+    width: 88px;
+    height: 2px;
+    background: currentColor;
+    opacity: .35;
+    transform-origin: center;
+    animation: studio-splash-rule 744ms var(--studio-ease-out) 480ms both;
+}
+
+@keyframes studio-splash-wipe {
+    from {
+        clip-path: inset(0 0 0 100%);
+    }
+
+    to {
+        clip-path: inset(0 0 0 50%);
+    }
+}
+
+@keyframes studio-splash-mark {
+    0% {
+        opacity: 0;
+        transform: scale(.82) translateY(8px);
+    }
+
+    60% {
+        opacity: 1;
+        transform: scale(1.04) translateY(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+// A masked rise: the letters come up from under their own baseline rather than
+// sliding in from nowhere. clip-path is what sells it - without the clip this
+// is just a translate.
+@keyframes studio-splash-reveal {
+    from {
+        opacity: 0;
+        clip-path: inset(0 0 100% 0);
+        transform: translateY(24px);
+    }
+
+    to {
+        opacity: 1;
+        clip-path: inset(-20% -20% -20% -20%);
+        transform: translateY(0);
+    }
+}
+
+@keyframes studio-splash-rise {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes studio-splash-rule {
+    from {
+        opacity: 0;
+        transform: scaleX(0);
+    }
+
+    to {
+        opacity: 1;
+        transform: scaleX(1);
+    }
+}
+
+// Motion here is decorative, so under reduced-motion the splash simply is -
+// no entrance, no fade-out travel.
+@media (prefers-reduced-motion: reduce) {
+    .studio-splash__half--dark,
+    .studio-splash__eyebrow,
+    .studio-splash__mark,
+    .studio-splash__title,
+    .studio-splash__tagline,
+    .studio-splash__rule {
+        animation: none;
+    }
+
+    .studio-splash__half,
+    .studio-splash::before {
+        transition: none;
+    }
+
+    // No curtain - it would jump rather than travel.
+    .studio-splash.is-leaving .studio-splash__half--light,
+    .studio-splash.is-leaving .studio-splash__half--dark {
+        transform: none;
+    }
+
+    .studio-splash.is-leaving {
+        opacity: 0;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Top bar (see plan section 3a) - the only chrome left on the full-bleed pages.
+// ---------------------------------------------------------------------------
+
+.studio-topbar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 52px;
+    gap: var(--studio-space-3);
+    padding: var(--studio-space-4) var(--studio-space-6) var(--studio-space-2);
+    font-family: var(--studio-font-ui);
+}
+
+.studio-topbar__title {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--studio-space-2);
+    padding: var(--studio-space-2);
+    border-radius: var(--studio-radius-sm);
+    color: var(--studio-color-text);
+    font-family: var(--studio-font-display);
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: -.01em;
+}
+
+// Centred against the bar itself, not against whatever else is in the row, so
+// the wordmark stays put whether the page shows a back link or a plain title.
+.studio-topbar__center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+// Below this the absolute wordmark would start colliding with the button.
+@media (max-width: 640px) {
+    .studio-topbar__center {
+        position: static;
+        transform: none;
+        margin-left: auto;
+    }
+
+    // Framed in a modal there is no button to collide with - both links are
+    // suppressed - so `margin-left: auto` would push the wordmark, the bar's
+    // only content, hard against the right edge.
+    .studio-topbar--embedded .studio-topbar__center {
+        margin-right: auto;
+    }
+}
+
+// The reset is intentionally weightless (:where), and Magento's own
+// `a:hover { text-decoration: underline }` scores 0-1-1, so every link
+// component has to hold its own underline off at two classes or more -
+// relying on the reset would give a stray underline on hover.
+.studio-topbar__exit,
+.studio-topbar__exit:hover,
+.studio-topbar__exit:focus,
+.studio-topbar__admin-exit,
+.studio-topbar__admin-exit:hover,
+.studio-topbar__admin-exit:focus {
+    text-decoration: none;
+}
+
+// The one way back into the module from inside the editor, so it has to look
+// like something you can press. Outlined rather than filled: Save is the
+// filled accent button on this screen, and this should not compete with it.
+.studio-topbar__exit {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--studio-space-2);
+    min-height: 36px;
+    padding: 0 var(--studio-space-4);
+    border: 1px solid var(--studio-color-accent);
+    border-radius: 999px;
+    background: var(--studio-color-surface);
+    box-shadow: var(--studio-shadow-sm);
+    color: var(--studio-color-accent);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .01em;
+    white-space: nowrap;
+    transition: color var(--studio-duration-fast) var(--studio-ease-out),
+        background var(--studio-duration-fast) var(--studio-ease-out),
+        box-shadow var(--studio-duration-fast) var(--studio-ease-out),
+        transform var(--studio-duration-fast) var(--studio-ease-out);
+
+    &:hover {
+        background: var(--studio-color-accent);
+        box-shadow: var(--studio-shadow-md);
+        color: var(--studio-color-accent-contrast);
+    }
+
+    &:active {
+        transform: scale(.97);
+    }
+}
+
+.studio-topbar__exit-icon {
+    width: 14px;
+    height: 14px;
+    color: currentColor;
+}
+
+// Quieter than .studio-topbar__exit on purpose - leaving the module for core
+// admin is a rarer, lower-stakes action than going back to the listing, and
+// pushed to the bar's own right edge (`margin-left: auto`) so it never
+// contests the left slot, whether or not that slot's back link is showing.
+.studio-topbar__admin-exit {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--studio-space-2);
+    margin-left: auto;
+    padding: var(--studio-space-2) var(--studio-space-3);
+    border-radius: var(--studio-radius-sm);
+    color: var(--studio-color-text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: color var(--studio-duration-fast) var(--studio-ease-out),
+        background var(--studio-duration-fast) var(--studio-ease-out);
+
+    // Restated on :hover/:focus for the same reason .studio-topbar__exit's
+    // old sibling rule used to be - Magento's `a:hover { color }` is 0-1-1
+    // and would otherwise win over this 0-1-0 rule and turn admin blue.
+    &:hover,
+    &:focus {
+        background: var(--studio-color-sunken);
+        color: var(--studio-color-text);
+    }
+}
+
+.studio-topbar__admin-exit-icon {
+    width: 13px;
+    height: 13px;
+    color: currentColor;
+}
+
+.studio-topbar__mark {
+    width: 20px;
+    height: 20px;
+    color: var(--studio-color-accent);
+}
+
+.studio-editor {
+    font-family: var(--studio-font-ui);
+    color: var(--studio-color-text);
+}
+
+// ---------------------------------------------------------------------------
+// Skeleton (see plan section 11) - shown until editor/state.js mounts the real UI.
+// ---------------------------------------------------------------------------
+
+.studio-editor__skeleton,
+.studio-editor__root {
+    opacity: 1;
+    filter: blur(0);
+    transition: opacity var(--studio-duration-fast) var(--studio-ease-out),
+        filter var(--studio-duration-fast) var(--studio-ease-out);
+
+    &.is-view-fading {
+        opacity: 0;
+        filter: blur(2px);
+    }
+}
+
+.studio-editor__skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: var(--studio-space-4);
+    padding: var(--studio-space-4) var(--studio-space-6);
+}
+
+.studio-editor__skeleton-body {
+    display: grid;
+    grid-template-columns: 220px 1fr 380px;
+    gap: var(--studio-space-5);
+    align-items: start;
+}
+
+.studio-skeleton {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--studio-radius-md);
+    background: var(--studio-color-sunken);
+
+    // Shimmer travels on transform, not background-position: it composites,
+    // and a listing can have a dozen of these on screen at once (plan section 11).
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        transform: translateX(-100%);
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .75), transparent);
+        animation: studio-shimmer 1.4s infinite;
+    }
+
+    &--toolbar {
+        height: 56px;
+    }
+
+    &--outline,
+    &--fields,
+    &--preview {
+        height: 520px;
+    }
+}
+
+@keyframes studio-shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .studio-skeleton::after {
+        animation: none;
+    }
+}
+
+.studio-editor__root[hidden],
+.studio-editor__skeleton[hidden] {
+    display: none;
+}
+
+// ---------------------------------------------------------------------------
+// Type picker ("New entry")
+// ---------------------------------------------------------------------------
+
+// One registered type used to sit alone against the left edge of a very wide,
+// otherwise empty page. Centring the column and capping card width keeps the
+// page balanced whether there is one type or a dozen.
+.studio-type-picker {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: var(--studio-space-6) var(--studio-space-6) var(--studio-space-7);
+    font-family: var(--studio-font-ui);
+}
+
+
+.studio-type-picker__head {
+    margin-bottom: var(--studio-space-6);
+    text-align: center;
+}
+
+.studio-type-picker__heading {
+    margin: 0 0 var(--studio-space-2);
+    color: var(--studio-color-text);
+    font-family: var(--studio-font-display);
+    font-size: 34px;
+    font-weight: 400;
+    letter-spacing: -.02em;
+    line-height: 1.1;
+}
+
+.studio-type-picker__lede {
+    margin: 0;
+    color: var(--studio-color-text-muted);
+    font-size: 15px;
+}
+
+.studio-type-picker__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 340px));
+    justify-content: center;
+    gap: var(--studio-space-4);
+}
+
+.studio-type-picker__card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--studio-space-2);
+    min-height: 164px;
+    padding: var(--studio-space-5);
+    border: 1px solid var(--studio-color-border);
+    border-radius: var(--studio-radius-lg);
+    background: var(--studio-color-surface);
+    box-shadow: var(--studio-shadow-sm);
+    text-decoration: none;
+    color: inherit;
+    transition: transform var(--studio-duration-fast) var(--studio-ease-out),
+        box-shadow var(--studio-duration-fast) var(--studio-ease-out),
+        border-color var(--studio-duration-fast) var(--studio-ease-out);
+
+    &,
+    &:hover,
+    &:focus {
+        text-decoration: none;
+    }
+
+    &:hover {
+        // The lift is what reads as "this responds to a click" at a glance -
+        // the border/shadow change alone was too close to the locked card's
+        // own (deliberately weaker) hover state to tell them apart.
+        transform: translateY(-2px);
+        border-color: var(--studio-color-accent);
+        box-shadow: var(--studio-shadow-md);
+        // Same reason as the top bar: Magento's a:hover would otherwise
+        // repaint the card's text admin blue.
+        color: inherit;
+    }
+
+    &:hover .studio-type-picker__arrow {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    &:active {
+        transform: translateY(-2px) scale(.985);
+    }
+}
+
+.studio-type-picker__icon {
+    width: 28px;
+    height: 28px;
+    margin-bottom: var(--studio-space-1);
+    color: var(--studio-color-accent);
+}
+
+.studio-type-picker__card-title {
+    font-family: var(--studio-font-display);
+    font-size: 21px;
+    font-weight: 400;
+    letter-spacing: -.01em;
+    color: var(--studio-color-text);
+}
+
+.studio-type-picker__card-desc {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--studio-color-text-muted);
+}
+
+// Hidden until hover/focus rather than always visible: a static arrow on
+// every card is noise, one that only appears on the card you are actually
+// pointing at is the "this leads somewhere" cue the plain border/shadow
+// change wasn't giving on its own.
+.studio-type-picker__arrow {
+    position: absolute;
+    right: var(--studio-space-5);
+    bottom: var(--studio-space-5);
+    width: 18px;
+    height: 18px;
+    color: var(--studio-color-accent);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity var(--studio-duration-fast) var(--studio-ease-out),
+        transform var(--studio-duration-fast) var(--studio-ease-out);
+}
+
+// A <button>, not an <a> - there is nowhere to navigate - so it needs its own
+// full-width/cursor/text-align reset on top of the shared __card rules; a
+// bare-tag reset elsewhere already strips button chrome but not these.
+.studio-type-picker__card--locked {
+    width: 100%;
+    align-items: flex-start;
+    cursor: pointer;
+    text-align: left;
+    background: var(--studio-color-canvas);
+    border-style: dashed;
+
+    // Same feedback as a real card (it still responds), but no lift/accent
+    // border - it must never read as equally inviting as a buildable type.
+    &:hover {
+        transform: none;
+        border-color: var(--studio-color-border-strong);
+        box-shadow: none;
+    }
+
+    &:active {
+        transform: scale(.985);
+    }
+
+    // A flat, solid muted colour rather than opacity-on-top-of-a-colour: the
+    // opacity version measured 2.7:1 against the card background, which
+    // fails WCAG AA (4.5:1) for body text. `--studio-color-text-muted` at
+    // full strength measures 4.86:1 on this background - still visibly
+    // quieter than an active card's ink, but actually legible.
+    .studio-type-picker__card-title,
+    .studio-type-picker__card-desc,
+    .studio-type-picker__icon {
+        color: var(--studio-color-text-muted);
+    }
+
+    // Room for the absolutely-positioned badge so a longer future label
+    // (this card's title is short today) wraps under it instead of behind it.
+    .studio-type-picker__card-title {
+        padding-right: 84px;
+    }
+}
+
+.studio-type-picker__badge {
+    position: absolute;
+    top: var(--studio-space-4);
+    right: var(--studio-space-4);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px var(--studio-space-3) 3px var(--studio-space-2);
+    border-radius: 999px;
+    background: var(--studio-color-surface);
+    border: 1px solid var(--studio-color-border);
+    color: var(--studio-color-text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.studio-type-picker__badge-icon {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+// ---------------------------------------------------------------------------
+// Toast - a single shared notice, used here for "coming soon" clicks and
+// available to any other admin page in this module.
+// ---------------------------------------------------------------------------
+
+// Top, not bottom: on the type picker the cards sit near the top of the
+// page and the rest of it is empty - a toast anchored to the bottom landed
+// far from wherever the user's eyes actually were. 76px matches the same
+// "clear the top bar" offset .studio-preview and .studio-editor__outline
+// already use for their own sticky positioning, plus a bit of breathing room.
+//
+// Sizing is deliberate and defensive: Magento admin's body/page-wrapper
+// layout (inline-block column, 100% heights) has been seen to stretch a
+// fixed toast that only sets `left` + `max-width` into a full-viewport
+// dark pillar. Explicit width/height/inset resets keep it a compact chip.
+.studio-toast {
+    position: fixed;
+    top: calc(76px + var(--studio-space-4));
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    z-index: 10001;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: max-content;
+    max-width: min(400px, calc(100vw - 48px));
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    margin: 0;
+    padding: 12px 20px;
+    border: 1px solid var(--studio-color-accent);
+    border-radius: 999px;
+    background: var(--studio-color-accent-soft);
+    color: var(--studio-color-text);
+    font-family: var(--studio-font-ui);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: .005em;
+    text-align: center;
+    white-space: normal;
+    box-shadow: var(--studio-shadow-md);
+    cursor: pointer;
+    transform: translate(-50%, -8px);
+    opacity: 0;
+    transition: transform var(--studio-duration-base) var(--studio-ease-out),
+        opacity var(--studio-duration-base) var(--studio-ease-out);
+
+    &[hidden] {
+        display: none;
+    }
+
+    &.is-visible {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+
+    // Same edge as enter (top). toast.js already toggles `is-leaving` and
+    // waits EXIT_MS before hiding - without this rule that wait was a no-op
+    // and the toast simply snapped away.
+    &.is-leaving {
+        transform: translate(-50%, -8px);
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .studio-toast {
+        transition: opacity var(--studio-duration-base) var(--studio-ease-out);
+        transform: translate(-50%, 0);
+    }
+}
+
+.studio-type-picker__empty {
+    color: var(--studio-color-text-muted);
+    padding: var(--studio-space-5);
+}
+
+// ---------------------------------------------------------------------------
+// Editor shell
+// ---------------------------------------------------------------------------
+
+.studio-editor__root {
+    display: flex;
+    flex-direction: column;
+    gap: var(--studio-space-4);
+    padding: 0 var(--studio-space-6) var(--studio-space-7);
+}
+
+.studio-editor__toolbar {
+    position: sticky;
+    top: var(--studio-space-2);
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--studio-space-3);
+    padding: var(--studio-space-2) var(--studio-space-3);
+    border: 1px solid var(--studio-color-border);
+    border-radius: var(--studio-radius-md);
+    background: var(--studio-color-surface);
+    box-shadow: var(--studio-shadow-sm);
+}
+
+.studio-toolbar__group {
+    display: flex;
+    align-items: center;
+    gap: var(--studio-space-1);
+}
+
+.studio-toolbar__mode {
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    margin-right: var(--studio-space-2);
+    border-radius: var(--studio-radius-sm);
+    background: var(--studio-color-sunken);
+}
+
+// Clay, not the danger red it used to wear: unsaved work is a state to notice,
+// not an error, and red next to the green Save button fought with it.
+.studio-toolbar__dirty {
+    padding: var(--studio-space-1) var(--studio-space-3);
+    border-radius: 999px;
+    background: #f6efe3;
+    color: var(--studio-color-warning);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.studio-editor__error {
+    margin-right: auto;
+
+    &:empty {
+        margin-right: 0;
+    }
+}
+
+.studio-editor__meta {
+    padding: var(--studio-space-5);
+    border: 1px solid var(--studio-color-border);
+    border-radius: var(--studio-radius-lg);
+    background: var(--studio-color-surface);
+    box-shadow: var(--studio-shadow-sm);
+}
+
+// The column widths here are only the pre-JS default; applyPanelWidths in
+// state.js overwrites them from OUTLINE_WIDTH_DEFAULT / localStorage on mount.
+// Keep the first track in step with OUTLINE_WIDTH_DEFAULT so the skeleton and
+// the mounted editor do not visibly jump.
+.studio-editor__body {
+    display: grid;
+    grid-template-columns: 300px 6px minmax(0, 1fr) 6px minmax(320px, 420px);
+    align-items: start;
+}
+
+.studio-editor__outline {
+    grid-column: 1;
+    position: sticky;
+    top: 76px;
+    max-height: calc(100vh - 120px);
+    padding-right: var(--studio-space-3);
+    overflow: auto;
+
+    // Collapsed the panel is a rail holding only its own toggle. Overflow goes
+    // hidden so the tree, which keeps its natural width, is clipped rather than
+    // producing a scrollbar in a 56px column.
+    &.is-collapsed {
+        padding-right: 0;
+        overflow: hidden;
+    }
+
+    &.is-collapsed .studio-outline__tree,
+    &.is-collapsed .studio-outline__search {
+        display: none;
+    }
+
+    &.is-collapsed .studio-outline__header {
+        margin-bottom: 0;
+    }
+
+    &.is-collapsed .studio-outline__toggle {
+        flex-direction: column;
+        gap: 2px;
+        width: 100%;
+        padding: var(--studio-space-2) 4px;
+        background: var(--studio-color-surface);
+        box-shadow: var(--studio-shadow-sm);
+    }
+
+    &.is-collapsed .studio-outline__toggle-icon {
+        transform: none;
+    }
+}
+
+.studio-outline__header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--studio-space-2);
+    margin-bottom: var(--studio-space-2);
+}
+
+.studio-outline__toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;
+    padding: 4px 8px;
+    border: 0;
+    border-radius: var(--studio-radius-sm);
+    background: var(--studio-color-sunken);
+    color: var(--studio-color-text-muted);
+    font-family: var(--studio-font-ui);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background var(--studio-duration-fast) var(--studio-ease-out),
+        color var(--studio-duration-fast) var(--studio-ease-out);
+
+    &:hover {
+        background: var(--studio-color-accent-soft);
+        color: var(--studio-color-text);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--studio-color-accent);
+        outline-offset: 1px;
+    }
+}
+
+// Points left while open (click = close, panel moves left), right while closed.
+.studio-outline__toggle-icon {
+    flex: 0 0 auto;
+    width: 12px;
+    height: 12px;
+    transform: rotate(180deg);
+    transition: transform var(--studio-duration-base) var(--studio-ease-out);
+}
+
+.studio-splitter {
+    grid-row: 1;
+    align-self: stretch;
+    position: relative;
+    cursor: col-resize;
+    touch-action: none;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: var(--studio-space-2);
+        bottom: var(--studio-space-2);
+        left: 2px;
+        width: 2px;
+        border-radius: 1px;
+        background: transparent;
+        transition: background var(--studio-duration-fast) var(--studio-ease-out);
+    }
+
+    &:hover::after,
+    &.is-dragging::after {
+        background: var(--studio-color-accent);
+    }
+}
+
+.studio-splitter--outline {
+    grid-column: 2;
+}
+
+.studio-splitter--preview {
+    grid-column: 4;
+}
+
+.studio-editor__fields {
+    grid-column: 3;
+    grid-row: 1;
+    min-width: 0;
+    margin-left: var(--studio-space-3);
+    padding: var(--studio-space-6);
+    border: 1px solid var(--studio-color-border);
+    border-radius: var(--studio-radius-lg);
+    background: var(--studio-color-surface);
+    box-shadow: var(--studio-shadow-sm);
+    opacity: 1;
+    filter: blur(0);
+    transition: opacity var(--studio-duration-fast) var(--studio-ease-out),
+        filter var(--studio-duration-fast) var(--studio-ease-out);
+
+    &.is-view-fading {
+        opacity: 0;
+        filter: blur(2px);
+    }
+}
+
+.studio-editor__fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--studio-space-5);
+    min-height: 60vh;
+}
+
+.studio-preview {
+    grid-column: 5;
+    position: sticky;
+    top: 76px;
+    margin-left: var(--studio-space-3);
+    padding: var(--studio-space-4);
+    border: 1px solid var(--studio-color-border);
+    border-radius: var(--studio-radius-lg);
+    background: var(--studio-color-surface);
+    box-shadow: var(--studio-shadow-sm);
+    overflow: auto;
+    max-height: calc(100vh - 120px);
+}
+
+.studio-preview__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--studio-space-2);
+    margin-bottom: var(--studio-space-3);
+    padding-bottom: var(--studio-space-3);
+    border-bottom: 1px solid var(--studio-color-border);
+}
+
+.studio-preview__title {
+    color: var(--studio-color-text);
+    font-family: var(--studio-font-display);
+    font-size: 17px;
+    letter-spacing: -.01em;
+}
+
+.studio-preview__title-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--studio-color-accent);
+}
+
+.studio-preview__body {
+    margin: 0 auto;
+}
+
+// ---------------------------------------------------------------------------
+// "Live Preview in a separate window" (preview-page.js) - a row above the
+// panel's own drawn preview (Block mode's `.studio-preview__body`, which this
+// never hides or replaces), for opening the real sandbox page in a separate
+// browser window. state.js's `previewWindow` is what that window actually is;
+// everything here is just the remote for it.
+// ---------------------------------------------------------------------------
+
+.studio-preview__page {
+    margin-bottom: var(--studio-space-4);
+    padding-bottom: var(--studio-space-4);
+    border-bottom: 1px solid var(--studio-color-border);
+}
+
+.studio-preview__page-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--studio-space-3);
+    margin-bottom: var(--studio-space-3);
+}
+
+.studio-preview__device {
+    display: flex;
+    gap: 2px;
+}
+
+.studio-preview__device-btn {
+    &.is-active {
+        background: var(--studio-color-accent-soft);
+        color: var(--studio-color-accent);
+    }
+}
+
+.studio-preview__store {
+    // Fills whatever room the device buttons left rather than sizing to its
+    // longest option - a "Sleeping Giant - Sleeping Giant Store View" label
+    // would otherwise force the toolbar to wrap on every panel width.
+    flex: 1 1 160px;
+    min-width: 0;
+    min-height: 36px;
+
+    // Shared `.studio-select` sets its own `display: block`, an author rule
+    // that beats the UA stylesheet's `[hidden] { display: none }` regardless
+    // of specificity - see `.studio-preview__page-status`'s own comment on
+    // this same trap, a few rules up.
+    &[hidden] {
+        display: none;
+    }
+}
+
+// The one prominent action in this panel - full width of its own row, with
+// the device buttons and store select wrapping onto a quieter row beneath it
+// (both share `.studio-preview__page-controls`' `flex-wrap`). Solid accent
+// rather than outlined, unlike `.studio-topbar__exit`: that one competes with
+// a filled Save button elsewhere on screen, this one does not.
+// `!important` throughout: this button has been repeatedly, silently beaten
+// by `.studio-btn`'s own base rule and by stale cached CSS during this
+// panel's development, both here and while eyeballing it live - pinning
+// every visual property removes all doubt about which rule actually painted
+// what's on screen.
+.studio-preview__open-btn {
+    position: relative;
+    flex: 1 1 100% !important;
+    justify-content: center !important;
+    gap: var(--studio-space-2) !important;
+    overflow: hidden;
+    min-height: 42px !important;
+    border: none !important;
+    background: linear-gradient(135deg, var(--studio-color-accent) 0%, var(--studio-color-accent-hover) 100%) !important;
+    color: #fff !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    letter-spacing: .015em !important;
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(31, 46, 37, .25) !important;
+    transition: box-shadow var(--studio-duration-base) var(--studio-ease-out),
+        transform var(--studio-duration-fast) var(--studio-ease-out) !important;
+
+    // Colour only - lift/halo live in the fine-pointer hover gate below so
+    // touch taps do not sticky-hover the button into a raised state.
+    &:hover {
+        color: #fff !important;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--studio-color-accent);
+        outline-offset: 2px;
+    }
+
+    &:active {
+        box-shadow: 0 1px 3px rgba(31, 46, 37, .3) !important;
+        transform: translateY(0) scale(.98) !important;
+    }
+
+    &:disabled {
+        transform: none !important;
+        box-shadow: none !important;
+        opacity: .6;
+    }
+}
+
+// Keep the label/icon above both shimmer bands.
+.studio-preview__open-btn > * {
+    position: relative;
+    z-index: 1;
+}
+
+.studio-preview__open-btn .studio-icon {
+    transition: transform var(--studio-duration-base) var(--studio-ease-out);
+}
+
+// The shimmer plays only while the window has never been opened this session
+// (setWindowState toggles this class off as soon as one is) - it is an
+// invitation to a first click, not a permanent decoration that would go on
+// competing for attention every time the panel is glanced at afterwards.
+// A light band sweeping across rather than the fill colour cycling: colour
+// changing on a filled button reads as a state change (error/success), which
+// this is not - it is decoration on top of one steady accent-green fill.
+//
+// Two layers at fixed paces (idle 3.4s / engaged 1.2s), crossfaded on hover:
+// changing `animation-duration` on a running keyframe restarts from 0% and
+// jumps the band. Opacity transitions retarget mid-flight. Transform, not
+// background-position - same reason as `.studio-skeleton` (composites).
+.studio-preview__open-btn.is-inviting::before,
+.studio-preview__open-btn.is-inviting::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, .5) 50%, transparent 65%);
+    pointer-events: none;
+    transition: opacity var(--studio-duration-fast) var(--studio-ease-out);
+}
+
+.studio-preview__open-btn.is-inviting::after {
+    animation: studio-preview-open-shimmer 3.4s linear infinite;
+    opacity: 1;
+}
+
+.studio-preview__open-btn.is-inviting::before {
+    animation: studio-preview-open-shimmer 1.2s linear infinite;
+    opacity: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    // A halo, not a colour swap - the fill already reads as "the one button
+    // that matters"; on hover it should feel like it is lifting toward you,
+    // not turning into a different button.
+    .studio-preview__open-btn:hover {
+        box-shadow: 0 4px 16px rgba(79, 111, 91, .45), 0 0 0 3px var(--studio-color-accent-soft) !important;
+        transform: translateY(-1px) !important;
+    }
+
+    // The "eye" of the button: at rest it sits still; on hover it opens wider
+    // and tilts, the one deliberately playful touch on an otherwise
+    // businesslike panel - this is the button that leaves the editor for a
+    // look at the real page, so it earns a little more personality than a
+    // Save/Cancel pair would.
+    .studio-preview__open-btn:hover .studio-icon {
+        transform: scale(1.15) rotate(-6deg);
+    }
+
+    // Hovering hints that a click will do something *now* - crossfade to the
+    // faster layer rather than restarting a single animation at a new duration.
+    .studio-preview__open-btn.is-inviting:hover::after {
+        opacity: 0;
+    }
+
+    .studio-preview__open-btn.is-inviting:hover::before {
+        opacity: 1;
+    }
+}
+
+@keyframes studio-preview-open-shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .studio-preview__open-btn {
+        transition: none !important;
+    }
+
+    .studio-preview__open-btn:hover {
+        transform: none !important;
+    }
+
+    .studio-preview__open-btn.is-inviting::before,
+    .studio-preview__open-btn.is-inviting::after {
+        animation: none;
+        opacity: 0;
+    }
+}
+
+// A quiet status line under the controls rather than a modal or a banner -
+// Page mode is glanced at, not read. The dot alone carries most of the
+// meaning; the text is there for anyone who wants the detail (or hits the
+// one state - blocked/error - that needs more than a colour to explain).
+// `&[hidden]` is required, not decorative: `[hidden] { display: none }` is a
+// UA-stylesheet rule, and author rules beat the UA stylesheet regardless of
+// specificity - without this, `display: flex` below would keep the element
+// visible every time state.js's setWindowState() sets the `hidden` attribute.
+.studio-preview__page-status {
+    display: flex;
+    align-items: center;
+    gap: var(--studio-space-2);
+    padding: var(--studio-space-3) var(--studio-space-4);
+    border: 1px solid var(--studio-color-border);
+    border-radius: var(--studio-radius-md);
+    background: var(--studio-color-sunken);
+    color: var(--studio-color-text-muted);
+    font-size: 13px;
+
+    &[hidden] {
+        display: none;
+    }
+}
+
+.studio-preview__page-status-dot {
+    flex: 0 0 auto;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--studio-color-border-strong);
+    transition: background var(--studio-duration-fast) var(--studio-ease-out);
+}
+
+.studio-preview__page-status.is-open .studio-preview__page-status-dot {
+    // The palette has no dedicated "success" token - accent (the brand
+    // green) already reads as "on"/positive everywhere else active state is
+    // shown in this panel (mode toggle, device buttons), so it does here too.
+    background: var(--studio-color-accent);
+}
+
+.studio-preview__page-status.is-opening .studio-preview__page-status-dot {
+    background: var(--studio-color-accent);
+    animation: studio-preview-status-pulse 1s ease-in-out infinite;
+}
+
+.studio-preview__page-status.is-blocked .studio-preview__page-status-dot,
+.studio-preview__page-status.is-error .studio-preview__page-status-dot {
+    background: var(--studio-color-danger-strong);
+}
+
+@keyframes studio-preview-status-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: .35;
+    }
+}
+
+// One orchestrated reveal when the editor mounts: columns arrive in reading
+// order, 60ms apart. Nothing is blocked while it plays (plan section 14).
+.studio-editor__outline,
+.studio-editor__fields,
+.studio-preview {
+    animation: studio-panel-enter 380ms var(--studio-ease-out) both;
+}
+
+.studio-editor__fields {
+    animation-delay: 60ms;
+}
+
+.studio-preview {
+    animation-delay: 120ms;
+}
+
+@keyframes studio-panel-enter {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .studio-editor__outline,
+    .studio-editor__fields,
+    .studio-preview {
+        animation: none;
+    }
+}
+
+@media (max-width: 1100px) {
+    .studio-editor__body {
+        grid-template-columns: 1fr;
+    }
+
+    .studio-editor__outline,
+    .studio-splitter {
+        display: none;
+    }
+
+    .studio-editor__fields,
+    .studio-preview {
+        grid-column: 1;
+        margin-left: 0;
+    }
+
+    .studio-preview {
+        position: static;
+        max-height: none;
+        margin-top: var(--studio-space-4);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Outline tree
+// ---------------------------------------------------------------------------
+
+.studio-outline__search {
+    margin-bottom: var(--studio-space-3);
+}
+
+.studio-outline__list,
+.studio-outline__list ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+// A guide line per level, anchored under the parent's icon so the rail lines
+// up with what it belongs to. Without it the levels read as one flat wall of
+// text once the tree is more than two deep.
+.studio-outline__list ul {
+    margin-left: 15px;
+    padding-left: var(--studio-space-3);
+    border-left: 1px solid var(--studio-color-border);
+}
+
+.studio-outline__list ul:hover {
+    border-left-color: var(--studio-color-border-strong);
+}
+
+.studio-outline__list summary {
+    cursor: pointer;
+
+    &::-webkit-details-marker {
+        display: none;
+    }
+
+    &::marker {
+        content: '';
+    }
+}
+
+.studio-outline__list summary::before {
+    display: inline-block;
+    margin-right: var(--studio-space-1);
+    content: '\25B8';
+    font-size: 9px;
+    color: var(--studio-color-text-faint);
+    transition: transform var(--studio-duration-fast) var(--studio-ease-out);
+}
+
+details[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+.studio-outline__link {
+    display: flex;
+    align-items: center;
+    gap: var(--studio-space-2);
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--studio-space-2);
+    border: none;
+    border-left: 2px solid transparent;
+    border-radius: var(--studio-radius-sm);
+    background: none;
+    color: var(--studio-color-text-muted);
+    font-family: var(--studio-font-ui);
+    font-size: 13px;
+    line-height: 1.35;
+    text-align: left;
+    cursor: pointer;
+    transition: color var(--studio-duration-fast) var(--studio-ease-out),
+        background var(--studio-duration-fast) var(--studio-ease-out);
+
+    &:hover {
+        color: var(--studio-color-text);
+        background: var(--studio-color-sunken);
+    }
+}
+
+.studio-outline__icon {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+    opacity: .65;
+}
+
+// A repeater row's 1-based position. Tabular figures and a fixed
+// minimum width so the labels stay on one left edge from 1 through 40.
+.studio-outline__ordinal {
+    min-width: 14px;
+    flex: 0 0 auto;
+    color: var(--studio-color-text-faint);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+// Rows are reorderable straight from the tree (see outline.js::buildNode).
+// The node is its own drag handle - at this density a separate grip would
+// cost more room than the affordance is worth - so the cursor and the title
+// tooltip are the whole hint.
+.studio-outline__link--draggable {
+    cursor: grab;
+
+    &:active {
+        cursor: grabbing;
+    }
+}
+
+// The link already carries a transparent 2px left border for its selected
+// state, so the drop cue colours that instead of the background: a background
+// change here would be fighting the node's own hover fill, and `background` is
+// exactly what .is-outline-highlight animates.
+.studio-outline__link.is-drag-over {
+    border-left-color: var(--studio-color-accent);
+    background: var(--studio-color-sunken);
+}
+
+.studio-outline__label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// A container heading is the spine of the tree, so it carries more weight than
+// the rows hanging off it.
+.studio-outline__list > li > details > summary {
+    color: var(--studio-color-text);
+    font-weight: 600;
+}
+
+// ---------------------------------------------------------------------------
+// Outline-target highlight flash (see plan section 14 - cue only, not a state change)
+// ---------------------------------------------------------------------------
+
+// Snap on, fade out - the colour lands immediately and decays, which is the
+// shape that reads as "here it is". Ramping up into the colour first would
+// spend a third of the run before the eye has anything to catch.
+// OUTLINE_HIGHLIGHT_MS in state.js must match this duration.
+.is-outline-highlight {
+    animation: studio-outline-flash 480ms var(--studio-ease-out);
+}
+
+@keyframes studio-outline-flash {
+    0% {
+        background-color: var(--studio-color-accent-soft);
+    }
+
+    100% {
+        background-color: transparent;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .is-outline-highlight {
+        animation: none;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Base controls
+// ---------------------------------------------------------------------------
+
+.studio-input,
+.studio-select {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: var(--studio-control-height);
+    padding: 0 var(--studio-space-4);
+    border: 1px solid var(--studio-color-border-strong);
+    border-radius: var(--studio-radius-sm);
+    // Always white, on every nesting level and whether focused or not. The
+    // warm off-white it used to wear was a shade off the panel behind it, so
+    // on the tinted levels the fields stopped reading as fields at all - the
+    // one thing on this screen that is actually typed into has to be the one
+    // thing that is unmistakably a hole in the paper.
+    background: #fff;
+    color: var(--studio-color-text);
+    font-family: var(--studio-font-ui);
+    font-size: 14px;
+    line-height: 1.4;
+    transition: border-color var(--studio-duration-fast) var(--studio-ease-out),
+        box-shadow var(--studio-duration-fast) var(--studio-ease-out);
+
+    &::placeholder {
+        color: var(--studio-color-text-faint);
+    }
+
+    &:hover {
+        border-color: var(--studio-color-text-faint);
+    }
+
+    &:focus {
+        outline: none;
+        border-color: var(--studio-color-accent);
+        box-shadow: var(--studio-ring);
+    }
+}
+
+.studio-input--textarea {
+    resize: vertical;
+    min-height: 132px;
+    padding: var(--studio-space-3) var(--studio-space-4);
+    font-family: inherit;
+    line-height: 1.55;
+}
+
+// A native multi-select left at its default height shows OS chrome and only
+// two or three rows; giving it real height makes it read as part of the form.
+.studio-select[multiple] {
+    min-height: 148px;
+    padding: var(--studio-space-2);
+
+    option {
+        padding: var(--studio-space-2) var(--studio-space-3);
+        border-radius: var(--studio-radius-sm);
+        color: var(--studio-color-text);
+    }
+
+    option:checked {
+        background: var(--studio-color-accent-soft);
+        color: var(--studio-color-accent);
+        font-weight: 600;
+    }
+}
+
+.studio-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--studio-color-accent);
+    cursor: pointer;
+}
+
+.studio-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--studio-space-2);
+    min-height: 38px;
+    padding: 0 var(--studio-space-4);
+    border: 1px solid var(--studio-color-border);
+    border-radius: var(--studio-radius-sm);
+    background: var(--studio-color-surface);
+    color: var(--studio-color-text);
+    font-family: var(--studio-font-ui);
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: transform var(--studio-duration-fast) var(--studio-ease-out),
+        box-shadow var(--studio-duration-fast) var(--studio-ease-out),
+        border-color var(--studio-duration-fast) var(--studio-ease-out),
+        background var(--studio-duration-fast) var(--studio-ease-out);
+
+    &:hover {
+        border-color: var(--studio-color-border-strong);
+        box-shadow: var(--studio-shadow-sm);
+    }
+
+    // Buttons respond to the finger immediately - 160ms, never scale(0) (section 14).
+    &:active {
+        transform: scale(.97);
+    }
+
+    &:disabled {
+        opacity: .45;
+        box-shadow: none;
+        cursor: not-allowed;
+        transform: none;
+    }
+}
+
+// The generic .studio-btn hover adds a warm brown shadow, which turns muddy
+// over a dark green fill. A filled button gets its own accent-tinted shadow
+// and a 1px lift instead, so hovering reads as the button rising rather than
+// as it smudging.
+.studio-btn--primary {
+    min-height: 42px;
+    padding: 0 var(--studio-space-5);
+    border-color: var(--studio-color-accent);
+    background: var(--studio-color-accent);
+    box-shadow: 0 1px 2px rgba(31, 46, 37, .16);
+    color: var(--studio-color-accent-contrast);
+    font-size: 14px;
+    font-weight: 600;
+
+    // The glyph carried the same 16px as every icon button, which looked
+    // undersized next to a 14px semibold label on the widest button here.
+    .studio-icon {
+        width: 18px;
+        height: 18px;
+    }
+
+    &:hover,
+    &:focus {
+        border-color: var(--studio-color-accent-hover);
+        background: var(--studio-color-accent-hover);
+        box-shadow: 0 3px 8px rgba(31, 46, 37, .24);
+        // Restated so the label stays legible whatever the admin's own button
+        // rules do on hover.
+        color: var(--studio-color-accent-contrast);
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        box-shadow: 0 1px 2px rgba(31, 46, 37, .16);
+        color: var(--studio-color-accent-contrast);
+        transform: scale(.97);
+    }
+
+    // A flat inactive surface rather than the shared `opacity: .45`, which
+    // faded the white label into the green fill and left the button looking
+    // smudged rather than switched off.
+    &:disabled {
+        opacity: 1;
+        border-color: var(--studio-color-border);
+        background: var(--studio-color-sunken);
+        box-shadow: none;
+        color: var(--studio-color-text-faint);
+        transform: none;
+    }
+}
+
+.studio-btn--icon {
+    min-height: 32px;
+    padding: 0 var(--studio-space-2);
+    font-size: 12px;
+}
+
+.studio-btn--add {
+    align-self: flex-start;
+    border-style: dashed;
+    background: transparent;
+    color: var(--studio-color-text-muted);
+
+    &:hover {
+        border-style: solid;
+        background: var(--studio-color-surface);
+        color: var(--studio-color-text);
+    }
+}
+
+.studio-btn--ghost {
+    border-color: transparent;
+    background: transparent;
+
+    &:hover {
+        border-color: transparent;
+        background: var(--studio-color-sunken);
+        box-shadow: none;
+    }
+
+    &.is-active {
+        background: var(--studio-color-surface);
+        border-color: var(--studio-color-border);
+        color: var(--studio-color-accent);
+        box-shadow: var(--studio-shadow-sm);
+    }
+}
+
+// Between --ghost (invisible until hovered) and --primary (the one filled,
+// unmissable action on the page, reserved for Save): an accent-tinted border
+// and label on a plain surface, so it reads as "worth doing" without
+// competing with Save for attention.
+.studio-btn--secondary {
+    border-color: var(--studio-color-accent);
+    color: var(--studio-color-accent);
+
+    &:hover {
+        background: var(--studio-color-accent-soft);
+        border-color: var(--studio-color-accent);
+    }
+}
+
+// The "start from scratch" callout - see state.js::renderMockDataPrompt(). A
+// distinct card, not just another field row, so it reads as a one-time offer
+// rather than a permanent part of the form (it is gone the moment the entry
+// is no longer untouched).
+.studio-mock-data {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--studio-space-3);
+    margin-bottom: var(--studio-space-2);
+    padding: var(--studio-space-5);
+    border: 1px dashed var(--studio-color-border-strong);
+    border-radius: var(--studio-radius-lg);
+    background: var(--studio-color-canvas);
+    animation: studio-mock-data-enter 280ms var(--studio-ease-out) both;
+    transition: opacity var(--studio-duration-base) var(--studio-ease-out),
+        transform var(--studio-duration-base) var(--studio-ease-out);
+
+    &.is-leaving {
+        opacity: 0;
+        transform: scale(.98);
+        pointer-events: none;
+    }
+}
+
+@keyframes studio-mock-data-enter {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .studio-mock-data {
+        animation: none;
+        transition: opacity var(--studio-duration-base) var(--studio-ease-out);
+
+        &.is-leaving {
+            transform: none;
+        }
+    }
+}
+
+.studio-mock-data__title {
+    margin: 0;
+    color: var(--studio-color-text);
+    font-family: var(--studio-font-display);
+    font-size: 17px;
+    font-weight: 400;
+}
+
+.studio-mock-data__caption {
+    margin: 0;
+    max-width: 480px;
+    color: var(--studio-color-text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+// Visually hidden but still parsed/usable by <use> - see plan section 10.
+.studio-icon-sprite {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+.studio-icon {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+    color: currentColor;
+}
+
+// ---------------------------------------------------------------------------
+// Field rows
+// ---------------------------------------------------------------------------
+
+.studio-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--studio-space-2);
+}
+
+.studio-field__label {
+    color: var(--studio-color-text);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+}
+
+.studio-field__foot {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--studio-space-3);
+}
+
+.studio-field__hint {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--studio-color-text-muted);
+}
+
+// Sits to the right of the hint and stays quiet until the value approaches its
+// limit - a counter that shouts from character one is noise on every field.
+.studio-field__count {
+    flex: none;
+    margin-left: auto;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.5;
+    color: var(--studio-color-text-muted);
+    opacity: .6;
+    transition: color var(--studio-duration-fast) var(--studio-ease-out),
+        opacity var(--studio-duration-fast) var(--studio-ease-out);
+
+    &.is-near-limit {
+        color: var(--studio-color-accent);
+        opacity: 1;
+    }
+
+    &.is-over-limit {
+        color: var(--studio-color-danger);
+        font-weight: 600;
+        opacity: 1;
+    }
+}
+
+.studio-field__error {
+    margin: 0;
+    color: var(--studio-color-danger-strong);
+    font-size: 12px;
+    font-weight: 600;
+
+    &:empty {
+        display: none;
+    }
+}
+
+// Invalid state - `is-invalid` is put on the row by state.js::markFieldInvalid,
+// not inferred in CSS, because the row that owns the message differs between
+// the form panel and the meta bar.
+//
+// The message alone was too quiet: a line of small text under a control whose
+// border still looked perfectly fine is easy to scroll straight past, which is
+// how "Identifier is required" kept being missed. The control now carries the
+// state too, and the label goes with it so the pair reads as one thing.
+.studio-field.is-invalid,
+.studio-meta-bar__field.is-invalid {
+    > .studio-field__label {
+        color: var(--studio-color-danger-strong);
+    }
+
+    .studio-input {
+        border-color: var(--studio-color-danger-strong);
+        // Literal rgba, not fade(): that is a build-time LESS function and it
+        // rejects custom properties outright (see the traps in CLAUDE.md).
+        box-shadow: 0 0 0 3px rgba(192, 52, 29, .15);
+    }
+
+    // Beats `.studio-input:focus` (0-2-0) on specificity, deliberately: the
+    // field is still invalid while you are in it, and flipping to the accent
+    // ring on focus read as "fixed" before anything had been typed.
+    .studio-input:focus {
+        border-color: var(--studio-color-danger-strong);
+        box-shadow: 0 0 0 3px rgba(192, 52, 29, .28);
+    }
+}
+
+.studio-field--boolean {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--studio-space-3);
+    min-height: var(--studio-control-height);
+}
+
+.studio-field--group {
+    gap: var(--studio-space-4);
+    padding: var(--studio-space-5);
+    border: 1px solid var(--studio-layer-border, var(--studio-color-border));
+    border-left: 3px solid var(--studio-layer-accent, var(--studio-color-border-strong));
+    border-radius: var(--studio-radius-md);
+    background: var(--studio-layer-bg, var(--studio-color-bg));
+}
+
+.studio-field--unsupported {
+    color: var(--studio-color-danger);
+    font-size: 13px;
+}
+
+// ---------------------------------------------------------------------------
+// Meta bar (identifier / title / store / active)
+// ---------------------------------------------------------------------------
+
+.studio-meta-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--studio-space-5);
+    align-items: start;
+}
+
+.studio-meta-bar__field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--studio-space-2);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    color: var(--studio-color-text);
+}
+
+.studio-meta-bar__field--inline {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--studio-space-3);
+    justify-self: start;
+    align-self: center;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+// ---------------------------------------------------------------------------
+// Image field
+// ---------------------------------------------------------------------------
+
+// Swatch + hex input on one line. The swatch is the affordance, the text is
+// the exact value - an editor matching a photo's backdrop needs to paste a
+// hex as often as they need to pick one, and only the text field can be
+// emptied, which is how the panel gets turned off.
+.studio-color-field {
+    display: flex;
+    align-items: center;
+    gap: var(--studio-space-3);
+
+    .studio-input {
+        flex: 1;
+        min-width: 0;
+        // Tabular so a pasted hex does not reflow as it is typed.
+        font-family: var(--studio-font-mono, monospace);
+    }
+}
+
+// Chrome and Firefox both draw their own chrome inside a colour input; these
+// reset it to a plain rounded chip that matches the editor's other controls.
+.studio-color-swatch {
+    flex: none;
+    width: 42px;
+    height: 38px;
+    padding: 3px;
+    border: 1px solid var(--studio-color-border-strong);
+    border-radius: var(--studio-radius-md);
+    background: var(--studio-color-surface);
+    cursor: pointer;
+
+    &::-webkit-color-swatch-wrapper {
+        padding: 0;
+    }
+
+    &::-webkit-color-swatch {
+        border: 0;
+        border-radius: calc(var(--studio-radius-md) - 3px);
+    }
+
+    &::-moz-color-swatch {
+        border: 0;
+        border-radius: calc(var(--studio-radius-md) - 3px);
+    }
+}
+
+.studio-image-field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--studio-space-3);
+    padding: var(--studio-space-3);
+    border: 1px dashed var(--studio-color-border-strong);
+    border-radius: var(--studio-radius-md);
+    // Transparent, so the field takes the tint of whatever nesting level it
+    // sits on rather than punching a fixed off-white patch into it.
+    background: transparent;
+    transition: border-color var(--studio-duration-fast) var(--studio-ease-out),
+        background var(--studio-duration-fast) var(--studio-ease-out);
+
+    .studio-input {
+        flex: 1;
+        min-width: 0;
+    }
+
+    &.is-dragover {
+        border-color: var(--studio-color-accent);
+        background: var(--studio-color-accent-soft);
+    }
+
+    &.is-uploading {
+        opacity: .6;
+        pointer-events: none;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Image sizing guidance
+//
+// The frame these images land in is a fixed aspect ratio and crops from the
+// centre, and the dots are pinned as a percentage of it - so a photo of the
+// wrong shape does not just letterbox, it silently moves every marker off the
+// thing it was pointing at. That was written in the field's `description` and
+// read by nobody, which is the usual fate of a sentence under a control. The
+// spec now sits *on* the field, and the moment a file of the wrong shape lands
+// there the field says so, in the units the person is looking at.
+// ---------------------------------------------------------------------------
+
+.studio-image-spec {
+    flex-basis: 100%;
+    margin: 0;
+    color: var(--studio-color-text-muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.studio-image-spec__size {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+.studio-image-warning {
+    display: flex;
+    flex-basis: 100%;
+    gap: var(--studio-space-2);
+    margin: 0;
+    padding: var(--studio-space-2) var(--studio-space-3);
+    border-radius: var(--studio-radius-sm);
+    background: #f9efdc;
+    color: #7a5518;
+    font-size: 12px;
+    line-height: 1.5;
+
+    &:empty,
+    &[hidden] {
+        display: none;
+    }
+}
+
+.studio-image-thumb {
+    flex: 0 0 auto;
+    width: 64px;
+    height: 64px;
+    border-radius: var(--studio-radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--studio-color-border);
+    background: var(--studio-color-sunken);
+
+    img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.studio-image-thumb--broken {
+    background: var(--studio-color-danger-soft);
+}
+
+// ---------------------------------------------------------------------------
+// Drag & drop reorder (repeater rows and blocks items - see plan section 3/section 14)
+// ---------------------------------------------------------------------------
+
+.studio-drag-handle {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--studio-radius-sm);
+    color: var(--studio-color-text-faint);
+    cursor: grab;
+    touch-action: none;
+    transition: color var(--studio-duration-fast) var(--studio-ease-out),
+        background var(--studio-duration-fast) var(--studio-ease-out);
+
+    &:hover,
+    &:focus-visible {
+        color: var(--studio-color-text);
+        background: var(--studio-color-sunken);
+    }
+
+    &:active {
+        cursor: grabbing;
+    }
+}
+
+.studio-repeater-row,
+.studio-block {
+    transition: box-shadow var(--studio-duration-fast) var(--studio-ease-out),
+        border-color var(--studio-duration-fast) var(--studio-ease-out);
+}
+
+.studio-repeater-row.is-drag-over,
+.studio-block.is-drag-over {
+    border-color: var(--studio-color-accent);
+    box-shadow: var(--studio-ring);
+}
+
+// ---------------------------------------------------------------------------
+// Repeater
+// ---------------------------------------------------------------------------
+
+.studio-repeater {
+    display: flex;
+    flex-direction: column;
+    gap: var(--studio-space-4);
+    margin-bottom: var(--studio-space-2);
+}
+
+// ---------------------------------------------------------------------------
+// Nesting levels
+//
+// The three container renderers (repeater row, block, group) tag themselves
+// with `studio-depth-N` (field/base.js::depthClass); all this does is publish
+// that level's palette as custom properties. Every rule below reads them
+// through a fallback, so a level never has to out-specify a base rule - which
+// matters because those base rules own the hover states, and a plain
+// `.studio-depth-2 .studio-repeater-row__header` would silently win over
+// `.studio-repeater-row__header:hover`.
+//
+// Properties inherit, so a field sitting inside a level picks its colours up
+// without being tagged itself, and a deeper container simply republishes them.
+// ---------------------------------------------------------------------------
+
+.studio-depth-1 {
+    --studio-layer-bg: var(--studio-layer-1-bg);
+    --studio-layer-head: var(--studio-layer-1-head);
+    --studio-layer-head-hover: var(--studio-layer-1-head-hover);
+    --studio-layer-border: var(--studio-layer-1-border);
+    --studio-layer-accent: var(--studio-layer-1-accent);
+}
+
+.studio-depth-2 {
+    --studio-layer-bg: var(--studio-layer-2-bg);
+    --studio-layer-head: var(--studio-layer-2-head);
+    --studio-layer-head-hover: var(--studio-layer-2-head-hover);
+    --studio-layer-border: var(--studio-layer-2-border);
+    --studio-layer-accent: var(--studio-layer-2-accent);
+}
+
+.studio-depth-3 {
+    --studio-layer-bg: var(--studio-layer-3-bg);
+    --studio-layer-head: var(--studio-layer-3-head);
+    --studio-layer-head-hover: var(--studio-layer-3-head-hover);
+    --studio-layer-border: var(--studio-layer-3-border);
+    --studio-layer-accent: var(--studio-layer-3-accent);
+}
+
+.studio-repeater-row {
+    border: 1px solid var(--studio-layer-border, var(--studio-color-border));
+    // The stripe is the level's loudest signal and the one that survives being
+    // glanced at: it runs the full height of the row, collapsed or open.
+    border-left: 3px solid var(--studio-layer-accent, var(--studio-color-border-strong));
+    border-radius: var(--studio-radius-md);
+    background: var(--studio-layer-bg, var(--studio-color-bg));
+    overflow: hidden;
+}
+
+.studio-repeater-row__header {
+    display: flex;
+    align-items: center;
+    gap: var(--studio-space-3);
+    min-height: var(--studio-row-height);
+    padding: var(--studio-space-2) var(--studio-space-3);
+    background: var(--studio-layer-head, var(--studio-color-surface));
+    cursor: pointer;
+    transition: background var(--studio-duration-fast) var(--studio-ease-out);
+
+    &:hover {
+        background: var(--studio-layer-head-hover, var(--studio-color-sunken));
+    }
+}
+
+.studio-repeater-row__title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--studio-color-text);
+    font-size: 14px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.studio-repeater-row__actions {
+    display: flex;
+    gap: var(--studio-space-1);
+}
+
+// A two-column grid so `width="half"` fields can pair up; anything else spans
+// the row. Laying every short field on its own line is what made these forms
+// so tall that the coordinate inputs sat a scroll away from the image.
+.studio-repeater-row__body,
+.studio-block__body,
+.studio-field__group-body {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--studio-space-4);
+    align-items: start;
+
+    > .studio-field {
+        grid-column: 1 / -1;
+    }
+
+    > .studio-field--half {
+        grid-column: span 1;
+    }
+}
+
+.studio-repeater-row__body {
+    padding: var(--studio-space-4);
+    border-top: 1px solid var(--studio-layer-border, var(--studio-color-border));
+}
+
+.studio-repeater-row.is-collapsed .studio-repeater-row__body {
+    display: none;
+}
+
+// ---------------------------------------------------------------------------
+// Blocks (flexible content)
+// ---------------------------------------------------------------------------
+
+.studio-blocks {
+    display: flex;
+    flex-direction: column;
+    gap: var(--studio-space-3);
+}
+
+.studio-block {
+    border: 1px solid var(--studio-layer-border, var(--studio-color-border));
+    border-left: 3px solid var(--studio-layer-accent, var(--studio-color-border-strong));
+    border-radius: var(--studio-radius-md);
+    background: var(--studio-layer-bg, var(--studio-color-bg));
+    overflow: hidden;
+}
+
+.studio-block__header {
+    display: flex;
+    align-items: center;
+    gap: var(--studio-space-3);
+    min-height: var(--studio-row-height);
+    padding: var(--studio-space-2) var(--studio-space-3);
+    background: var(--studio-layer-head, var(--studio-color-surface));
+    cursor: pointer;
+    transition: background var(--studio-duration-fast) var(--studio-ease-out);
+
+    &:hover {
+        background: var(--studio-layer-head-hover, var(--studio-color-sunken));
+    }
+}
+
+.studio-block__type-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--studio-color-text-muted);
+}
+
+.studio-block__title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.studio-block__actions {
+    display: flex;
+    gap: var(--studio-space-1);
+}
+
+.studio-block__body {
+    padding: var(--studio-space-4);
+    border-top: 1px solid var(--studio-layer-border, var(--studio-color-border));
+}
+
+.studio-block.is-collapsed .studio-block__body {
+    display: none;
+}
+
+.studio-block--unknown {
+    padding: var(--studio-space-4);
+    color: var(--studio-color-danger);
+}
+
+// The picker opens from its trigger, so it grows out of that corner rather
+// than from nowhere - never from scale(0) (section 14).
+.studio-block-picker {
+    display: flex;
+    flex-direction: column;
+    gap: var(--studio-space-4);
+    padding: var(--studio-space-4);
+    border: 1px solid var(--studio-color-border);
+    border-radius: var(--studio-radius-md);
+    background: var(--studio-color-surface);
+    box-shadow: var(--studio-shadow-md);
+    transform-origin: top left;
+    animation: studio-picker-enter 180ms var(--studio-ease-out);
+
+    &[hidden] {
+        display: none;
+    }
+}
+
+@keyframes studio-picker-enter {
+    from {
+        opacity: 0;
+        transform: scale(.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .studio-block-picker {
+        animation: none;
+    }
+}
+
+.studio-block-picker__group-label {
+    margin: 0 0 var(--studio-space-2);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--studio-color-text-faint);
+}
+
+.studio-block-picker__cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--studio-space-2);
+}
+
+.studio-block-picker__card {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 0 var(--studio-space-4) 0 10px;
+    border: 1px solid var(--studio-color-border);
+    border-radius: var(--studio-radius-sm);
+    background: var(--studio-color-bg);
+    font-family: var(--studio-font-ui);
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color var(--studio-duration-fast) var(--studio-ease-out),
+        box-shadow var(--studio-duration-fast) var(--studio-ease-out),
+        color var(--studio-duration-fast) var(--studio-ease-out);
+
+    &:hover {
+        border-color: var(--studio-color-accent);
+        box-shadow: var(--studio-shadow-sm);
+        color: var(--studio-color-accent);
+    }
+
+    &:active {
+        transform: scale(.97);
+    }
+}
+
+.studio-block-picker__icon {
+    width: 16px;
+    height: 16px;
+    color: var(--studio-color-accent);
+}
+
+// ---------------------------------------------------------------------------
+// Hotspot rows - the image itself lives in the preview pane now, so all that
+// is left in the form is the note telling people where to drag.
+// ---------------------------------------------------------------------------
+
+.studio-hotspot__hint {
+    margin: 0;
+    padding: var(--studio-space-3);
+    border-radius: var(--studio-radius-sm);
+    background: var(--studio-color-accent-soft);
+    color: var(--studio-color-accent);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+// ---------------------------------------------------------------------------
+// Import page
+// ---------------------------------------------------------------------------
+
+.studio-import {
+    font-family: var(--studio-font-ui);
+    padding: var(--studio-space-5) var(--studio-space-6) var(--studio-space-7);
+    max-width: 680px;
+}
+
+.studio-import__form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--studio-space-5);
+    padding: var(--studio-space-6);
+    border: 1px solid var(--studio-color-border);
+    border-radius: var(--studio-radius-lg);
+    background: var(--studio-color-surface);
+    box-shadow: var(--studio-shadow-sm);
+}
+
+.studio-import__dropzone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--studio-space-7) var(--studio-space-6);
+    border: 2px dashed var(--studio-color-border);
+    border-radius: var(--studio-radius-md);
+    background: var(--studio-color-bg);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color var(--studio-duration-fast) var(--studio-ease-out),
+        background var(--studio-duration-fast) var(--studio-ease-out);
+
+    &.is-dragover {
+        border-color: var(--studio-color-accent);
+        background: var(--studio-color-accent-soft);
+    }
+}
+
+.studio-import__dropzone-label {
+    color: var(--studio-color-text-muted);
+    font-size: 14px;
+}
+
+.studio-import__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--studio-space-2);
+}
+
+// ---------------------------------------------------------------------------
+// Date & time
+// ---------------------------------------------------------------------------
+
+.studio-datetime {
+    display: flex;
+    gap: var(--studio-space-2);
+    align-items: stretch;
+}
+
+.studio-datetime__input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.studio-datetime__now {
+    flex: 0 0 auto;
+}
+
+// ---------------------------------------------------------------------------
+// References
+// ---------------------------------------------------------------------------
+
+.studio-reference-multi {
+    display: flex;
+    flex-direction: column;
+    gap: var(--studio-space-2);
+}
+
+.studio-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--studio-space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.studio-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--studio-space-2);
+    padding: 4px var(--studio-space-2) 4px var(--studio-space-3);
+    border: 1px solid var(--studio-color-border);
+    border-radius: 999px;
+    background: var(--studio-color-accent-soft);
+    color: var(--studio-color-text);
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+.studio-chip__label {
+    // A long entry title must not stretch the field past its column.
+    overflow-wrap: anywhere;
+}
+
+.studio-chip__remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--studio-color-text-muted);
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background var(--studio-duration-fast) var(--studio-ease-out),
+        color var(--studio-duration-fast) var(--studio-ease-out);
+
+    &:hover {
+        background: var(--studio-color-surface);
+        color: var(--studio-color-text);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Rich text
+// ---------------------------------------------------------------------------
+
+.studio-wysiwyg {
+    display: flex;
+    flex-direction: column;
+    gap: var(--studio-space-2);
+}
+
+.studio-wysiwyg__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.studio-wysiwyg__tool {
+    min-height: 28px;
+    padding: 0 var(--studio-space-3);
+    font-size: 12px;
+}
+
+// Source mode: the author is looking at markup, so the control has to read as
+// code. Swapped for a rendered surface when TinyMCE lands.
+.studio-wysiwyg__area {
+    font-family: var(--studio-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-size: 13px;
+    tab-size: 2;
+}

@@ -1,0 +1,166 @@
+<?xml version="1.0"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">
+                bart_content_studio_entry_listing.bart_content_studio_entry_listing_data_source
+            </item>
+        </item>
+    </argument>
+    <settings>
+        <buttons>
+            <button name="add">
+                <url path="*/*/new"/>
+                <class>primary</class>
+                <label translate="true">Add New Entry</label>
+            </button>
+            <button name="import">
+                <url path="*/*/import"/>
+                <class>secondary</class>
+                <label translate="true">Import</label>
+            </button>
+            <button name="exportAll">
+                <url path="*/*/exportAll"/>
+                <class>secondary</class>
+                <label translate="true">Export All</label>
+            </button>
+        </buttons>
+        <spinner>bart_content_studio_entry_listing_columns</spinner>
+        <deps>
+            <dep>bart_content_studio_entry_listing.bart_content_studio_entry_listing_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="bart_content_studio_entry_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig>
+                <param name="indexField" xsi:type="string">entry_id</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Bart_ContentStudio::entry</aclResource>
+        <dataProvider class="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider"
+                      name="bart_content_studio_entry_listing_data_source">
+            <settings>
+                <requestFieldName>entry_id</requestFieldName>
+                <primaryFieldName>entry_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <listingToolbar name="listing_top">
+        <!-- No stock sticky clone: it is positioned for the admin menu this
+             full-bleed page removes (left: 88px), so it floated off to the
+             right of the grid with its columns misaligned. The real header
+             row sticks with plain `position: sticky` instead (_grid.less). -->
+        <settings>
+            <sticky>false</sticky>
+        </settings>
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <!-- Reuses Magento's stock search box widget; only the server-side
+             condition type changes (see KeywordSearch/KeywordFilterApplier),
+             so it matches title, identifier or a numeric entry ID instead of
+             requiring a MySQL FULLTEXT index this table doesn't have. -->
+        <filterSearch name="q" class="Bart\ContentStudio\Ui\Component\Listing\Filters\KeywordSearch">
+            <settings>
+                <label translate="true">Search</label>
+                <placeholder translate="true">Search title or identifier...</placeholder>
+            </settings>
+        </filterSearch>
+        <filters name="listing_filters"/>
+        <massaction name="listing_massaction">
+            <action name="export">
+                <settings>
+                    <type>export</type>
+                    <label translate="true">Export to ZIP</label>
+                    <url path="*/*/massExport"/>
+                </settings>
+            </action>
+            <action name="delete">
+                <settings>
+                    <url path="*/*/massDelete"/>
+                    <type>delete</type>
+                    <label translate="true">Delete</label>
+                    <confirm>
+                        <message translate="true">Are you sure you want to delete the selected entries?</message>
+                        <title translate="true">Delete entries</title>
+                    </confirm>
+                </settings>
+            </action>
+        </massaction>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+    <columns name="bart_content_studio_entry_listing_columns">
+        <selectionsColumn name="ids">
+            <settings>
+                <indexField>entry_id</indexField>
+            </settings>
+        </selectionsColumn>
+        <column name="entry_id">
+            <settings>
+                <filter>textRange</filter>
+                <sorting>asc</sorting>
+                <label translate="true">ID</label>
+            </settings>
+        </column>
+        <!-- Eye button: hover = title popover, click = preview modal
+             (js/grid/preview.js, booted from entry/grid-preview.phtml). -->
+        <column name="preview" class="Bart\ContentStudio\Ui\Component\Listing\Column\Preview">
+            <settings>
+                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
+                <sortable>false</sortable>
+                <label translate="true">Preview</label>
+                <fieldClass>
+                    <class name="studio-grid-preview-cell">true</class>
+                </fieldClass>
+            </settings>
+        </column>
+        <column name="identifier">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Identifier</label>
+            </settings>
+        </column>
+        <column name="type" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <filter>select</filter>
+                <options class="Bart\ContentStudio\Model\Config\Source\ContentType"/>
+                <dataType>select</dataType>
+                <label translate="true">Content Type</label>
+            </settings>
+        </column>
+        <column name="title">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Title</label>
+            </settings>
+        </column>
+        <column name="store_view" class="Bart\ContentStudio\Ui\Component\Listing\Column\StoreView">
+            <settings>
+                <sortable>false</sortable>
+                <label translate="true">Store View</label>
+            </settings>
+        </column>
+        <column name="is_active" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <filter>select</filter>
+                <options class="Magento\Config\Model\Config\Source\Yesno"/>
+                <dataType>select</dataType>
+                <label translate="true">Status</label>
+            </settings>
+        </column>
+        <column name="updated_at" class="Magento\Ui\Component\Listing\Columns\Date"
+                component="Magento_Ui/js/grid/columns/date">
+            <settings>
+                <filter>dateRange</filter>
+                <dataType>date</dataType>
+                <label translate="true">Updated</label>
+            </settings>
+        </column>
+        <actionsColumn name="actions" class="Bart\ContentStudio\Ui\Component\Listing\Column\EntryActions">
+            <settings>
+                <indexField>entry_id</indexField>
+            </settings>
+        </actionsColumn>
+    </columns>
+</listing>

@@ -1,0 +1,84 @@
+//
+//  "View on site" - trigger and target popover.
+//
+//  A dropdown rather than a single button because an entry usually has more
+//  than one honest answer to "where does this appear": several products, and
+//  on a multi-brand entry several store views, each under its own theme.
+//  _____________________________________________
+
+.studio-targets {
+    position: relative;
+}
+
+.studio-targets__popover {
+    position: absolute;
+    top: calc(100% + var(--studio-space-2));
+    right: 0;
+    z-index: 40;
+    min-width: 280px;
+    max-width: 380px;
+    padding: var(--studio-space-3);
+    background: var(--studio-color-surface);
+    border: 1px solid var(--studio-color-border);
+    border-radius: var(--studio-radius-md);
+    box-shadow: var(--studio-shadow-lg);
+
+    // The toolbar is the topmost strip of a full-height grid, so a panel
+    // hanging off it would otherwise be clipped by the row below.
+    &[hidden] {
+        display: none;
+    }
+}
+
+.studio-targets__group + .studio-targets__group {
+    margin-top: var(--studio-space-3);
+    padding-top: var(--studio-space-3);
+    border-top: 1px solid var(--studio-color-border);
+}
+
+.studio-targets__group-label {
+    margin: 0 0 var(--studio-space-1);
+    padding: 0 var(--studio-space-2);
+    color: var(--studio-color-text-faint);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.studio-targets__link {
+    display: flex;
+    align-items: center;
+    gap: var(--studio-space-2);
+    padding: var(--studio-space-2);
+    border-radius: var(--studio-radius-sm);
+    color: var(--studio-color-text);
+    text-decoration: none;
+    transition: background var(--studio-duration-fast) var(--studio-ease-out);
+
+    &:hover,
+    &:focus-visible {
+        background: var(--studio-color-accent-soft);
+        color: var(--studio-color-text);
+        text-decoration: none;
+    }
+}
+
+.studio-targets__link-icon {
+    flex: none;
+    color: var(--studio-color-text-faint);
+}
+
+.studio-targets__note {
+    margin: 0;
+    padding: var(--studio-space-2);
+    color: var(--studio-color-text-muted);
+}
+
+.studio-targets__footnote {
+    margin: var(--studio-space-3) 0 0;
+    padding-top: var(--studio-space-2);
+    border-top: 1px solid var(--studio-color-border);
+    color: var(--studio-color-text-faint);
+    font-size: 12px;
+    line-height: 1.4;
+}
