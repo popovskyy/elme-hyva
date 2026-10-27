@@ -1,0 +1,71 @@
+<?php
+/**
+ * Content Studio type `promo_split` (etc/content_types.xml): image left; heading, text and a button
+ * right. Below desktop it stacks and centres. Production: the Outlet promo on the home page
+ * (Bart/el home/_become-retailer.less). Server-rendered, no JS.
+ *
+ * Bleeds into the container gutters on both sides, like production: the image runs to the screen
+ * edge, the text keeps its own inset.
+ *
+ * @var \Bart\ContentStudio\Block\Entry $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+$content = $block->getContent();
+$image = trim((string)($content['image'] ?? ''));
+$imageAlt = trim((string)($content['image_alt'] ?? ''));
+$heading = trim((string)($content['heading'] ?? ''));
+$text = trim((string)($content['text'] ?? ''));
+$buttonLabel = trim((string)($content['button_label'] ?? ''));
+$buttonLink = trim((string)($content['button_link'] ?? ''));
+
+if ($image === '' || $heading === '') {
+    return;
+}
+
+$hasButton = $buttonLabel !== '' && $buttonLink !== '';
+$headingId = 'promo-split-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
+// Saved through HtmlSanitizer already; this keeps an imported entry to the same tags.
+$textTags = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'a', 'ul', 'ol', 'li', 'sup', 'sub'];
+?>
+<section class="-mx-(--container-gutter) mt-5 mb-10 flex flex-col
+                md:-mx-(--container-gutter-desktop) lg:mb-30 lg:flex-row"
+         aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
+    <div class="mb-6 lg:mb-0 lg:w-1/2 lg:shrink-0">
+        <?php if ($hasButton): ?>
+            <?php // Same destination as the button, so it is skipped by keyboard and screen readers. ?>
+            <a href="<?= $escaper->escapeUrl($buttonLink) ?>" tabindex="-1" aria-hidden="true" class="block">
+        <?php endif; ?>
+        <img src="<?= $escaper->escapeUrl($image) ?>"
+             alt="<?= $escaper->escapeHtmlAttr($imageAlt) ?>"
+             width="999"
+             height="428"
+             loading="lazy"
+             decoding="async"
+             class="block h-auto w-full">
+        <?php if ($hasButton): ?>
+            </a>
+        <?php endif; ?>
+    </div>
+    <div class="flex flex-col justify-center px-5 text-center
+                lg:w-1/2 lg:max-w-160 lg:pr-5 lg:pl-18 lg:text-left">
+        <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+            class="mb-6 text-title-section text-ink lg:mb-5.5 lg:text-title-section-desktop">
+            <?= nl2br($escaper->escapeHtml($heading), false) ?>
+        </h2>
+        <?php if ($text !== ''): ?>
+            <div class="text-copy text-ink lg:text-copy-desktop
+                        [&_a]:underline [&_p]:m-0 [&_p]:text-ink">
+                <?= /* @noEscape */ $escaper->escapeHtml($text, $textTags) ?>
+            </div>
+        <?php endif; ?>
+        <?php if ($hasButton): ?>
+            <div class="<?= $text !== '' ? 'mt-3.5 lg:mt-10' : '' ?>">
+                <a href="<?= $escaper->escapeUrl($buttonLink) ?>"
+                   class="btn btn-primary w-full lg:w-auto lg:min-w-54">
+                    <?= $escaper->escapeHtml($buttonLabel) ?>
+                </a>
+            </div>
+        <?php endif; ?>
+    </div>
+</section>

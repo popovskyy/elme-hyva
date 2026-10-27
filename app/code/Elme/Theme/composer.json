@@ -5,7 +5,8 @@
     "require": {
         "php": "~8.3.0||~8.4.0",
         "magento/framework": "*",
-        "magento/module-cms": "*"
+        "magento/module-cms": "*",
+        "bart/module-content-studio": "*"
     },
     "autoload": {
         "files": [

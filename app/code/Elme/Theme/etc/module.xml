@@ -6,6 +6,7 @@
             <module name="Magento_Cms"/>
             <module name="Elme_LoginOnly"/>
             <module name="Snowdog_Menu"/>
+            <module name="Bart_ContentStudio"/>
         </sequence>
     </module>
 </config>
