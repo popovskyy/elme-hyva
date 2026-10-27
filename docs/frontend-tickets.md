@@ -78,7 +78,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-54 | Third-party scripts: Zendesk chat, Klaviyo, GTM/GA4, Triple Whale | 10 Cross-cutting | FE-01 | To do |
 | FE-55 | SEO markup: structured data, breadcrumbs, meta, canonical | 10 Cross-cutting | FE-18, FE-25 | To do |
 | FE-56 | Final QA pass: devices, accessibility, performance, visual compare | 10 Cross-cutting | all | To do |
-| FE-57 | Content Studio for Open Source + Hyvä (copy of Bart_ContentStudio) | 0 Foundation | FE-01, D11 | To do |
+| FE-57 | Content Studio for Open Source + Hyva, with a Page Builder content type | 0 Foundation | FE-01, FE-02, D11 | To do |
 | FE-58 | Theme preview image (media/preview.png) in Elme + Hyvä style | 0 Foundation | FE-01 | To do |
 | UX-01 | No empty or broken blocks | 11 UX | FE-12, FE-16, FE-17 | To do |
 | UX-02 | Guest path to a trade account | 11 UX | FE-06, FE-07, FE-19, FE-26 | To do |
@@ -143,28 +143,54 @@ Everything else builds on these four. Ship them first, so other tickets reuse th
 - [ ] Each layout can be picked in admin for a CMS page and renders as on production
 - [ ] No horizontal scroll at 390 px; content stops at 1920 px and centres on wider screens
 
-### FE-57 Content Studio for Open Source + Hyvä
+### FE-57 Content Studio for Open Source + Hyva, with a Page Builder content type
 
-**Scope:** copy `Bart_ContentStudio` from m2-bart-group (last commit ee7f5d323) into `app/code/Bart/ContentStudio` and make it a version for this project only: Magento Open Source 2.4.9 + Hyvä. From then on this copy lives on its own; fixes are not synced back.
+**Scope:** copy `Bart_ContentStudio` from m2-bart-group (`app/code/Bart/ContentStudio`, last commit ee7f5d323) into `app/code/Bart/ContentStudio` here and make it a version for Magento Open Source 2.4.9 + Hyva only. From then on this copy lives on its own; nothing is synced back. Keep the module name, the admin route `bart_content_studio`, the ACL ids, the DB tables and the export/import format as they are, so the module's own `CLAUDE.md` stays valid.
 
-- Remove what Elme does not use: the `compare_mattress` type (template, view model, JS renderer, unit test, LESS) and the blog types from `Bart_MagefanBlog` (not copied).
-- Storefront: no LESS, no RequireJS. Type templates use Tailwind; behaviour, where a type needs it, is a CSP-compatible Alpine component in the type template instead of the global `storefront.js`.
-- "View on site" preview (sandbox page, badge, bridge) works on the Hyvä storefront.
-- Admin editor stays as it is; check it on Open Source 2.4.9 and its PHP version.
-- Add the module to `hyva.config.json` → `tailwind.include` so classes in type templates end up in `styles.css`.
-- Elme content types live in their own `etc/content_types.xml` in an Elme module, not in Content Studio itself: hero, category tiles, product carousel, promo split, USP strip, FAQ, team, events, lookbook, catalogue covers (used by FE-14…16, FE-47…49).
+1. Remove what Elme does not use. Elme sells no mattresses, and `Bart_MagefanBlog` (the blog types) is not copied.
+   - Delete: the `compare_mattress` type in `etc/content_types.xml` (the file stays, with no types; the XSD allows that), `ViewModel/Type/CompareMattress.php`, `view/frontend/templates/type/compare-mattress.phtml`, `view/base/web/js/type/compare-mattress.js`, `view/frontend/web/js/storefront.js`, `view/frontend/web/css/source/_module.less`, `view/frontend/layout/default.xml`, `view/frontend/web/js/preview/bridge.js` and its `<script>` in `view/frontend/layout/bart_content_studio_preview_sandbox.xml`, `view/adminhtml/web/js/editor/preview-hotspot.js`, `Console/Command/ImportCompareMattress.php`, `Setup/Patch/Data/MoveCompareMattressCtaToComfort.php`, `Test/Unit/ViewModel/Type/CompareMattressTest.php`, `Test/Unit/Setup/Patch/Data/MoveCompareMattressCtaToComfortTest.php`.
+   - `etc/di.xml`: drop the `compare_mattress` item of `Block\Entry` `typeViewModels`, the `bart_studio_import_compare_mattress` console command and the `content_studio` item of `Controller\Adminhtml\Entry\PreviewFrame` `scripts`.
+   - Admin JS and LESS (`grep -rn -i mattress view/adminhtml`): remove only the branches and selectors that serve `compare_mattress` (`cs-compare-mattress__*`, range/comfort focus, dots). Generic editor behaviour stays. `view/adminhtml/web/js/editor/field/hotspot.js` (a repeater with X/Y fields per row) stays; dragging dots on the image worked only on the mattress preview markup and goes with `preview-hotspot.js`.
+   - Blog: the `blog_post_body` branch in `view/frontend/templates/preview/sandbox.phtml`.
+   - Unit tests that use `compare_mattress` only as a type-code string with inline fixtures stay as they are.
+2. Storefront on Hyva.
+   - No LESS, no RequireJS and no global script from this module. Type templates use Tailwind and tokens; a type that needs behaviour gets a CSP-compatible Alpine component in its own template (skill `hyva-alpine-component`).
+   - Elme types get no JS `renderer`. For a type without one, the editor's Live Preview window reloads with the new draft 1200 ms after typing stops (`schedulePageReload` / `PAGE_RELOAD_DEBOUNCE_MS` in `view/adminhtml/web/js/editor/state.js`); `bridge.js` was only needed for renderer types, which is why it goes.
+   - Sandbox page (`bart_content_studio/preview/sandbox`): rebuild `sandbox.phtml` and the "Draft" badge in Tailwind (badge fixed bottom-centre, above the sticky header). `view/frontend/web/js/preview/badge.js` (plain script, countdown) stays.
+   - Add `app/code/Bart/ContentStudio` to `hyva.config.json` -> `tailwind.include`.
+3. Admin on Open Source 2.4.9 and PHP 8.4 (the `elme_php` container).
+   - The editor (RequireJS + LESS, admin only) stays as it is. The module depends only on Open Source modules (Cms, Widget, Backend, Store, Ui, ImportExport, MediaStorage).
+   - `Controller/Adminhtml/Entry/PreviewFrame.php` (the grid eye-button preview) links Luma's `css/styles-m.css` and `css/styles-l.css` inside Luma page wrappers. Switch it to the theme's `css/styles.css` and to the wrappers a Hyva CMS page has (read them from a CMS page on https://elme-hyva.local, do not guess them).
+4. New Page Builder content type "Content Studio".
+   - In the Page Builder panel under Add Content (`menu_section="add_content"`), next to Block, with the same parents as Block (`root-container`, `row`, `column`, `tab-item`). The editor drags it onto the stage, picks an entry, and the stage shows that entry with the Elme storefront styles, the way Block shows a CMS block. It works wherever Page Builder is used (CMS pages, CMS blocks, product attributes).
+   - Build it like Page Builder's own `block` type in `vendor/magento/module-page-builder`: `view/adminhtml/pagebuilder/content_type/block.xml`, `view/adminhtml/ui_component/pagebuilder_block_form.xml` and `pagebuilder_block_select_grid.xml`, `view/adminhtml/web/js/content-type/block/preview.js`, `view/adminhtml/web/js/content-type/block/mass-converter/widget-directive.js`. Add `Magento_PageBuilder` to the module sequence.
+   - Picker: a grid of entries of `standalone="true"` types, searchable by title and identifier (the same set the widget chooser `Block/Adminhtml/Widget/Chooser.php` offers).
+   - Saved content holds the same directive the "Content Studio Entry" widget inserts, `{{widget type="Bart\ContentStudio\Block\Entry" identifier="..."}}`, so the storefront renders it through `Block\Entry` with no Page Builder JS, and the widget keeps working for WYSIWYG fields.
+   - Stage preview: an `<iframe>` of `bart_content_studio/entry/previewFrame` (admin-served, same origin, renders the entry under the store theme with its CSS; fixed in point 3). Do not put the entry HTML into the admin page the way Block does: with the theme `styles.css` in the admin document Tailwind's base styles restyle the whole admin, and without it the block is unstyled. The frame takes the height of its content and has `pointer-events: none`, so Page Builder's select, move, duplicate and remove work as for Block. The stage shows the server-rendered state; Alpine does not run there. `previewFrame` takes `entry_id` and `store_id`: store the entry id next to the identifier, or let the route also accept `identifier`; `store_id` is the default store view.
+   - No entry picked: a placeholder like Block's. Entry deleted: a notice in the stage; the storefront renders nothing, same as the widget.
+5. First Elme type, `promo_split`, so the editor and the Page Builder type can be tested on real content.
+   - Elme types are declared in `app/code/Elme/Theme/etc/content_types.xml` (Elme_Theme is already in `tailwind.include`; add `Bart_ContentStudio` to its `etc/module.xml` sequence). FE-14...16 and FE-47...49 add their types to the same file.
+   - `promo_split` is the Outlet promo on the production home page: image left, heading, text, button (label and link). Template `Elme_Theme::content-type/promo-split.phtml`, Tailwind, tokens and the FE-02 button classes; `recommended` on the image field set to the image size production uses.
+6. Repo rules for the copy.
+   - English ASCII only in every copied file, the module `CLAUDE.md` included: em dashes, arrows, curly quotes and the ellipsis character become ASCII; visible UI characters become HTML entities or `\u{...}` escapes; the multibyte case in `SchemaValidatorTest` keeps testing multibyte through `"\u{043C}"`.
+   - Update the module `CLAUDE.md`: drop the compare_mattress, blog and Sleeping Giant parts, add the Page Builder type and the Hyva notes from this ticket.
+   - Not in this ticket: JS renderers for Elme types, the other Elme types, migrating old content, Hyva CMS or CMS Tailwind JIT (D11).
 
-**Ref:** `m2-bart-group/app/code/Bart/ContentStudio` (its `CLAUDE.md` explains the schema, editor, preview and import/export)
+**Ref:** `m2-bart-group/app/code/Bart/ContentStudio` (its `CLAUDE.md` explains the schema, editor, preview and import/export); the Page Builder `block` type files listed in point 4; Outlet promo on the production home page https://www.elmeliving.com/
 
 **QA:**
 
-- [ ] On a clean install `setup:upgrade` and `setup:di:compile` run without errors
-- [ ] Admin: create, edit, preview, save, copy and delete an entry; store scope applies
-- [ ] "Content Studio Entry" widget placed in a CMS page renders the entry on the storefront
-- [ ] "View on site" opens an unsaved entry on the Elme storefront
-- [ ] Export entries as ZIP locally, import on staging: same entries and images
-- [ ] Storefront loads no RequireJS or LESS from the module; no CSP errors
+- [ ] On a clean install `setup:upgrade` and `setup:di:compile` run without errors (PHP 8.4 container)
+- [ ] Module unit tests pass; `LC_ALL=C grep -rnP '[^\x00-\x7F]' app/code/Bart/ContentStudio` finds nothing
+- [ ] Admin: create, edit, save, Save & Copy and delete a `promo_split` entry; store scope applies
 - [ ] Type picker shows only Elme types, no `compare_mattress` or blog types
+- [ ] "Open Live Preview" opens the unsaved entry on the Elme sandbox page; an edit shows after the reload; the badge counts down
+- [ ] Grid eye-button preview shows the entry with Elme styles
+- [ ] Page Builder: "Content Studio" is under Add Content; dragged onto a CMS page and given an entry, the stage shows it styled like the storefront; select, move, duplicate and remove work as for Block
+- [ ] The saved CMS page shows the entry on the storefront, the same as the "Content Studio Entry" widget inserted through the WYSIWYG
+- [ ] `promo_split` matches the production Outlet promo at 390, 768, 1440 and 1920 px
+- [ ] Export entries as ZIP locally, import on staging: same entries and images
+- [ ] Storefront loads no RequireJS, LESS or JS file from Bart_ContentStudio; no CSP errors
 
 ### FE-58 Theme preview image
 
@@ -317,7 +343,7 @@ Production home, top to bottom: hero banners → category tiles carousel → Wel
 
 ### FE-16 Homepage content sections
 
-**Scope:** Welcome text + Become a Stockist button; Outlet promo (image left, heading, text, "Find Us In-Store" button); Curated Catalogues (dusty-blue band, Lookbook and Virtual Catalogues cards, "See All Catalogues"); Become a Stockist benefits (The Latest Trends, Premium Customer Service, Extensive Range, "Create An Account"). Built as Content Studio types `promo_split`, `catalogue_covers`, `usp_strip`.
+**Scope:** Welcome text + Become a Stockist button; Outlet promo (image left, heading, text, "Find Us In-Store" button); Curated Catalogues (dusty-blue band, Lookbook and Virtual Catalogues cards, "See All Catalogues"); Become a Stockist benefits (The Latest Trends, Premium Customer Service, Extensive Range, "Create An Account"). Built as Content Studio types `catalogue_covers` and `usp_strip`; the Outlet promo is a `promo_split` entry (type built in FE-57).
 
 **QA:**
 
@@ -731,7 +757,7 @@ All content is new; nothing is migrated from the old site. Plain text pages (T&C
 
 **Scope:** /shop-the-looks and the "Be Inspired" home block: lifestyle images with "+" hotspots; a hotspot opens a product popup (image, name, "Sign in to see pricing" or price, "View »", qty + add to cart when logged in). Content Studio type `lookbook`: image with hotspots pinned in % of the frame, each linked to a SKU.
 
-**Ref:** production /shop-the-looks; hotspot editing as in `Bart_ContentStudio` (`compare_mattress` preview hotspots)
+**Ref:** production /shop-the-looks; dragging hotspots on the image as in `m2-bart-group/app/code/Bart/ContentStudio/view/adminhtml/web/js/editor/preview-hotspot.js` (it was mattress-only and is not in this repo's copy, see FE-57)
 
 **QA:**
 
@@ -989,6 +1015,6 @@ These decisions change the scope of the tickets named in **Affects**. Make them 
 | D8 | Product images | Cloudinary | Keep Cloudinary · native Magento images | FE-19, FE-25 |
 | D9 | Blog | Magefan Blog templates exist, /blog is 404 | Drop (recommended) · port | — |
 | D10 | Instagram feed | Overdose InstaFeed | Instagram API module · static images in CMS | FE-12, FE-50 |
-| D11 | CMS content | Adobe Page Builder + LESS classes | **Decided:** new content, no migration; Page Builder for plain text pages, own copy of Content Studio (Open Source + Hyvä) for structured blocks; no CMS Tailwind JIT | FE-14…16, FE-47…49, FE-57 |
+| D11 | CMS content | Adobe Page Builder + LESS classes | **Decided:** new content, no migration; Page Builder for plain text pages, own copy of Content Studio (Open Source + Hyva) for structured blocks, placed with its Page Builder content type or widget; no CMS Tailwind JIT | FE-14...16, FE-47...49, FE-57 |
 
 Out of scope for this list: transactional email templates, checkout features (delivery date calendar, account credit, freight) that come with their backend tickets, and writing the new CMS content.
