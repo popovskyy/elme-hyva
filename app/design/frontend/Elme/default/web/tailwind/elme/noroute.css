@@ -1,0 +1,108 @@
+/**
+ * FE-52 404 recovery (cms_noroute_index). Layout/spacing from Bart/el _404-page.less;
+ * type sizes map to hyva.config.json tokens (title-section / h1-desktop / noroute-lead).
+ */
+
+.cms-no-route .page-main,
+.cms-noroute-index .page-main {
+    padding-block: 0;
+}
+
+.elme-noroute {
+    padding-block: --spacing(6) --spacing(14);
+
+    @variant md {
+        padding-block: --spacing(10) --spacing(12);
+    }
+}
+
+.elme-noroute__grid {
+    display: grid;
+    gap: --spacing(8);
+    align-items: center;
+
+    @variant md {
+        grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+        gap: --spacing(10);
+    }
+}
+
+.elme-noroute__copy {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    @variant md {
+        padding-inline: --spacing(4) --spacing(8);
+    }
+
+    @variant lg {
+        padding-inline: --spacing(10) --spacing(16);
+    }
+}
+
+.elme-noroute__code {
+    margin: 0 0 --spacing(4);
+    font-family: var(--font-heading);
+    font-size: var(--text-title-section-desktop);
+    line-height: var(--text-title-section-desktop--line-height);
+    font-weight: 400;
+    color: var(--color-ink);
+
+    @variant md {
+        margin-bottom: --spacing(8);
+        font-size: var(--text-h1-desktop);
+        line-height: 1.08;
+    }
+}
+
+.elme-noroute__title {
+    margin: 0 0 --spacing(8);
+    font-family: var(--font-heading);
+    font-size: var(--text-noroute-lead);
+    line-height: var(--text-noroute-lead--line-height);
+    font-weight: 400;
+    color: var(--color-ink);
+
+    @variant md {
+        max-width: 80%;
+        font-size: var(--text-noroute-lead-desktop);
+        line-height: var(--text-noroute-lead-desktop--line-height);
+    }
+}
+
+.elme-noroute__actions {
+    display: flex;
+    flex-direction: column;
+    gap: --spacing(3);
+    width: 100%;
+    margin-bottom: --spacing(8);
+
+    @variant md {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        max-width: 28rem;
+    }
+}
+
+.elme-noroute__btn {
+    width: 100%;
+
+    @variant md {
+        max-width: 13.5rem;
+    }
+}
+
+.elme-noroute__search {
+    max-width: 28rem;
+}
+
+.elme-noroute__media {
+    min-width: 0;
+}
+
+.elme-noroute__img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
