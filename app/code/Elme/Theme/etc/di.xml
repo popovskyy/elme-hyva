@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- View models of Elme Content Studio types (etc/content_types.xml), keyed by type code.
+         Global, not frontend: the admin grid preview and the Page Builder stage render the same
+         templates. -->
+    <type name="Bart\ContentStudio\Block\Entry">
+        <arguments>
+            <argument name="typeViewModels" xsi:type="array">
+                <item name="hero" xsi:type="object">Elme\Theme\ViewModel\Hero</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

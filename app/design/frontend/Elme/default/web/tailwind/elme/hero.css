@@ -1,0 +1,11 @@
+/*
+ * FE-14 hero (Elme_Theme content-type/hero.phtml). The layout is Tailwind in the template; this file only
+ * holds what a template cannot say about the page around it.
+ *
+ * On the home page the hero is the top banner and sits right under the header, as on production.
+ * Banner-breadcrumbs pages get the same from their breadcrumbs. Unlayered, like the .page-main margin in
+ * theme/page-layout.css that it overrides.
+ */
+.cms-index-index .page-main:has(.elme-hero) {
+    margin-top: 0;
+}

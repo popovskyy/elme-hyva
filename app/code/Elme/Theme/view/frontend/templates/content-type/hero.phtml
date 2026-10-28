@@ -1,0 +1,342 @@
+<?php
+/**
+ * Content Studio type `hero` (etc/content_types.xml, FE-14): full-width photo with a heading, text
+ * and a button in a dusty-blue panel. Desktop: the panel sits over the photo, centred like the
+ * production triptych (or left/right). Mobile: the photo, then the panel as a band under it.
+ * One slide is a plain banner with no JS; two to five become a slider (initElmeHero below).
+ *
+ * Every slide is rendered here, copy included, so crawlers that run no JS read all of them. The
+ * track is a CSS scroll-snap row: before Alpine starts it already shows slide 1 and swipes on touch.
+ * Alpine only scrolls it, autoplays, marks the current dot and makes the hidden slides inert.
+ *
+ * Bleeds into the container gutters like promo_split (--entry-bleed, content-studio.css).
+ *
+ * @var \Bart\ContentStudio\Block\Entry $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+use Elme\Theme\ViewModel\Hero;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+
+$heroViewModel = $block->getTypeViewModel();
+
+if (!$heroViewModel instanceof Hero) {
+    return;
+}
+
+$content = $block->getContent();
+$slides = $heroViewModel->getSlides($content);
+
+if (!$slides) {
+    return;
+}
+
+$count = count($slides);
+$isSlider = $count > 1;
+$interval = $isSlider ? $heroViewModel->getAutoplayInterval($content) : 0;
+$isPageTitle = $heroViewModel->isPageTitle($content);
+$heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
+
+$panelJustify = [
+    'center' => 'md:justify-center',
+    'left' => 'md:justify-start',
+    'right' => 'md:justify-end',
+];
+?>
+<section id="<?= $escaper->escapeHtmlAttr($heroId) ?>"
+         class="elme-hero -mx-(--entry-bleed) mb-10 lg:mb-15"
+    <?php if ($isSlider): ?>
+         aria-roledescription="carousel"
+         aria-label="<?= $escaper->escapeHtmlAttr(__('Highlights')) ?>"
+         x-data="initElmeHero"
+         x-bind="eventListeners"
+         data-interval="<?= (int)$interval ?>"
+         data-label-pause="<?= $escaper->escapeHtmlAttr(__('Pause slideshow')) ?>"
+         data-label-play="<?= $escaper->escapeHtmlAttr(__('Play slideshow')) ?>"
+    <?php else: ?>
+         aria-labelledby="<?= $escaper->escapeHtmlAttr($heroId . '-heading-1') ?>"
+    <?php endif; ?>
+>
+    <div class="flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain
+                [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        <?php if ($isSlider): ?>
+         id="<?= $escaper->escapeHtmlAttr($heroId . '-slides') ?>"
+         x-ref="track"
+         aria-live="<?= $interval ? 'off' : 'polite' ?>"
+         :aria-live="liveMode"
+        <?php endif; ?>
+    >
+        <?php foreach ($slides as $index => $slide): ?>
+            <?php
+            $number = $index + 1;
+            $isFirst = $index === 0;
+            $headingTag = $isPageTitle && $isFirst ? 'h1' : 'h2';
+            $headingId = $heroId . '-heading-' . $number;
+            $desktop = $slide['desktop'];
+            $fallback = $slide['mobile'] ?? $desktop;
+            $hasButton = $slide['button_link'] !== '';
+            $mediaTag = $hasButton ? 'a' : 'div';
+            ?>
+            <div class="relative flex w-full shrink-0 snap-start snap-always flex-col
+                        md:aspect-[2720/882] md:min-h-100 md:flex-row
+                        <?= /* @noEscape */ $panelJustify[$slide['panel_position']] ?>"
+                <?php if ($isSlider): ?>
+                 role="group"
+                 aria-roledescription="slide"
+                 aria-label="<?= $escaper->escapeHtmlAttr(__('%1 of %2', $number, $count)) ?>"
+                 data-index="<?= (int)$index ?>"
+                <?php endif; ?>
+            >
+                <<?= /* @noEscape */ $mediaTag ?>
+                    <?php if ($hasButton): ?>
+                    <?php // Same destination as the button, so it is skipped by keyboard and screen readers. ?>
+                    href="<?= $escaper->escapeUrl($slide['button_link']) ?>" tabindex="-1" aria-hidden="true"
+                    <?php endif; ?>
+                    class="relative block aspect-3/2 overflow-hidden bg-sand-light
+                           md:absolute md:inset-0 md:aspect-auto">
+                    <picture>
+                        <?php if ($slide['mobile']): ?>
+                            <source media="(min-width: 768px)"
+                                    srcset="<?= $escaper->escapeUrl($desktop['src']) ?>"
+                                    width="<?= (int)$desktop['width'] ?>"
+                                    height="<?= (int)$desktop['height'] ?>">
+                        <?php endif; ?>
+                        <img src="<?= $escaper->escapeUrl($fallback['src']) ?>"
+                             alt="<?= $escaper->escapeHtmlAttr($slide['alt']) ?>"
+                             width="<?= (int)$fallback['width'] ?>"
+                             height="<?= (int)$fallback['height'] ?>"
+                            <?php if ($isFirst): ?>
+                             loading="eager"
+                             fetchpriority="high"
+                            <?php else: ?>
+                             loading="lazy"
+                             decoding="async"
+                            <?php endif; ?>
+                             class="absolute inset-0 size-full object-cover">
+                    </picture>
+                </<?= /* @noEscape */ $mediaTag ?>>
+                <div class="relative flex grow flex-col items-center justify-center bg-accent px-5 py-8 text-center
+                            md:w-1/2 md:grow-0 md:px-10 md:py-10 xl:w-2/5 2xl:w-1/3">
+                    <div class="w-full max-w-130">
+                        <<?= /* @noEscape */ $headingTag ?> id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+                            class="text-title-section text-balance text-ink lg:text-title-section-desktop">
+                            <?= nl2br($escaper->escapeHtml($slide['heading']), false) ?>
+                        </<?= /* @noEscape */ $headingTag ?>>
+                        <?php if ($slide['text'] !== ''): ?>
+                            <p class="mt-3 text-copy text-pretty text-ink lg:mt-4 lg:text-copy-desktop">
+                                <?= nl2br($escaper->escapeHtml($slide['text']), false) ?>
+                            </p>
+                        <?php endif; ?>
+                        <?php if ($hasButton): ?>
+                            <div class="mt-6 lg:mt-8">
+                                <a href="<?= $escaper->escapeUrl($slide['button_link']) ?>"
+                                   class="btn btn-primary min-w-54">
+                                    <?= $escaper->escapeHtml($slide['button_label']) ?>
+                                </a>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+    <?php if ($isSlider): ?>
+        <?php
+        /** @var LucideIcons $lucideIcons */
+        $lucideIcons = $viewModels->require(LucideIcons::class);
+        /** @var HyvaCsp $hyvaCsp */
+        $hyvaCsp = $viewModels->require(HyvaCsp::class);
+        $controlClass = 'flex size-11 items-center justify-center text-ink hover:text-link-hover
+                         focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ink';
+        ?>
+        <?php // In the flow but invisible until Alpine starts, so showing it moves nothing. ?>
+        <div x-ref="controls" class="invisible flex items-center justify-center pt-2">
+            <button type="button"
+                    class="<?= /* @noEscape */ $controlClass ?>"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Previous slide')) ?>"
+                    aria-controls="<?= $escaper->escapeHtmlAttr($heroId . '-slides') ?>"
+                    @click="prev">
+                <?= $lucideIcons->chevronLeftHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+            </button>
+            <div class="flex items-center">
+                <?php for ($index = 0; $index < $count; $index++): ?>
+                    <button type="button"
+                            class="group flex h-11 items-center px-1.5
+                                   focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ink"
+                            aria-label="<?= $escaper->escapeHtmlAttr(__('Go to slide %1', $index + 1)) ?>"
+                            aria-current="<?= $index === 0 ? 'true' : 'false' ?>"
+                            data-index="<?= (int)$index ?>"
+                            :aria-current="dotCurrent"
+                            @click="goToDot">
+                        <span class="block h-0.5 w-6 bg-border transition-[width,background-color] duration-300
+                                     ease-out group-hover:bg-ink-subtle group-aria-[current=true]:w-10
+                                     group-aria-[current=true]:bg-ink motion-reduce:transition-none"></span>
+                    </button>
+                <?php endfor; ?>
+            </div>
+            <button type="button"
+                    class="<?= /* @noEscape */ $controlClass ?>"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Next slide')) ?>"
+                    aria-controls="<?= $escaper->escapeHtmlAttr($heroId . '-slides') ?>"
+                    @click="next">
+                <?= $lucideIcons->chevronRightHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+            </button>
+            <?php if ($interval): ?>
+                <button type="button"
+                        class="<?= /* @noEscape */ $controlClass ?> ml-2"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Pause slideshow')) ?>"
+                        :aria-label="playLabel"
+                        @click="togglePlay">
+                    <span x-show="playing"><?= $lucideIcons->pauseHtml('', 18, 18, ['aria-hidden' => 'true']) ?></span>
+                    <span x-show="isStopped"><?= $lucideIcons->playHtml('', 18, 18, ['aria-hidden' => 'true']) ?></span>
+                </button>
+            <?php endif; ?>
+        </div>
+        <script>
+            function initElmeHero() {
+                return {
+                    index: 0,
+                    count: 0,
+                    interval: 0,
+                    playing: false,
+                    hovered: false,
+                    focused: false,
+                    reduceMotion: false,
+                    timer: null,
+                    observer: null,
+
+                    eventListeners: {
+                        ['@mouseenter']() {
+                            this.hovered = true;
+                            this.schedule();
+                        },
+                        ['@mouseleave']() {
+                            this.hovered = false;
+                            this.schedule();
+                        },
+                        // Keyboard focus only: a mouse click on a control must not freeze the slideshow.
+                        ['@focusin'](event) {
+                            this.focused = event.target.matches(':focus-visible');
+                            this.schedule();
+                        },
+                        ['@focusout'](event) {
+                            if (!this.$root.contains(event.relatedTarget)) {
+                                this.focused = false;
+                                this.schedule();
+                            }
+                        },
+                        ['@visibilitychange.document']() {
+                            this.schedule();
+                        }
+                    },
+
+                    init() {
+                        const slides = this.slides();
+
+                        this.count = slides.length;
+                        this.interval = Number(this.$root.dataset.interval) || 0;
+                        this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                        this.playing = this.interval > 0 && !this.reduceMotion;
+
+                        this.observer = new IntersectionObserver(
+                            (entries) => this.onIntersect(entries),
+                            {root: this.$refs.track, threshold: 0.6}
+                        );
+                        slides.forEach((slide) => this.observer.observe(slide));
+
+                        this.markSlides();
+                        this.$refs.controls.classList.remove('invisible');
+                        this.schedule();
+                    },
+
+                    destroy() {
+                        clearTimeout(this.timer);
+                        this.observer?.disconnect();
+                    },
+
+                    slides() {
+                        return Array.from(this.$refs.track.children);
+                    },
+
+                    onIntersect(entries) {
+                        entries.forEach((entry) => {
+                            if (entry.isIntersecting) {
+                                this.index = Number(entry.target.dataset.index);
+                            }
+                        });
+                        this.markSlides();
+                        this.schedule();
+                    },
+
+                    // Off-screen slides leave the tab order and the accessibility tree.
+                    markSlides() {
+                        this.slides().forEach((slide, i) => {
+                            slide.inert = i !== this.index;
+                        });
+                    },
+
+                    goTo(target) {
+                        const track = this.$refs.track;
+
+                        this.index = (target + this.count) % this.count;
+                        track.scrollTo({
+                            left: this.index * track.clientWidth,
+                            behavior: this.reduceMotion ? 'auto' : 'smooth'
+                        });
+                        this.markSlides();
+                        this.schedule();
+                    },
+
+                    next() {
+                        this.goTo(this.index + 1);
+                    },
+
+                    prev() {
+                        this.goTo(this.index - 1);
+                    },
+
+                    goToDot() {
+                        this.goTo(Number(this.$el.dataset.index));
+                    },
+
+                    // Pressing Play is an explicit request, so it wins over the focus pause.
+                    togglePlay() {
+                        this.playing = !this.playing;
+                        this.focused = false;
+                        this.schedule();
+                    },
+
+                    schedule() {
+                        clearTimeout(this.timer);
+
+                        if (this.playing && !this.hovered && !this.focused && !document.hidden) {
+                            this.timer = setTimeout(() => this.next(), this.interval);
+                        }
+                    },
+
+                    isStopped() {
+                        return !this.playing;
+                    },
+
+                    playLabel() {
+                        return this.playing ? this.$root.dataset.labelPause : this.$root.dataset.labelPlay;
+                    },
+
+                    // Announce slide changes only when the visitor makes them, not on every autoplay step.
+                    liveMode() {
+                        return this.playing ? 'off' : 'polite';
+                    },
+
+                    dotCurrent() {
+                        return Number(this.$el.dataset.index) === this.index ? 'true' : 'false';
+                    }
+                };
+            }
+
+            window.addEventListener('alpine:init', () => Alpine.data('initElmeHero', initElmeHero), {once: true});
+        </script>
+        <?php $hyvaCsp->registerInlineScript() ?>
+    <?php endif; ?>
+</section>

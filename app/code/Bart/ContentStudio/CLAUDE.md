@@ -443,6 +443,7 @@ of repeating the number.
 | code | module | standalone | renderer | notes |
 |---|---|---|---|---|
 | `promo_split` | `Elme_Theme` | yes | no | Image left; heading, text, button right. The Outlet promo on the home page. |
+| `hero` | `Elme_Theme` | yes | no | Top banner of the home page (FE-14): `slides` repeater (desktop + mobile image, heading, text, button, panel side). One slide is a plain banner; 2-5 are a scroll-snap slider with a CSP Alpine component in the template. View model `Elme\Theme\ViewModel\Hero` (registered in `Elme_Theme/etc/di.xml`) reads each image's pixel size from pub/media. `is_page_title` makes slide 1 the page H1. |
 
 FE-14...16 and FE-47...49 add their types to the same `Elme_Theme/etc/content_types.xml`.
 
