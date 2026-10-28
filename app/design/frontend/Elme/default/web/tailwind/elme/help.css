@@ -24,18 +24,31 @@
         max-width: var(--help-main-max);
     }
 
-    /* Sticky side column while scrolling long Privacy / Terms */
+    /*
+     * Sticky side column while scrolling long Privacy / Terms.
+     * Hyvä’s 2-col grid uses two rows (main spans both; sidebar only row 1) so the sidebar
+     * containing block is ~content-tall and sticky never engages. Stretch the help sidebar
+     * across both rows so sticky can pin while the main column scrolls.
+     */
     .elme-help__sidebar {
         display: flex;
         flex-direction: column;
         gap: --spacing(4);
     }
 
+    @variant md {
+        .help-page.page-layout-2columns-left .columns > .sidebar-main {
+            grid-row: 1 / span 2;
+        }
+    }
+
     @variant lg {
         .elme-help__sidebar {
             position: sticky;
-            top: --spacing(6);
+            /* Clear sticky header row (--elme-header-offset from header.phtml), same idea as .elme-sticky-below-header */
+            top: calc(var(--elme-header-offset, 0px) + --spacing(6));
             align-self: start;
+            z-index: 1;
         }
     }
 
