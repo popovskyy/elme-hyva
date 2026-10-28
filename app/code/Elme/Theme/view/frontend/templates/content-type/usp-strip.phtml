@@ -1,0 +1,106 @@
+<?php
+/**
+ * Content Studio type `usp_strip` (etc/content_types.xml, FE-16): Become a Stockist benefits —
+ * image left, heading + trade-fact rows + CTA right. Guests get Create An Account; logged-in
+ * customers get My Account (same FPC split as HideForLoggedIn). Server-rendered, no JS.
+ *
+ * @var \Bart\ContentStudio\Block\Entry $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+use Elme\LoginOnly\ViewModel\LoginOnly;
+use Elme\Theme\ViewModel\UspStrip;
+
+$usp = $block->getTypeViewModel();
+
+if (!$usp instanceof UspStrip) {
+    return;
+}
+
+$content = $block->getContent();
+$heading = $usp->getHeading($content);
+$image = $usp->getImage($content);
+$items = $usp->getItems($content);
+
+if ($heading === '' || $image === null || !$items) {
+    return;
+}
+
+$intro = $usp->getIntro($content);
+$guestButton = $usp->getGuestButton($content);
+
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+
+$button = null;
+if ($loginOnly->isLoggedIn()) {
+    $button = [
+        'label' => (string)__('My Account'),
+        'link' => $block->getUrl('customer/account'),
+    ];
+} elseif ($guestButton !== null) {
+    $button = $guestButton;
+}
+
+$headingId = 'usp-strip-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
+$hasImageLink = $guestButton !== null && !$loginOnly->isLoggedIn();
+?>
+<section class="elme-usp-strip -mx-(--entry-bleed) mb-10 flex flex-col lg:mb-30 lg:flex-row"
+         aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
+    <div class="mb-6 lg:mb-0 lg:w-1/2 lg:shrink-0">
+        <?php if ($hasImageLink): ?>
+            <a href="<?= $escaper->escapeUrl($guestButton['link']) ?>"
+               tabindex="-1"
+               aria-hidden="true"
+               class="block">
+        <?php endif; ?>
+        <img src="<?= $escaper->escapeUrl($image['src']) ?>"
+             alt="<?= $escaper->escapeHtmlAttr($image['alt']) ?>"
+             width="<?= (int)$image['width'] ?>"
+             height="<?= (int)$image['height'] ?>"
+             loading="lazy"
+             decoding="async"
+             class="block h-auto w-full">
+        <?php if ($hasImageLink): ?>
+            </a>
+        <?php endif; ?>
+    </div>
+    <div class="flex flex-col justify-center px-5 text-center
+                lg:w-1/2 lg:max-w-160 lg:pr-5 lg:pl-18 lg:text-left">
+        <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+            class="mb-4 text-title-section text-ink lg:mb-5.5 lg:text-title-section-desktop">
+            <?= $escaper->escapeHtml($heading) ?>
+        </h2>
+        <?php if ($intro !== ''): ?>
+            <p class="mb-6 text-copy text-ink lg:mb-8 lg:text-copy-desktop">
+                <?= $escaper->escapeHtml($intro) ?>
+            </p>
+        <?php endif; ?>
+
+        <ul class="elme-usp-strip__items mb-8 list-none p-0 text-left lg:mb-10">
+            <?php foreach ($items as $item): ?>
+                <li class="border-b border-border py-5 first:pt-0 last:border-b-0 last:pb-0
+                           lg:py-5.5 lg:last:pb-0">
+                    <h3 class="mb-2 text-h5 font-normal text-ink lg:text-h5-desktop">
+                        <?= $escaper->escapeHtml($item['title']) ?>
+                    </h3>
+                    <?php if ($item['text'] !== ''): ?>
+                        <p class="m-0 text-copy text-ink lg:text-copy-desktop">
+                            <?= $escaper->escapeHtml($item['text']) ?>
+                        </p>
+                    <?php endif; ?>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+
+        <?php if ($button !== null): ?>
+            <div>
+                <a href="<?= $escaper->escapeUrl($button['link']) ?>"
+                   class="btn btn-primary w-full lg:w-auto lg:min-w-54">
+                    <?= $escaper->escapeHtml($button['label']) ?>
+                </a>
+            </div>
+        <?php endif; ?>
+    </div>
+</section>

@@ -1,0 +1,46 @@
+<?php
+/**
+ * Content Studio type `welcome_cta` (etc/content_types.xml, FE-16): centred wholesale H1 + text +
+ * Become a Stockist CTA. On home this is the page's only visible H1 (hero stays is_page_title off).
+ * Guest CTA only — logged-in customers already have an account, so the button is omitted.
+ *
+ * @var \Bart\ContentStudio\Block\Entry $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+use Elme\LoginOnly\ViewModel\LoginOnly;
+
+$content = $block->getContent();
+$heading = trim((string)($content['heading'] ?? ''));
+$text = trim((string)($content['text'] ?? ''));
+$buttonLabel = trim((string)($content['button_label'] ?? ''));
+$buttonLink = trim((string)($content['button_link'] ?? ''));
+
+if ($heading === '') {
+    return;
+}
+
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+$showButton = !$loginOnly->isLoggedIn() && $buttonLabel !== '' && $buttonLink !== '';
+$headingId = 'welcome-cta-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
+?>
+<section class="elme-welcome-cta mx-auto mb-10 max-w-3xl px-5 text-center md:px-10 lg:mb-15"
+         aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
+    <h1 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+        class="mb-4 text-title-section font-heading font-normal text-ink lg:mb-5 lg:text-title-section-desktop">
+        <?= $escaper->escapeHtml($heading) ?>
+    </h1>
+    <?php if ($text !== ''): ?>
+        <p class="mx-auto mb-6 max-w-2xl text-copy text-ink-muted lg:mb-8 lg:text-copy-desktop">
+            <?= $escaper->escapeHtml($text) ?>
+        </p>
+    <?php endif; ?>
+    <?php if ($showButton): ?>
+        <a href="<?= $escaper->escapeUrl($buttonLink) ?>"
+           class="btn btn-primary w-full sm:w-auto sm:min-w-54">
+            <?= $escaper->escapeHtml($buttonLabel) ?>
+        </a>
+    <?php endif; ?>
+</section>
