@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!--
+    Elme Content Studio types (Bart_ContentStudio merges every module's
+    content_types.xml). Templates live in this module and use Tailwind with the
+    theme tokens; no type has a JS `renderer`, so the editor's Live Preview
+    window reloads the sandbox page instead.
+-->
+<content_types xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:noNamespaceSchemaLocation="urn:magento:module:Bart_ContentStudio:etc/content_types.xsd">
+
+    <!-- The Outlet promo on the production home page: image left, heading,
+         text and a button on the right; stacked and centred below desktop. -->
+    <type code="promo_split"
+          label="Promo: Image + Text"
+          standalone="true"
+          group="home"
+          icon="image-text"
+          description="Image on the left, heading, text and a button on the right. Stacks on mobile."
+          template="Elme_Theme::content-type/promo-split.phtml"
+          version="1">
+
+        <field name="image" type="image" label="Image" required="true" recommended="999x428"
+               description="Shown at its own proportions: half the width on desktop, full width on mobile."/>
+        <field name="image_alt" type="text" label="Image alt text" maxlength="160"
+               description="What the image shows, for screen readers. Leave empty if it only decorates."/>
+        <field name="heading" type="textarea" label="Heading" required="true" maxlength="80"
+               description="A line break here is a line break on the page, e.g. &quot;Introducing the&quot; / &quot;Elme Outlet&quot;."/>
+        <field name="text" type="wysiwyg" label="Text"
+               description="One to three short paragraphs. Bold for the offer."/>
+        <field name="button_label" type="text" label="Button label" maxlength="40" width="half"
+               description="Two or three words. Leave empty for no button."/>
+        <field name="button_link" type="url" label="Button link" width="half"
+               description="Also links the image. e.g. /showroom-locator/elme-living-melbourne-outlet"/>
+    </type>
+
+</content_types>

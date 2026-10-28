@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!--
+        Frontend only. In the admin area the repository must keep answering
+        with what is actually stored - the grid, export and the optimistic lock
+        all read through it, and a draft leaking into any of them would be a
+        far worse bug than having no preview.
+    -->
+    <type name="Bart\ContentStudio\Model\EntryRepository">
+        <plugin name="bart_content_studio_preview_draft"
+                type="Bart\ContentStudio\Plugin\Preview\DraftEntryPlugin"
+                sortOrder="10"/>
+    </type>
+
+</config>

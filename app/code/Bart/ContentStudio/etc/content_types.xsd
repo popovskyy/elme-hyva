@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:element name="content_types" type="contentTypesType"/>
+
+    <xs:complexType name="contentTypesType">
+        <xs:sequence>
+            <xs:element name="type" type="contentType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!--
+        A content type is either standalone (creatable as its own entry from the
+        admin grid) or a reusable building block only reachable through a
+        `blocks` field on another type (or both, when standalone="true" and it
+        is also listed in an <allow> element).
+    -->
+    <xs:complexType name="contentType">
+        <xs:sequence>
+            <xs:element name="field" type="fieldType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="code" type="xs:NMTOKEN" use="required"/>
+        <xs:attribute name="label" type="xs:string" use="required"/>
+        <xs:attribute name="standalone" type="xs:boolean" use="optional" default="false"/>
+        <xs:attribute name="copyable" type="xs:boolean" use="optional" default="true"/>
+        <xs:attribute name="group" type="xs:string" use="optional"/>
+        <xs:attribute name="icon" type="xs:string" use="optional"/>
+        <xs:attribute name="description" type="xs:string" use="optional"/>
+        <xs:attribute name="template" type="xs:string" use="optional"/>
+        <xs:attribute name="renderer" type="xs:string" use="optional"/>
+        <xs:attribute name="version" type="xs:positiveInteger" use="optional" default="1"/>
+    </xs:complexType>
+
+    <!--
+        A field is recursive: `group` and `repeater` nest further fields,
+        `blocks` nests <allow> instead (the allowed child content types).
+    -->
+    <xs:complexType name="fieldType">
+        <xs:sequence>
+            <xs:element name="option" type="optionType" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="allow" type="allowType" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="field" type="fieldType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:NMTOKEN" use="required"/>
+        <xs:attribute name="type" type="fieldKind" use="required"/>
+        <xs:attribute name="label" type="xs:string" use="optional"/>
+        <xs:attribute name="required" type="xs:boolean" use="optional" default="false"/>
+        <!-- Shown but not editable: a guard rail for values other code keys off. -->
+        <xs:attribute name="readonly" type="xs:boolean" use="optional" default="false"/>
+        <!-- Lets short, related fields (an X/Y pair) share one row. -->
+        <xs:attribute name="width" type="fieldWidth" use="optional" default="full"/>
+        <xs:attribute name="default" type="xs:string" use="optional"/>
+        <xs:attribute name="min" type="xs:decimal" use="optional"/>
+        <xs:attribute name="max" type="xs:decimal" use="optional"/>
+        <!-- Character cap for a text-ish field. Falls back to
+             SchemaValidator::MAX_TEXT_LENGTH when absent, so a type that
+             declares nothing behaves exactly as before. -->
+        <xs:attribute name="maxlength" type="xs:positiveInteger" use="optional"/>
+        <xs:attribute name="label_field" type="xs:string" use="optional"/>
+        <xs:attribute name="renderer" type="xs:string" use="optional"/>
+        <xs:attribute name="description" type="xs:string" use="optional"/>
+        <!-- Ideal pixel size for an `image` field, as WIDTHxHEIGHT. The editor
+             prints it on the field and warns when the file that lands there is
+             a different shape, which a sentence buried in `description` never
+             managed to prevent. -->
+        <xs:attribute name="recommended" type="recommendedSize" use="optional"/>
+    </xs:complexType>
+
+    <xs:simpleType name="recommendedSize">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[1-9][0-9]*x[1-9][0-9]*"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="optionType">
+        <xs:attribute name="value" type="xs:string" use="required"/>
+        <xs:attribute name="label" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <!--
+        Restricts a `blocks` field to a content type code, a group, or (absent)
+        everything. `reference` / `reference_multi` reuse the same element to
+        say which content type they point at, so one concept has one spelling.
+    -->
+    <xs:complexType name="allowType">
+        <xs:attribute name="type" type="xs:NMTOKEN" use="optional"/>
+        <xs:attribute name="group" type="xs:string" use="optional"/>
+    </xs:complexType>
+
+    <xs:simpleType name="fieldWidth">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="full"/>
+            <xs:enumeration value="half"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="fieldKind">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="text"/>
+            <xs:enumeration value="textarea"/>
+            <xs:enumeration value="wysiwyg"/>
+            <xs:enumeration value="number"/>
+            <xs:enumeration value="boolean"/>
+            <xs:enumeration value="select"/>
+            <xs:enumeration value="url"/>
+            <xs:enumeration value="image"/>
+            <xs:enumeration value="color"/>
+            <xs:enumeration value="icon"/>
+            <!-- ISO-8601 UTC instant. The editor shows and reads it in the
+                 browser's local time; the stored value is always UTC. -->
+            <xs:enumeration value="datetime"/>
+            <!-- Points at another entry by its `identifier`. The target content
+                 type comes from a nested <allow type="..."/>. -->
+            <xs:enumeration value="reference"/>
+            <xs:enumeration value="reference_multi"/>
+            <xs:enumeration value="group"/>
+            <xs:enumeration value="repeater"/>
+            <xs:enumeration value="blocks"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema>

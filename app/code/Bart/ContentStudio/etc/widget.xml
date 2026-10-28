@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<widgets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Widget:etc/widget.xsd">
+    <widget id="bart_content_studio_entry"
+            class="Bart\ContentStudio\Block\Entry"
+            is_email_compatible="false"
+            placeholder_image="Magento_Widget::placeholder.gif">
+        <label translate="true">Content Studio Entry</label>
+        <description translate="true">Renders a Content Studio entry by its identifier.</description>
+        <parameters>
+            <!--
+                xsi:type="block", not "text": the value is still the entry
+                identifier, but it is picked from a grid instead of typed. A
+                mistyped identifier produces a widget that renders nothing at
+                all - Block\Entry::resolveEntry() returns null for an unknown
+                one rather than erroring - so there is no feedback to correct.
+            -->
+            <parameter name="identifier" xsi:type="block" required="true" visible="true" sort_order="10">
+                <label translate="true">Entry</label>
+                <block class="Bart\ContentStudio\Block\Adminhtml\Widget\Chooser">
+                    <data>
+                        <item name="button" xsi:type="array">
+                            <item name="open" xsi:type="string" translate="true">Select Entry...</item>
+                        </item>
+                    </data>
+                </block>
+            </parameter>
+        </parameters>
+    </widget>
+</widgets>

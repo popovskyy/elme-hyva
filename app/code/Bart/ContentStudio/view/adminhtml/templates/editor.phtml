@@ -1,0 +1,29 @@
+<?php
+/**
+ * @var \Bart\ContentStudio\Block\Adminhtml\Editor $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<div id="studio-editor" class="studio-editor">
+    <!-- The branded splash is a page-level overlay now (splash.phtml, wired by
+         the full-bleed layout handle) so it can cover the whole page, not just
+         this mount point. What remains here is the structural skeleton that
+         stands in for the editor until state.js renders it. -->
+    <div class="studio-editor__skeleton" data-studio-skeleton aria-hidden="true">
+        <div class="studio-skeleton studio-skeleton--toolbar"></div>
+        <div class="studio-editor__skeleton-body">
+            <div class="studio-skeleton studio-skeleton--outline"></div>
+            <div class="studio-skeleton studio-skeleton--fields"></div>
+            <div class="studio-skeleton studio-skeleton--preview"></div>
+        </div>
+    </div>
+    <div class="studio-editor__root" data-studio-root hidden></div>
+</div>
+
+<script type="text/x-magento-init">
+{
+    "#studio-editor": {
+        "Bart_ContentStudio/js/editor/state": <?= /* @noEscape */ $block->getBootstrapJson() ?>
+    }
+}
+</script>

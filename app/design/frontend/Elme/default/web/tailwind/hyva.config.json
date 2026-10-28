@@ -13,6 +13,12 @@
       },
       {
         "src": "app/code/Elme/Theme"
+      },
+      {
+        "src": "app/code/Bart/ContentStudio/view/frontend"
+      },
+      {
+        "src": "app/code/Bart/ContentStudio/Controller/Adminhtml/Entry/PreviewFrame.php"
       }
     ],
     "exclude": [
@@ -79,7 +85,15 @@
         "label--line-height": "13px",
         "note": "13px",
         "note--line-height": "15px",
-        "breadcrumbs": "12px"
+        "breadcrumbs": "12px",
+        "title-section": "27px",
+        "title-section--line-height": "35px",
+        "title-section-desktop": "45px",
+        "title-section-desktop--line-height": "50px",
+        "copy": "14px",
+        "copy--line-height": "18px",
+        "copy-desktop": "15px",
+        "copy-desktop--line-height": "20px"
       },
       "breakpoint": {
         "sm": "480px",

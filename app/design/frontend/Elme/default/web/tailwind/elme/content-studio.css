@@ -1,0 +1,30 @@
+/*
+ * FE-57 Content Studio entries. A type that runs to the screen edge (promo_split) bleeds by --entry-bleed
+ * (`-mx-(--entry-bleed)`). It is the container gutter inside a box whose inline padding is that gutter and that spans
+ * the page: .columns of a 1column CMS page (full-width layouts extend 1column and keep its body class, but their
+ * <main> has no gutter, components/wrapper.css), a contained row where it keeps its padding (page-builder.css), a
+ * full-width row's inner. Wrappers in between (the Page Builder element, a CMS block, a Text element) pass it on.
+ * Everywhere else it is 0: the root of a full-width page or a full-bleed row there (no gutter to bleed into),
+ * 2columns pages, a column or a tab, the product page (its .columns holds a grid and cards, not page-wide content).
+ */
+@layer components {
+    :root {
+        --entry-bleed: 0px;
+    }
+
+    :is(.cms-page-view, .cms-index-index).page-layout-1column main:not(.page-main-full-width) .columns,
+    body:where([class*="-full-width"], .page-layout-banner-breadcrumbs)
+        [data-content-type="row"][data-appearance="contained"],
+    [data-content-type="row"][data-appearance="full-width"] > .row-full-width-inner {
+        --entry-bleed: var(--container-gutter);
+
+        @variant md {
+            --entry-bleed: var(--container-gutter-desktop);
+        }
+    }
+
+    [data-content-type="column"],
+    [data-content-type="tab-item"] {
+        --entry-bleed: 0px;
+    }
+}

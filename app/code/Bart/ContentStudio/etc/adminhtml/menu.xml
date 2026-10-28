@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <!--
+            Its own column in the Content flyout rather than one more line under
+            Elements, which is Magento's own list of CMS primitives. An entry
+            with no `action` renders as a group heading with its children
+            beneath it - the same shape Elements and Design use.
+
+            Named "Bart" so anything this project adds to Content collects in
+            one place instead of being scattered through Magento's own groups.
+
+            sortOrder 5 puts it ahead of Magento's own Elements group, which
+            starts at 10 - this is the column the team reaches for, so it leads
+            the flyout rather than trailing the stock CMS primitives.
+        -->
+        <add id="Bart_ContentStudio::bart"
+             title="Bart"
+             translate="title"
+             module="Bart_ContentStudio"
+             sortOrder="5"
+             parent="Magento_Backend::content"
+             resource="Bart_ContentStudio::entry"/>
+
+        <add id="Bart_ContentStudio::entry"
+             title="Content Studio"
+             translate="title"
+             module="Bart_ContentStudio"
+             sortOrder="10"
+             parent="Bart_ContentStudio::bart"
+             action="bart_content_studio/entry/index"
+             resource="Bart_ContentStudio::entry"/>
+    </menu>
+</config>

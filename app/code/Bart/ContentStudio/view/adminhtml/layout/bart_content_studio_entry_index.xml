@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="bart_content_studio_full_bleed"/>
+    <body>
+        <referenceContainer name="content">
+            <!-- Script-only: turns the editor's ?saved=... redirect into a toast. -->
+            <block class="Magento\Backend\Block\Template" name="bart_content_studio.saved_notice"
+                   template="Bart_ContentStudio::entry/saved-notice.phtml"/>
+            <!-- Script-only: the eye-button preview in each grid row. -->
+            <block class="Magento\Backend\Block\Template" name="bart_content_studio.grid_preview"
+                   template="Bart_ContentStudio::entry/grid-preview.phtml"/>
+            <block class="Bart\ContentStudio\Block\Adminhtml\Entry\TypeChips" name="bart_content_studio.type_chips"
+                   template="Bart_ContentStudio::entry/type-chips.phtml"/>
+            <uiComponent name="bart_content_studio_entry_listing"/>
+        </referenceContainer>
+    </body>
+</page>
