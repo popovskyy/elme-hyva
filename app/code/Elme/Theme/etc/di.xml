@@ -8,6 +8,7 @@
         <arguments>
             <argument name="typeViewModels" xsi:type="array">
                 <item name="hero" xsi:type="object">Elme\Theme\ViewModel\Hero</item>
+                <item name="category_tiles" xsi:type="object">Elme\Theme\ViewModel\CategoryTiles</item>
             </argument>
         </arguments>
     </type>
