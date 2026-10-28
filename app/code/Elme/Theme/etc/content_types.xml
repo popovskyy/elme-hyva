@@ -33,4 +33,48 @@
                description="Also links the image. e.g. /showroom-locator/elme-living-melbourne-outlet"/>
     </type>
 
+    <!-- The full-width banner at the top of the home page (and the top banner of About, Careers,
+         Outlet). Photo with live text in a dusty-blue panel: centred over the photo on desktop like
+         production, a band under it on mobile. One slide is a plain banner; more become a slider. -->
+    <type code="hero"
+          label="Hero Banner / Slider"
+          standalone="true"
+          group="home"
+          icon="image-text"
+          description="Full-width photo with a heading, text and a button. Add more slides for a slider."
+          template="Elme_Theme::content-type/hero.phtml"
+          version="1">
+
+        <field name="is_page_title" type="boolean" label="First heading is the page H1"
+               description="Turn on only when this hero is the top banner of the page and nothing else on the page has the H1 (About, Careers, Outlet). Leave off on the home page."/>
+        <field name="autoplay" type="boolean" label="Play slides automatically" default="1"
+               description="Only with more than one slide. Stops on hover and focus, has a pause button, and stays off for visitors who turned off animations."/>
+        <field name="interval" type="number" label="Seconds per slide" default="7" min="4" max="15"
+               description="How long each slide stays when it plays automatically, 4 to 15."/>
+
+        <field name="slides" type="repeater" label="Slides" label_field="heading" max="5" required="true"
+               description="One slide is a plain banner; two to five become a slider. Remove a dated campaign (a trade fair) once it is over.">
+            <field name="image_desktop" type="image" label="Desktop image" required="true" recommended="2720x882"
+                   description="Photo only: no words in the image, write them in Heading and Text. JPEG or WebP, not GIF, about 300 KB. The text panel covers the middle third (or the side you pick below), so keep the subject clear of it."/>
+            <field name="image_mobile" type="image" label="Mobile image" recommended="780x520"
+                   description="Photo only, JPEG or WebP, about 150 KB. Shown above the text on phones. Leave empty to use a centre crop of the desktop image."/>
+            <field name="image_alt" type="text" label="Image alt text" maxlength="160"
+                   description="What the photo shows (product, room, material). Do not repeat the heading. Empty only if purely decorative."/>
+            <field name="heading" type="textarea" label="Heading" required="true" maxlength="70"
+                   description="Live text that search and AI read: say what Elme sells or offers (&quot;Made to Order Sofas, Built for Your Store&quot;), not a mood line (&quot;New Season&quot;). A line break here is a line break on the page."/>
+            <field name="text" type="textarea" label="Text" maxlength="200"
+                   description="One or two plain sentences of fact: trade only, ABN, Melbourne showrooms. No prices, MOQ numbers or ratings."/>
+            <field name="button_label" type="text" label="Button label" maxlength="40" width="half"
+                   description="Name the destination: &quot;Shop Made to Order Sofas&quot;, &quot;Visit Our Showrooms&quot;, not &quot;Learn more&quot;."/>
+            <field name="button_link" type="url" label="Button link" width="half"
+                   description="Also links the photo. Relative, no tracking parameters, e.g. /made-to-order-sofas.html"/>
+            <field name="panel_position" type="select" label="Text panel on desktop" default="center"
+                   description="Where the text panel sits over the photo from tablet up. On phones it is always under the photo.">
+                <option value="center" label="Centre"/>
+                <option value="left" label="Left"/>
+                <option value="right" label="Right"/>
+            </field>
+        </field>
+    </type>
+
 </content_types>
