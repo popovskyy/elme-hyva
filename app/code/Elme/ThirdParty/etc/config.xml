@@ -21,7 +21,13 @@
             </general>
             <gtm>
                 <enabled>1</enabled>
-                <container_id>GTM-KQCSGFS</container_id>
+                <!--
+                  Production GTM-KQCSGFS still fires FB / TikTok / Rakuten / DoubleClick /
+                  jsdelivr (Algolia insights) — banned by UX-09 / SEO plan. Leave empty so
+                  this env stays CSP-clean; dataLayer page_view + add_to_cart still fire.
+                  Set a cleaned GTM-XXXX (GA4 only + agreed vendors) in Admin when ready.
+                -->
+                <container_id></container_id>
             </gtm>
             <klaviyo>
                 <enabled>1</enabled>

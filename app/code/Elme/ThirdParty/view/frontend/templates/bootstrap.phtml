@@ -153,10 +153,16 @@ $bootstrapJson = $config->getBootstrapJson();
 
     function loadGtm() {
         var id = (cfg.gtm && cfg.gtm.id) || '';
-        if (!(cfg.gtm && cfg.gtm.enabled) || !id || window.elmeGtmLoaded) {
+        if (!(cfg.gtm && cfg.gtm.enabled) || window.elmeGtmLoaded) {
             return;
         }
         window.elmeGtmLoaded = true;
+        // Always emit page_view on the dataLayer (GTM Preview / GA4 when container is set).
+        // Empty container_id = no gtm.js — avoids production GTM-KQCSGFS cascade (FB/TikTok/…).
+        if (!id) {
+            pushPageView();
+            return;
+        }
         window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
         loadScript('https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(id), {
             'data-elme-vendor': 'gtm'

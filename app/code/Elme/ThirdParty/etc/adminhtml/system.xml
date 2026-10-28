@@ -31,10 +31,10 @@
                     <label>Enable GTM</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="container_id" translate="label" type="text" sortOrder="20"
+                <field id="container_id" translate="label comment" type="text" sortOrder="20"
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Container ID</label>
-                    <comment>e.g. GTM-KQCSGFS</comment>
+                    <comment>Use a cleaned container (GA4 + agreed vendors only). Do not use GTM-KQCSGFS until FB/TikTok/Rakuten/DoubleClick/jsdelivr tags are paused (UX-09). Empty = dataLayer events only, no gtm.js.</comment>
                 </field>
             </group>
             <group id="klaviyo" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
