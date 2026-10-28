@@ -103,4 +103,89 @@
         </field>
     </type>
 
+    <!-- Home Welcome band: the page's only visible H1 (wholesale identity) + short text + Become a
+         Stockist CTA. Hero slides stay H2 on home (is_page_title off). -->
+    <type code="welcome_cta"
+          label="Welcome + CTA"
+          standalone="true"
+          group="home"
+          icon="image-text"
+          description="Centred heading (page H1 on home), short wholesale line and a button. No image."
+          template="Elme_Theme::content-type/welcome-cta.phtml"
+          version="1">
+
+        <field name="heading" type="text" label="Heading (page H1)" required="true" maxlength="90"
+               description="Stable brand + wholesale identity. On the home page this is the only visible H1. e.g. &quot;Wholesale artificial flowers, plants and home decor for Australian retailers&quot;."/>
+        <field name="text" type="textarea" label="Text" maxlength="280"
+               description="One guest-visible wholesale line: trade login for prices / apply with ABN. Plain sentences; no prices, MOQ numbers, reviews or ratings."/>
+        <field name="button_label" type="text" label="Button label" maxlength="40" width="half"
+               description="e.g. &quot;Become a Stockist&quot;. Descriptive, not &quot;Learn more&quot;."/>
+        <field name="button_link" type="url" label="Button link" width="half"
+               description="Guest destination, e.g. /become-a-stockist. Hidden for logged-in customers."/>
+    </type>
+
+    <!-- Curated Catalogues dusty-blue band: cover cards with distinct destinations. Empty cards
+         (or no images) hide the whole section (UX-01). -->
+    <type code="catalogue_covers"
+          label="Catalogue Covers"
+          standalone="true"
+          group="home"
+          icon="image-text"
+          description="Dusty-blue band with catalogue cover cards and an optional See All button. Hides when there are no covers."
+          template="Elme_Theme::content-type/catalogue-covers.phtml"
+          version="1">
+
+        <field name="heading" type="text" label="Section heading" required="true" maxlength="60"
+               description="Section title as H2, e.g. &quot;Curated Catalogues&quot;. Never the page H1."/>
+        <field name="intro" type="textarea" label="Intro" maxlength="320"
+               description="Optional short plain text under the heading. Keep it about catalogues as buying tools."/>
+        <field name="cards" type="repeater" label="Cover cards" label_field="title" max="4" required="true"
+               description="One to four covers. Distinct links per card (Lookbook vs Virtual Catalogues). Empty or missing images hide the whole band.">
+            <field name="image" type="image" label="Cover image" required="true" recommended="620x877"
+                   description="Cover art JPEG or WebP. No words baked into the image — the Title field is the text."/>
+            <field name="image_alt" type="text" label="Image alt text" maxlength="160"
+                   description="What the cover shows, or match the card title."/>
+            <field name="title" type="text" label="Title" required="true" maxlength="40" width="half"
+                   description="Visible card name: Lookbook, Virtual Catalogues…"/>
+            <field name="link" type="url" label="Link" required="true" width="half"
+                   description="Distinct per card. Lookbook → /shop-the-looks; Virtual Catalogues → /virtual-catalogues."/>
+        </field>
+        <field name="see_all_label" type="text" label="See all label" maxlength="40" width="half"
+               description="Optional. e.g. &quot;See All Catalogues&quot;."/>
+        <field name="see_all_link" type="url" label="See all link" width="half"
+               description="e.g. /virtual-catalogues. Leave empty for no button."/>
+    </type>
+
+    <!-- Become a Stockist benefits: image + trade-fact rows + Create An Account (guest) / My Account
+         (logged in). -->
+    <type code="usp_strip"
+          label="USP Strip (Stockist benefits)"
+          standalone="true"
+          group="home"
+          icon="image-text"
+          description="Image beside a heading, trade-fact rows and a button. Stacks on mobile."
+          template="Elme_Theme::content-type/usp-strip.phtml"
+          version="1">
+
+        <field name="heading" type="text" label="Heading" required="true" maxlength="60"
+               description="Section H2, e.g. &quot;Become a Stockist&quot;."/>
+        <field name="intro" type="textarea" label="Intro" maxlength="400"
+               description="Optional short support copy under the heading."/>
+        <field name="image" type="image" label="Image" required="true" recommended="720x742"
+               description="Side photo. JPEG or WebP. Shown above the text on phones, left on desktop."/>
+        <field name="image_alt" type="text" label="Image alt text" maxlength="160"
+               description="What the image shows. Leave empty if purely decorative."/>
+        <field name="items" type="repeater" label="Trade facts" label_field="title" max="6" required="true"
+               description="Facts a shop owner needs before applying (ABN, prices ex GST, delivery / MOQ). Not lifestyle fluff.">
+            <field name="title" type="text" label="Fact title" required="true" maxlength="60"
+                   description="e.g. &quot;ABN trade account&quot;, &quot;Prices ex GST&quot;, &quot;Australia-wide delivery&quot;."/>
+            <field name="text" type="textarea" label="Fact detail" maxlength="220"
+                   description="One plain sentence. No invented price figures or star ratings."/>
+        </field>
+        <field name="button_label" type="text" label="Button label (guests)" maxlength="40" width="half"
+               description="e.g. &quot;Create An Account&quot;. Logged-in customers see My Account instead."/>
+        <field name="button_link" type="url" label="Button link (guests)" width="half"
+               description="e.g. /customer/account/create. Logged-in customers go to the account dashboard."/>
+    </type>
+
 </content_types>

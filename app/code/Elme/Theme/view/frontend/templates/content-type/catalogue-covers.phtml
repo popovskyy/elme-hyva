@@ -1,0 +1,111 @@
+<?php
+/**
+ * Content Studio type `catalogue_covers` (etc/content_types.xml, FE-16): dusty-blue band with
+ * catalogue cover cards. Whole card is one link; hover/active scale is CSS only. Empty cards →
+ * render nothing (UX-01). Server-rendered — no Alpine.
+ *
+ * @var \Bart\ContentStudio\Block\Entry $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+use Elme\Theme\ViewModel\CatalogueCovers;
+use Hyva\Theme\ViewModel\LucideIcons;
+
+$covers = $block->getTypeViewModel();
+
+if (!$covers instanceof CatalogueCovers) {
+    return;
+}
+
+$content = $block->getContent();
+$cards = $covers->getCards($content);
+
+if (!$cards) {
+    return;
+}
+
+$heading = $covers->getHeading($content);
+$intro = $covers->getIntro($content);
+$seeAll = $covers->getSeeAll($content);
+$sectionId = 'catalogue-covers-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
+$headingId = $sectionId . '-heading';
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+?>
+<section id="<?= $escaper->escapeHtmlAttr($sectionId) ?>"
+         class="elme-catalogue-covers -mx-(--entry-bleed) mb-10 bg-accent px-5 py-6 text-ink
+                md:px-10 md:py-10 lg:mb-12 lg:py-14"
+         aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
+    <div class="mx-auto flex w-full max-w-340 flex-col">
+        <div class="mb-8 text-center lg:mb-10 lg:flex lg:items-end lg:justify-between lg:gap-8 lg:text-left">
+            <div class="min-w-0 flex-1">
+                <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+                    class="text-title-section font-heading font-normal text-ink lg:text-title-section-desktop">
+                    <?= $escaper->escapeHtml($heading) ?>
+                </h2>
+                <?php if ($intro !== ''): ?>
+                    <p class="mt-4 max-w-162 text-copy text-ink lg:mt-6 lg:text-copy-desktop
+                              <?= /* @noEscape */ $seeAll !== null ? 'lg:mr-8' : '' ?>">
+                        <?= $escaper->escapeHtml($intro) ?>
+                    </p>
+                <?php endif; ?>
+            </div>
+            <?php if ($seeAll !== null): ?>
+                <?php // Desktop: top-right like production. Mobile: after the cards (below). ?>
+                <div class="hidden shrink-0 lg:block lg:pb-0.5">
+                    <a href="<?= $escaper->escapeUrl($seeAll['link']) ?>"
+                       class="btn btn-secondary min-w-54">
+                        <?= $escaper->escapeHtml($seeAll['label']) ?>
+                    </a>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <ul class="elme-catalogue-covers__grid m-0 grid list-none grid-cols-1 gap-6 p-0
+                   md:grid-cols-2 lg:gap-6">
+            <?php foreach ($cards as $card): ?>
+                <li class="min-w-0">
+                    <a href="<?= $escaper->escapeUrl($card['link']) ?>"
+                       class="elme-catalogue-covers__card group flex h-full flex-col overflow-hidden
+                              bg-surface text-ink no-underline
+                              focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">
+                        <span class="elme-catalogue-covers__media block overflow-hidden bg-cool-light">
+                            <img src="<?= $escaper->escapeUrl($card['image']['src']) ?>"
+                                 alt="<?= $escaper->escapeHtmlAttr($card['image_alt']) ?>"
+                                 width="<?= (int)$card['image']['width'] ?>"
+                                 height="<?= (int)$card['image']['height'] ?>"
+                                 loading="lazy"
+                                 decoding="async"
+                                 class="block h-full w-full object-cover">
+                        </span>
+                        <span class="flex items-center justify-between gap-3 px-5 py-3.5
+                                     font-heading text-h3 font-normal lg:text-h3-desktop">
+                            <span><?= $escaper->escapeHtml($card['title']) ?></span>
+                            <span class="elme-catalogue-covers__arrow inline-flex shrink-0 text-ink
+                                         transition-transform duration-200
+                                         motion-safe:translate-x-2 motion-safe:opacity-0
+                                         motion-safe:group-hover:translate-x-0
+                                         motion-safe:group-hover:opacity-100
+                                         motion-safe:group-focus-visible:translate-x-0
+                                         motion-safe:group-focus-visible:opacity-100"
+                                  aria-hidden="true">
+                                <?= $lucideIcons->arrowRightHtml('', 28, 28, ['aria-hidden' => 'true']) ?>
+                            </span>
+                        </span>
+                    </a>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+
+        <?php if ($seeAll !== null): ?>
+            <div class="mt-6 lg:hidden">
+                <a href="<?= $escaper->escapeUrl($seeAll['link']) ?>"
+                   class="btn btn-secondary w-full">
+                    <?= $escaper->escapeHtml($seeAll['label']) ?>
+                </a>
+            </div>
+        <?php endif; ?>
+    </div>
+</section>
