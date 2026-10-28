@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-52: 404 recovery page (cms_noroute_index).
+ * Markup lives in the theme; CMS no-route page supplies meta title/description (data patch).
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      layout="1column"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <title>Page not found | Elme Living</title>
+        <meta name="description"
+              content="Sorry — that page isn’t on Elme Living. Go home, contact our wholesale team, or search artificial flora, homewares and furniture."/>
+        <meta name="robots" content="noindex, follow"/>
+    </head>
+    <body>
+        <attribute name="class" value="cms-no-route"/>
+        <!-- Theme template owns the body; empty CMS content would still leave Magento's default heading -->
+        <referenceBlock name="cms_page" remove="true"/>
+        <referenceBlock name="page.main.title" remove="true"/>
+        <referenceBlock name="breadcrumbs" remove="true"/>
+        <referenceContainer name="content">
+            <block name="elme.noroute" template="Magento_Cms::noroute.phtml">
+                <block name="elme.noroute.search"
+                       as="search"
+                       template="Magento_Theme::html/header/search-form.phtml">
+                    <arguments>
+                        <argument name="input_id" xsi:type="string">noroute-search</argument>
+                    </arguments>
+                </block>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

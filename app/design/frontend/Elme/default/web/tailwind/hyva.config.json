@@ -93,7 +93,11 @@
         "copy": "14px",
         "copy--line-height": "18px",
         "copy-desktop": "15px",
-        "copy-desktop--line-height": "20px"
+        "copy-desktop--line-height": "20px",
+        "noroute-lead": "26px",
+        "noroute-lead--line-height": "30px",
+        "noroute-lead-desktop": "35px",
+        "noroute-lead-desktop--line-height": "40px"
       },
       "breakpoint": {
         "sm": "480px",

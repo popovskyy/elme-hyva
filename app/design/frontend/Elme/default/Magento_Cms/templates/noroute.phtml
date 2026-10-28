@@ -1,0 +1,59 @@
+<?php
+/**
+ * FE-52: 404 recovery — Oops line, home/contact CTAs, in-page search, illustration.
+ * Product carousel is optional and waits on FE-17.
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+
+$homeUrl = $block->getBaseUrl();
+$contactUrl = $block->getUrl('contact');
+$desktopImg = $block->getViewFileUrl('images/cms/404-desktop.jpg');
+$mobileImg = $block->getViewFileUrl('images/cms/404-mobile.jpg');
+?>
+<div class="elme-noroute">
+    <div class="elme-noroute__grid">
+        <div class="elme-noroute__media order-first md:order-last">
+            <picture>
+                <source media="(min-width: 768px)" srcset="<?= $escaper->escapeUrl($desktopImg) ?>">
+                <img
+                    class="elme-noroute__img"
+                    src="<?= $escaper->escapeUrl($mobileImg) ?>"
+                    alt="<?= $escaper->escapeHtmlAttr(__('Page not found')) ?>"
+                    width="750"
+                    height="446"
+                    fetchpriority="high"
+                    decoding="async"
+                >
+            </picture>
+        </div>
+
+        <div class="elme-noroute__copy">
+            <p class="elme-noroute__code" aria-hidden="true"><?= $escaper->escapeHtml(__('404')) ?></p>
+            <h1 class="elme-noroute__title">
+                <?= $escaper->escapeHtml(__('Oops... Looks like something went wrong')) ?>
+            </h1>
+
+            <div class="elme-noroute__actions">
+                <a class="btn btn-secondary elme-noroute__btn" href="<?= $escaper->escapeUrl($homeUrl) ?>">
+                    <?= $escaper->escapeHtml(__('Back to home')) ?>
+                </a>
+                <a class="btn btn-secondary elme-noroute__btn" href="<?= $escaper->escapeUrl($contactUrl) ?>">
+                    <?= $escaper->escapeHtml(__('Contact us')) ?>
+                </a>
+            </div>
+
+            <?php if ($searchHtml = $block->getChildHtml('search')): ?>
+                <div class="elme-noroute__search">
+                    <?= /** @noEscape */ $searchHtml ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
