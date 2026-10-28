@@ -1,0 +1,217 @@
+<?php
+/**
+ * Content Studio type `category_tiles` (etc/content_types.xml, FE-15): carousel of category tiles
+ * (image + label) linking to category URLs. Mobile/tablet: circular images with the label under;
+ * desktop: rectangular tiles with an accent label bar. Swipe everywhere; prev/next arrows from
+ * desktop up. Child-category dropdowns from the old Bart widget are not ported.
+ *
+ * Every tile is server-rendered so crawlers that run no JS still see the links. Alpine only scrolls
+ * the track and wires the arrows. Bleed into the container gutters like hero / promo_split.
+ *
+ * @var \Bart\ContentStudio\Block\Entry $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+use Elme\Theme\ViewModel\CategoryTiles;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+
+$tilesViewModel = $block->getTypeViewModel();
+
+if (!$tilesViewModel instanceof CategoryTiles) {
+    return;
+}
+
+$content = $block->getContent();
+$tiles = $tilesViewModel->getTiles($content);
+
+if (!$tiles) {
+    return;
+}
+
+$heading = $tilesViewModel->getHeading($content);
+$count = count($tiles);
+$sectionId = 'category-tiles-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
+$headingId = $sectionId . '-heading';
+$trackId = $sectionId . '-track';
+$isCarousel = $count > 1;
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+
+$arrowClass = 'absolute top-1/2 z-10 hidden size-12.5 -translate-y-1/2 items-center justify-center
+               bg-primary text-on-primary shadow-[0_4px_10px_rgba(196,196,196,0.21)]
+               hover:bg-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink
+               disabled:pointer-events-none disabled:opacity-40 lg:flex';
+?>
+<section id="<?= $escaper->escapeHtmlAttr($sectionId) ?>"
+         class="elme-category-tiles relative -mx-(--entry-bleed) mb-10 lg:mb-15"
+    <?php if ($heading !== ''): ?>
+         aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+    <?php else: ?>
+         aria-label="<?= $escaper->escapeHtmlAttr(__('Shop by category')) ?>"
+    <?php endif; ?>
+    <?php if ($isCarousel): ?>
+         aria-roledescription="carousel"
+         x-data="initElmeCategoryTiles"
+    <?php endif; ?>
+>
+    <?php if ($heading !== ''): ?>
+        <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+            class="mb-6 px-5 text-center text-title-section text-ink md:px-10 lg:mb-8 lg:text-title-section-desktop">
+            <?= $escaper->escapeHtml($heading) ?>
+        </h2>
+    <?php endif; ?>
+
+    <div class="relative">
+        <?php if ($isCarousel): ?>
+            <button type="button"
+                    class="<?= /* @noEscape */ $arrowClass ?> left-0 lg:left-2.5"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Previous categories')) ?>"
+                    aria-controls="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+                    x-ref="prev"
+                    @click="prev"
+                    disabled>
+                <?= $lucideIcons->chevronLeftHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+            </button>
+            <button type="button"
+                    class="<?= /* @noEscape */ $arrowClass ?> right-5 lg:right-2.5"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Next categories')) ?>"
+                    aria-controls="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+                    x-ref="next"
+                    @click="next"
+                    disabled>
+                <?= $lucideIcons->chevronRightHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+            </button>
+        <?php endif; ?>
+
+        <nav aria-label="<?= $escaper->escapeHtmlAttr(
+            $heading !== '' ? $heading : (string)__('Product categories')
+        ) ?>">
+            <ul id="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+                class="elme-category-tiles__track flex snap-x snap-mandatory items-stretch overflow-x-auto
+                       overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                <?php if ($isCarousel): ?>
+                x-ref="track"
+                @scroll.passive="onScroll"
+                <?php endif; ?>
+            >
+                <?php foreach ($tiles as $index => $tile): ?>
+                    <?php
+                    $number = $index + 1;
+                    $image = $tile['image'];
+                    ?>
+                    <li class="elme-category-tiles__item flex w-[90px] shrink-0 snap-start flex-col
+                               mr-[41px] last:mr-5
+                               md:w-[180px]
+                               lg:mr-8 lg:w-[20.58%] lg:last:mr-0"
+                        role="group"
+                        aria-roledescription="slide"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('%1 of %2', $number, $count)) ?>">
+                        <a href="<?= $escaper->escapeUrl($tile['link']) ?>"
+                           class="group flex h-full flex-col text-ink no-underline
+                                  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink
+                                  lg:bg-surface lg:[filter:drop-shadow(0_4px_10px_rgba(196,196,196,0.21))]">
+                            <span class="block size-[90px] shrink-0 overflow-hidden rounded-full bg-sand-light
+                                         md:size-[180px]
+                                         lg:aspect-[62/45] lg:size-auto lg:w-full lg:rounded-none">
+                                <img src="<?= $escaper->escapeUrl($image['src']) ?>"
+                                     alt="<?= $escaper->escapeHtmlAttr($tile['label']) ?>"
+                                     width="<?= (int)$image['width'] ?>"
+                                     height="<?= (int)$image['height'] ?>"
+                                     loading="lazy"
+                                     decoding="async"
+                                     class="size-full object-cover transition-transform duration-300 ease-out
+                                            group-hover:scale-[1.03] motion-reduce:transition-none
+                                            motion-reduce:group-hover:scale-100">
+                            </span>
+                            <span class="mt-2 flex min-h-[2.75rem] items-center justify-center bg-accent px-1 py-0.5
+                                         text-center font-heading text-h3 leading-h3 text-on-primary
+                                         lg:mt-0 lg:min-h-[53px] lg:justify-start lg:px-5 lg:py-[15px]
+                                         lg:text-left lg:leading-[22px]">
+                                <?= $escaper->escapeHtml($tile['label']) ?>
+                            </span>
+                        </a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </nav>
+    </div>
+
+    <?php if ($isCarousel): ?>
+        <script>
+            function initElmeCategoryTiles() {
+                return {
+                    reduceMotion: false,
+
+                    init() {
+                        this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                        this.syncArrows();
+                        this.$refs.track.addEventListener('scrollend', () => this.syncArrows());
+                    },
+
+                    onScroll() {
+                        this.syncArrows();
+                    },
+
+                    step() {
+                        const item = this.$refs.track.querySelector('.elme-category-tiles__item');
+
+                        if (!item) {
+                            return 0;
+                        }
+
+                        const style = window.getComputedStyle(item);
+                        const margin = parseFloat(style.marginRight) || 0;
+
+                        return item.getBoundingClientRect().width + margin;
+                    },
+
+                    go(direction) {
+                        const track = this.$refs.track;
+                        const amount = this.step() * direction;
+
+                        if (!amount) {
+                            return;
+                        }
+
+                        track.scrollBy({
+                            left: amount,
+                            behavior: this.reduceMotion ? 'auto' : 'smooth'
+                        });
+                        // scrollend is missing in some browsers; sync after the typical smooth duration.
+                        setTimeout(() => this.syncArrows(), this.reduceMotion ? 0 : 400);
+                    },
+
+                    next() {
+                        this.go(1);
+                    },
+
+                    prev() {
+                        this.go(-1);
+                    },
+
+                    syncArrows() {
+                        const track = this.$refs.track;
+                        const max = track.scrollWidth - track.clientWidth;
+                        const left = track.scrollLeft;
+                        const edge = 2;
+
+                        this.$refs.prev.disabled = left <= edge;
+                        this.$refs.next.disabled = left >= max - edge;
+                    }
+                };
+            }
+
+            window.addEventListener(
+                'alpine:init',
+                () => Alpine.data('initElmeCategoryTiles', initElmeCategoryTiles),
+                {once: true}
+            );
+        </script>
+        <?php $hyvaCsp->registerInlineScript() ?>
+    <?php endif; ?>
+</section>

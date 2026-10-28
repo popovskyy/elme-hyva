@@ -77,4 +77,30 @@
         </field>
     </type>
 
+    <!-- Home category strip under the hero: image + label tiles that link to categories.
+         Arrows on desktop, swipe on phones. Child-category dropdowns from the old widget are
+         not ported — tile only. Editors paste category paths; there is no category chooser. -->
+    <type code="category_tiles"
+          label="Category Tiles Carousel"
+          standalone="true"
+          group="home"
+          icon="image-text"
+          description="Row of category tiles (image + name) that scrolls. Arrows on desktop, swipe on mobile."
+          template="Elme_Theme::content-type/category-tiles.phtml"
+          version="1">
+
+        <field name="heading" type="text" label="Section heading" maxlength="60"
+               description="Optional title above the tiles, e.g. &quot;Shop by category&quot;. Leave empty for none. Never the page H1."/>
+
+        <field name="tiles" type="repeater" label="Tiles" label_field="label" max="16" required="true"
+               description="One row per category. About eight to twelve fit the home page.">
+            <field name="link" type="url" label="Category link" required="true" width="half"
+                   description="Canonical category path, no tracking parameters. e.g. /homewares/vessels.html"/>
+            <field name="label" type="text" label="Label" required="true" maxlength="40" width="half"
+                   description="Name on the tile: Vessels, Decor, Floral Stems, Bouquets &amp; Bundles… May differ from the Magento name."/>
+            <field name="image" type="image" label="Image" required="true" recommended="620x450"
+                   description="Lifestyle photo for the category. JPEG or WebP, no words in the image — the Label field is the text."/>
+        </field>
+    </type>
+
 </content_types>
