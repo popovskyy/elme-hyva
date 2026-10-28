@@ -216,6 +216,18 @@ cannot reach the object manager, and `Block\Entry` must not learn about
 individual types). `Block\Entry::getContent()` hands over the entry data with
 `{{media}}` resolved and **not** escaped - escape at the point of output.
 
+**An entry always sits inside the container gutter**, so a type that runs to
+the screen edge bleeds into it with `-mx-(--container-gutter)
+md:-mx-(--container-gutter-desktop)` (`promo_split`). On a 1column page the
+gutter is `.columns`; inside a contained or full-width row it is the row. A
+full-width page (`main.page-main-full-width`: `cms-full-width`, Elme's
+`banner-breadcrumbs`) has none, so the theme gives an entry at its root or in a
+full-bleed row the gutter a contained row has
+(`Elme/default/web/tailwind/elme/content-studio.css`). Without it the bleed cut
+the image and scrolled the page sideways. A bleeding type in a half-width
+column still bleeds into the next column; such types are meant for full-width
+placements.
+
 ### Live preview (the side panel)
 `renderer="Some_Module/js/type/x"` is optional. Without it the panel draws an
 automatic structural card (`preview.js::renderFallback`) - type label plus a
@@ -479,7 +491,9 @@ Built like Page Builder's own `block` type (`vendor/magento/module-page-builder`
   of `.page-main` in it (a `ResizeObserver`, so late images and a narrower
   stage re-fit), and has `pointer-events: none`, so select, move, duplicate and
   remove work as for Block. It also shows the type's own outer margins (e.g.
-  `promo_split`'s bottom margin), as the storefront does.
+  `promo_split`'s bottom margin), as the storefront does. The frame always has
+  the 1column gutter, which the storefront gives an entry in every placement,
+  root of a full-width page included (see "Rendering a type").
 - **The stage shows the server-rendered state.** Alpine does not run in the
   frame; an interactive type shows its initial state there.
 - **States**: no entry picked -> Block-style placeholder; identifier unknown

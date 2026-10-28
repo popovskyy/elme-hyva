@@ -1,0 +1,13 @@
+/*
+ * FE-57 Content Studio entries on Page Builder pages. Entry templates expect the container gutter around them
+ * (.columns on a 1column page, a contained row on a full-width one), and promo_split bleeds into it. A full-width
+ * page has no gutter (components/wrapper.css), so an entry dropped at its root or into a full-bleed row gets the
+ * one a contained row has.
+ */
+@layer components {
+    main.page-main-full-width
+        :is(.column.main, [data-content-type="row"][data-appearance="full-bleed"])
+        > [data-content-type="content_studio"] {
+        @apply container;
+    }
+}
