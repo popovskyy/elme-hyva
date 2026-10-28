@@ -116,6 +116,9 @@
         "width": "240px",
         "width-desktop": "288px"
       },
+      "help": {
+        "main-max": "42.5rem"
+      },
       "radius": {
         "xs": "0px",
         "sm": "0px",

@@ -1,0 +1,33 @@
+<?php
+/**
+ * FE-45: “On this page” jump list under the H1 (Privacy & Terms only).
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\HelpPages;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$help = $viewModels->require(HelpPages::class);
+$links = $help->getOnThisPageLinks();
+if ($links === []) {
+    return;
+}
+?>
+<nav class="elme-help-toc" aria-label="<?= $escaper->escapeHtmlAttr(__('On this page')) ?>">
+    <p class="elme-help-toc__heading"><?= $escaper->escapeHtml(__('On this page')) ?></p>
+    <ol class="elme-help-toc__list">
+        <?php foreach ($links as $link): ?>
+            <li class="elme-help-toc__item">
+                <a class="elme-help-toc__link"
+                   href="#<?= $escaper->escapeHtmlAttr($link['id']) ?>"><?= $escaper->escapeHtml($link['label']) ?></a>
+            </li>
+        <?php endforeach; ?>
+    </ol>
+</nav>

@@ -1,0 +1,97 @@
+<?php
+/**
+ * FE-45: curated help side nav — desktop list, mobile “Help: {title}” disclosure (CSP Alpine).
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\HelpPages;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$help = $viewModels->require(HelpPages::class);
+$lucideIcons = $viewModels->require(LucideIcons::class);
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+$items = $help->getMenuItems();
+$currentTitle = $help->getCurrentTitle();
+$closedLabel = (string) __('Help: %1', $currentTitle);
+?>
+<nav class="elme-help-nav" aria-label="<?= $escaper->escapeHtmlAttr(__('Help')) ?>"
+     x-data="initElmeHelpNav">
+    <div class="elme-help-nav__mobile lg:hidden">
+        <button type="button"
+                class="elme-help-nav__trigger"
+                @click="toggle"
+                :aria-expanded="ariaExpanded"
+                aria-controls="elme-help-nav-panel">
+            <span class="elme-help-nav__trigger-label"><?= $escaper->escapeHtml($closedLabel) ?></span>
+            <span class="elme-help-nav__chevron" aria-hidden="true" x-bind:class="chevronClass">
+                <?= $lucideIcons->chevronDownHtml('elme-help-nav__chevron-icon', 20, 20, ['aria-hidden' => 'true']) ?>
+            </span>
+        </button>
+        <div id="elme-help-nav-panel"
+             class="elme-help-nav__panel"
+             x-show="open"
+             x-cloak
+             x-transition:enter="elme-help-nav__transition"
+             x-transition:enter-start="elme-help-nav__transition--closed"
+             x-transition:enter-end="elme-help-nav__transition--open"
+             x-transition:leave="elme-help-nav__transition"
+             x-transition:leave-start="elme-help-nav__transition--open"
+             x-transition:leave-end="elme-help-nav__transition--closed">
+            <ul class="elme-help-nav__list">
+                <?php foreach ($items as $item): ?>
+                    <li class="elme-help-nav__item<?= $item['current'] ? ' elme-help-nav__item--current' : '' ?>">
+                        <?php if ($item['current']): ?>
+                            <span class="elme-help-nav__link elme-help-nav__link--current"
+                                  aria-current="page"><?= $escaper->escapeHtml(__($item['label'])) ?></span>
+                        <?php else: ?>
+                            <a class="elme-help-nav__link"
+                               href="<?= $escaper->escapeUrl($item['url']) ?>"><?= $escaper->escapeHtml(__($item['label'])) ?></a>
+                        <?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    </div>
+
+    <ul class="elme-help-nav__list elme-help-nav__list--desktop hidden lg:block">
+        <?php foreach ($items as $item): ?>
+            <li class="elme-help-nav__item<?= $item['current'] ? ' elme-help-nav__item--current' : '' ?>">
+                <?php if ($item['current']): ?>
+                    <span class="elme-help-nav__link elme-help-nav__link--current"
+                          aria-current="page"><?= $escaper->escapeHtml(__($item['label'])) ?></span>
+                <?php else: ?>
+                    <a class="elme-help-nav__link"
+                       href="<?= $escaper->escapeUrl($item['url']) ?>"><?= $escaper->escapeHtml(__($item['label'])) ?></a>
+                <?php endif; ?>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+</nav>
+<script>
+    function initElmeHelpNav() {
+        return {
+            open: false,
+            toggle() {
+                this.open = !this.open;
+            },
+            ariaExpanded() {
+                return this.open ? 'true' : 'false';
+            },
+            chevronClass() {
+                return this.open ? 'elme-help-nav__chevron--open' : '';
+            }
+        }
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeHelpNav', initElmeHelpNav), { once: true })
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

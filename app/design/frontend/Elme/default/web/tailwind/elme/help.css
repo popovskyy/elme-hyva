@@ -1,0 +1,282 @@
+/*
+ * FE-45 Help page shell: two-column layout, side nav (sticky desktop / disclosure mobile),
+ * ~80-character prose measure, assistance strip under the menu.
+ */
+@layer components {
+    .help-page .page-main {
+        margin-block: --spacing(7) --spacing(14);
+    }
+
+    @variant md {
+        .help-page .page-main {
+            margin-block: --spacing(10) --spacing(16);
+        }
+    }
+
+    /* Main column: readable legal line length (~80ch / production 680px) */
+    .help-page.page-layout-2columns-left .column.main {
+        max-width: var(--help-main-max);
+    }
+
+    .help-page .column.main .prose,
+    .help-page .column.main [data-content-type='text'],
+    .help-page .column.main .elme-help-body {
+        max-width: var(--help-main-max);
+    }
+
+    /* Sticky side column while scrolling long Privacy / Terms */
+    .elme-help__sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(4);
+    }
+
+    @variant lg {
+        .elme-help__sidebar {
+            position: sticky;
+            top: --spacing(6);
+            align-self: start;
+        }
+    }
+
+    /* —— Side nav —— */
+    .elme-help-nav__trigger {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        gap: --spacing(3);
+        margin: 0 0 --spacing(2);
+        padding: --spacing(3.5) --spacing(4);
+        border: 1px solid var(--color-border);
+        border-radius: var(--form-radius);
+        background-color: var(--color-surface);
+        color: var(--color-ink);
+        font-family: var(--font-sans);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        font-weight: 400;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .elme-help-nav__trigger:focus-visible {
+        outline: 2px solid var(--color-ink);
+        outline-offset: 2px;
+    }
+
+    .elme-help-nav__chevron {
+        display: inline-flex;
+        flex-shrink: 0;
+        transition: transform 180ms ease-out;
+    }
+
+    .elme-help-nav__chevron--open {
+        transform: rotate(180deg);
+    }
+
+    .elme-help-nav__panel {
+        margin-bottom: --spacing(2);
+    }
+
+    .elme-help-nav__transition {
+        transition-property: opacity, transform;
+        transition-duration: 180ms;
+        transition-timing-function: ease-out;
+    }
+
+    .elme-help-nav__transition--closed {
+        opacity: 0;
+        transform: translateY(-0.25rem);
+    }
+
+    .elme-help-nav__transition--open {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .elme-help-nav__list {
+        list-style: none;
+        margin: 0;
+        padding: --spacing(2.5) 0;
+        background-color: var(--color-surface);
+    }
+
+    .elme-help-nav__list--desktop {
+        padding: 0;
+        background: transparent;
+    }
+
+    .elme-help-nav__item {
+        margin: 0;
+    }
+
+    .elme-help-nav__link {
+        display: block;
+        padding: --spacing(2.5) --spacing(3.5) --spacing(2);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        font-weight: 400;
+        color: var(--color-ink);
+        text-decoration: none;
+        background-color: var(--color-surface);
+    }
+
+    .elme-help-nav__link:hover {
+        color: var(--color-link-hover);
+        text-decoration: underline;
+        text-underline-offset: 0.15em;
+    }
+
+    .elme-help-nav__link:focus-visible {
+        outline: 2px solid var(--color-ink);
+        outline-offset: 2px;
+    }
+
+    .elme-help-nav__link--current,
+    .elme-help-nav__item--current .elme-help-nav__link--current {
+        background-color: var(--color-page);
+        font-weight: 500;
+    }
+
+    @variant lg {
+        .elme-help-nav__list--desktop .elme-help-nav__link {
+            padding-inline: 0;
+            background: transparent;
+        }
+
+        .elme-help-nav__list--desktop .elme-help-nav__link--current {
+            background: transparent;
+            text-decoration: underline;
+            text-underline-offset: 0.2em;
+        }
+    }
+
+    /* Assistance strip under menu — bordered like production .cms-info on help pages */
+    .help-page .elme-help__assistance .elme-need-assistance {
+        margin-bottom: 0;
+    }
+
+    .help-page .elme-help__assistance .elme-need-assistance__inner {
+        border: 1px solid var(--color-border);
+        padding: --spacing(5) --spacing(4);
+    }
+
+    /* On this page */
+    .elme-help-toc {
+        margin: 0 0 --spacing(6);
+        padding: --spacing(4) 0 0;
+    }
+
+    .elme-help-toc__heading {
+        margin: 0 0 --spacing(2);
+        font-family: var(--font-sans);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--color-ink);
+    }
+
+    .elme-help-toc__list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(1.5);
+    }
+
+    .elme-help-toc__link {
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        color: var(--color-ink);
+        text-decoration: underline;
+        text-underline-offset: 0.15em;
+    }
+
+    .elme-help-toc__link:hover {
+        color: var(--color-link-hover);
+    }
+
+    .elme-help-toc__link:focus-visible {
+        outline: 2px solid var(--color-ink);
+        outline-offset: 2px;
+    }
+
+    /* Seeded help body: heading rhythm for long legal copy */
+    .elme-help-body h2 {
+        margin-block: --spacing(7) --spacing(2);
+        font-family: var(--font-sans);
+        font-size: var(--text-h5);
+        line-height: var(--text-h5--line-height);
+        font-weight: 600;
+        color: var(--color-ink);
+        scroll-margin-top: --spacing(6);
+    }
+
+    .elme-help-body h2:first-child {
+        margin-top: 0;
+    }
+
+    .elme-help-body h3 {
+        margin-block: --spacing(5) --spacing(2);
+        font-family: var(--font-sans);
+        font-size: var(--text-h5);
+        line-height: var(--text-h5--line-height);
+        font-weight: 600;
+        color: var(--color-ink);
+    }
+
+    .elme-help-body p {
+        margin: 0 0 --spacing(3);
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        color: var(--color-ink-subtle);
+    }
+
+    .elme-help-body ul {
+        margin: 0 0 --spacing(4);
+        padding-inline-start: --spacing(5);
+        color: var(--color-ink-subtle);
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+    }
+
+    .elme-help-body li + li {
+        margin-block-start: --spacing(2);
+    }
+
+    @variant md {
+        .elme-help-body h2 {
+            font-size: var(--text-h5-desktop);
+            line-height: var(--text-h5-desktop--line-height);
+            margin-top: --spacing(8);
+        }
+
+        .elme-help-body p,
+        .elme-help-body ul {
+            font-size: var(--text-copy-desktop);
+            line-height: var(--text-copy-desktop--line-height);
+        }
+    }
+
+    /* Optional banner (become-a-stockist): full-bleed on mobile */
+    .help-page-banner .elme-help-banner {
+        margin: 0 calc(-1 * var(--container-gutter)) --spacing(7);
+    }
+
+    .help-page-banner .elme-help-banner img {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+
+    @variant md {
+        .help-page-banner .elme-help-banner {
+            margin-inline: 0;
+            margin-bottom: --spacing(7);
+        }
+    }
+}
