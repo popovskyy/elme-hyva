@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<!--
+  FE-54: allow only the four named vendors (+ their CDNs). Do not reintroduce Nosto,
+  Clarity, Videowise, TikTok, Facebook, DoubleClick extras, Yotpo, etc. (UX-09).
+-->
+<csp_whitelist xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Csp:etc/csp_whitelist.xsd">
+    <policies>
+        <policy id="script-src">
+            <values>
+                <value id="elme-gtm" type="host">www.googletagmanager.com</value>
+                <value id="elme-ga" type="host">www.google-analytics.com</value>
+                <value id="elme-ga-star" type="host">*.google-analytics.com</value>
+                <value id="elme-gtm-star" type="host">*.googletagmanager.com</value>
+                <value id="elme-analytics-google" type="host">*.analytics.google.com</value>
+                <value id="elme-klaviyo-static" type="host">static.klaviyo.com</value>
+                <value id="elme-klaviyo-forms" type="host">static-forms.klaviyo.com</value>
+                <value id="elme-klaviyo-tracking" type="host">static-tracking.klaviyo.com</value>
+                <value id="elme-klaviyo-fast" type="host">fast.a.klaviyo.com</value>
+                <value id="elme-klaviyo-a" type="host">a.klaviyo.com</value>
+                <value id="elme-klaviyo-tele" type="host">telemetrics.klaviyo.com</value>
+                <value id="elme-klaviyo-star" type="host">*.klaviyo.com</value>
+                <value id="elme-zdassets" type="host">static.zdassets.com</value>
+                <value id="elme-ekr-zdassets" type="host">ekr.zdassets.com</value>
+                <value id="elme-zendesk-star" type="host">*.zendesk.com</value>
+                <value id="elme-zopim-star" type="host">*.zopim.com</value>
+                <value id="elme-tw-api" type="host">api.config-security.com</value>
+                <value id="elme-tw-conf" type="host">conf.config-security.com</value>
+                <value id="elme-tw-cdn" type="host">cdn.config-security.com</value>
+                <value id="elme-tw-star" type="host">*.triplewhale.com</value>
+                <value id="elme-tw" type="host">triplewhale.com</value>
+            </values>
+        </policy>
+        <policy id="connect-src">
+            <values>
+                <value id="elme-gtm" type="host">www.googletagmanager.com</value>
+                <value id="elme-ga" type="host">www.google-analytics.com</value>
+                <value id="elme-ga-star" type="host">*.google-analytics.com</value>
+                <value id="elme-gtm-star" type="host">*.googletagmanager.com</value>
+                <value id="elme-analytics-google" type="host">*.analytics.google.com</value>
+                <value id="elme-google-star" type="host">*.google.com</value>
+                <value id="elme-klaviyo-static" type="host">static.klaviyo.com</value>
+                <value id="elme-klaviyo-forms" type="host">static-forms.klaviyo.com</value>
+                <value id="elme-klaviyo-tracking" type="host">static-tracking.klaviyo.com</value>
+                <value id="elme-klaviyo-fast" type="host">fast.a.klaviyo.com</value>
+                <value id="elme-klaviyo-a" type="host">a.klaviyo.com</value>
+                <value id="elme-klaviyo-tele" type="host">telemetrics.klaviyo.com</value>
+                <value id="elme-klaviyo-star" type="host">*.klaviyo.com</value>
+                <value id="elme-zdassets" type="host">static.zdassets.com</value>
+                <value id="elme-ekr-zdassets" type="host">ekr.zdassets.com</value>
+                <value id="elme-zendesk-star" type="host">*.zendesk.com</value>
+                <value id="elme-zopim-star" type="host">*.zopim.com</value>
+                <value id="elme-tw-api" type="host">api.config-security.com</value>
+                <value id="elme-tw-conf" type="host">conf.config-security.com</value>
+                <value id="elme-tw-cdn" type="host">cdn.config-security.com</value>
+                <value id="elme-tw-star" type="host">*.triplewhale.com</value>
+            </values>
+        </policy>
+        <policy id="img-src">
+            <values>
+                <value id="elme-gtm" type="host">www.googletagmanager.com</value>
+                <value id="elme-ga" type="host">www.google-analytics.com</value>
+                <value id="elme-ga-star" type="host">*.google-analytics.com</value>
+                <value id="elme-klaviyo-static" type="host">static.klaviyo.com</value>
+                <value id="elme-klaviyo-forms" type="host">static-forms.klaviyo.com</value>
+                <value id="elme-klaviyo-tracking" type="host">static-tracking.klaviyo.com</value>
+                <value id="elme-klaviyo-star" type="host">*.klaviyo.com</value>
+                <value id="elme-zdassets" type="host">static.zdassets.com</value>
+                <value id="elme-zendesk-star" type="host">*.zendesk.com</value>
+                <value id="elme-tw-api" type="host">api.config-security.com</value>
+                <value id="elme-tw-star" type="host">*.triplewhale.com</value>
+            </values>
+        </policy>
+        <policy id="style-src">
+            <values>
+                <value id="elme-klaviyo-static" type="host">static.klaviyo.com</value>
+                <value id="elme-klaviyo-star" type="host">*.klaviyo.com</value>
+                <value id="elme-zdassets" type="host">static.zdassets.com</value>
+            </values>
+        </policy>
+        <policy id="font-src">
+            <values>
+                <value id="elme-klaviyo-static" type="host">static.klaviyo.com</value>
+                <value id="elme-klaviyo-fast" type="host">fast.a.klaviyo.com</value>
+                <value id="elme-klaviyo-star" type="host">*.klaviyo.com</value>
+                <value id="elme-zdassets" type="host">static.zdassets.com</value>
+            </values>
+        </policy>
+        <policy id="frame-src">
+            <values>
+                <value id="elme-gtm" type="host">www.googletagmanager.com</value>
+                <value id="elme-klaviyo-star" type="host">*.klaviyo.com</value>
+                <value id="elme-zdassets" type="host">static.zdassets.com</value>
+                <value id="elme-zendesk-star" type="host">*.zendesk.com</value>
+                <value id="elme-zopim-star" type="host">*.zopim.com</value>
+            </values>
+        </policy>
+    </policies>
+</csp_whitelist>

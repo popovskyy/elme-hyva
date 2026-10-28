@@ -365,6 +365,7 @@ return [
         'Elme_Newsletter' => 1,
         'Elme_Styleguide' => 1,
         'Elme_LoginOnly' => 1,
+        'Elme_ThirdParty' => 1,
         'Hyva_BaseLayoutReset' => 1,
         'Hyva_Email' => 1,
         'Hyva_ThemeFallback' => 1,

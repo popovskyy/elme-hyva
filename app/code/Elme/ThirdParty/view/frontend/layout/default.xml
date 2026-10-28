@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!--
+  FE-54: one theme/module bootstrap before body end — not pasted into CMS HTML.
+  Checkout uses Luma fallback, so this block does not run on /checkout (UX-06 hide).
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="before.body.end">
+            <block name="elme.thirdparty.bootstrap"
+                   template="Elme_ThirdParty::bootstrap.phtml"
+                   after="-">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">Elme\ThirdParty\ViewModel\Config</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

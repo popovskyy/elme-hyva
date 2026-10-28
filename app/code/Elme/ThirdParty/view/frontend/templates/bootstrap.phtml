@@ -1,0 +1,325 @@
+<?php
+/**
+ * FE-54: deferred third-party bootstrap (Zendesk, Klaviyo, GTM/GA4, Triple Whale).
+ *
+ * - No sync scripts in <head>; load after interactive (idle / load+timeout / Hyvä
+ *   init-external-scripts), never fetchpriority=high.
+ * - Marketing (GTM, Klaviyo, Triple Whale): gated by consent_mode (default defer_only
+ *   until a CMP / Privacy page lands). Chat (Zendesk): functional after interactive.
+ * - No JSON-LD / meta / heading injection (FE-55 owns SEO). Ecommerce stays in dataLayer.
+ * - D7: Klaviyo forms toggle via config; footer newsletter remains Magento (FE-11).
+ */
+
+declare(strict_types=1);
+
+use Elme\ThirdParty\ViewModel\Config;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+
+/** @var Config $config */
+$config = $block->getData('view_model');
+if (!$config instanceof Config || !$config->isEnabled()) {
+    return;
+}
+
+$bootstrapJson = $config->getBootstrapJson();
+?>
+<script>
+(function () {
+    'use strict';
+
+    var cfg = <?= /* @noEscape */ $bootstrapJson ?>;
+    var started = false;
+    var marketingReady = false;
+    var functionalReady = false;
+
+    window.dataLayer = window.dataLayer || [];
+    window.elmeConsent = window.elmeConsent || { marketing: false, functional: true };
+
+    function applyZendeskOffsets() {
+        var z = cfg.zendesk || {};
+        var root = document.documentElement;
+        if (z.offsetMobile) {
+            root.style.setProperty('--elme-zendesk-bottom-mobile', z.offsetMobile);
+        }
+        if (z.offsetDesktop) {
+            root.style.setProperty('--elme-zendesk-bottom-desktop', z.offsetDesktop);
+        }
+        root.classList.add('elme-zendesk-offset');
+    }
+
+    function loadScript(src, attrs) {
+        return new Promise(function (resolve, reject) {
+            var s = document.createElement('script');
+            s.src = src;
+            s.async = true;
+            if (attrs) {
+                Object.keys(attrs).forEach(function (k) {
+                    s.setAttribute(k, attrs[k]);
+                });
+            }
+            s.onload = function () { resolve(s); };
+            s.onerror = function () { reject(new Error('Failed to load ' + src)); };
+            document.head.appendChild(s);
+        });
+    }
+
+    function pushPageView() {
+        window.dataLayer.push({ event: 'page_view' });
+    }
+
+    function pushAddToCart(detail) {
+        detail = detail || {};
+        var item = {
+            item_id: detail.item_id || detail.sku || detail.id || '',
+            item_name: detail.item_name || detail.name || '',
+            quantity: detail.quantity || detail.qty || 1
+        };
+        if (detail.price != null && detail.price !== '') {
+            item.price = detail.price;
+        }
+        var ecommerce = {
+            currency: detail.currency || 'AUD',
+            items: [item]
+        };
+        if (detail.value != null && detail.value !== '') {
+            ecommerce.value = detail.value;
+        }
+        window.dataLayer.push({ ecommerce: null });
+        window.dataLayer.push({
+            event: 'add_to_cart',
+            ecommerce: ecommerce
+        });
+
+        if (typeof window.TriplePixel === 'function') {
+            try {
+                window.TriplePixel('AddToCart', {
+                    item: String(item.item_id || ''),
+                    q: Number(item.quantity) || 1,
+                    v: String(detail.variant || item.item_id || '')
+                });
+            } catch (e) { /* ignore vendor errors */ }
+        }
+    }
+
+    function bindEcommerce() {
+        document.addEventListener('submit', function (event) {
+            var form = event.target;
+            if (!form || !form.id) {
+                return;
+            }
+            if (form.id !== 'product_addtocart_form' && form.id.indexOf('product_addtocart_form_') !== 0) {
+                return;
+            }
+            var productId = '';
+            var productInput = form.querySelector('input[name="product"]');
+            if (productInput) {
+                productId = productInput.value;
+            }
+            var sku = form.getAttribute('data-product-sku') || form.getAttribute('data-sku') || productId;
+            var name = form.getAttribute('data-product-name') || form.getAttribute('data-name') || '';
+            var priceAttr = form.getAttribute('data-product-price') || form.getAttribute('data-price') || '';
+            var qty = 1;
+            var qtyInput = form.querySelector('input[name="qty"]');
+            if (qtyInput && qtyInput.value) {
+                qty = parseFloat(qtyInput.value) || 1;
+            }
+            var detail = {
+                item_id: sku,
+                item_name: name,
+                quantity: qty,
+                variant: productId
+            };
+            if (priceAttr !== '') {
+                detail.price = priceAttr;
+                detail.value = (parseFloat(priceAttr) || 0) * qty;
+            }
+            pushAddToCart(detail);
+        }, true);
+
+        window.addEventListener('elme:add-to-cart', function (event) {
+            pushAddToCart((event && event.detail) || {});
+        });
+    }
+
+    function loadGtm() {
+        var id = (cfg.gtm && cfg.gtm.id) || '';
+        if (!(cfg.gtm && cfg.gtm.enabled) || !id || window.elmeGtmLoaded) {
+            return;
+        }
+        window.elmeGtmLoaded = true;
+        window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+        loadScript('https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(id), {
+            'data-elme-vendor': 'gtm'
+        }).then(pushPageView).catch(function () { /* no-op */ });
+    }
+
+    function loadKlaviyo() {
+        var companyId = (cfg.klaviyo && cfg.klaviyo.companyId) || '';
+        if (!(cfg.klaviyo && cfg.klaviyo.enabled) || !companyId || window.elmeKlaviyoLoaded) {
+            return;
+        }
+        window.elmeKlaviyoLoaded = true;
+        window._klOnsite = window._klOnsite || [];
+        // forms_enabled false still loads company script (tracking); Klaviyo form campaigns
+        // can be disabled in their dashboard if D7 drops the popup.
+        if (cfg.klaviyo.forms === false) {
+            document.documentElement.setAttribute('data-elme-klaviyo-forms', '0');
+        }
+        loadScript(
+            'https://static.klaviyo.com/onsite/js/' + encodeURIComponent(companyId) + '/klaviyo.js',
+            { 'data-elme-vendor': 'klaviyo' }
+        ).catch(function () { /* no-op */ });
+    }
+
+    function loadTripleWhale() {
+        var shop = (cfg.tripleWhale && cfg.tripleWhale.shop) || '';
+        var plat = (cfg.tripleWhale && cfg.tripleWhale.platform) || 'custom-msp';
+        if (!(cfg.tripleWhale && cfg.tripleWhale.enabled) || !shop || window.elmeTwLoaded) {
+            return;
+        }
+        window.elmeTwLoaded = true;
+        window.TriplePixelData = {
+            TripleName: shop,
+            ver: '2.17',
+            plat: plat,
+            isHeadless: true,
+            product: { id: '', name: '', price: '', variant: '' },
+            search: ''
+        };
+        // External first.js avoids inline eval of the /first response (CSP-friendlier).
+        loadScript(
+            'https://api.config-security.com/first.js?host=' + encodeURIComponent(shop)
+                + '&plat=' + encodeURIComponent(plat),
+            { 'data-elme-vendor': 'triple-whale' }
+        ).catch(function () { /* no-op */ });
+    }
+
+    function loadZendesk() {
+        var key = (cfg.zendesk && cfg.zendesk.key) || '';
+        if (!(cfg.zendesk && cfg.zendesk.enabled) || !key || window.elmeZendeskLoaded) {
+            return;
+        }
+        window.elmeZendeskLoaded = true;
+        applyZendeskOffsets();
+        // Classic Web Widget offset; Messenger also respects CSS --elme-zendesk-bottom-*.
+        window.zESettings = window.zESettings || {
+            webWidget: {
+                offset: {
+                    horizontal: '0px',
+                    vertical: (window.matchMedia('(min-width: 1025px)').matches
+                        ? (cfg.zendesk.offsetDesktop || '1.5rem')
+                        : (cfg.zendesk.offsetMobile || '5.5rem'))
+                }
+            }
+        };
+        loadScript(
+            'https://static.zdassets.com/ekr/snippet.js?key=' + encodeURIComponent(key),
+            { id: 'ze-snippet', 'data-elme-vendor': 'zendesk' }
+        ).catch(function () { /* no-op */ });
+    }
+
+    function startMarketing() {
+        if (marketingReady) {
+            return;
+        }
+        marketingReady = true;
+        loadGtm();
+        loadKlaviyo();
+        loadTripleWhale();
+    }
+
+    function startFunctional() {
+        if (functionalReady) {
+            return;
+        }
+        functionalReady = true;
+        loadZendesk();
+    }
+
+    function hasMarketingConsent() {
+        var mode = cfg.consentMode || 'defer_only';
+        if (mode === 'defer_only') {
+            return true;
+        }
+        if (mode === 'event') {
+            return !!(window.elmeConsent && window.elmeConsent.marketing);
+        }
+        if (mode === 'cookie_restriction') {
+            try {
+                var raw = (document.cookie || '').split(';').map(function (c) { return c.trim(); });
+                for (var i = 0; i < raw.length; i++) {
+                    if (raw[i].indexOf('user_allowed_save_cookie=') === 0) {
+                        return raw[i].split('=')[1] !== '';
+                    }
+                }
+            } catch (e) { /* ignore */ }
+            return false;
+        }
+        return true;
+    }
+
+    function onInteractive() {
+        if (started) {
+            return;
+        }
+        started = true;
+        startFunctional();
+        if (hasMarketingConsent()) {
+            startMarketing();
+        }
+    }
+
+    function armInteractive() {
+        var armed = false;
+        function fire() {
+            if (armed) {
+                return;
+            }
+            armed = true;
+            onInteractive();
+        }
+        window.addEventListener('init-external-scripts', fire, { once: true });
+        if (document.readyState === 'complete') {
+            if (window.requestIdleCallback) {
+                window.requestIdleCallback(fire, { timeout: 2500 });
+            } else {
+                setTimeout(fire, 1500);
+            }
+        } else {
+            window.addEventListener('load', function () {
+                if (window.requestIdleCallback) {
+                    window.requestIdleCallback(fire, { timeout: 2500 });
+                } else {
+                    setTimeout(fire, 1500);
+                }
+            }, { once: true });
+        }
+        // Hard cap so tags still load without interaction on quiet pages.
+        setTimeout(fire, 8000);
+    }
+
+    window.addEventListener('elme:consent-marketing', function () {
+        if (window.elmeConsent) {
+            window.elmeConsent.marketing = true;
+        }
+        if (started) {
+            startMarketing();
+        }
+    });
+
+    bindEcommerce();
+    armInteractive();
+})();
+//# sourceURL=elme-third-party-bootstrap.js
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

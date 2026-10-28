@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!--
+  FE-54 defaults from production elmeliving.com (guest HTML / network, Oct 2026).
+  Consent: marketing tags wait for interactive (and optional CMP signal). Zendesk chat is
+  treated as functional support and loads after interactive without marketing consent —
+  document for QA; swap to marketing if Privacy/CMP requires it.
+  D7 (open): Klaviyo onsite forms (popup) are enabled here so FE-11's footer Magento form
+  can stay; set klaviyo/forms_enabled to 0 if D7 chooses Magento-only signup.
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <elme_third_party>
+            <general>
+                <enabled>1</enabled>
+                <!-- defer_only | event | cookie_restriction
+                     defer_only = after interactive, no CMP until Privacy page ships
+                     event = wait for window event elme:consent-marketing (or elmeConsent.marketing)
+                     cookie_restriction = wait for Magento user_allowed_save_cookie -->
+                <consent_mode>defer_only</consent_mode>
+            </general>
+            <gtm>
+                <enabled>1</enabled>
+                <container_id>GTM-KQCSGFS</container_id>
+            </gtm>
+            <klaviyo>
+                <enabled>1</enabled>
+                <public_api_key>TMvimz</public_api_key>
+                <!-- D7: 1 = load Klaviyo onsite forms/popup; 0 = tracking company_id only -->
+                <forms_enabled>1</forms_enabled>
+            </klaviyo>
+            <zendesk>
+                <enabled>1</enabled>
+                <snippet_key>502f9b73-6842-48d1-b68f-9850f29d022a</snippet_key>
+                <!-- Vertical offset so launcher clears sticky ATC / mobile cart (UX-06 polish later) -->
+                <launcher_offset_mobile>5.5rem</launcher_offset_mobile>
+                <launcher_offset_desktop>1.5rem</launcher_offset_desktop>
+            </zendesk>
+            <triple_whale>
+                <enabled>1</enabled>
+                <!-- TripleName / shop host registered in Triple Whale (production storefront) -->
+                <shop>www.elmeliving.com</shop>
+                <platform>custom-msp</platform>
+            </triple_whale>
+        </elme_third_party>
+    </default>
+</config>
