@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!-- FE-13: Our Difference on PDP (parity with old seo_block-elm placement). -->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="content">
+            <block class="Magento\Cms\Block\Block"
+                   name="elme.our.difference"
+                   after="-">
+                <arguments>
+                    <argument name="block_id" xsi:type="string">our_difference</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

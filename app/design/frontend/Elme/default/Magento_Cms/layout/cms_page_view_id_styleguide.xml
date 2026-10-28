@@ -13,6 +13,21 @@
         <referenceBlock name="page.main.title" remove="true"/>
         <referenceContainer name="content">
             <block name="elme.styleguide" template="Magento_Cms::styleguide.phtml"/>
+            <!-- FE-13: shared CMS blocks for visual QA -->
+            <block class="Magento\Cms\Block\Block"
+                   name="elme.styleguide.our.difference"
+                   after="elme.styleguide">
+                <arguments>
+                    <argument name="block_id" xsi:type="string">our_difference</argument>
+                </arguments>
+            </block>
+            <block class="Magento\Cms\Block\Block"
+                   name="elme.styleguide.need.assistance"
+                   after="elme.styleguide.our.difference">
+                <arguments>
+                    <argument name="block_id" xsi:type="string">need_assistance</argument>
+                </arguments>
+            </block>
         </referenceContainer>
         <referenceContainer name="before.body.end">
             <block name="elme.qty-stepper.js" template="Magento_Theme::elme/qty-stepper-js.phtml"/>
