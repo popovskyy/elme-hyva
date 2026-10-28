@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="elme" translate="label" sortOrder="400">
+            <label>Elme</label>
+        </tab>
+        <section id="elme_third_party" translate="label" type="text" sortOrder="54"
+                 showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Third-party scripts (FE-54)</label>
+            <tab>elme</tab>
+            <resource>Magento_Backend::stores_settings</resource>
+            <group id="general" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable bootstrap</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="consent_mode" translate="label comment" type="select" sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Marketing consent mode</label>
+                    <source_model>Elme\ThirdParty\Model\Config\Source\ConsentMode</source_model>
+                    <comment>GTM, Klaviyo and Triple Whale wait for this signal. Zendesk chat loads after interactive as functional support.</comment>
+                </field>
+            </group>
+            <group id="gtm" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Google Tag Manager / GA4</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable GTM</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="container_id" translate="label comment" type="text" sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Container ID</label>
+                    <comment>Use a cleaned container (GA4 + agreed vendors only). Do not use GTM-KQCSGFS until FB/TikTok/Rakuten/DoubleClick/jsdelivr tags are paused (UX-09). Empty = dataLayer events only, no gtm.js.</comment>
+                </field>
+            </group>
+            <group id="klaviyo" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Klaviyo</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Klaviyo</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="public_api_key" translate="label" type="text" sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Public API key (company_id)</label>
+                </field>
+                <field id="forms_enabled" translate="label comment" type="select" sortOrder="30"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Load onsite forms / popup (D7)</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Off = company script for tracking only; footer newsletter stays Magento (FE-11).</comment>
+                </field>
+            </group>
+            <group id="zendesk" translate="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Zendesk chat</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Zendesk</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="snippet_key" translate="label" type="text" sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Web Widget snippet key</label>
+                </field>
+                <field id="launcher_offset_mobile" translate="label" type="text" sortOrder="30"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Launcher bottom offset (mobile)</label>
+                </field>
+                <field id="launcher_offset_desktop" translate="label" type="text" sortOrder="40"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Launcher bottom offset (desktop)</label>
+                </field>
+            </group>
+            <group id="triple_whale" translate="label" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Triple Whale</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Triple Whale pixel</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="shop" translate="label comment" type="text" sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Shop domain (TripleName)</label>
+                    <comment>Must match the shop registered in Triple Whale.</comment>
+                </field>
+                <field id="platform" translate="label" type="text" sortOrder="30"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Platform id</label>
+                    <comment>custom-msp for Magento Open Source / Hyvä.</comment>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

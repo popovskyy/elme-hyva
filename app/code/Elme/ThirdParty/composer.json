@@ -1,0 +1,20 @@
+{
+    "name": "elme/module-third-party",
+    "description": "FE-54: deferred Zendesk, Klaviyo, GTM/GA4 and Triple Whale loaders with CSP allowlists",
+    "type": "magento2-module",
+    "require": {
+        "php": "~8.3.0||~8.4.0",
+        "magento/framework": "*",
+        "magento/module-csp": "*",
+        "magento/module-store": "*",
+        "hyva-themes/magento2-theme-module": "*"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Elme\\ThirdParty\\": ""
+        }
+    }
+}

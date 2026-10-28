@@ -1,0 +1,33 @@
+/**
+ * FE-54: Zendesk launcher clearance above sticky ATC / mobile cart / PLP Apply.
+ * Full repositioning + drawer hide is UX-06; this only reserves bottom offset + size
+ * so the widget mount does not cover primary actions or cause CLS.
+ */
+
+:root {
+    --elme-zendesk-bottom-mobile: 5.5rem;
+    --elme-zendesk-bottom-desktop: 1.5rem;
+    --elme-zendesk-launcher-size: 3.5rem;
+}
+
+/* Classic Web Widget launcher + Messaging iframe button */
+html.elme-zendesk-offset iframe#launcher,
+html.elme-zendesk-offset iframe[data-product="web_widget"],
+html.elme-zendesk-offset iframe[title="Button to launch messaging window"],
+html.elme-zendesk-offset iframe[title="Close message"],
+html.elme-zendesk-offset .zEWidget-launcher {
+    bottom: var(--elme-zendesk-bottom-mobile) !important;
+    width: var(--elme-zendesk-launcher-size) !important;
+    height: var(--elme-zendesk-launcher-size) !important;
+    z-index: 25 !important;
+}
+
+@media (min-width: 1025px) {
+    html.elme-zendesk-offset iframe#launcher,
+    html.elme-zendesk-offset iframe[data-product="web_widget"],
+    html.elme-zendesk-offset iframe[title="Button to launch messaging window"],
+    html.elme-zendesk-offset iframe[title="Close message"],
+    html.elme-zendesk-offset .zEWidget-launcher {
+        bottom: var(--elme-zendesk-bottom-desktop) !important;
+    }
+}
