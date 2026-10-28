@@ -5,7 +5,8 @@
  * (Bart/el home/_become-retailer.less). Server-rendered, no JS.
  *
  * Bleeds into the container gutters on both sides, like production: the image runs to the screen
- * edge, the text keeps its own inset.
+ * edge, the text keeps its own inset. --entry-bleed is the gutter only where the entry sits in one
+ * (Elme/default web/tailwind/elme/content-studio.css), so elsewhere it stays inside its box.
  *
  * @var \Bart\ContentStudio\Block\Entry $block
  * @var \Magento\Framework\Escaper $escaper
@@ -28,8 +29,7 @@ $headingId = 'promo-split-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIde
 // Saved through HtmlSanitizer already; this keeps an imported entry to the same tags.
 $textTags = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'a', 'ul', 'ol', 'li', 'sup', 'sub'];
 ?>
-<section class="-mx-(--container-gutter) mt-5 mb-10 flex flex-col
-                md:-mx-(--container-gutter-desktop) lg:mb-30 lg:flex-row"
+<section class="-mx-(--entry-bleed) mt-5 mb-10 flex flex-col lg:mb-30 lg:flex-row"
          aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
     <div class="mb-6 lg:mb-0 lg:w-1/2 lg:shrink-0">
         <?php if ($hasButton): ?>

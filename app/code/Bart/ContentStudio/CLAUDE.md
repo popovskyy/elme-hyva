@@ -216,17 +216,26 @@ cannot reach the object manager, and `Block\Entry` must not learn about
 individual types). `Block\Entry::getContent()` hands over the entry data with
 `{{media}}` resolved and **not** escaped - escape at the point of output.
 
-**An entry always sits inside the container gutter**, so a type that runs to
-the screen edge bleeds into it with `-mx-(--container-gutter)
-md:-mx-(--container-gutter-desktop)` (`promo_split`). On a 1column page the
-gutter is `.columns`; inside a contained or full-width row it is the row. A
-full-width page (`main.page-main-full-width`: `cms-full-width`, Elme's
-`banner-breadcrumbs`) has none, so the theme gives an entry at its root or in a
-full-bleed row the gutter a contained row has
-(`Elme/default/web/tailwind/elme/content-studio.css`). Without it the bleed cut
-the image and scrolled the page sideways. A bleeding type in a half-width
-column still bleeds into the next column; such types are meant for full-width
-placements.
+**A type that runs to the screen edge bleeds by `-mx-(--entry-bleed)`**
+(`promo_split`), never by the gutter tokens directly. The theme
+(`Elme/default/web/tailwind/elme/content-studio.css`) sets `--entry-bleed` to
+the container gutter only on a box that has that gutter and spans the page:
+`.columns` of a 1column CMS page (home included), a contained row where it
+keeps its padding (full-width layouts), a full-width row's inner. The
+wrappers in between (the Page Builder element, a CMS block, a Text element
+holding the widget) pass it on. Everywhere else it is 0, so the entry stays
+inside its box:
+- the root of a full-width page (`main.page-main-full-width`: `cms-full-width`,
+  Elme's `banner-breadcrumbs`) or a full-bleed row there: no gutter, and
+  `#maincontent` already spans the screen up to the container width;
+- a Page Builder column or tab, a 2columns page: narrower than the gutter box;
+- the product page: its `.columns` holds the product grid and description
+  cards, not page-wide content.
+
+A bleed that is always on cuts the image and scrolls the page sideways
+wherever the gutter is missing, so new placements default to no bleed.
+A full-width row on a 1column page has two gutters (`.columns` and the row
+inner, Hyva); the entry bleeds out of the inner one only.
 
 ### Live preview (the side panel)
 `renderer="Some_Module/js/type/x"` is optional. Without it the panel draws an
@@ -492,8 +501,9 @@ Built like Page Builder's own `block` type (`vendor/magento/module-page-builder`
   stage re-fit), and has `pointer-events: none`, so select, move, duplicate and
   remove work as for Block. It also shows the type's own outer margins (e.g.
   `promo_split`'s bottom margin), as the storefront does. The frame always has
-  the 1column gutter, which the storefront gives an entry in every placement,
-  root of a full-width page included (see "Rendering a type").
+  the 1column CMS page shell, so a bleeding type fills the frame edge to edge,
+  as on the storefront in a row or at the page root; in a column or tab the
+  storefront keeps it inside that box (see "Rendering a type").
 - **The stage shows the server-rendered state.** Alpine does not run in the
   frame; an interactive type shows its initial state there.
 - **States**: no entry picked -> Block-style placeholder; identifier unknown
