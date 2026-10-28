@@ -69,7 +69,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-45 | Help page template with side nav | 9 CMS | FE-04 | To do |
 | FE-46 | Contact Us form | 9 CMS | FE-45 | To do |
 | FE-47 | FAQs accordion | 9 CMS | FE-45, FE-57 | To do |
-| FE-48 | Content pages: About, Careers, Outlet, Style Sourcebook, Meet the Team, Fairs & Events | 9 CMS | FE-04, FE-57 | To do |
+| FE-48 | Content pages: About, Careers, Outlet, Style Sourcebook, Meet the Team, Fairs & Events (split into FE-61...FE-67) | 9 CMS | FE-04, FE-57 | Split |
 | FE-49 | Shop the Looks / lookbook with product hotspots | 9 CMS | FE-19, FE-57 | To do |
 | FE-50 | Virtual Catalogues (login only) + Shoppable Instagram | 9 CMS | FE-12, FE-53 | To do |
 | FE-51 | Showroom locator (list + location page) | 9 CMS | FE-04 | To do |
@@ -80,6 +80,13 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-56 | Final QA pass: devices, accessibility, performance, visual compare | 10 Cross-cutting | all | To do |
 | FE-57 | Content Studio for Open Source + Hyva, with a Page Builder content type | 0 Foundation | FE-01, FE-02, D11 | To do |
 | FE-58 | Theme preview image (media/preview.png) in Elme + Hyvä style | 0 Foundation | FE-01 | To do |
+| FE-61 | About us page | 9 CMS | FE-04, FE-57 | To do |
+| FE-62 | Career opportunities page | 9 CMS | FE-04, FE-57 | To do |
+| FE-63 | Outlet & clearance store page | 9 CMS | FE-04, FE-57 | To do |
+| FE-64 | Style Sourcebook page | 9 CMS | FE-04, FE-57 | To do |
+| FE-65 | Meet the Team page | 9 CMS | FE-04, FE-57 | To do |
+| FE-66 | Fairs & Events page | 9 CMS | FE-04, FE-57 | To do |
+| FE-67 | Become a Stockist page | 9 CMS | FE-04, FE-57, FE-16 | To do |
 | UX-01 | No empty or broken blocks | 11 UX | FE-12, FE-16, FE-17 | To do |
 | UX-02 | Guest path to a trade account | 11 UX | FE-06, FE-07, FE-19, FE-26 | To do |
 | UX-03 | Products above the fold on mobile PLP | 11 UX | FE-18, FE-19, FE-20 | To do |
@@ -745,13 +752,91 @@ All content is new; nothing is migrated from the old site. Plain text pages (T&C
 
 ### FE-48 Content pages
 
-**Scope:** styles for /about-us, /career-opportunities, /outlet-and-clearance-store, /style-sourcebook (banner + breadcrumbs layout), /meet-the-team (Content Studio type `team`: photo, name, role), /fairs-events (type `events`: name, start/end date, text, link; past events hide automatically), /become-a-stockist.
+**Split** into one ticket per page: FE-61 About us, FE-62 Career opportunities, FE-63 Outlet & clearance store, FE-64 Style Sourcebook, FE-65 Meet the Team, FE-66 Fairs & Events, FE-67 Become a Stockist. Each scope includes the matching item of the marketing review in the FE-48 log.
+
+### FE-61 About us page
+
+**Scope:** /about-us: banner + breadcrumbs layout (FE-04; Content Studio `hero`, first heading is the page H1), Page Builder prose with Elme styles, FE-13 "Need assistance?" / "Our Difference" at the foot. The page ends with the same stockist CTA as Become a Stockist: "Create an Account" primary, "Talk to our team" (Meet the Team) secondary.
+
+**Ref:** production /about-us
 
 **QA:**
 
-- [ ] Each page matches production on mobile and desktop
-- [ ] Meet the Team grid: 1 column mobile, 2 tablet, 4 desktop
-- [ ] An event whose end date has passed is not shown; with no upcoming events the page says so once
+- [ ] Layout matches production at 390 and 1440 px, apart from the agreed changes
+- [ ] One H1 (the banner heading); breadcrumbs Home > About us
+- [ ] Page ends with the stockist CTA: one primary button, one secondary
+
+### FE-62 Career opportunities page
+
+**Scope:** /career-opportunities: banner + breadcrumbs layout. Open roles come from a Content Studio type `vacancies` (title, state, employment type, email) and render as rows: title, state, type, "Apply by email" (mailto). With no roles the page shows one "No current vacancies" message with one email address (live repeats the same paragraph six times and mixes hello@ and careers@).
+
+**Ref:** production /career-opportunities
+
+**QA:**
+
+- [ ] Layout matches production at 390 and 1440 px, apart from the agreed changes
+- [ ] No roles: exactly one "No current vacancies" message and one email address
+- [ ] Two roles: two rows with title, state, type and a working "Apply by email" link
+
+### FE-63 Outlet & clearance store page
+
+**Scope:** /outlet-and-clearance-store: banner + breadcrumbs layout. A "Visit us" card directly under the banner: address, "Get directions" (maps link), phone (tel:), opening hours as a two-column list (Mon-Sat 9-5, Sun 10-5: two rows, not seven). Then "What You'll Find". The fine print (final sale, may include minor imperfections) becomes a short FAQ: Is it open to the public? Can I hold an item? Is stock on the website? Use the FE-47 accordion if it is built, otherwise native details/summary.
+
+**Ref:** production /outlet-and-clearance-store
+
+**QA:**
+
+- [ ] Layout matches production at 390 and 1440 px, apart from the agreed changes
+- [ ] Visit us card is the first block under the banner on mobile and desktop; directions and phone links open maps and the dialer
+- [ ] Hours show as two rows; FAQ items open and close with mouse and keyboard
+
+### FE-64 Style Sourcebook page
+
+**Scope:** /style-sourcebook: banner + breadcrumbs layout, Page Builder content with Elme styles. The copy is new: do not carry over the live wording that says "James Lane".
+
+**Ref:** production /style-sourcebook
+
+**QA:**
+
+- [ ] Layout matches production at 390 and 1440 px
+- [ ] One H1; breadcrumbs Home > Style Sourcebook
+- [ ] No "James Lane" text anywhere on the page
+
+### FE-65 Meet the Team page
+
+**Scope:** /meet-the-team: Content Studio type `team` (photo, name, role, email, phone, region: Head office / VIC / NSW / QLD / WA / SA-TAS). Card: photo, role small above the name, email (mailto:) and phone (tel:) as links with large tap targets. A row of region chips above the grid (All, VIC, NSW, ...) filters the cards (CSP-safe Alpine toggle). Grid: 1 column mobile, 2 tablet, 4 desktop. Live lists every manager with email and mobile; keep that.
+
+**Ref:** production /meet-the-team
+
+**QA:**
+
+- [ ] Grid: 1 column at 390 px, 2 at 768 px, 4 at 1440 px
+- [ ] Email and phone are links that open mail and the dialer; tap targets at least 44 px
+- [ ] Chip VIC shows only VIC people, All shows everyone; chips work with the keyboard
+
+### FE-66 Fairs & Events page
+
+**Scope:** /fairs-events: Content Studio type `events` (name, start date, end date, city, venue, stand, text, link). Events whose end date has passed hide automatically, without a cache flush; the next event comes first. Card: date block on the left (day + month), the range written out ("31 Jul - 4 Aug 2027"), an "On now" label when today falls inside the range, CTA "Book a time with your rep" (Meet the Team or mailto), not "Learn more". With nothing upcoming: one line "No fairs scheduled right now" plus a link to the Blackburn showroom.
+
+**Ref:** production /fairs-events
+
+**QA:**
+
+- [ ] An event whose end date has passed is not shown, without a cache flush
+- [ ] With no upcoming events the page says so once and links to the showroom
+- [ ] Events are sorted by start date; an event running today shows "On now"
+
+### FE-67 Become a Stockist page
+
+**Scope:** /become-a-stockist (already a help page from FE-45, keep its side nav): a three-step "How it works" row (Apply with your ABN, We review and approve, Log in to see your prices and order); a facts strip with the UX-02 facts (ABN required, minimum order applies with no amount, delivery Australia-wide); the three benefits through the FE-16 `usp_strip` type (reuse it, no second copy); "Create an Account" as the single primary button, "Talk to our team" (Meet the Team) secondary. This is the target of the UX-02 "Apply for a trade account" banner.
+
+**Ref:** production /become-a-stockist
+
+**QA:**
+
+- [ ] Layout matches production at 390 and 1440 px, apart from the agreed changes
+- [ ] How it works shows three steps in order; facts strip shows no minimum order amount
+- [ ] Exactly one primary button (Create an Account); Talk to our team goes to /meet-the-team
 
 ### FE-49 Shop the Looks / lookbook
 
