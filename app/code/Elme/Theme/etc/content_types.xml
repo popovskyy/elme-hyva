@@ -281,6 +281,46 @@
         </field>
     </type>
 
+    <!-- /fairs-events (FE-66): intro + upcoming trade fairs. Past end dates (Melbourne calendar) never
+         reach the HTML; next start comes first. Card: date block, written range, optional On now,
+         Book a time with your rep. Empty: one line + Blackburn showroom link. -->
+    <type code="events"
+          label="Fairs &amp; Events"
+          standalone="true"
+          group="pages"
+          icon="list"
+          description="Upcoming trade fairs and showroom events. Past end dates leave the page automatically; with none left, one empty message and a showroom link."
+          template="Elme_Theme::content-type/events.phtml"
+          version="1">
+
+        <field name="intro" type="wysiwyg" label="Intro"
+               description="Plain facts above the list: who Elme Living is (Australian B2B wholesaler), what this page is (trade fairs where retailers meet the team), and how to book (Meet the Team / Blackburn showroom). No prices or MOQ numbers."/>
+        <field name="heading" type="text" label="List heading" default="Upcoming fairs" maxlength="60"
+               description="H2 above the list and above the empty message, e.g. Upcoming fairs. Never the page H1."/>
+        <field name="empty_text" type="textarea" label="Empty message" maxlength="200"
+               default="No fairs scheduled right now"
+               description="Shown when every fair has ended. The Blackburn showroom link is added after it, so do not repeat that here."/>
+        <field name="items" type="repeater" label="Events" label_field="name" max="30"
+               description="One row per fair. An event whose end date has passed is left out of the page and the schema entirely (Melbourne calendar day, no cache flush needed).">
+            <field name="name" type="text" label="Event name" required="true" maxlength="80"
+                   description="Visible H3, e.g. Reed Gift Fair. Used for the stable schema id with the start date."/>
+            <field name="start" type="text" label="Start date" required="true" maxlength="10" width="half"
+                   description="Calendar date YYYY-MM-DD (Melbourne). Day + month of this date form the left date block."/>
+            <field name="end" type="text" label="End date" required="true" maxlength="10" width="half"
+                   description="Calendar date YYYY-MM-DD inclusive. Hidden the Melbourne day after this date."/>
+            <field name="city" type="text" label="City" maxlength="60" width="half"
+                   description="e.g. Melbourne. Shown as text under the name, not as a heading."/>
+            <field name="venue" type="text" label="Venue" maxlength="120" width="half"
+                   description="e.g. Melbourne Convention and Exhibition Centre."/>
+            <field name="stand" type="text" label="Stand" maxlength="40" width="half"
+                   description="Optional stand / booth number, e.g. A12."/>
+            <field name="text" type="textarea" label="Short description" maxlength="400"
+                   description="Optional plain sentence under the venue. No prices."/>
+            <field name="link" type="url" label="Fair website" width="half"
+                   description="Optional absolute http(s) URL to the fair's own site. The card CTA stays Book a time with your rep (Meet the Team)."/>
+        </field>
+    </type>
+
     <!-- Careers page (FE-62): a short intro, then the open roles as rows (title, state, type, Apply by
          email), or one "no vacancies" message with the careers address. Server-rendered, no JS: a role
          switched off is not in the HTML at all. No JobPosting markup: roles have no page of their own. -->
