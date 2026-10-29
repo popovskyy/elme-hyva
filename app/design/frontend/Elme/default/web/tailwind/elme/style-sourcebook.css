@@ -1,0 +1,76 @@
+/*
+ * FE-64 /style-sourcebook body (CMS HTML). BEM in the seeded markup so layout does not depend on
+ * Tailwind scanning Page Builder / DB content. Buttons reuse .btn.
+ */
+@layer components {
+    .elme-ssb {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(10);
+        margin-block: --spacing(2) --spacing(10);
+        max-width: 48rem;
+    }
+
+    .elme-ssb__section {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(4);
+    }
+
+    .elme-ssb__section h2 {
+        margin-block: 0;
+    }
+
+    .elme-ssb__section p {
+        margin-block: 0;
+        text-wrap: pretty;
+    }
+
+    .elme-ssb__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: --spacing(3);
+        margin-block-start: --spacing(2);
+    }
+
+    .elme-ssb__figure {
+        margin-block: --spacing(2) 0;
+        margin-inline: 0;
+    }
+
+    .elme-ssb__figure a {
+        display: block;
+    }
+
+    .elme-ssb__figure img {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+
+    .elme-ssb__note {
+        color: var(--color-ink-muted);
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+    }
+
+    @variant lg {
+        .elme-ssb {
+            gap: --spacing(15);
+            max-width: 56rem;
+        }
+
+        .elme-ssb__section--split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: --spacing(10);
+            align-items: center;
+        }
+
+        .elme-ssb__section--split .elme-ssb__copy {
+            display: flex;
+            flex-direction: column;
+            gap: --spacing(4);
+        }
+    }
+}
