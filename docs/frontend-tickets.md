@@ -48,7 +48,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-24 | Recently viewed categories / products | 4 PLP & search | FE-19 | To do |
 | FE-25 | PDP layout + image gallery | 5 PDP | FE-04 | To do |
 | FE-26 | PDP buy box, logged out | 5 PDP | FE-25 | To do |
-| FE-27 | PDP buy box, logged in (price, MOQ, add to cart/list/wishlist, sticky bar) | 5 PDP | FE-25, FE-53 | To do |
+| FE-27 | PDP buy box, logged in (price, MOQ, add to cart/wishlist, sticky bar) | 5 PDP | FE-25, FE-53, BE-06 | To do |
 | FE-28 | Configurable products: colour/size swatches to sibling products | 5 PDP | FE-27 | To do |
 | FE-29 | PDP details accordion + CMS blocks + FAQ modal | 5 PDP | FE-25 | To do |
 | FE-30 | PDP recommendations (frequently bought together, related) + recently viewed | 5 PDP | FE-17, FE-24 | To do |
@@ -59,8 +59,8 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-35 | Login, forgot password, reset password | 7 Account | FE-02 | To do |
 | FE-36 | Registration: "Apply for an account" (B2B, ABN) | 7 Account | FE-02 | To do |
 | FE-37 | Account layout, navigation (B2B/B2C), dashboard | 7 Account | FE-04 | To do |
-| FE-38 | Account info, password, address book, newsletter, saved cards | 7 Account | FE-37 | To do |
-| FE-39 | Orders: history, order view, invoices/shipments, reorder, CSV export | 7 Account | FE-37 | To do |
+| FE-38 | Account info, password, newsletter (address book in FE-69) | 7 Account | FE-37 | To do |
+| FE-39 | Orders: history, order view, invoices/shipments, print (reorder + CSV in BE-14) | 7 Account | FE-37 | To do |
 | FE-40 | Quick Order page | 8 B2B | FE-02, FE-03, FE-53 | To do |
 | FE-41 | Quick Order mini-cart, "saved" toast, "Add to list" modal | 8 B2B | FE-40, FE-06 | To do |
 | FE-42 | Order templates (saved lists) | 8 B2B | FE-40 | To do |
@@ -71,7 +71,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-47 | FAQs accordion | 9 CMS | FE-45, FE-57 | To do |
 | FE-48 | Content pages: About, Careers, Outlet, Style Sourcebook, Meet the Team, Fairs & Events (split into FE-61...FE-67) | 9 CMS | FE-04, FE-57 | Split |
 | FE-49 | Shop the Looks / lookbook with product hotspots | 9 CMS | FE-19, FE-57 | To do |
-| FE-50 | Virtual Catalogues (login only) + Shoppable Instagram | 9 CMS | FE-12, FE-53 | To do |
+| FE-50 | Virtual Catalogues (login only) (Shoppable Instagram in FE-68) | 9 CMS | FE-53 | To do |
 | FE-51 | Showroom locator (list + location page) | 9 CMS | FE-04 | To do |
 | FE-52 | 404 page | 9 CMS | FE-04 | To do |
 | FE-53 | Login-only rules: price hiding, guest redirects, per-customer data | 10 Cross-cutting | — | To do |
@@ -87,6 +87,8 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-65 | Meet the Team page | 9 CMS | FE-04, FE-57 | To do |
 | FE-66 | Fairs & Events page | 9 CMS | FE-04, FE-57 | To do |
 | FE-67 | Become a Stockist page | 9 CMS | FE-04, FE-57, FE-16 | To do |
+| FE-68 | Shoppable Instagram page (split from FE-50) | 9 CMS | FE-12, D10 | To do |
+| FE-69 | Address book, same form as checkout (split from FE-38) | 7 Account | FE-37, BE-02 | To do |
 | UX-01 | No empty or broken blocks | 11 UX | FE-12, FE-16, FE-17 | To do |
 | UX-02 | Guest path to a trade account | 11 UX | FE-06, FE-07, FE-19, FE-26 | To do |
 | UX-03 | Products above the fold on mobile PLP | 11 UX | FE-18, FE-19, FE-20 | To do |
@@ -99,6 +101,25 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | UX-10 | Readable text | 11 UX | FE-10, FE-13, FE-15 | To do |
 | UX-11 | PDP essentials first | 11 UX | FE-25, FE-29 | To do |
 | UX-12 | Faster reordering for trade customers | 11 UX | FE-19, FE-32, FE-37, FE-40 | To do |
+
+### Backend tickets
+
+Most B2B pages need backend work the old site did in `ElmeLiving_*` modules. Each FE ticket that needs it depends on the BE ticket; checkout is BE-01...BE-05 (Epic 6).
+
+| ID | Ticket | Needed by | Depends on |
+| --- | --- | --- | --- |
+| BE-06 | MOQ rules: minimum and step quantity for every add-to-cart path | FE-19, FE-27, FE-32, FE-33, FE-43, FE-44, BE-11, BE-13, BE-14 | FE-53 |
+| BE-07 | Per-customer prices (Pronto price mappings) behind `CustomerPriceProviderInterface` | BE-11, price QA everywhere | FE-53 |
+| BE-08 | Minimum order value per customer (attribute, service, checkout validator) | FE-33, FE-40, UX-12 | BE-04 |
+| BE-09 | B2B account application backend: attributes, ABN check, emails, approval | FE-35, FE-36 | FE-53 |
+| BE-10 | Account credit: outstanding balance + "on account" payment method | FE-37 (balance widget) | BE-04 |
+| BE-11 | Quick Order backend: SKU search, availability, batch add to cart | FE-40 | BE-06, BE-07 |
+| BE-12 | Saved order lists (order templates) backend | FE-41, FE-42, FE-44 | BE-11 |
+| BE-13 | Recently ordered backend | FE-40, FE-43 | BE-06 |
+| BE-14 | Reorder (MOQ aware) and order CSV export | FE-39 buttons | BE-06, FE-39 |
+| BE-15 | Showroom locations data: module, admin, import | FE-51 | FE-04 |
+
+Data feeds from Pronto (prices, stock, balances, customers) are integration tickets that come later.
 
 ## Epic 0 — Foundation and global UI
 
@@ -636,29 +657,36 @@ Customers are businesses with an ABN; the account area is split into B2B and B2C
 - [ ] Account credit shows the customer's balance from admin
 - [ ] Mobile: navigation usable with one hand, current page name visible
 
-### FE-38 Account info, addresses, newsletter, saved cards
+### FE-38 Account info, password, newsletter
 
-**Scope:** edit account info and change password; address book grid, add/edit address (company address fields); newsletter preferences; saved credit cards (Vault) list with delete.
+**Scope:** edit account info and change password; newsletter preferences. The address book is FE-69 (same form as checkout). Saved cards (Vault) are dropped until Elme takes card payments.
 
 **Ref:** `Bart/el/Magento_CustomerCustomAttributes/templates/od-account/*`, `Magento_Customer/templates/od-account/address/*`, `od-account/newsletter/newsletter.phtml`, `Magento_Vault/templates/cards_list.phtml`
 
 **QA:**
 
 - [ ] Changing the password logs in with the new one; wrong current password is refused
-- [ ] Add, edit, delete, set default address; postcode/state validation for Australia
 - [ ] Newsletter checkbox state persists after save
+
+### FE-69 Address book
+
+**Scope:** address book grid, add / edit / delete, set default shipping and billing. Reuses the checkout address form from BE-02 (company fields, AU states, 4-digit postcode, autocomplete).
+
+**QA:**
+
+- [ ] Add, edit, delete, set default address; postcode/state validation for Australia
+- [ ] The form looks and validates the same as in checkout
 
 ### FE-39 Orders
 
-**Scope:** order history table (number, date, ship-to, total, status, actions; cancel where allowed), order view (items, totals, addresses, shipping, payment), invoices / shipments / credit memos tabs, print, Reorder, CSV export of an order.
+**Scope:** order history table (number, date, ship-to, total, status, actions; cancel where allowed), order view (items, totals, addresses, shipping, payment, order reference and delivery instructions), invoices / shipments / credit memos tabs, print. Reorder and CSV export buttons use BE-14.
 
 **Ref:** `Bart/el/Magento_Sales/templates/od-order/*`, `Magento_AsyncOrder/templates/order/history.phtml`, `Magento_OrderCancellationUi/templates/order/history.phtml`
 
 **QA:**
 
 - [ ] History paginates; status labels readable; mobile shows orders as cards
-- [ ] Reorder puts available items in the cart (MOQ respected) and reports unavailable ones
-- [ ] CSV export downloads a file that opens in Excel with the order lines
+- [ ] Order view shows reference and delivery instructions when the order has them
 - [ ] Print view has no header/footer clutter
 
 ## Epic 8 — B2B: Quick Order, order templates, wishlist
@@ -861,14 +889,23 @@ All content is new; nothing is migrated from the old site. Plain text pages (T&C
 - [ ] Popup opens on tap/click, closes on outside click and Esc
 - [ ] Logged-in add to cart from the popup works with MOQ
 
-### FE-50 Virtual Catalogues + Shoppable Instagram
+### FE-50 Virtual Catalogues
 
-**Scope:** /virtual-catalogues: logged out shows "Sign in to see our brand new catalogues!", logged in shows the catalogue embeds/links. /shoppable-instagram: intro text + Instagram grid with product links.
+**Scope:** /virtual-catalogues: logged out shows "Sign in to see our brand new catalogues!", logged in shows the catalogue embeds/links. Shoppable Instagram moved to FE-68.
 
 **QA:**
 
 - [ ] Logged out never sees catalogue links (check HTML too)
 - [ ] Logged in sees and opens each catalogue
+
+### FE-68 Shoppable Instagram page
+
+**Scope:** /shoppable-instagram: intro text + Instagram grid where each post links to its products. Feed source depends on D10; reuses FE-12.
+
+**QA:**
+
+- [ ] Each post shows its linked products and they open the PDP
+- [ ] If the feed fails the page shows the intro and a link to Instagram, not an empty grid
 
 ### FE-51 Showroom locator
 
