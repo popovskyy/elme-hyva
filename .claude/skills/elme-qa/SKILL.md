@@ -136,7 +136,7 @@ reports, and paste the block only once it prints `OK`.
 | "200 and no console errors, so the page is fine" | An unstyled page is 200 with no errors. Read the screenshot. |
 | "I added the classes, it looks right in my browser" | Your browser may hold the old `styles.css`. `smoke.sh` compares with a fresh build and with what is served. |
 | "Nothing references it" | Magento wires through XML: `di.xml`, layout, `ui_component`, `hyva.config.json`. Grep those. |
-| "The checkout looks unchanged, so my Tailwind fix is broken" | Checkout runs on Luma (fallback). Tailwind never reaches it. |
+| "Checkout is special, the theme rules don't apply there" | `/checkout` is our own `Elme_Checkout` on Elme/default: same tokens, CSP Alpine and checks as any page. |
 | "The old site does it, so it works here" | Most Elme B2B behaviour is not built on this instance yet. Check, then say so. |
 | "The old site has console errors too" | `old:` is the reference, not under test; compare looks, not its errors. |
 | "It's an improvement, so it can stay" | An out-of-scope hunk is a finding; the user decides. |

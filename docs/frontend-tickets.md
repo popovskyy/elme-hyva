@@ -18,7 +18,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 
 ## Overview
 
-58 FE + 12 UX tickets. **Depends on** lists tickets to finish first and open decisions (D1–D11, last section) that change the scope.
+58 FE + 12 UX tickets. **Depends on** lists tickets to finish first and open decisions (D1-D12, last section) that change the scope.
 
 | ID | Ticket | Epic | Depends on | Status |
 | --- | --- | --- | --- | --- |
@@ -55,7 +55,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-31 | PDP stock and delivery info (stock number, dock date, delivery estimate) | 5 PDP | FE-27, D6 | To do |
 | FE-32 | Mini-cart drawer | 6 Cart & checkout | FE-06, FE-03 | To do |
 | FE-33 | Cart page | 6 Cart & checkout | FE-02, FE-32 | To do |
-| FE-34 | Checkout branding (Luma fallback) + success page | 6 Cart & checkout | FE-01 | To do |
+| FE-34 | Checkout look pass + order success page | 6 Cart & checkout | BE-04, BE-05 | To do |
 | FE-35 | Login, forgot password, reset password | 7 Account | FE-02 | To do |
 | FE-36 | Registration: "Apply for an account" (B2B, ABN) | 7 Account | FE-02 | To do |
 | FE-37 | Account layout, navigation (B2B/B2C), dashboard | 7 Account | FE-04 | To do |
@@ -544,7 +544,18 @@ Production PDP: gallery left, info right (badge, name, SKU, stock, short descrip
 
 ## Epic 6 — Cart and checkout
 
-Cart and checkout are login-only. Checkout runs on the Luma fallback (`hyva-themes/magento2-luma-checkout`), so FE-34 is styling only; checkout features (delivery date calendar, account credit payment, freight) come with their backend tickets.
+Cart and checkout are login-only. Checkout is our own module `Elme_Checkout` on this theme (D12); the Luma fallback checkout was removed on 29 Oct 2026. It is one page (address, delivery, payment, order details, place order, summary on the side), the server keeps the checkout state and Alpine only renders it, and every section or place-order check is a plug-in, so Elme features are added later without touching the core.
+
+| Ticket | Part | Depends on |
+| --- | --- | --- |
+| BE-01 | Foundation: module, page shell, checkout state, order summary, AU GST rule | FE-02 |
+| BE-02 | Delivery and billing address | BE-01 |
+| BE-03 | Delivery and payment methods | BE-02 |
+| BE-04 | Place order, validation, terms and conditions, e2e test | BE-02, BE-03 |
+| BE-05 | Order reference (PO) and delivery instructions, through to admin, email and My Orders | BE-04 |
+| FE-34 | Look pass and order success page | BE-04, BE-05 |
+
+Checkout features (delivery date calendar, account credit payment, Elme freight, minimum order value) come later as their own backend tickets on top of this module.
 
 ### FE-32 Mini-cart drawer
 
@@ -571,17 +582,17 @@ Cart and checkout are login-only. Checkout runs on the Luma fallback (`hyva-them
 - [ ] Mobile: items stack as cards, totals below, checkout button easy to reach
 - [ ] Guest opening /checkout/cart/ is sent to login with a message
 
-### FE-34 Checkout branding + success page
+### FE-34 Checkout look pass + order success page
 
-**Scope:** make the Luma checkout look like Elme: logo, fonts, colours, buttons, inputs, checkout header and footer with help block (phone, email). Success page with order number, "Continue shopping", link to the order in the account.
+**Scope:** success page in Elme/default (override of Hyva `Magento_Checkout::success.phtml`): heading, order number linking to the order in My Account, what happens next, delivery address, order reference and delivery instructions when given (BE-05), "Continue shopping" and "View order"; no "Create an account" block. Look pass over the new checkout built in BE-01...BE-05: tokens, focus states, section transitions (reduced motion respected), empty / loading / error states.
 
-**Ref:** `Bart/el/Magento_Checkout/templates/onepage/footer/checkout-footer.phtml`, `checkout-help.phtml`, `success/success-main.phtml`
+**Ref:** `Bart/el/Magento_Checkout/templates/success/success-main.phtml`, `templates/onepage/footer/checkout-help.phtml`; Hyva `Magento_Checkout/templates/success.phtml`
 
 **QA:**
 
-- [ ] Checkout uses Elme logo, Karla / DM Serif Display and charcoal buttons, no Luma blue
-- [ ] Full order with each payment method available to the test customer reaches the success page
-- [ ] Success page order number links to the order in My Account
+- [ ] After an order: success page with the order number linking to the order, reference and instructions when given; both buttons work
+- [ ] No "Create an account" block on the success page
+- [ ] Checkout and success page pass the web-interface-guidelines review: labels, visible focus, contrast, reduced motion
 
 ## Epic 7 — Login, registration, customer account
 
@@ -1101,5 +1112,6 @@ These decisions change the scope of the tickets named in **Affects**. Make them 
 | D9 | Blog | Magefan Blog templates exist, /blog is 404 | Drop (recommended) · port | — |
 | D10 | Instagram feed | Overdose InstaFeed | Instagram API module · static images in CMS | FE-12, FE-50 |
 | D11 | CMS content | Adobe Page Builder + LESS classes | **Decided:** new content, no migration; Page Builder for plain text pages, own copy of Content Studio (Open Source + Hyva) for structured blocks, placed with its Page Builder content type or widget; no CMS Tailwind JIT | FE-14...16, FE-47...49, FE-57 |
+| D12 | Checkout | Luma checkout (Adobe Commerce) with Elme Knockout mixins | **Decided:** own module `Elme_Checkout` on Elme/default (one page, server-side state, CSP Alpine). Luma fallback checkout removed; no Hyva Checkout (paid licence per installation) | FE-34, BE-01...BE-05 |
 
 Out of scope for this list: transactional email templates, checkout features (delivery date calendar, account credit, freight) that come with their backend tickets, and writing the new CMS content.

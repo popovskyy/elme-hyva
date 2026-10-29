@@ -17,9 +17,9 @@ Adobe Commerce codebase that apply here too.
 - **Tailwind reach.** Classes count only where Tailwind scans: theme `.phtml` / `.xml` and the module
   paths in `generated/hyva-source.css` (from `hyva.config.json` → `tailwind.include` and compat modules).
   A class in a module template outside that list renders unstyled.
-- **Checkout is Luma.** `/checkout` and the paths in `hyva_theme_fallback/general/list_part_of_url` run
-  on `Magento/luma` (Hyvä Luma checkout fallback): Tailwind and Alpine do nothing there. A change meant
-  for checkout is LESS/Knockout in a Luma child, or it does not reach checkout at all.
+- **Checkout is ours.** `/checkout` is the `Elme_Checkout` module on Elme/default: same tokens, Tailwind
+  reach and CSP Alpine rules as any page. There is no Luma fallback; any `frontend/Magento/luma` asset
+  on the storefront is a finding.
 - **Scope** - trace every hunk back to the ticket. An untraceable hunk is a finding, even when it is an
   improvement (old).
 
