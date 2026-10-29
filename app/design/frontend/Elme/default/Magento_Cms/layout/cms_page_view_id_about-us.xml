@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-61: About us — banner + breadcrumbs, Content Studio sections, FE-13 foot, JSON-LD / OG.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!-- One BreadcrumbList: content-page JSON-LD owns it; skip Hyvä’s duplicate -->
+        <referenceBlock name="breadcrumbs">
+            <arguments>
+                <argument name="skip_ld_json_schema" xsi:type="boolean">true</argument>
+            </arguments>
+        </referenceBlock>
+
+        <referenceContainer name="head.additional">
+            <block name="content.page.head"
+                   template="Magento_Cms::content-page/head.phtml"/>
+        </referenceContainer>
+
+        <referenceContainer name="before.body.end">
+            <block name="content.page.jsonld"
+                   template="Magento_Cms::content-page/jsonld.phtml"/>
+        </referenceContainer>
+
+        <referenceContainer name="content">
+            <block class="Magento\Cms\Block\Block"
+                   name="elme.about.our.difference"
+                   after="-">
+                <arguments>
+                    <argument name="block_id" xsi:type="string">our_difference</argument>
+                </arguments>
+            </block>
+            <block class="Magento\Cms\Block\Block"
+                   name="elme.about.need.assistance"
+                   after="elme.about.our.difference">
+                <arguments>
+                    <argument name="block_id" xsi:type="string">need_assistance</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

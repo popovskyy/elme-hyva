@@ -11,6 +11,8 @@
                 <item name="category_tiles" xsi:type="object">Elme\Theme\ViewModel\CategoryTiles</item>
                 <item name="catalogue_covers" xsi:type="object">Elme\Theme\ViewModel\CatalogueCovers</item>
                 <item name="usp_strip" xsi:type="object">Elme\Theme\ViewModel\UspStrip</item>
+                <item name="proof_pillars" xsi:type="object">Elme\Theme\ViewModel\ProofPillars</item>
+                <item name="stockist_cta" xsi:type="object">Elme\Theme\ViewModel\StockistCta</item>
             </argument>
         </arguments>
     </type>

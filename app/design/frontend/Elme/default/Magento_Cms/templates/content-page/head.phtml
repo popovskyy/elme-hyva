@@ -1,0 +1,50 @@
+<?php
+/**
+ * FE-61: Open Graph / Twitter for marketing CMS pages (About, Careers, Outlet).
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\ContentPages;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$pages = $viewModels->require(ContentPages::class);
+if (!$pages->isContentPage()) {
+    return;
+}
+
+$title = $pages->getMetaTitle();
+$description = $pages->getMetaDescription();
+$url = $pages->getCanonicalUrl();
+$image = $pages->getPrimaryImage();
+?>
+<meta property="og:type" content="<?= $escaper->escapeHtmlAttr($pages->getOgType()) ?>"/>
+<meta property="og:locale" content="<?= $escaper->escapeHtmlAttr($pages->getOgLocale()) ?>"/>
+<meta property="og:url" content="<?= $escaper->escapeUrl($url) ?>"/>
+<meta property="og:title" content="<?= $escaper->escapeHtmlAttr($title) ?>"/>
+<?php if ($description !== ''): ?>
+<meta property="og:description" content="<?= $escaper->escapeHtmlAttr($description) ?>"/>
+<?php endif; ?>
+<?php if ($image !== null): ?>
+<meta property="og:image" content="<?= $escaper->escapeUrl($image['url']) ?>"/>
+<?php if (!empty($image['width'])): ?>
+<meta property="og:image:width" content="<?= (int) $image['width'] ?>"/>
+<?php endif; ?>
+<?php if (!empty($image['height'])): ?>
+<meta property="og:image:height" content="<?= (int) $image['height'] ?>"/>
+<?php endif; ?>
+<?php endif; ?>
+<meta name="twitter:card" content="<?= $escaper->escapeHtmlAttr($pages->getTwitterCard()) ?>"/>
+<meta name="twitter:title" content="<?= $escaper->escapeHtmlAttr($title) ?>"/>
+<?php if ($description !== ''): ?>
+<meta name="twitter:description" content="<?= $escaper->escapeHtmlAttr($description) ?>"/>
+<?php endif; ?>
+<?php if ($image !== null): ?>
+<meta name="twitter:image" content="<?= $escaper->escapeUrl($image['url']) ?>"/>
+<?php endif; ?>

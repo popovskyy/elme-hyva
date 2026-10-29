@@ -66,7 +66,8 @@ class HelpPages implements ArgumentInterface
 
     public function __construct(
         private readonly CmsPage $cmsPage,
-        private readonly StoreManagerInterface $storeManager
+        private readonly StoreManagerInterface $storeManager,
+        private readonly ContentPages $contentPages
     ) {
     }
 
@@ -179,73 +180,27 @@ class HelpPages implements ArgumentInterface
      */
     public function getJsonLdGraph(): array
     {
-        $store = $this->storeManager->getStore();
-        $baseUrl = rtrim((string) $store->getBaseUrl(), '/');
-        $pageUrl = $this->canonicalUrl();
         $meta = $this->currentPageMeta();
-        $schemaType = $meta['schema_type'] ?? 'WebPage';
         $name = trim((string) $this->cmsPage->getMetaTitle());
         if ($name === '') {
             $name = trim((string) $this->cmsPage->getTitle());
         }
-        $description = trim((string) $this->cmsPage->getMetaDescription());
-        $title = $this->getCurrentTitle();
-
-        $webpage = [
-            '@type' => $schemaType,
-            '@id' => $pageUrl . '#webpage',
-            'url' => $pageUrl,
-            'name' => $name,
-            'inLanguage' => 'en-AU',
-            'isPartOf' => ['@id' => $baseUrl . '/#website'],
-            'about' => ['@id' => $baseUrl . '/#organization'],
-            'publisher' => ['@id' => $baseUrl . '/#organization'],
-            'breadcrumb' => ['@id' => $pageUrl . '#breadcrumb'],
-        ];
-        if ($description !== '') {
-            $webpage['description'] = $description;
-        }
         $updated = (string) $this->cmsPage->getUpdateTime();
-        if ($updated !== '') {
-            $webpage['dateModified'] = str_replace(' ', 'T', $updated);
-        }
 
-        return [
-            '@context' => 'https://schema.org',
-            '@graph' => [
-                $webpage,
-                [
-                    '@type' => 'BreadcrumbList',
-                    '@id' => $pageUrl . '#breadcrumb',
-                    'itemListElement' => [
-                        [
-                            '@type' => 'ListItem',
-                            'position' => 1,
-                            'item' => [
-                                '@id' => $baseUrl . '/',
-                                'name' => 'Home',
-                            ],
-                        ],
-                        [
-                            '@type' => 'ListItem',
-                            'position' => 2,
-                            'item' => [
-                                '@id' => $pageUrl,
-                                'name' => $title,
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ];
+        return $this->contentPages->buildGraph(
+            $meta['schema_type'] ?? 'WebPage',
+            $this->canonicalUrl(),
+            $name,
+            trim((string) $this->cmsPage->getMetaDescription()),
+            $this->getCurrentTitle(),
+            $updated !== '' ? $updated : null,
+            null
+        );
     }
 
     public function getJsonLdScript(): string
     {
-        return (string) json_encode(
-            $this->getJsonLdGraph(),
-            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP
-        );
+        return $this->contentPages->encodeGraph($this->getJsonLdGraph());
     }
 
     public function getCanonicalUrl(): string

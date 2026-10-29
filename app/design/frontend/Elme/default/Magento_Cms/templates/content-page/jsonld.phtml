@@ -1,0 +1,20 @@
+<?php
+/**
+ * FE-61: AboutPage / WebPage JSON-LD (+ BreadcrumbList). Never paste into CMS HTML.
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\ContentPages;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+
+$pages = $viewModels->require(ContentPages::class);
+if (!$pages->isContentPage()) {
+    return;
+}
+?>
+<script type="application/ld+json"><?= /* @noEscape */ $pages->getJsonLdScript() ?></script>
