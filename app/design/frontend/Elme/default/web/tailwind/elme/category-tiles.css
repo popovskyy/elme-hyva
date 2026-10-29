@@ -1,0 +1,178 @@
+/*
+ * FE-15 category tiles, look chosen from docs/design/category-tiles-options.html (variant 3):
+ * a 3:2 photo with the name on a short ink scrim. Phone tile 250px, wide tile 340px.
+ */
+
+@layer components {
+    .elme-category-tiles__track {
+        gap: --spacing(3.5);
+        padding-inline: --spacing(5);
+        scroll-padding-inline: --spacing(5);
+    }
+
+    .elme-category-tiles__item {
+        flex: 0 0 15.625rem;
+        width: 15.625rem;
+    }
+
+    .elme-category-tiles__media {
+        aspect-ratio: 3 / 2;
+    }
+
+    .elme-category-tiles__media::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 58%;
+        pointer-events: none;
+        background: linear-gradient(
+            to top,
+            color-mix(in oklab, var(--color-ink) 82%, transparent) 0%,
+            color-mix(in oklab, var(--color-ink) 28%, transparent) 58%,
+            transparent 100%
+        );
+    }
+
+    .elme-category-tiles__media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center 45%;
+        transition: transform 300ms ease-out;
+    }
+
+    .elme-category-tiles__name {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1;
+        padding: --spacing(9) --spacing(4) --spacing(3.5);
+        font-family: var(--font-heading);
+        font-size: var(--text-h3-desktop);
+        line-height: 1.15;
+        color: var(--color-on-primary);
+        text-align: left;
+    }
+
+    .elme-category-tiles__arrow {
+        position: absolute;
+        top: 50%;
+        z-index: 10;
+        display: none;
+        place-items: center;
+        width: --spacing(11);
+        height: --spacing(11);
+        margin: 0;
+        padding: 0;
+        border: 1px solid color-mix(in oklab, var(--color-ink) 14%, transparent);
+        border-radius: 50%;
+        background: var(--color-surface);
+        color: var(--color-ink);
+        cursor: pointer;
+        translate: 0 -50%;
+    }
+
+    .elme-category-tiles__arrow--prev {
+        left: --spacing(3.5);
+    }
+
+    .elme-category-tiles__arrow--next {
+        right: --spacing(3.5);
+    }
+
+    .elme-category-tiles__arrow:disabled {
+        pointer-events: none;
+        opacity: 0;
+    }
+
+    .elme-category-tiles__arrow:focus-visible {
+        outline: 2px solid var(--color-ink);
+        outline-offset: 2px;
+    }
+
+    .elme-category-tiles__arrow:active {
+        scale: 0.97;
+    }
+
+    @variant lg {
+        .elme-category-tiles__track {
+            gap: --spacing(4.5);
+            padding-inline: --spacing(16);
+            scroll-padding-inline: --spacing(16);
+        }
+
+        .elme-category-tiles__item {
+            flex-basis: 21.25rem;
+            width: 21.25rem;
+        }
+
+        .elme-category-tiles__name {
+            padding: --spacing(12) --spacing(4.5) --spacing(4);
+            font-size: var(--text-h2-desktop);
+        }
+
+        .elme-category-tiles__arrow {
+            display: grid;
+        }
+    }
+
+    /* Arrows sit on the photo, so they stay out of the way until the row is hovered.
+       Enter uses ease-out-quart (180ms); leave is shorter so the row settles quickly. */
+    @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+        .elme-category-tiles__arrow {
+            opacity: 0;
+            pointer-events: none;
+            transition:
+                opacity 120ms cubic-bezier(.895, .03, .685, .22),
+                translate 120ms cubic-bezier(.895, .03, .685, .22);
+        }
+
+        .elme-category-tiles__arrow--prev {
+            translate: -8px -50%;
+        }
+
+        .elme-category-tiles__arrow--next {
+            translate: 8px -50%;
+        }
+
+        .elme-category-tiles:hover .elme-category-tiles__arrow:not(:disabled),
+        .elme-category-tiles:focus-within .elme-category-tiles__arrow:not(:disabled) {
+            opacity: 1;
+            pointer-events: auto;
+            translate: 0 -50%;
+            transition-duration: 180ms;
+            transition-timing-function: cubic-bezier(.165, .84, .44, 1);
+        }
+
+        .elme-category-tiles__link:hover img {
+            transform: scale(1.035);
+        }
+    }
+
+    @media (hover: hover) and (prefers-reduced-motion: reduce) {
+        .elme-category-tiles__arrow {
+            opacity: 0;
+            pointer-events: none;
+            transition: none;
+        }
+
+        .elme-category-tiles:hover .elme-category-tiles__arrow:not(:disabled),
+        .elme-category-tiles:focus-within .elme-category-tiles__arrow:not(:disabled) {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .elme-category-tiles__media img {
+            transition: none;
+        }
+
+        .elme-category-tiles__arrow:active {
+            scale: 1;
+        }
+    }
+}

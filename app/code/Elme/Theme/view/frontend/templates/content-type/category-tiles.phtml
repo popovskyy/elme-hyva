@@ -1,9 +1,9 @@
 <?php
 /**
  * Content Studio type `category_tiles` (etc/content_types.xml, FE-15): carousel of category tiles
- * (image + label) linking to category URLs. Mobile/tablet: circular images with the label under;
- * desktop: rectangular tiles with an accent label bar. Swipe everywhere; prev/next arrows from
- * desktop up. Child-category dropdowns from the old Bart widget are not ported.
+ * (image + label) linking to category URLs. Look: a 3:2 photo with the name on a short scrim at the
+ * bottom left (docs/design/category-tiles-options.html, variant 3). Swipe everywhere; prev/next
+ * arrows from desktop up. Child-category dropdowns from the old Bart widget are not ported.
  *
  * Every tile is server-rendered so crawlers that run no JS still see the links. Alpine only scrolls
  * the track and wires the arrows. Bleed into the container gutters like hero / promo_split.
@@ -42,10 +42,6 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
 /** @var HyvaCsp $hyvaCsp */
 $hyvaCsp = $viewModels->require(HyvaCsp::class);
 
-$arrowClass = 'absolute top-1/2 z-10 hidden size-12.5 -translate-y-1/2 items-center justify-center
-               bg-primary text-on-primary shadow-[0_4px_10px_rgba(196,196,196,0.21)]
-               hover:bg-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink
-               disabled:pointer-events-none disabled:opacity-40 lg:flex';
 ?>
 <section id="<?= $escaper->escapeHtmlAttr($sectionId) ?>"
          class="elme-category-tiles relative -mx-(--entry-bleed) mb-10 lg:mb-15"
@@ -69,22 +65,22 @@ $arrowClass = 'absolute top-1/2 z-10 hidden size-12.5 -translate-y-1/2 items-cen
     <div class="relative">
         <?php if ($isCarousel): ?>
             <button type="button"
-                    class="<?= /* @noEscape */ $arrowClass ?> left-0 lg:left-2.5"
+                    class="elme-category-tiles__arrow elme-category-tiles__arrow--prev"
                     aria-label="<?= $escaper->escapeHtmlAttr(__('Previous categories')) ?>"
                     aria-controls="<?= $escaper->escapeHtmlAttr($trackId) ?>"
                     x-ref="prev"
                     @click="prev"
                     disabled>
-                <?= $lucideIcons->chevronLeftHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+                <?= $lucideIcons->chevronLeftHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
             </button>
             <button type="button"
-                    class="<?= /* @noEscape */ $arrowClass ?> right-5 lg:right-2.5"
+                    class="elme-category-tiles__arrow elme-category-tiles__arrow--next"
                     aria-label="<?= $escaper->escapeHtmlAttr(__('Next categories')) ?>"
                     aria-controls="<?= $escaper->escapeHtmlAttr($trackId) ?>"
                     x-ref="next"
                     @click="next"
                     disabled>
-                <?= $lucideIcons->chevronRightHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+                <?= $lucideIcons->chevronRightHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
             </button>
         <?php endif; ?>
 
@@ -104,36 +100,22 @@ $arrowClass = 'absolute top-1/2 z-10 hidden size-12.5 -translate-y-1/2 items-cen
                     $number = $index + 1;
                     $image = $tile['image'];
                     ?>
-                    <li class="elme-category-tiles__item flex w-[90px] shrink-0 snap-start flex-col
-                               mr-[41px] last:mr-5
-                               md:w-[180px]
-                               lg:mr-8 lg:w-[20.58%] lg:last:mr-0"
+                    <li class="elme-category-tiles__item shrink-0 snap-start"
                         role="group"
                         aria-roledescription="slide"
                         aria-label="<?= $escaper->escapeHtmlAttr(__('%1 of %2', $number, $count)) ?>">
                         <a href="<?= $escaper->escapeUrl($tile['link']) ?>"
-                           class="group flex h-full flex-col text-ink no-underline
-                                  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink
-                                  lg:bg-surface lg:[filter:drop-shadow(0_4px_10px_rgba(196,196,196,0.21))]">
-                            <span class="block size-[90px] shrink-0 overflow-hidden rounded-full bg-sand-light
-                                         md:size-[180px]
-                                         lg:aspect-[62/45] lg:size-auto lg:w-full lg:rounded-none">
+                           class="elme-category-tiles__link relative block no-underline
+                                  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">
+                            <span class="elme-category-tiles__media relative block overflow-hidden bg-sand-light">
                                 <img src="<?= $escaper->escapeUrl($image['src']) ?>"
-                                     alt="<?= $escaper->escapeHtmlAttr($tile['label']) ?>"
+                                     alt=""
                                      width="<?= (int)$image['width'] ?>"
                                      height="<?= (int)$image['height'] ?>"
                                      loading="lazy"
-                                     decoding="async"
-                                     class="size-full object-cover transition-transform duration-300 ease-out
-                                            group-hover:scale-[1.03] motion-reduce:transition-none
-                                            motion-reduce:group-hover:scale-100">
+                                     decoding="async">
                             </span>
-                            <span class="mt-2 flex min-h-[2.75rem] items-center justify-center bg-accent px-1 py-0.5
-                                         text-center font-heading text-h3 leading-h3 text-on-primary
-                                         lg:mt-0 lg:min-h-[53px] lg:justify-start lg:px-5 lg:py-[15px]
-                                         lg:text-left lg:leading-[22px]">
-                                <?= $escaper->escapeHtml($tile['label']) ?>
-                            </span>
+                            <span class="elme-category-tiles__name"><?= $escaper->escapeHtml($tile['label']) ?></span>
                         </a>
                     </li>
                 <?php endforeach; ?>
@@ -164,10 +146,10 @@ $arrowClass = 'absolute top-1/2 z-10 hidden size-12.5 -translate-y-1/2 items-cen
                             return 0;
                         }
 
-                        const style = window.getComputedStyle(item);
-                        const margin = parseFloat(style.marginRight) || 0;
+                        const trackStyle = window.getComputedStyle(this.$refs.track);
+                        const gap = parseFloat(trackStyle.columnGap) || parseFloat(trackStyle.gap) || 0;
 
-                        return item.getBoundingClientRect().width + margin;
+                        return item.getBoundingClientRect().width + gap;
                     },
 
                     go(direction) {
