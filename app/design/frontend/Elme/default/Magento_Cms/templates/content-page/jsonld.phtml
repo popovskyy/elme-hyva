@@ -1,0 +1,19 @@
+<?php
+/**
+ * Page-level JSON-LD of a public CMS content page: WebPage (or the `schema_type` block argument, e.g.
+ * ContactPage) + BreadcrumbList. Never paste JSON-LD into CMS HTML.
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\ContentPage;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+
+$page = $viewModels->require(ContentPage::class);
+$schemaType = (string)($block->getData('schema_type') ?: 'WebPage');
+?>
+<script type="application/ld+json"><?= /* @noEscape */ $page->getJsonLdScript($schemaType) ?></script>
