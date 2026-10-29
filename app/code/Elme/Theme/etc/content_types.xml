@@ -34,8 +34,8 @@
     </type>
 
     <!-- The full-width banner at the top of the home page (and the top banner of About, Careers,
-         Outlet). Photo with live text in a dusty-blue panel: centred over the photo on desktop like
-         production, a band under it on mobile. One slide is a plain banner; more become a slider. -->
+         Outlet). The photo with nothing over it, then the live heading, text and button under it.
+         One slide is a plain banner; more become a slider. -->
     <type code="hero"
           label="Hero Banner / Slider"
           standalone="true"
@@ -55,9 +55,9 @@
         <field name="slides" type="repeater" label="Slides" label_field="heading" max="5" required="true"
                description="One slide is a plain banner; two to five become a slider. Remove a dated campaign (a trade fair) once it is over.">
             <field name="image_desktop" type="image" label="Desktop image" required="true" recommended="2720x882"
-                   description="Photo only: no words in the image, write them in Heading and Text. JPEG or WebP, not GIF, about 300 KB. The text panel covers the middle third (or the side you pick below), so keep the subject clear of it."/>
+                   description="Photo only: no words in the image, write them in Heading and Text. JPEG or WebP, not GIF, about 300 KB. Shown whole from tablet up when it has this 2720x882 ratio; another ratio is cropped to it."/>
             <field name="image_mobile" type="image" label="Mobile image" recommended="780x520"
-                   description="Photo only, JPEG or WebP, about 150 KB. Shown above the text on phones. Leave empty to use a centre crop of the desktop image."/>
+                   description="Photo only, JPEG or WebP, about 150 KB, 3:2. Shown whole above the text on phones. Leave empty to use a centre crop of the desktop image."/>
             <field name="image_alt" type="text" label="Image alt text" maxlength="160"
                    description="What the photo shows (product, room, material). Do not repeat the heading. Empty only if purely decorative."/>
             <field name="heading" type="textarea" label="Heading" required="true" maxlength="70"
@@ -68,18 +68,12 @@
                    description="Name the destination: &quot;Shop Made to Order Sofas&quot;, &quot;Visit Our Showrooms&quot;, not &quot;Learn more&quot;."/>
             <field name="button_link" type="url" label="Button link" width="half"
                    description="Also links the photo. Relative, no tracking parameters, e.g. /made-to-order-sofas.html"/>
-            <field name="panel_position" type="select" label="Text panel on desktop" default="center"
-                   description="Where the text panel sits over the photo from tablet up. On phones it is always under the photo.">
-                <option value="center" label="Centre"/>
-                <option value="left" label="Left"/>
-                <option value="right" label="Right"/>
-            </field>
         </field>
     </type>
 
     <!-- Home category strip under the hero: image + label tiles that link to categories.
          Arrows on desktop, swipe on phones. Child-category dropdowns from the old widget are
-         not ported — tile only. Editors paste category paths; there is no category chooser. -->
+         not ported, tile only. Editors paste category paths; there is no category chooser. -->
     <type code="category_tiles"
           label="Category Tiles Carousel"
           standalone="true"
@@ -97,9 +91,9 @@
             <field name="link" type="url" label="Category link" required="true" width="half"
                    description="Canonical category path, no tracking parameters. e.g. /homewares/vessels.html"/>
             <field name="label" type="text" label="Label" required="true" maxlength="40" width="half"
-                   description="Name on the tile: Vessels, Decor, Floral Stems, Bouquets &amp; Bundles… May differ from the Magento name."/>
+                   description="Name on the tile: Vessels, Decor, Floral Stems, Bouquets &amp; Bundles... May differ from the Magento name."/>
             <field name="image" type="image" label="Image" required="true" recommended="620x450"
-                   description="Lifestyle photo for the category. JPEG or WebP, no words in the image — the Label field is the text."/>
+                   description="Lifestyle photo for the category. JPEG or WebP, no words in the image: the Label field is the text."/>
         </field>
     </type>
 
@@ -110,7 +104,7 @@
           standalone="true"
           group="home"
           icon="image-text"
-          description="Centred heading (page H1 on home), short wholesale line and a button. No image."
+          description="Heading (page H1 on home) on the left; short wholesale line, the apply button and Log in on the right. No image."
           template="Elme_Theme::content-type/welcome-cta.phtml"
           version="1">
 
@@ -124,14 +118,14 @@
                description="Guest destination, e.g. /become-a-stockist. Hidden for logged-in customers."/>
     </type>
 
-    <!-- Curated Catalogues dusty-blue band: cover cards with distinct destinations. Empty cards
-         (or no images) hide the whole section (UX-01). -->
+    <!-- Curated Catalogues: heading and intro on the left, a list of small covers (name + short line)
+         on the right. Empty cards (or no images) hide the whole section (UX-01). -->
     <type code="catalogue_covers"
           label="Catalogue Covers"
           standalone="true"
           group="home"
           icon="image-text"
-          description="Dusty-blue band with catalogue cover cards and an optional See All button. Hides when there are no covers."
+          description="Heading and intro with a list of catalogue covers (name and a short line) and an optional See All link. Hides when there are no covers."
           template="Elme_Theme::content-type/catalogue-covers.phtml"
           version="1">
 
@@ -142,13 +136,15 @@
         <field name="cards" type="repeater" label="Cover cards" label_field="title" max="4" required="true"
                description="One to four covers. Distinct links per card (Lookbook vs Virtual Catalogues). Empty or missing images hide the whole band.">
             <field name="image" type="image" label="Cover image" required="true" recommended="620x877"
-                   description="Cover art JPEG or WebP. No words baked into the image — the Title field is the text."/>
+                   description="Cover art JPEG or WebP. No words baked into the image: the Title field is the text."/>
             <field name="image_alt" type="text" label="Image alt text" maxlength="160"
                    description="What the cover shows, or match the card title."/>
             <field name="title" type="text" label="Title" required="true" maxlength="40" width="half"
-                   description="Visible card name: Lookbook, Virtual Catalogues…"/>
+                   description="Visible card name: Lookbook, Virtual Catalogues..."/>
+            <field name="text" type="text" label="Short line" maxlength="80" width="half"
+                   description="Optional, under the title: what is inside, e.g. &quot;Styled rooms and seasonal edits&quot;."/>
             <field name="link" type="url" label="Link" required="true" width="half"
-                   description="Distinct per card. Lookbook → /shop-the-looks; Virtual Catalogues → /virtual-catalogues."/>
+                   description="Distinct per card. Lookbook -> /shop-the-looks; Virtual Catalogues -> /virtual-catalogues."/>
         </field>
         <field name="see_all_label" type="text" label="See all label" maxlength="40" width="half"
                description="Optional. e.g. &quot;See All Catalogues&quot;."/>

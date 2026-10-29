@@ -1,9 +1,9 @@
 /*
  * FE-13 shared CMS blocks: Our Difference (.elme-our-difference) and Need assistance?
- * (.elme-need-assistance). Classes live in CMS HTML / theme templates — not PB inline styles.
+ * (.elme-need-assistance). Classes live in CMS HTML / theme templates, not Page Builder inline styles.
  */
 @layer components {
-    /* —— Our Difference (old .seo-block) —— */
+    /* Our Difference (old .seo-block) */
     .elme-our-difference {
         display: flex;
         flex-direction: column;
@@ -57,90 +57,93 @@
         }
     }
 
-    /* —— Need assistance? (old .cms-info, but never mobile-only) —— */
+    /* Need assistance? Three cells in a row when the block is at least 40rem wide (home), stacked
+       when narrow (phones, help page side column). The block is its own container, so it follows its
+       column, not the viewport. */
     .elme-need-assistance {
+        container-type: inline-size;
+        display: grid;
+        gap: --spacing(4);
         margin-bottom: --spacing(14);
     }
 
-    .elme-need-assistance__inner {
-        background-color: var(--color-surface);
-        border-radius: var(--radius-sm);
-        padding: --spacing(5) --spacing(4) --spacing(9);
-    }
-
     .elme-need-assistance__title {
-        margin: 0 0 --spacing(4);
-        font-family: var(--font-sans);
-        font-size: var(--text-note);
-        line-height: var(--text-note--line-height);
-        font-weight: 600;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
+        margin: 0;
+        font-family: var(--font-heading);
+        font-weight: 400;
+        font-size: var(--text-h2);
+        line-height: var(--text-h2--line-height);
         color: var(--color-ink);
+
+        @variant md {
+            font-size: var(--text-h2-desktop);
+            line-height: 1.2;
+        }
     }
 
-    .elme-need-assistance__intro {
-        margin: 0 0 --spacing(4);
+    .elme-need-assistance__cells {
+        display: grid;
+        gap: 1px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        background: var(--color-border);
+        border: 1px solid var(--color-border);
+    }
+
+    .elme-need-assistance__cell {
+        display: grid;
+        align-content: start;
+        gap: --spacing(1.5);
+        padding: --spacing(4) --spacing(5);
+        background: var(--color-surface);
+    }
+
+    .elme-need-assistance__label {
+        display: flex;
+        align-items: center;
+        gap: --spacing(2);
         font-size: var(--text-note);
         line-height: var(--text-note--line-height);
         color: var(--color-ink-subtle);
     }
 
-    .elme-need-assistance__intro--showroom {
-        margin-top: --spacing(2);
-    }
-
-    .elme-need-assistance__contacts {
-        list-style: none;
-        margin: 0 0 --spacing(4);
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: --spacing(4);
-    }
-
-    .elme-need-assistance__item,
-    .elme-need-assistance__showroom {
-        display: flex;
-        align-items: flex-start;
-        gap: --spacing(4);
-        margin: 0;
-        font-size: var(--text-note);
-        line-height: var(--text-note--line-height);
-    }
-
     .elme-need-assistance__icon {
         flex-shrink: 0;
-        margin-top: 0.1rem;
-        color: var(--color-ink);
         stroke-width: 1.5;
     }
 
-    .elme-need-assistance__link {
+    .elme-need-assistance__value {
+        width: fit-content;
+        font-weight: 700;
         color: var(--color-ink);
         text-decoration: none;
-        font-weight: 400;
+        overflow-wrap: anywhere;
     }
 
-    .elme-need-assistance__link:hover {
+    .elme-need-assistance__value:hover {
         color: var(--color-link-hover);
         text-decoration: underline;
         text-underline-offset: 0.15em;
     }
 
-    .elme-need-assistance__link:focus-visible {
-        outline: 2px solid var(--color-ink);
-        outline-offset: 2px;
+    .elme-need-assistance__value:focus-visible {
+        outline: --spacing(0.5) solid var(--color-ink);
+        outline-offset: --spacing(0.5);
     }
 
-    .elme-need-assistance__link--address {
-        color: var(--color-ink);
-    }
+    @container (min-width: 40rem) {
+        .elme-need-assistance__cells {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
 
-    @variant md {
-        .elme-need-assistance__inner {
-            padding-bottom: --spacing(5);
+        .elme-need-assistance__cell {
+            padding: --spacing(7) --spacing(8);
+        }
+
+        .elme-need-assistance__value {
+            font-size: var(--text-copy-desktop);
+            line-height: var(--text-copy-desktop--line-height);
         }
     }
 }

@@ -9,3 +9,24 @@
 .cms-index-index .page-main:has(.elme-hero) {
     margin-top: 0;
 }
+
+@layer components {
+    /* Photo box at the recommended upload ratio (hero field hints in content_types.xml), so a photo
+       uploaded at that size is shown whole. The slider controls use the same box to sit on the photo. */
+    .elme-hero__media {
+        aspect-ratio: 3 / 2;
+
+        @variant md {
+            aspect-ratio: 2720 / 882;
+        }
+    }
+
+    /* Copy under the photo lines up with the page container, also where the hero cannot bleed. */
+    .elme-hero__copy {
+        padding-inline: max(var(--entry-bleed), var(--container-gutter));
+
+        @variant md {
+            padding-inline: max(var(--entry-bleed), var(--container-gutter-desktop));
+        }
+    }
+}

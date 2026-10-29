@@ -53,6 +53,7 @@ class CatalogueCoversTest extends TestCase
                     'link' => '/virtual-catalogues',
                     'image' => self::MEDIA_URL . 'covers/cover.png',
                     'image_alt' => 'Catalogue cover',
+                    'text' => '  Full ranges  ',
                 ],
             ],
         ]);
@@ -65,6 +66,7 @@ class CatalogueCoversTest extends TestCase
             $cards[0]['image']
         );
         $this->assertSame('Catalogue cover', $cards[0]['image_alt']);
+        $this->assertSame('Full ranges', $cards[0]['text']);
     }
 
     public function testSeeAllRequiresBothFields(): void

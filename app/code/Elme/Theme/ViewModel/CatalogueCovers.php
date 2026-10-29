@@ -67,6 +67,7 @@ class CatalogueCovers implements ArgumentInterface
      * @param array<string, mixed> $content
      * @return list<array{
      *     title: string,
+     *     text: string,
      *     link: string,
      *     image_alt: string,
      *     image: array{src: string, width: int, height: int}
@@ -93,6 +94,7 @@ class CatalogueCovers implements ArgumentInterface
 
             $cards[] = [
                 'title' => $title,
+                'text' => $this->text($row, 'text'),
                 'link' => $link,
                 'image_alt' => $alt !== '' ? $alt : $title,
                 'image' => $this->image($image),

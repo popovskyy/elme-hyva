@@ -116,16 +116,6 @@ class HeroTest extends TestCase
         $this->assertSame(['', '', '/x'], array_column($slides, 'button_link'));
     }
 
-    public function testUnknownPanelPositionIsCentre(): void
-    {
-        $slides = $this->hero()->getSlides(['slides' => [
-            ['image_desktop' => '/media/hero/wide.png', 'heading' => 'A', 'panel_position' => 'right'],
-            ['image_desktop' => '/media/hero/wide.png', 'heading' => 'B', 'panel_position' => 'top'],
-        ]]);
-
-        $this->assertSame(['right', 'center'], array_column($slides, 'panel_position'));
-    }
-
     #[DataProvider('autoplayProvider')]
     public function testAutoplayInterval(array $content, int $expected): void
     {

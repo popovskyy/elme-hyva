@@ -26,7 +26,7 @@
 
     /*
      * Sticky side column while scrolling long Privacy / Terms.
-     * Hyvä’s 2-col grid uses two rows (main spans both; sidebar only row 1) so the sidebar
+     * Hyva's 2-col grid uses two rows (main spans both; sidebar only row 1) so the sidebar
      * containing block is ~content-tall and sticky never engages. Stretch the help sidebar
      * across both rows so sticky can pin while the main column scrolls.
      */
@@ -52,7 +52,7 @@
         }
     }
 
-    /* —— Side nav —— */
+    /* Side nav */
     .elme-help-nav__trigger {
         display: flex;
         width: 100%;
@@ -165,14 +165,19 @@
         }
     }
 
-    /* Assistance strip under menu — bordered like production .cms-info on help pages */
+    /* Assistance strip under menu - bordered like production .cms-info on help pages */
     .help-page .elme-help__assistance .elme-need-assistance {
         margin-bottom: 0;
     }
 
-    .help-page .elme-help__assistance .elme-need-assistance__inner {
-        border: 1px solid var(--color-border);
-        padding: --spacing(5) --spacing(4);
+    /* Small label title in the side column, like the On this page heading */
+    .help-page .elme-help__assistance .elme-need-assistance__title {
+        font-family: var(--font-sans);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
     }
 
     /* On this page */

@@ -1,7 +1,9 @@
 <?php
 /**
- * FE-13: Need assistance? — phone / email / showroom from StoreContact (store config).
- * Placed via CMS block need_assistance or layout. Same markup on every viewport (not mobile-only).
+ * FE-13: Need assistance? - phone / email / showroom from StoreContact (store config).
+ * Placed via CMS block need_assistance or layout. Three equal cells in one row where the block is wide
+ * (home, docs/design/homepage-options.html D1), stacked where it is narrow (help page side column);
+ * shared-blocks.css switches on the block's own width, not the viewport.
  */
 
 declare(strict_types=1);
@@ -19,48 +21,46 @@ use Magento\Framework\View\Element\Template;
 $contact = $viewModels->require(StoreContact::class);
 $lucide = $viewModels->require(LucideIcons::class);
 
-$phoneDisplay = $contact->getPhoneDisplay();
-$phoneHref = $contact->getPhoneTelHref();
-$email = $contact->getEmail();
-$emailHref = $contact->getEmailMailtoHref();
 [$street, $suburbLine] = $contact->getShowroomAddressLines();
-$mapsUrl = $contact->getMapsUrl();
-
-$phoneIcon = $lucide->phoneHtml('elme-need-assistance__icon', 20, 20, ['aria-hidden' => 'true']);
-$mailIcon = $lucide->mailHtml('elme-need-assistance__icon', 20, 20, ['aria-hidden' => 'true']);
-$mapIcon = $lucide->mapPinHtml('elme-need-assistance__icon', 20, 20, ['aria-hidden' => 'true']);?>
+$iconAttributes = ['aria-hidden' => 'true'];
+?>
 <section class="elme-need-assistance" aria-labelledby="elme-need-assistance-heading">
-    <div class="elme-need-assistance__inner">
-        <h2 id="elme-need-assistance-heading" class="elme-need-assistance__title">
-            <?= $escaper->escapeHtml(__('Need assistance?')) ?>
-        </h2>
-        <p class="elme-need-assistance__intro">
-            <?= $escaper->escapeHtml(__('You can either contact us…')) ?>
-        </p>
-        <ul class="elme-need-assistance__contacts">
-            <li class="elme-need-assistance__item">
-                <?= /* @noEscape */ $phoneIcon ?>
-                <a class="elme-need-assistance__link"
-                   href="<?= $escaper->escapeUrl($phoneHref) ?>"><?= $escaper->escapeHtml($phoneDisplay) ?></a>
-            </li>
-            <li class="elme-need-assistance__item">
-                <?= /* @noEscape */ $mailIcon ?>
-                <a class="elme-need-assistance__link"
-                   href="<?= $escaper->escapeUrl($emailHref) ?>"><?= $escaper->escapeHtml($email) ?></a>
-            </li>
-        </ul>
-        <p class="elme-need-assistance__intro elme-need-assistance__intro--showroom">
-            <?= $escaper->escapeHtml(__('Or visit our Showroom…')) ?>
-        </p>
-        <p class="elme-need-assistance__showroom">
-            <?= /* @noEscape */ $mapIcon ?>
-            <a class="elme-need-assistance__link elme-need-assistance__link--address"
-               href="<?= $escaper->escapeUrl($mapsUrl) ?>"
+    <h2 id="elme-need-assistance-heading" class="elme-need-assistance__title">
+        <?= $escaper->escapeHtml(__('Need assistance?')) ?>
+    </h2>
+    <ul class="elme-need-assistance__cells">
+        <li class="elme-need-assistance__cell">
+            <span class="elme-need-assistance__label">
+                <?= $lucide->phoneHtml('elme-need-assistance__icon', 18, 18, $iconAttributes) ?>
+                <?= $escaper->escapeHtml(__('Call us')) ?>
+            </span>
+            <a class="elme-need-assistance__value"
+               href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>">
+                <?= $escaper->escapeHtml($contact->getPhoneDisplay()) ?>
+            </a>
+        </li>
+        <li class="elme-need-assistance__cell">
+            <span class="elme-need-assistance__label">
+                <?= $lucide->mailHtml('elme-need-assistance__icon', 18, 18, $iconAttributes) ?>
+                <?= $escaper->escapeHtml(__('Email us')) ?>
+            </span>
+            <a class="elme-need-assistance__value"
+               href="<?= $escaper->escapeUrl($contact->getEmailMailtoHref()) ?>">
+                <?= $escaper->escapeHtml($contact->getEmail()) ?>
+            </a>
+        </li>
+        <li class="elme-need-assistance__cell">
+            <span class="elme-need-assistance__label">
+                <?= $lucide->mapPinHtml('elme-need-assistance__icon', 18, 18, $iconAttributes) ?>
+                <?= $escaper->escapeHtml(__('Visit our Showroom')) ?>
+            </span>
+            <a class="elme-need-assistance__value"
+               href="<?= $escaper->escapeUrl($contact->getMapsUrl()) ?>"
                target="_blank"
                rel="noopener noreferrer">
                 <?= $escaper->escapeHtml($street) ?><br>
                 <?= $escaper->escapeHtml($suburbLine) ?>
             </a>
-        </p>
-    </div>
+        </li>
+    </ul>
 </section>

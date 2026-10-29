@@ -28,8 +28,6 @@ class Hero implements ArgumentInterface
 
     public const MOBILE_SIZE = [780, 520];
 
-    private const PANEL_POSITIONS = ['center', 'left', 'right'];
-
     private const INTERVAL_DEFAULT = 7;
 
     private const INTERVAL_MIN = 4;
@@ -55,8 +53,7 @@ class Hero implements ArgumentInterface
      *     heading: string,
      *     text: string,
      *     button_label: string,
-     *     button_link: string,
-     *     panel_position: string
+     *     button_link: string
      * }>
      */
     public function getSlides(array $content): array
@@ -76,7 +73,6 @@ class Hero implements ArgumentInterface
             }
 
             $mobile = $this->text($row, 'image_mobile');
-            $position = $this->text($row, 'panel_position');
             $buttonLabel = $this->text($row, 'button_label');
             $buttonLink = $this->text($row, 'button_link');
             $hasButton = $buttonLabel !== '' && $buttonLink !== '';
@@ -89,7 +85,6 @@ class Hero implements ArgumentInterface
                 'text' => $this->text($row, 'text'),
                 'button_label' => $hasButton ? $buttonLabel : '',
                 'button_link' => $hasButton ? $buttonLink : '',
-                'panel_position' => in_array($position, self::PANEL_POSITIONS, true) ? $position : 'center',
             ];
 
             if (count($slides) === self::MAX_SLIDES) {
