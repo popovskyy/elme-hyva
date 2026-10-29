@@ -59,6 +59,11 @@ class ContentPage implements ArgumentInterface
         return trim((string)$this->cmsPage->getTitle());
     }
 
+    public function getIdentifier(): string
+    {
+        return trim((string)$this->cmsPage->getIdentifier());
+    }
+
     /**
      * Absolute self URL without a query string.
      */
