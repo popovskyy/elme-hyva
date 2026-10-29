@@ -236,6 +236,45 @@
                description="e.g. /customer/account/create. Logged-in customers go to the account dashboard."/>
     </type>
 
+
+    <!-- FAQs help page: topic-grouped accordion. Editors add questions without a developer.
+         FE-47 owns FAQPage JSON-LD from these rows (ContentPage + Faq ViewModel). -->
+    <type code="faq"
+          label="FAQs Accordion"
+          standalone="true"
+          group="help"
+          icon="image-text"
+          description="Grouped FAQ accordion for /faqs: topic jump strip, find-as-you-type filter, keyboard and #anchor open."
+          template="Elme_Theme::content-type/faq.phtml"
+          version="1">
+
+        <field name="items" type="repeater" label="Questions" label_field="question" max="40" required="true"
+               description="One row per question. Topics: Location, Orders, Payments, Shipping, Marketing (production parity).">
+            <field name="topic" type="select" label="Topic" required="true" default="Orders" width="half"
+                   description="Groups the accordion and the jump strip. Use Shipping (not Delivery).">
+                <option value="Location" label="Location"/>
+                <option value="Orders" label="Orders"/>
+                <option value="Payments" label="Payments"/>
+                <option value="Shipping" label="Shipping"/>
+                <option value="Marketing" label="Marketing"/>
+            </field>
+            <field name="anchor" type="text" label="Anchor slug" maxlength="80" width="half"
+                   description="Stable # deep link, e.g. do-you-have-a-minimum-order. Leave empty to derive from the question. Do not change a published slug without a redirect note."/>
+            <field name="question" type="text" label="Question" required="true" maxlength="160"
+                   description="Plain question text shown on the accordion control (and in FAQ JSON-LD)."/>
+            <field name="answer" type="wysiwyg" label="Answer" required="true"
+                   description="Trade facts only (MOQ, freight, GST, showroom). No invented prices or ratings. Links as real &lt;a href&gt;."/>
+            <field name="next_step" type="select" label="Trade next-step link" default="none"
+                   description="Optional clear exit under the answer. Guests vs logged-in href is chosen on the server.">
+                <option value="none" label="None"/>
+                <option value="become_stockist" label="Become a Stockist (guests)"/>
+                <option value="quick_order" label="Quick Order / Sign in"/>
+                <option value="shipping_returns" label="Shipping &amp; Returns"/>
+                <option value="contact" label="Contact Us"/>
+            </field>
+        </field>
+    </type>
+
     <!-- About (FE-61): lifestyle image + three trade-proof pillars, each with one catalogue / team link. -->
     <type code="proof_pillars"
           label="Proof Pillars"

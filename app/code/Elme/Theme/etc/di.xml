@@ -12,6 +12,7 @@
                 <item name="catalogue_covers" xsi:type="object">Elme\Theme\ViewModel\CatalogueCovers</item>
                 <item name="virtual_catalogues" xsi:type="object">Elme\Theme\ViewModel\VirtualCatalogues</item>
                 <item name="usp_strip" xsi:type="object">Elme\Theme\ViewModel\UspStrip</item>
+                <item name="faq" xsi:type="object">Elme\Theme\ViewModel\Faq</item>
                 <item name="proof_pillars" xsi:type="object">Elme\Theme\ViewModel\ProofPillars</item>
                 <item name="stockist_cta" xsi:type="object">Elme\Theme\ViewModel\StockistCta</item>
                 <item name="store_visit" xsi:type="object">Elme\Theme\ViewModel\StoreVisit</item>
