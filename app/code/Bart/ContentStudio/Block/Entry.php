@@ -7,6 +7,7 @@ namespace Bart\ContentStudio\Block;
 use Bart\ContentStudio\Api\Data\EntryInterface;
 use Bart\ContentStudio\Api\EntryRepositoryInterface;
 use Bart\ContentStudio\Model\Entry as EntryModel;
+use Bart\ContentStudio\Model\MediaUrlRebaser;
 use Bart\ContentStudio\Model\Schema\Config as SchemaConfig;
 use Magento\Cms\Model\Template\FilterProvider;
 use Magento\Framework\DataObject\IdentityInterface;
@@ -37,6 +38,7 @@ class Entry extends Template implements BlockInterface, IdentityInterface
      * @param SchemaConfig $schemaConfig
      * @param FilterProvider $filterProvider
      * @param Json $json
+     * @param MediaUrlRebaser $mediaUrlRebaser
      * @param array<string, object> $typeViewModels Type code => view model, from di.xml.
      * @param array<string, mixed> $data
      */
@@ -46,6 +48,7 @@ class Entry extends Template implements BlockInterface, IdentityInterface
         private readonly SchemaConfig $schemaConfig,
         private readonly FilterProvider $filterProvider,
         private readonly Json $json,
+        private readonly MediaUrlRebaser $mediaUrlRebaser,
         private readonly array $typeViewModels = [],
         array $data = []
     ) {
@@ -221,7 +224,7 @@ class Entry extends Template implements BlockInterface, IdentityInterface
     private function filterValue(mixed $value): mixed
     {
         if (is_string($value)) {
-            return $this->filterProvider->getBlockFilter()->filter($value);
+            return $this->mediaUrlRebaser->rebase($this->filterProvider->getBlockFilter()->filter($value));
         }
 
         if (is_array($value)) {

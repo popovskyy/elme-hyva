@@ -32,6 +32,7 @@ docker exec -it elme_php composer install
 - `elmeStart` / `elmeStop` / `enterElme` (aliases in `~/.my_aliases`), or the **Elme Living (Hyvä)** card in dev-dashboard (http://127.0.0.1:7777).
 - Storefront https://elme-hyva.local · Admin https://elme-hyva.local/admin (local: `admin` / `Admin12345!`, 2FA disabled locally).
 - Xdebug: `XDEBUG_MODE=debug docker compose up -d php`.
+- On a phone: `magento-docker/phone-preview.sh` opens a public HTTPS tunnel (Cloudflare quick tunnel, or localhost.run when Cloudflare is blocked), prints the URL and a QR code, and switches the base URL to it; Ctrl+C switches it back. The site is public while it runs, and https://elme-hyva.local redirects to the tunnel meanwhile.
 
 ## Theme
 
