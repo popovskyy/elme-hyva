@@ -5,7 +5,7 @@ from its source and noting the new version here.
 
 | Skills | Source | Version |
 |---|---|---|
-| `elme-business`, `elme-port-from-luma`, `elme-qa` | written for this project (`elme-qa` adapted from `bart-qa` in m2-bart-group) | - |
+| `elme-business`, `elme-port-from-luma`, `elme-qa`, `elme-look-options` | written for this project (`elme-qa` adapted from `bart-qa` in m2-bart-group) | - |
 | `hyva-*` (8) | github.com/hyva-themes/hyva-ai-tools | commit in `HYVA_AI_TOOLS_VERSION` |
 | `emil-design-eng`, `review-animations` | github.com/emilkowalski/skill | copied 2026-10-22 |
 | `web-interface-guidelines` | github.com/vercel-labs/agent-skills + pinned rules from vercel-labs/web-interface-guidelines | rules commit 434b7f9 |
