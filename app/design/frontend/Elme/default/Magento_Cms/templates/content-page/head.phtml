@@ -1,0 +1,39 @@
+<?php
+/**
+ * Open Graph / Twitter of a public CMS content page (help pages, Careers...). og:image is the photo of
+ * the hero the page opens with, if any (FE-55 may later supply a site default).
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\ContentPage;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$page = $viewModels->require(ContentPage::class);
+$title = $page->getMetaTitle();
+$description = $page->getMetaDescription();
+$image = $page->getPrimaryImage();
+?>
+<meta property="og:type" content="<?= $escaper->escapeHtmlAttr(ContentPage::OG_TYPE) ?>"/>
+<meta property="og:locale" content="<?= $escaper->escapeHtmlAttr(ContentPage::OG_LOCALE) ?>"/>
+<meta property="og:url" content="<?= $escaper->escapeUrl($page->getCanonicalUrl()) ?>"/>
+<meta property="og:title" content="<?= $escaper->escapeHtmlAttr($title) ?>"/>
+<?php if ($description !== ''): ?>
+<meta property="og:description" content="<?= $escaper->escapeHtmlAttr($description) ?>"/>
+<?php endif; ?>
+<?php if ($image !== null): ?>
+<meta property="og:image" content="<?= $escaper->escapeUrl($image['src']) ?>"/>
+<meta property="og:image:width" content="<?= (int)$image['width'] ?>"/>
+<meta property="og:image:height" content="<?= (int)$image['height'] ?>"/>
+<?php endif; ?>
+<meta name="twitter:card" content="<?= $image !== null ? 'summary_large_image' : 'summary' ?>"/>
+<meta name="twitter:title" content="<?= $escaper->escapeHtmlAttr($title) ?>"/>
+<?php if ($description !== ''): ?>
+<meta name="twitter:description" content="<?= $escaper->escapeHtmlAttr($description) ?>"/>
+<?php endif; ?>
