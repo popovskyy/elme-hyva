@@ -236,7 +236,60 @@
                description="e.g. /customer/account/create. Logged-in customers go to the account dashboard."/>
     </type>
 
-    <!-- "Visit us" card under the Outlet banner (FE-63): name, address with Get directions, phone and
+    <!-- About (FE-61): lifestyle image + three trade-proof pillars, each with one catalogue / team link. -->
+    <type code="proof_pillars"
+          label="Proof Pillars"
+          standalone="true"
+          group="pages"
+          icon="image-text"
+          description="Image beside a section heading and proof rows (title, one line, one link). Stacks on mobile."
+          template="Elme_Theme::content-type/proof-pillars.phtml"
+          version="1">
+
+        <field name="heading" type="text" label="Section heading" required="true" maxlength="60"
+               description="Section H2, e.g. &quot;Why stockists choose Elme&quot;. Never the page H1."/>
+        <field name="image" type="image" label="Image" required="true" recommended="720x742"
+               description="Side photo. JPEG or WebP. Above the text on phones, left on desktop."/>
+        <field name="image_alt" type="text" label="Image alt text" maxlength="160"
+               description="What the image shows. Leave empty if purely decorative."/>
+        <field name="items" type="repeater" label="Proofs" label_field="title" max="6" required="true"
+               description="Retailer proofs (new range, BDM advice, wholesale account), not lifestyle fluff.">
+            <field name="title" type="text" label="Title" required="true" maxlength="60"
+                   description="Short H3, e.g. &quot;New and exclusive lines&quot;."/>
+            <field name="text" type="textarea" label="One line" maxlength="220"
+                   description="One plain sentence. No prices, ratings or invented figures."/>
+            <field name="link_label" type="text" label="Link label" maxlength="40" width="half"
+                   description="Topic of the link, e.g. &quot;Shop New&quot;, &quot;Meet the Team&quot;."/>
+            <field name="link" type="url" label="Link" width="half"
+                   description="e.g. /new.html, /meet-the-team, /become-a-stockist."/>
+        </field>
+    </type>
+
+    <!-- About / Become a Stockist (FE-61, FE-67): Create an Account + Talk to our team. -->
+    <type code="stockist_cta"
+          label="Stockist CTA"
+          standalone="true"
+          group="pages"
+          icon="image-text"
+          description="Centred band: heading, short line, primary Create an Account (My Account when logged in) and secondary Talk to our team."
+          template="Elme_Theme::content-type/stockist-cta.phtml"
+          version="1">
+
+        <field name="heading" type="text" label="Heading" required="true" maxlength="60"
+               description="Section H2, e.g. &quot;Become a stockist&quot;."/>
+        <field name="text" type="textarea" label="Support line" maxlength="280"
+               description="Optional. One plain sentence under the heading."/>
+        <field name="primary_label" type="text" label="Primary label (guests)" maxlength="40" width="half"
+               description="e.g. &quot;Create an Account&quot;. Logged-in customers see My Account instead."/>
+        <field name="primary_link" type="url" label="Primary link (guests)" width="half"
+               description="e.g. /customer/account/create."/>
+        <field name="secondary_label" type="text" label="Secondary label" maxlength="40" width="half"
+               description="e.g. &quot;Talk to our team&quot;."/>
+        <field name="secondary_link" type="url" label="Secondary link" width="half"
+               description="e.g. /meet-the-team."/>
+    </type>
+
+<!-- "Visit us" card under the Outlet banner (FE-63): name, address with Get directions, phone and
          opening hours. Address, phone and map pin come from store config (Stores > Configuration >
          General > Store Information); the hours are edited here. The page JSON-LD (OutletStore) reads
          the same values, so the card and the schema never disagree. -->
