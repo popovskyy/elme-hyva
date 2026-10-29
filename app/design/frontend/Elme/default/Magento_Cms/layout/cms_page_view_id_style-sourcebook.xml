@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-64 Style Sourcebook: WebPage + BreadcrumbList JSON-LD and Open Graph (hero as og:image).
+ * Banner + breadcrumbs layout; Need assistance strip after the CMS body (production placement).
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="elme_content_page_seo"/>
+    <body>
+        <referenceContainer name="content">
+            <block class="Magento\Cms\Block\Block"
+                   name="elme.style.sourcebook.need.assistance"
+                   after="-">
+                <arguments>
+                    <argument name="block_id" xsi:type="string">need_assistance</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>
