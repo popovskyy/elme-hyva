@@ -1,0 +1,137 @@
+<?php
+/**
+ * Content Studio type `events` (FE-66): /fairs-events list. Server-rendered; past end dates are
+ * absent from the markup (not hidden). Card: date block, written range, optional On now, CTA to
+ * Meet the Team. Empty: one line + Blackburn showroom link.
+ *
+ * @var \Bart\ContentStudio\Block\Entry $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+use Elme\Theme\ViewModel\Events;
+
+$eventsVm = $block->getTypeViewModel();
+
+if (!$eventsVm instanceof Events) {
+    return;
+}
+
+$content = $block->getContent();
+$events = $eventsVm->getEvents($content);
+$intro = $eventsVm->getIntro($content);
+$headingId = 'events-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier()) . '-heading';
+$introTags = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'a', 'ul', 'ol', 'li'];
+$linkClass = 'font-bold text-ink underline underline-offset-4 hover:text-link-hover
+              focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink';
+$ctaUrl = $eventsVm->getCtaUrl();
+$ctaLabel = $eventsVm->getCtaLabel();
+?>
+<div class="elme-events mx-auto mb-12 max-w-4xl text-ink lg:mb-20">
+    <?php if ($intro !== ''): ?>
+        <div class="mx-auto mb-10 max-w-2xl text-center text-copy text-pretty lg:mb-14 lg:text-copy-desktop
+                    [&_a]:font-bold [&_a]:underline [&_a]:underline-offset-4 [&_li]:my-1 [&_p]:m-0 [&_p]:text-ink [&_p+p]:mt-4
+                    [&_ul]:my-4 [&_ul]:list-inside [&_ul]:list-disc">
+            <?= /* @noEscape */ $escaper->escapeHtml($intro, $introTags) ?>
+        </div>
+    <?php endif; ?>
+
+    <section aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
+        <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+            class="mb-6 text-center font-heading text-title-section font-normal text-balance text-ink
+                   lg:mb-10 lg:text-title-section-desktop">
+            <?= $escaper->escapeHtml($eventsVm->getHeading($content)) ?>
+        </h2>
+
+        <?php if ($events): ?>
+            <ul class="m-0 list-none border-t border-border p-0">
+                <?php foreach ($events as $event): ?>
+                    <li class="grid gap-4 border-b border-border py-6
+                               md:grid-cols-[5.5rem_minmax(0,1fr)] md:gap-8 md:py-8"
+                        id="event-<?= $escaper->escapeHtmlAttr($event['slug']) ?>">
+                        <div class="flex shrink-0 flex-col items-start md:items-center"
+                             aria-hidden="true">
+                            <span class="font-heading text-h1 font-normal leading-none text-ink
+                                         lg:text-h1-desktop">
+                                <?= $escaper->escapeHtml($event['day']) ?>
+                            </span>
+                            <span class="mt-1 text-nav uppercase tracking-wide text-ink-muted">
+                                <?= $escaper->escapeHtml($event['month']) ?>
+                            </span>
+                        </div>
+
+                        <div class="min-w-0">
+                            <div class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                                <h3 class="m-0 font-heading text-h3 font-normal text-ink lg:text-h3-desktop">
+                                    <?= $escaper->escapeHtml($event['name']) ?>
+                                </h3>
+                                <?php if ($event['on_now']): ?>
+                                    <span class="text-nav font-bold uppercase tracking-wide text-olive">
+                                        <?= $escaper->escapeHtml(__('On now')) ?>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+
+                            <p class="m-0 text-ink-muted">
+                                <time datetime="<?= $escaper->escapeHtmlAttr($event['start']) ?>"><?=
+                                    $escaper->escapeHtml($event['range_label'])
+                                ?></time>
+                                <?php if ($event['start'] !== $event['end']): ?>
+                                    <time class="sr-only" datetime="<?= $escaper->escapeHtmlAttr($event['end']) ?>">
+                                        <?= $escaper->escapeHtml(__('Ends %1', $event['end'])) ?>
+                                    </time>
+                                <?php endif; ?>
+                            </p>
+
+                            <?php
+                            $meta = array_filter([$event['city'], $event['venue'], $event['stand'] !== ''
+                                ? (string)__('Stand %1', $event['stand'])
+                                : '']);
+                            ?>
+                            <?php if ($meta): ?>
+                                <p class="mt-1 m-0 text-ink-muted">
+                                    <?= $escaper->escapeHtml(implode(' · ', $meta)) ?>
+                                </p>
+                            <?php endif; ?>
+
+                            <?php if ($event['text'] !== ''): ?>
+                                <p class="mt-3 m-0 max-w-2xl text-copy text-pretty text-ink lg:text-copy-desktop">
+                                    <?= $escaper->escapeHtml($event['text']) ?>
+                                </p>
+                            <?php endif; ?>
+
+                            <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+                                <a href="<?= $escaper->escapeUrl($ctaUrl) ?>"
+                                   class="btn btn-primary"
+                                   aria-label="<?= $escaper->escapeHtmlAttr(
+                                       __('%1 for %2', $ctaLabel, $event['name'])
+                                   ) ?>">
+                                    <?= $escaper->escapeHtml(__($ctaLabel)) ?>
+                                </a>
+                                <?php if ($event['link'] !== ''): ?>
+                                    <a href="<?= $escaper->escapeUrl($event['link']) ?>"
+                                       class="<?= /* @noEscape */ $linkClass ?>"
+                                       rel="noopener noreferrer"
+                                       target="_blank">
+                                        <?= $escaper->escapeHtml(__('Fair website')) ?>
+                                        <span class="sr-only">
+                                            <?= $escaper->escapeHtml(__('for %1 (opens in a new tab)', $event['name'])) ?>
+                                        </span>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php else: ?>
+            <p class="mx-auto max-w-2xl text-center text-copy text-pretty text-ink lg:text-copy-desktop">
+                <?= $escaper->escapeHtml($eventsVm->getEmptyText($content)) ?>.
+                <?= $escaper->escapeHtml(__('Visit the')) ?>
+                <a href="<?= $escaper->escapeUrl($eventsVm->getShowroomUrl()) ?>"
+                   class="<?= /* @noEscape */ $linkClass ?>"><?=
+                    $escaper->escapeHtml(__('Blackburn showroom'))
+                ?></a>.
+            </p>
+        <?php endif; ?>
+    </section>
+</div>
