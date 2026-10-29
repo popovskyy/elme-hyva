@@ -132,12 +132,13 @@ class Vacancies implements ArgumentInterface
 
     /**
      * Intro HTML as the editor's sanitiser stores it; the template escapes it to the same allow-list.
+     * A JSON solidus escape left in the string (<\/p>) is normalised so it cannot leak as visible text.
      *
      * @param array<string, mixed> $content
      */
     public function getIntro(array $content): string
     {
-        $intro = $this->text($content, 'intro');
+        $intro = str_replace('\\/', '/', $this->text($content, 'intro'));
 
         return trim(strip_tags($intro)) !== '' ? $intro : '';
     }

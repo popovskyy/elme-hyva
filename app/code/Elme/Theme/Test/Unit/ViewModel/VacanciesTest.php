@@ -94,4 +94,13 @@ class VacanciesTest extends TestCase
         $this->assertSame(Vacancies::DEFAULT_EMPTY_TEXT, $viewModel->getEmptyText([]));
         $this->assertSame('', $viewModel->getIntro(['intro' => '<p> </p>']));
     }
+
+    public function testIntroNormalisesJsonSolidusEscapes(): void
+    {
+        $intro = (new Vacancies())->getIntro([
+            'intro' => '<p>One.<\\/p><p>Two.<\\/p>',
+        ]);
+
+        $this->assertSame('<p>One.</p><p>Two.</p>', $intro);
+    }
 }
