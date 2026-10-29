@@ -30,6 +30,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
         <dialog
             class="elme-modal"
             aria-labelledby="elme-sg-modal-title"
+            x-ref="modal"
             x-show="modalOpen"
             x-htmldialog.noscroll="closeModal"
             closeby="any"
@@ -80,6 +81,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
         <dialog
             class="elme-drawer elme-drawer-start open:flex flex-col"
             aria-labelledby="elme-sg-drawer-start-title"
+            x-ref="drawerStart"
             x-show="drawerStartOpen"
             x-htmldialog.noscroll="closeDrawerStart"
             closeby="any"
@@ -120,6 +122,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
         <dialog
             class="elme-drawer elme-drawer-end open:flex flex-col"
             aria-labelledby="elme-sg-drawer-end-title"
+            x-ref="drawerEnd"
             x-show="drawerEndOpen"
             x-htmldialog.noscroll="closeDrawerEnd"
             closeby="any"
@@ -161,23 +164,45 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             drawerStartOpen: false,
             drawerEndOpen: false,
 
+            /**
+             * Native <dialog showModal()> focus wrap is incomplete in Chromium
+             * (Tab from last / Shift+Tab from first lands on body). Use Hyvä's trap.
+             */
+            trapDialog(refName) {
+                this.$nextTick(() => {
+                    const dialog = this.$refs[refName];
+                    if (dialog) {
+                        hyva.trapFocus(dialog);
+                    }
+                });
+            },
+            releaseDialog() {
+                hyva.releaseFocus();
+            },
+
             openModal() {
                 this.modalOpen = true;
+                this.trapDialog('modal');
             },
             closeModal() {
                 this.modalOpen = false;
+                this.releaseDialog();
             },
             openDrawerStart() {
                 this.drawerStartOpen = true;
+                this.trapDialog('drawerStart');
             },
             closeDrawerStart() {
                 this.drawerStartOpen = false;
+                this.releaseDialog();
             },
             openDrawerEnd() {
                 this.drawerEndOpen = true;
+                this.trapDialog('drawerEnd');
             },
             closeDrawerEnd() {
                 this.drawerEndOpen = false;
+                this.releaseDialog();
             }
         }
     }
