@@ -34,11 +34,12 @@ $introTags = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'a', 'ul', 'ol', 'li'];
 /** @var HyvaCsp $hyvaCsp */
 $hyvaCsp = $viewModels->require(HyvaCsp::class);
 
-$chipClass = 'inline-flex min-h-11 items-center justify-center border border-border
-              bg-surface px-3.5 text-note font-medium text-ink
+/* Shared layout only — idle vs selected colours are mutually exclusive via Alpine :class
+ * so bg-surface cannot win over bg-primary in the compiled CSS order. */
+$chipClass = 'inline-flex min-h-11 items-center justify-center border px-3.5 text-note font-medium
               transition-colors duration-(--transition-duration-fast)
-              hover:border-ink hover:bg-surface-muted
               focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink';
+$chipIdleClass = 'border-border bg-surface text-ink hover:border-ink hover:bg-surface-muted';
 $chipSelectedClass = 'border-ink bg-primary text-on-primary hover:border-ink hover:bg-primary';
 $contactClass = 'inline-flex min-h-11 min-w-11 items-center text-copy text-ink underline
                  underline-offset-4 break-all hover:text-link-hover
@@ -49,6 +50,7 @@ $contactClass = 'inline-flex min-h-11 min-w-11 items-center text-copy text-ink u
      class="elme-team mx-auto mb-12 w-full max-w-480 px-5 text-ink md:px-10 lg:mb-20"
      x-data="initElmeTeamFilter"
      data-present="<?= $escaper->escapeHtmlAttr(json_encode($present, JSON_UNESCAPED_SLASHES)) ?>"
+     data-chip-idle="<?= $escaper->escapeHtmlAttr($chipIdleClass) ?>"
      data-chip-selected="<?= $escaper->escapeHtmlAttr($chipSelectedClass) ?>">
 
     <h1 id="<?= $escaper->escapeHtmlAttr($titleId) ?>"
@@ -151,6 +153,7 @@ $contactClass = 'inline-flex min-h-11 min-w-11 items-center text-copy text-ink u
         return {
             region: 'all',
             present: [],
+            idleClass: '',
             selectedClass: '',
 
             init() {
@@ -159,6 +162,7 @@ $contactClass = 'inline-flex min-h-11 min-w-11 items-center text-copy text-ink u
                 } catch (e) {
                     this.present = [];
                 }
+                this.idleClass = this.$root.dataset.chipIdle || '';
                 this.selectedClass = this.$root.dataset.chipSelected || '';
             },
 
@@ -174,7 +178,7 @@ $contactClass = 'inline-flex min-h-11 min-w-11 items-center text-copy text-ink u
             },
 
             chipSelectedClass() {
-                return this.isRegionPressed() ? this.selectedClass : '';
+                return this.isRegionPressed() ? this.selectedClass : this.idleClass;
             },
 
             showsPerson() {
