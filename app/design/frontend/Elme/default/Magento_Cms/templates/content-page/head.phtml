@@ -24,6 +24,7 @@ $description = $pages->getMetaDescription();
 $url = $pages->getCanonicalUrl();
 $image = $pages->getPrimaryImage();
 ?>
+<link rel="canonical" href="<?= $escaper->escapeUrl($url) ?>"/>
 <meta property="og:type" content="<?= $escaper->escapeHtmlAttr($pages->getOgType()) ?>"/>
 <meta property="og:locale" content="<?= $escaper->escapeHtmlAttr($pages->getOgLocale()) ?>"/>
 <meta property="og:url" content="<?= $escaper->escapeUrl($url) ?>"/>
