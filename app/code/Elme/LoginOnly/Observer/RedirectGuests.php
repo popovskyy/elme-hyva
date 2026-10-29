@@ -53,6 +53,14 @@ class RedirectGuests implements ObserverInterface
             return;
         }
 
+        // A browser prefetch (hover, speculation rules) is not a visit: redirect it, but leave the return
+        // URL and the message alone, or the guest sees "Please login" on a page they did open.
+        if ($this->isPrefetch($request)) {
+            $this->actionFlag->set('', ActionInterface::FLAG_NO_DISPATCH, true);
+            $this->response->setRedirect($this->customerUrl->getLoginUrl());
+            return;
+        }
+
         // A GET page comes back to itself; a form post or ajax call comes back to the page it was sent from
         $returnUrl = $request->isGet() && !$request->isAjax()
             ? $this->urlBuilder->getCurrentUrl()
@@ -66,6 +74,13 @@ class RedirectGuests implements ObserverInterface
 
         $this->actionFlag->set('', ActionInterface::FLAG_NO_DISPATCH, true);
         $this->response->setRedirect($this->customerUrl->getLoginUrl());
+    }
+
+    private function isPrefetch(HttpRequest $request): bool
+    {
+        $purpose = strtolower((string)$request->getHeader('Sec-Purpose') . ' ' . (string)$request->getHeader('Purpose'));
+
+        return str_contains($purpose, 'prefetch') || str_contains($purpose, 'prerender');
     }
 
     private function isGated(HttpRequest $request): bool

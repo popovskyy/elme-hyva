@@ -132,7 +132,7 @@ $heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier())
                         <?php if ($hasButton): ?>
                             <div class="elme-hero__rise pointer-events-auto">
                                 <a href="<?= $escaper->escapeUrl($slide['button_link']) ?>"
-                                   class="btn <?= $isLight ? 'btn-primary' : 'elme-hero__btn' ?> w-full sm:w-auto sm:min-w-54">
+                                   class="btn btn-primary <?= $isLight ? '' : 'elme-hero__btn' ?> w-full sm:w-auto sm:min-w-54">
                                     <?= $escaper->escapeHtml($slide['button_label']) ?>
                                 </a>
                             </div>

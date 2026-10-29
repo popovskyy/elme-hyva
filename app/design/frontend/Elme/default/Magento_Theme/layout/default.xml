@@ -2,6 +2,20 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
+        <!-- Hyva prefetches a link on hover. Login-only pages must not be prefetched: for a guest the
+             prefetch runs Elme_LoginOnly's redirect and leaves "Please login to access this page."
+             in the session, shown on the next page they open. -->
+        <referenceBlock name="speculationrules">
+            <arguments>
+                <argument name="exclude_list" xsi:type="array">
+                    <item name="quick_order_url" xsi:type="string">quick-order</item>
+                    <item name="quick_order_route" xsi:type="string">quick_order</item>
+                    <item name="virtual_catalogues" xsi:type="string">virtual-catalogues</item>
+                    <item name="compare" xsi:type="string">catalog/product_compare</item>
+                    <item name="multishipping" xsi:type="string">multishipping</item>
+                </argument>
+            </arguments>
+        </referenceBlock>
         <!-- FE-05: USP strip with Contact Us; CMS block header_promo; login swaps Stockist / Inspiration -->
         <referenceContainer name="header.container">
             <block name="elme.header.promo"

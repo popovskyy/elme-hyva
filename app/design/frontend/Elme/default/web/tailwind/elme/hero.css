@@ -9,8 +9,8 @@
     margin-top: 0;
 }
 
-/* White button on dark photos, sage on hover like btn-primary. Unlayered: it has to win over the
-   defaults the btn utility sets on itself. */
+/* Dark photos: btn-primary (sage fill and light sweep on hover) starting white instead of charcoal.
+   Unlayered, so it wins over the values btn / btn-primary set on themselves. */
 .elme-hero__btn {
     --btn-stroke: var(--color-surface);
     --btn-bg: var(--color-surface);
