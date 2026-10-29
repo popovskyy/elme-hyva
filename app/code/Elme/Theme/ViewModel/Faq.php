@@ -28,6 +28,23 @@ class Faq implements ArgumentInterface
     ];
 
     /**
+     * Trade aliases retailers type in Find a question that may not appear verbatim in copy.
+     * Key = substring in topic/question/answer (lowercase); value = tokens appended to search_text.
+     *
+     * @var array<string, list<string>>
+     */
+    private const SEARCH_SYNONYMS = [
+        'minimum order' => ['moq', 'mov', 'minimum order quantity', 'minimum order value'],
+        'minimum pack' => ['moq', 'pack size'],
+        'australian consumer law' => ['acl', 'returns'],
+        'proforma' => ['pro forma', 'upfront'],
+        'pro forma' => ['proforma', 'upfront'],
+        'american express' => ['amex'],
+        'distribution warehouse' => ['dc', 'warehouse', 'tarneit'],
+        'tarneit' => ['dc', 'warehouse'],
+    ];
+
+    /**
      * @var array<string, array{label: string, guest_path: string, customer_path: string|null}>
      */
     private const NEXT_STEPS = [
@@ -114,6 +131,7 @@ class Faq implements ArgumentInterface
             $nextStep = $this->resolveNextStep($this->text($row, 'next_step'));
             $answerWithNext = $this->appendNextStep($answerHtml, $nextStep);
             $answerText = $this->plainText($answerWithNext);
+            $baseSearch = mb_strtolower($topic . ' ' . $question . ' ' . $answerText, 'UTF-8');
 
             $items[] = [
                 'topic' => $topic,
@@ -122,12 +140,36 @@ class Faq implements ArgumentInterface
                 'anchor' => $anchor,
                 'answer_html' => $answerWithNext,
                 'answer_text' => $answerText,
-                'search_text' => mb_strtolower($topic . ' ' . $question . ' ' . $answerText, 'UTF-8'),
+                'search_text' => $this->withSearchSynonyms($baseSearch),
                 'next_step' => $nextStep,
             ];
         }
 
         return $items;
+    }
+
+    /**
+     * Append synonym tokens when the matching phrase appears in the item copy.
+     */
+    private function withSearchSynonyms(string $searchText): string
+    {
+        $extra = [];
+        foreach (self::SEARCH_SYNONYMS as $needle => $aliases) {
+            if (!str_contains($searchText, $needle)) {
+                continue;
+            }
+            foreach ($aliases as $alias) {
+                if (!str_contains($searchText, $alias) && !isset($extra[$alias])) {
+                    $extra[$alias] = true;
+                }
+            }
+        }
+
+        if ($extra === []) {
+            return $searchText;
+        }
+
+        return $searchText . ' ' . implode(' ', array_keys($extra));
     }
 
     /**

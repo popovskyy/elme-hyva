@@ -42,6 +42,8 @@ class FaqTest extends TestCase
         $this->assertSame('do-you-have-a-minimum-order', $items[0]['anchor']);
         $this->assertStringContainsString('Contact Us', $items[0]['answer_html']);
         $this->assertStringContainsString('Contact Us', $items[0]['answer_text']);
+        $this->assertStringContainsString('moq', $items[0]['search_text']);
+        $this->assertStringContainsString('minimum order', $items[0]['search_text']);
 
         $groups = $faq->groupByTopic($items);
         $this->assertSame(['Location', 'Orders'], array_column($groups, 'label'));

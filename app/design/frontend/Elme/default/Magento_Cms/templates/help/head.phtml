@@ -23,6 +23,7 @@ $title = $help->getMetaTitle();
 $description = $help->getMetaDescription();
 $url = $help->getCanonicalUrl();
 ?>
+<link rel="canonical" href="<?= $escaper->escapeUrl($url) ?>"/>
 <meta property="og:type" content="<?= $escaper->escapeHtmlAttr($help->getOgType()) ?>"/>
 <meta property="og:locale" content="<?= $escaper->escapeHtmlAttr($help->getOgLocale()) ?>"/>
 <meta property="og:url" content="<?= $escaper->escapeUrl($url) ?>"/>
