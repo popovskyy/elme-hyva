@@ -9,7 +9,7 @@ use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 /**
- * FE-45 curated help side nav + JSON-LD helpers (no VersionsCms on Open Source).
+ * FE-45 curated help side nav (no VersionsCms on Open Source). Head and JSON-LD come from ContentPage.
  */
 class HelpPages implements ArgumentInterface
 {
@@ -19,7 +19,6 @@ class HelpPages implements ArgumentInterface
      * @var list<array{
      *     identifier: string,
      *     label: string,
-     *     schema_type: string,
      *     on_this_page: bool,
      *     banner?: bool
      * }>
@@ -28,38 +27,32 @@ class HelpPages implements ArgumentInterface
         [
             'identifier' => 'contact-us',
             'label' => 'Contact Us',
-            'schema_type' => 'ContactPage',
             'on_this_page' => false,
         ],
         [
             'identifier' => 'shipping-and-returns',
             'label' => 'Shipping & Returns',
-            'schema_type' => 'WebPage',
             'on_this_page' => false,
         ],
         [
             'identifier' => 'faqs',
             'label' => 'FAQs',
-            'schema_type' => 'WebPage',
             'on_this_page' => false,
         ],
         [
             'identifier' => 'become-a-stockist',
             'label' => 'Become a Stockist',
-            'schema_type' => 'WebPage',
             'on_this_page' => false,
             'banner' => true,
         ],
         [
             'identifier' => 'website-terms-conditions',
             'label' => 'Terms & Conditions',
-            'schema_type' => 'WebPage',
             'on_this_page' => true,
         ],
         [
             'identifier' => 'privacy-policy',
             'label' => 'Privacy Policy',
-            'schema_type' => 'WebPage',
             'on_this_page' => true,
         ],
     ];
@@ -175,107 +168,7 @@ class HelpPages implements ArgumentInterface
     }
 
     /**
-     * @return array<string, mixed>
-     */
-    public function getJsonLdGraph(): array
-    {
-        $store = $this->storeManager->getStore();
-        $baseUrl = rtrim((string) $store->getBaseUrl(), '/');
-        $pageUrl = $this->canonicalUrl();
-        $meta = $this->currentPageMeta();
-        $schemaType = $meta['schema_type'] ?? 'WebPage';
-        $name = trim((string) $this->cmsPage->getMetaTitle());
-        if ($name === '') {
-            $name = trim((string) $this->cmsPage->getTitle());
-        }
-        $description = trim((string) $this->cmsPage->getMetaDescription());
-        $title = $this->getCurrentTitle();
-
-        $webpage = [
-            '@type' => $schemaType,
-            '@id' => $pageUrl . '#webpage',
-            'url' => $pageUrl,
-            'name' => $name,
-            'inLanguage' => 'en-AU',
-            'isPartOf' => ['@id' => $baseUrl . '/#website'],
-            'about' => ['@id' => $baseUrl . '/#organization'],
-            'publisher' => ['@id' => $baseUrl . '/#organization'],
-            'breadcrumb' => ['@id' => $pageUrl . '#breadcrumb'],
-        ];
-        if ($description !== '') {
-            $webpage['description'] = $description;
-        }
-        $updated = (string) $this->cmsPage->getUpdateTime();
-        if ($updated !== '') {
-            $webpage['dateModified'] = str_replace(' ', 'T', $updated);
-        }
-
-        return [
-            '@context' => 'https://schema.org',
-            '@graph' => [
-                $webpage,
-                [
-                    '@type' => 'BreadcrumbList',
-                    '@id' => $pageUrl . '#breadcrumb',
-                    'itemListElement' => [
-                        [
-                            '@type' => 'ListItem',
-                            'position' => 1,
-                            'item' => [
-                                '@id' => $baseUrl . '/',
-                                'name' => 'Home',
-                            ],
-                        ],
-                        [
-                            '@type' => 'ListItem',
-                            'position' => 2,
-                            'item' => [
-                                '@id' => $pageUrl,
-                                'name' => $title,
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ];
-    }
-
-    public function getJsonLdScript(): string
-    {
-        return (string) json_encode(
-            $this->getJsonLdGraph(),
-            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP
-        );
-    }
-
-    public function getCanonicalUrl(): string
-    {
-        return $this->canonicalUrl();
-    }
-
-    public function getMetaTitle(): string
-    {
-        $title = trim((string) $this->cmsPage->getMetaTitle());
-        return $title !== '' ? $title : trim((string) $this->cmsPage->getTitle());
-    }
-
-    public function getMetaDescription(): string
-    {
-        return trim((string) $this->cmsPage->getMetaDescription());
-    }
-
-    public function getOgType(): string
-    {
-        return 'website';
-    }
-
-    public function getOgLocale(): string
-    {
-        return 'en_AU';
-    }
-
-    /**
-     * @return array{identifier: string, label: string, schema_type: string, on_this_page: bool, banner?: bool}|null
+     * @return array{identifier: string, label: string, on_this_page: bool, banner?: bool}|null
      */
     private function currentPageMeta(): ?array
     {
@@ -291,14 +184,5 @@ class HelpPages implements ArgumentInterface
     private function pageUrl(string $identifier): string
     {
         return rtrim((string) $this->storeManager->getStore()->getBaseUrl(), '/') . '/' . ltrim($identifier, '/');
-    }
-
-    private function canonicalUrl(): string
-    {
-        $identifier = $this->getCurrentIdentifier();
-        if ($identifier !== '') {
-            return $this->pageUrl($identifier);
-        }
-        return rtrim((string) $this->storeManager->getStore()->getCurrentUrl(false), '/');
     }
 }

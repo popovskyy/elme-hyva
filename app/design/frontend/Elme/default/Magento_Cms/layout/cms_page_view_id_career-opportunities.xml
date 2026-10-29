@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-62 Career opportunities: WebPage + BreadcrumbList JSON-LD and Open Graph (hero photo as og:image).
+ * The page itself is banner-breadcrumbs: the hero holds the H1, the `vacancies` entry the roles.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="elme_content_page_seo"/>
+</page>

@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-50 Virtual Catalogues: JSON-LD + OG; one BreadcrumbList (skip Hyvä duplicate).
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="breadcrumbs">
+            <arguments>
+                <argument name="skip_ld_json_schema" xsi:type="boolean">true</argument>
+            </arguments>
+        </referenceBlock>
+
+        <referenceBlock name="page.main.title">
+            <arguments>
+                <argument name="css_class" xsi:type="string">elme-virtual-catalogues-page__title mb-4 md:mb-6</argument>
+            </arguments>
+        </referenceBlock>
+
+        <referenceContainer name="head.additional">
+            <block name="virtual.catalogues.head"
+                   template="Magento_Cms::virtual-catalogues/head.phtml"/>
+        </referenceContainer>
+
+        <referenceContainer name="before.body.end">
+            <block name="virtual.catalogues.jsonld"
+                   template="Magento_Cms::virtual-catalogues/jsonld.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

@@ -37,14 +37,18 @@ $guestButton = $usp->getGuestButton($content);
 /** @var LoginOnly $loginOnly */
 $loginOnly = $viewModels->require(LoginOnly::class);
 
+// Only swap to My Account when the entry configured a guest CTA. Empty button_label/link
+// (Become a Stockist page) keeps the strip buttonless so the page has one primary.
 $button = null;
-if ($loginOnly->isLoggedIn()) {
-    $button = [
-        'label' => (string)__('My Account'),
-        'link' => $block->getUrl('customer/account'),
-    ];
-} elseif ($guestButton !== null) {
-    $button = $guestButton;
+if ($guestButton !== null) {
+    if ($loginOnly->isLoggedIn()) {
+        $button = [
+            'label' => (string)__('My Account'),
+            'link' => $block->getUrl('customer/account'),
+        ];
+    } else {
+        $button = $guestButton;
+    }
 }
 
 $headingId = 'usp-strip-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());

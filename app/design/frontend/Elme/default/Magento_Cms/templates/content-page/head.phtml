@@ -19,10 +19,12 @@ $page = $viewModels->require(ContentPage::class);
 $title = $page->getMetaTitle();
 $description = $page->getMetaDescription();
 $image = $page->getPrimaryImage();
+$canonicalUrl = $page->getCanonicalUrl();
 ?>
+<link rel="canonical" href="<?= $escaper->escapeUrl($canonicalUrl) ?>"/>
 <meta property="og:type" content="<?= $escaper->escapeHtmlAttr(ContentPage::OG_TYPE) ?>"/>
 <meta property="og:locale" content="<?= $escaper->escapeHtmlAttr(ContentPage::OG_LOCALE) ?>"/>
-<meta property="og:url" content="<?= $escaper->escapeUrl($page->getCanonicalUrl()) ?>"/>
+<meta property="og:url" content="<?= $escaper->escapeUrl($canonicalUrl) ?>"/>
 <meta property="og:title" content="<?= $escaper->escapeHtmlAttr($title) ?>"/>
 <?php if ($description !== ''): ?>
 <meta property="og:description" content="<?= $escaper->escapeHtmlAttr($description) ?>"/>

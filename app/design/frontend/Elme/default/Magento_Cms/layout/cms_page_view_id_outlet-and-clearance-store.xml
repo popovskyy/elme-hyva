@@ -12,12 +12,6 @@
     <body>
         <referenceBlock name="content.page.jsonld" template="Magento_Cms::content-page/store-jsonld.phtml"/>
 
-        <referenceContainer name="head.additional">
-            <block name="content.page.canonical"
-                   template="Magento_Cms::content-page/canonical.phtml"
-                   before="-"/>
-        </referenceContainer>
-
         <referenceContainer name="content">
             <block class="Magento\Cms\Block\Block"
                    name="elme.need.assistance"
