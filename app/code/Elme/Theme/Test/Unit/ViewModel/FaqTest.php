@@ -6,6 +6,7 @@ namespace Elme\Theme\Test\Unit\ViewModel;
 
 use Bart\ContentStudio\Api\EntryRepositoryInterface;
 use Elme\LoginOnly\Model\LoginState;
+use Elme\Theme\ViewModel\ContentPage;
 use Elme\Theme\ViewModel\Faq;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\Store;
@@ -111,7 +112,8 @@ class FaqTest extends TestCase
         $login->method('isLoggedIn')->willReturn($loggedIn);
 
         $entries = $this->createMock(EntryRepositoryInterface::class);
+        $contentPage = $this->createMock(ContentPage::class);
 
-        return new Faq($entries, $stores, $urls, $login);
+        return new Faq($entries, $stores, $urls, $login, $contentPage);
     }
 }

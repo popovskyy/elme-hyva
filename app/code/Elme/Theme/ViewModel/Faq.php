@@ -14,6 +14,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Content Studio type `faq` (etc/content_types.xml, FE-47): topics, anchors, next-step links, FAQPage entities.
+ * Page-level FAQPage JSON-LD wraps ContentPage (same pattern as BecomeStockist / StorePage).
  */
 class Faq implements ArgumentInterface
 {
@@ -74,7 +75,8 @@ class Faq implements ArgumentInterface
         private readonly EntryRepositoryInterface $entryRepository,
         private readonly StoreManagerInterface $storeManager,
         private readonly UrlInterface $urlBuilder,
-        private readonly LoginState $loginState
+        private readonly LoginState $loginState,
+        private readonly ContentPage $contentPage
     ) {
     }
 
@@ -255,6 +257,34 @@ class Faq implements ArgumentInterface
         }
 
         return $entities;
+    }
+
+    /**
+     * WebPage/FAQPage + BreadcrumbList from ContentPage, with FAQ mainEntity when questions exist.
+     *
+     * @return array<string, mixed>
+     */
+    public function getJsonLdGraph(): array
+    {
+        $pageUrl = $this->contentPage->getCanonicalUrl();
+        $entities = $this->getSchemaMainEntity($pageUrl);
+        $graph = $this->contentPage->getJsonLdGraph($entities !== [] ? 'FAQPage' : 'WebPage');
+
+        if ($entities === [] || !isset($graph['@graph'][0]) || !is_array($graph['@graph'][0])) {
+            return $graph;
+        }
+
+        $graph['@graph'][0]['mainEntity'] = $entities;
+
+        return $graph;
+    }
+
+    public function getJsonLdScript(): string
+    {
+        return (string) json_encode(
+            $this->getJsonLdGraph(),
+            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP
+        );
     }
 
     /**
