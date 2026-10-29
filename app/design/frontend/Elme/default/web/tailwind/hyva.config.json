@@ -119,6 +119,9 @@
       "help": {
         "main-max": "42.5rem"
       },
+      "content": {
+        "measure": "50rem"
+      },
       "radius": {
         "xs": "0px",
         "sm": "0px",

@@ -30,7 +30,7 @@
         <field name="button_label" type="text" label="Button label" maxlength="40" width="half"
                description="Two or three words. Leave empty for no button."/>
         <field name="button_link" type="url" label="Button link" width="half"
-               description="Also links the image. e.g. /showroom-locator/elme-living-melbourne-outlet"/>
+               description="Also links the image. e.g. /outlet-and-clearance-store"/>
         <field name="tone" type="select" label="Look" default="light"
                description="Dark: a charcoal band with white text, for a loud promo like the Outlet.">
             <option value="light" label="Light"/>
@@ -236,6 +236,88 @@
                description="e.g. /customer/account/create. Logged-in customers go to the account dashboard."/>
     </type>
 
+    <!-- "Visit us" card under the Outlet banner (FE-63): name, address with Get directions, phone and
+         opening hours. Address, phone and map pin come from store config (Stores > Configuration >
+         General > Store Information); the hours are edited here. The page JSON-LD (OutletStore) reads
+         the same values, so the card and the schema never disagree. -->
+    <type code="store_visit"
+          label="Store: Visit Us Card"
+          standalone="true"
+          group="pages"
+          icon="image-text"
+          description="Store name, address with Get directions, phone and opening hours. Address and phone come from store config."
+          template="Elme_Theme::content-type/store-visit.phtml"
+          version="1">
+
+        <field name="heading" type="text" label="Heading" required="true" maxlength="40" default="Visit us"
+               description="Card heading (H2), e.g. &quot;Visit us&quot;."/>
+        <field name="store_name" type="text" label="Store name" required="true" maxlength="80"
+               description="Full name, the same everywhere (page H1, store locator, Google profile): &quot;Elme Living Outlet &amp; Clearance Store&quot;. Also the name in search results."/>
+        <field name="intro" type="textarea" label="What the store is" maxlength="220"
+               description="One plain sentence: what is sold there. Search engines use it as the store description."/>
+        <field name="public_note" type="text" label="Who can visit" maxlength="80"
+               description="Short line, e.g. &quot;Open to the public, no trade account needed&quot;. Leave empty for a trade-only showroom."/>
+        <field name="schema_type" type="select" label="Kind of store" default="OutletStore"
+               description="For search engines only. Outlet for the clearance store.">
+            <option value="OutletStore" label="Outlet store"/>
+            <option value="FurnitureStore" label="Furniture store"/>
+            <option value="HomeGoodsStore" label="Homewares store"/>
+            <option value="Store" label="Store"/>
+        </field>
+        <field name="hours" type="repeater" label="Opening hours" label_field="day_from" max="7" required="true"
+               description="One row per run of days with the same hours: Mon to Sat 09:00-17:00, then Sun 10:00-17:00. Days not listed show as closed to search engines.">
+            <field name="day_from" type="select" label="From" required="true" width="half" default="Monday">
+                <option value="Monday" label="Monday"/>
+                <option value="Tuesday" label="Tuesday"/>
+                <option value="Wednesday" label="Wednesday"/>
+                <option value="Thursday" label="Thursday"/>
+                <option value="Friday" label="Friday"/>
+                <option value="Saturday" label="Saturday"/>
+                <option value="Sunday" label="Sunday"/>
+            </field>
+            <field name="day_to" type="select" label="To" width="half" default=""
+                   description="Leave on &quot;Only that day&quot; for a single day.">
+                <option value="" label="Only that day"/>
+                <option value="Monday" label="Monday"/>
+                <option value="Tuesday" label="Tuesday"/>
+                <option value="Wednesday" label="Wednesday"/>
+                <option value="Thursday" label="Thursday"/>
+                <option value="Friday" label="Friday"/>
+                <option value="Saturday" label="Saturday"/>
+                <option value="Sunday" label="Sunday"/>
+            </field>
+            <field name="opens" type="text" label="Opens" required="true" maxlength="5" width="half"
+                   description="24-hour time, e.g. 09:00"/>
+            <field name="closes" type="text" label="Closes" required="true" maxlength="5" width="half"
+                   description="24-hour time, e.g. 17:00"/>
+        </field>
+    </type>
+
+    <!-- Short FAQ (FE-63 Outlet): a heading and a few questions that open and close (native
+         details/summary, no JS). Every answer is in the page HTML, and the page JSON-LD lists the same
+         questions as FAQPage. The /faqs page uses its own accordion (FE-47). -->
+    <type code="faq_list"
+          label="FAQ: Short List"
+          standalone="true"
+          group="pages"
+          icon="image-text"
+          description="Heading and a few questions that open and close. Plain text answers."
+          template="Elme_Theme::content-type/faq-list.phtml"
+          version="1">
+
+        <field name="heading" type="text" label="Heading" required="true" maxlength="60"
+               description="Section heading (H2), e.g. &quot;Good to know&quot;."/>
+        <field name="items" type="repeater" label="Questions" label_field="question" max="10" required="true"
+               description="Three to six short questions. Search engines and AI answers read them word for word.">
+            <field name="question" type="text" label="Question" required="true" maxlength="120"
+                   description="As a customer would ask it, e.g. &quot;Is the outlet open to the public?&quot;."/>
+            <field name="answer" type="textarea" label="Answer" required="true" maxlength="600"
+                   description="Plain sentences, facts first. A blank line starts a new paragraph."/>
+            <field name="anchor" type="text" label="Link name" maxlength="60"
+                   description="Optional. The #name for a direct link to this question, e.g. open-to-the-public. Leave empty to make one from the question."/>
+        </field>
+    </type>
+
     <!-- Meet the Team (FE-65): H1 + intro, region chips (Alpine visibility only), card grid. Every
          published person stays in the HTML and in Person JSON-LD; chips never change the URL. -->
     <type code="team"
@@ -369,5 +451,6 @@
                    description="Switch off when the role is filled or on hold."/>
         </field>
     </type>
+
 
 </content_types>
