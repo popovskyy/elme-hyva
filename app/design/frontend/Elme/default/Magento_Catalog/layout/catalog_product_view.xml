@@ -1,12 +1,20 @@
 <?xml version="1.0"?>
-<!-- FE-13: Our Difference on PDP (parity with old seo_block-elm placement). -->
+<!-- FE-12 Instagram (SKU-filtered) + FE-13 Our Difference on PDP. -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="content">
+            <block class="Bart\ContentStudio\Block\Entry"
+                   name="elme.instagram.slider"
+                   after="-">
+                <arguments>
+                    <argument name="identifier" xsi:type="string">home-instagram-slider</argument>
+                    <argument name="filter_by_product" xsi:type="boolean">true</argument>
+                </arguments>
+            </block>
             <block class="Magento\Cms\Block\Block"
                    name="elme.our.difference"
-                   after="-">
+                   after="elme.instagram.slider">
                 <arguments>
                     <argument name="block_id" xsi:type="string">our_difference</argument>
                 </arguments>

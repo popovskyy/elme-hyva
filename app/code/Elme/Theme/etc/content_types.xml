@@ -200,6 +200,46 @@
         </field>
     </type>
 
+    <!-- FE-12 "As styled by you": curated Instagram-style posts (D10). Own /media/ images, no live
+         Graph API (Basic Display shut down Dec 2024). Empty posts hide the whole section (UX-01).
+         FE-68 reuses the same entry on /shoppable-instagram. -->
+    <type code="instagram_slider"
+          label="Instagram Slider (As styled by you)"
+          standalone="true"
+          group="home"
+          icon="image-text"
+          description="Heading, @handle, Follow Us and a row of square stockist posts. Curated images from our media; no Instagram embed script."
+          template="Elme_Theme::content-type/instagram-slider.phtml"
+          version="1">
+
+        <field name="heading" type="text" label="Section heading" maxlength="60" default="As styled by you"
+               description="Home/CMS H2. On a product page the template may replace this with &quot;Styled by our stockists&quot; when filtering by SKU. Never the page H1."/>
+        <field name="handle" type="text" label="Instagram handle" maxlength="40" default="elmeliving"
+               description="Without @. Links to https://www.instagram.com/{handle}/. Keep elmeliving in sync with the footer and FE-55 sameAs."/>
+        <field name="invite" type="text" label="Invite line" maxlength="80" default="Tag @elmeliving to be featured"
+               description="Short line next to Follow Us asking stockists to tag Elme. Leave empty to hide."/>
+        <field name="follow_label" type="text" label="Follow button label" maxlength="40" default="Follow Us"
+               description="Descriptive label for the profile link."/>
+
+        <field name="posts" type="repeater" label="Posts" label_field="credit_handle" max="24" required="true"
+               description="Curated stockist posts. Marketing picks photos that show Elme stock in real shops. Zero rows hide the section.">
+            <field name="image" type="image" label="Image" required="true" recommended="800x800"
+                   description="Square JPEG or WebP from our media (not a hotlinked Instagram CDN URL)."/>
+            <field name="image_alt" type="text" label="Image alt text" required="true" maxlength="160"
+                   description="What the photo shows (caption). Required for linked images (UX-08)."/>
+            <field name="post_url" type="url" label="Instagram post URL" required="true"
+                   description="Permalink for tiles without SKUs (View on Instagram). Absolute https URL."/>
+            <field name="credit_handle" type="text" label="Stockist handle" required="true" maxlength="40" width="half"
+                   description="Without @. Shown under the tile, e.g. houseofsmith."/>
+            <field name="credit_location" type="text" label="Location" maxlength="40" width="half"
+                   description="Optional, e.g. Bendigo VIC."/>
+            <field name="skus" type="text" label="Product SKUs" maxlength="200"
+                   description="Optional. Comma-separated Magento SKUs. When set the tile links on-site (shoppable view / FE-68); when empty it says View on Instagram."/>
+            <field name="caption" type="textarea" label="Caption (optional)" maxlength="400"
+                   description="Source for alt context. Not printed as a second heading."/>
+        </field>
+    </type>
+
     <!-- Become a Stockist benefits: image + trade-fact rows + Create An Account (guest) / My Account
          (logged in). -->
     <type code="usp_strip"

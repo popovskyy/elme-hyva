@@ -5,9 +5,17 @@
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="content">
+            <!-- FE-12: curated Instagram slider before Our Difference (production order). -->
+            <block class="Bart\ContentStudio\Block\Entry"
+                   name="elme.instagram.slider"
+                   after="-">
+                <arguments>
+                    <argument name="identifier" xsi:type="string">home-instagram-slider</argument>
+                </arguments>
+            </block>
             <block class="Magento\Cms\Block\Block"
                    name="elme.our.difference"
-                   after="-">
+                   after="elme.instagram.slider">
                 <arguments>
                     <argument name="block_id" xsi:type="string">our_difference</argument>
                 </arguments>
