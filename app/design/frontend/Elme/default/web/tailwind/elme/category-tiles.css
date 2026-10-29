@@ -11,8 +11,8 @@
     }
 
     .elme-category-tiles__item {
-        flex: 0 0 15.625rem;
-        width: 15.625rem;
+        flex: 0 0 --spacing(62.5);
+        width: --spacing(62.5);
     }
 
     .elme-category-tiles__media {
@@ -40,7 +40,7 @@
         height: 100%;
         object-fit: cover;
         object-position: center 45%;
-        transition: transform 300ms ease-out;
+        transition: transform var(--transition-duration-slow) var(--ease-out-cubic);
     }
 
     .elme-category-tiles__name {
@@ -89,8 +89,8 @@
     }
 
     .elme-category-tiles__arrow:focus-visible {
-        outline: 2px solid var(--color-ink);
-        outline-offset: 2px;
+        outline: --spacing(0.5) solid var(--color-ink);
+        outline-offset: --spacing(0.5);
     }
 
     .elme-category-tiles__arrow:active {
@@ -105,8 +105,8 @@
         }
 
         .elme-category-tiles__item {
-            flex-basis: 21.25rem;
-            width: 21.25rem;
+            flex-basis: --spacing(85);
+            width: --spacing(85);
         }
 
         .elme-category-tiles__name {
@@ -120,22 +120,22 @@
     }
 
     /* Arrows sit on the photo, so they stay out of the way until the row is hovered.
-       Enter uses ease-out-quart (180ms); leave is shorter so the row settles quickly. */
+       Enter uses ease-out-quart (fast); leave is shorter (micro) so the row settles quickly. */
     @media (hover: hover) and (prefers-reduced-motion: no-preference) {
         .elme-category-tiles__arrow {
             opacity: 0;
             pointer-events: none;
             transition:
-                opacity 120ms cubic-bezier(.895, .03, .685, .22),
-                translate 120ms cubic-bezier(.895, .03, .685, .22);
+                opacity var(--transition-duration-micro) var(--ease-in-quart),
+                translate var(--transition-duration-micro) var(--ease-in-quart);
         }
 
         .elme-category-tiles__arrow--prev {
-            translate: -8px -50%;
+            translate: calc(--spacing(2) * -1) -50%;
         }
 
         .elme-category-tiles__arrow--next {
-            translate: 8px -50%;
+            translate: --spacing(2) -50%;
         }
 
         .elme-category-tiles:hover .elme-category-tiles__arrow:not(:disabled),
@@ -143,8 +143,8 @@
             opacity: 1;
             pointer-events: auto;
             translate: 0 -50%;
-            transition-duration: 180ms;
-            transition-timing-function: cubic-bezier(.165, .84, .44, 1);
+            transition-duration: var(--transition-duration-fast);
+            transition-timing-function: var(--ease-out-quart);
         }
 
         .elme-category-tiles__link:hover img {
