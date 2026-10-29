@@ -236,4 +236,53 @@
                description="e.g. /customer/account/create. Logged-in customers go to the account dashboard."/>
     </type>
 
+    <!-- Careers page (FE-62): a short intro, then the open roles as rows (title, state, type, Apply by
+         email), or one "no vacancies" message with the careers address. Server-rendered, no JS: a role
+         switched off is not in the HTML at all. No JobPosting markup: roles have no page of their own. -->
+    <type code="vacancies"
+          label="Careers: Open Roles"
+          standalone="true"
+          group="pages"
+          icon="list"
+          description="Intro, then the open roles with an Apply by email link each. With no roles shown, one no-vacancies message and the careers address."
+          template="Elme_Theme::content-type/vacancies.phtml"
+          version="1">
+
+        <field name="intro" type="wysiwyg" label="Intro"
+               description="Plain facts that stay true with or without open roles: who Elme Living is, which teams hire (sales, customer service, showroom, warehouse), where (Blackburn showroom, Tarneit distribution centre) and how to apply."/>
+        <field name="heading" type="text" label="Roles heading" default="Current vacancies" maxlength="60"
+               description="Heading (H2) above the roles and above the no-vacancies message, e.g. &quot;Current vacancies&quot;."/>
+        <field name="email" type="text" label="Careers email" required="true" maxlength="120"
+               description="The one address applications go to, shown once on the page. A role can have its own address below."/>
+        <field name="empty_text" type="textarea" label="No vacancies message" maxlength="300"
+               default="We have no vacancies right now, but we are always glad to hear from people who love design and service."
+               description="Shown when no role is switched on. The careers address and &quot;send your resume and a short cover letter&quot; are added after it, so do not repeat them here."/>
+        <field name="roles" type="repeater" label="Open roles" label_field="title" max="20"
+               description="One row per open role. Switch a role off, or delete it, as soon as it is filled: it then leaves the page completely.">
+            <field name="title" type="text" label="Role title" required="true" maxlength="70"
+                   description="The job title people search for, e.g. &quot;Showroom Sales Consultant&quot;, not &quot;We're hiring!&quot;."/>
+            <field name="state" type="select" label="State" required="true" width="half" default="VIC"
+                   description="Shown in full on the page (Victoria).">
+                <option value="ACT" label="ACT"/>
+                <option value="NSW" label="NSW"/>
+                <option value="NT" label="NT"/>
+                <option value="QLD" label="QLD"/>
+                <option value="SA" label="SA"/>
+                <option value="TAS" label="TAS"/>
+                <option value="VIC" label="VIC"/>
+                <option value="WA" label="WA"/>
+            </field>
+            <field name="employment_type" type="select" label="Employment type" required="true" width="half" default="FULL_TIME">
+                <option value="FULL_TIME" label="Full-time"/>
+                <option value="PART_TIME" label="Part-time"/>
+                <option value="CASUAL" label="Casual"/>
+                <option value="CONTRACTOR" label="Contract"/>
+            </field>
+            <field name="email" type="text" label="Apply to (email)" maxlength="120" width="half"
+                   description="Optional. Leave empty to use the careers email above."/>
+            <field name="is_open" type="boolean" label="Show on the page" default="1" width="half"
+                   description="Switch off when the role is filled or on hold."/>
+        </field>
+    </type>
+
 </content_types>
