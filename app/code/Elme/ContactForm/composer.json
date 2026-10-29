@@ -1,0 +1,20 @@
+{
+    "name": "elme/module-contact-form",
+    "description": "Elme Living trade Contact Us form (FE-46)",
+    "type": "magento2-module",
+    "require": {
+        "php": "~8.3.0||~8.4.0",
+        "magento/framework": "*",
+        "magento/module-contact": "*",
+        "magento/module-customer": "*",
+        "magento/module-newsletter": "*"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Elme\\ContactForm\\": ""
+        }
+    }
+}
