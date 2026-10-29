@@ -1,0 +1,45 @@
+<?php
+/**
+ * FE-50: Open Graph / Twitter for /virtual-catalogues (first cover as og:image when present).
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\VirtualCatalogues;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$catalogues = $viewModels->require(VirtualCatalogues::class);
+if (!$catalogues->isVirtualCataloguesPage()) {
+    return;
+}
+
+$title = $catalogues->getMetaTitle();
+$description = $catalogues->getMetaDescription();
+$url = $catalogues->getCanonicalUrl();
+$image = $catalogues->getOgImageUrl();
+$twitterCard = $image !== '' ? 'summary_large_image' : 'summary';
+?>
+<meta property="og:type" content="<?= $escaper->escapeHtmlAttr($catalogues->getOgType()) ?>"/>
+<meta property="og:locale" content="<?= $escaper->escapeHtmlAttr($catalogues->getOgLocale()) ?>"/>
+<meta property="og:url" content="<?= $escaper->escapeUrl($url) ?>"/>
+<meta property="og:title" content="<?= $escaper->escapeHtmlAttr($title) ?>"/>
+<?php if ($description !== ''): ?>
+<meta property="og:description" content="<?= $escaper->escapeHtmlAttr($description) ?>"/>
+<?php endif; ?>
+<?php if ($image !== ''): ?>
+<meta property="og:image" content="<?= $escaper->escapeUrl($image) ?>"/>
+<?php endif; ?>
+<meta name="twitter:card" content="<?= $escaper->escapeHtmlAttr($twitterCard) ?>"/>
+<meta name="twitter:title" content="<?= $escaper->escapeHtmlAttr($title) ?>"/>
+<?php if ($description !== ''): ?>
+<meta name="twitter:description" content="<?= $escaper->escapeHtmlAttr($description) ?>"/>
+<?php endif; ?>
+<?php if ($image !== ''): ?>
+<meta name="twitter:image" content="<?= $escaper->escapeUrl($image) ?>"/>
+<?php endif; ?>

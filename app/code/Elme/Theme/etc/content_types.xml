@@ -167,6 +167,39 @@
                description="e.g. /virtual-catalogues. Leave empty for no button."/>
     </type>
 
+    <!-- /virtual-catalogues season list (FE-50): cover cards always; flipbook + shop URLs only when
+         logged in (QA 0). Empty catalogues hide the grid (UX-01). -->
+    <type code="virtual_catalogues"
+          label="Virtual Catalogues"
+          standalone="true"
+          group="pages"
+          icon="image-text"
+          description="Seasonal wholesale catalogue covers. Guests see locked covers and trade CTAs; signed-in buyers open flipbooks and shop the range."
+          template="Elme_Theme::content-type/virtual-catalogues.phtml"
+          version="1">
+
+        <field name="intro" type="textarea" label="Intro" maxlength="400"
+               description="Optional plain text under the page H1. Wholesale voice: seasonal catalogues for Australian trade customers."/>
+
+        <field name="catalogues" type="repeater" label="Catalogues" label_field="title" max="12" required="true"
+               description="One card per season. Cover + title are public; Open URL is never printed for guests.">
+            <field name="title" type="text" label="Season title" required="true" maxlength="40" width="half"
+                   description="Visible card H2, e.g. SS27 or AW26."/>
+            <field name="description" type="text" label="Short line" maxlength="120" width="half"
+                   description="Optional line under the title."/>
+            <field name="image" type="image" label="Cover image" required="true" recommended="620x877"
+                   description="Cover art JPEG or WebP. Title field is the text; do not bake words into the image."/>
+            <field name="image_alt" type="text" label="Image alt text" maxlength="160"
+                   description="e.g. Elme Living SS27 catalogue cover. Defaults to the season title."/>
+            <field name="open_url" type="url" label="Open catalogue URL (logged in)" width="half"
+                   description="Issuu embed or PDF URL. Output only for signed-in customers. Never shown to guests or in guest JSON-LD."/>
+            <field name="shop_url" type="url" label="Shop this range URL (logged in)" width="half"
+                   description="Category or new-arrivals path. Output only when signed in. Leave empty to hide the secondary link."/>
+            <field name="shop_label" type="text" label="Shop link label" maxlength="40" width="half"
+                   description="Defaults to Shop this range."/>
+        </field>
+    </type>
+
     <!-- Become a Stockist benefits: image + trade-fact rows + Create An Account (guest) / My Account
          (logged in). -->
     <type code="usp_strip"
