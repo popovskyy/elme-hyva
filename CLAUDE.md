@@ -10,7 +10,7 @@ New Elme Living storefront (moving off the shared Adobe Commerce instance `m2-ba
 
 ## Theme: `app/design/frontend/Elme/default` (child of `Hyva/default`, Tailwind v4)
 
-- **Design tokens live in one place: `web/tailwind/hyva.config.json` → `tokens.values`** (colours, type scale, breakpoints, container, radius, form, button). `npx hyva-tokens` turns them into `generated/hyva-tokens.css` (`--color-primary` → `bg-primary`, `text-primary`, …). Do not hardcode hex values or px sizes in templates; add a token instead.
+- **Design tokens live in one place: `web/tailwind/hyva.config.json` → `tokens.values`** (colours, type scale, breakpoints, container, radius, form, button, easing, durations). `npx hyva-tokens` turns them into `generated/hyva-tokens.css` (`--color-primary` → `bg-primary`, `text-primary`, …). Do not hardcode hex values or px sizes in templates; add a token instead.
 - Fonts: `web/tailwind/hyva.config.json` → `fonts` (Karla = `font-sans`, body; DM Serif Display = `font-heading`, headings). Files in `web/fonts/`.
 - Breakpoints: mobile = no prefix, tablet = `md:` (768px), desktop = `lg:` (1025px), `xl:` 1280, `2xl:` 1440, `3xl:` 1920. Container is fluid up to 1920px. Write mobile first.
 - Elme-specific CSS: `web/tailwind/elme.css` only imports partials in `web/tailwind/elme/` (typography, prose, header, mobile menu, mega menu, footer). Add a new file there instead of growing one stylesheet. Edited Hyvä copies are marked with an `Elme:` comment (`components/button.css`, `components/wrapper.css`).

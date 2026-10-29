@@ -146,6 +146,23 @@
         "padding-x": "24px",
         "font-size": "15px",
         "letter-spacing": "0.5px"
+      },
+      "ease": {
+        "out-quad": "cubic-bezier(.25, .46, .45, .94)",
+        "out-cubic": "cubic-bezier(.215, .61, .355, 1)",
+        "out-quart": "cubic-bezier(.165, .84, .44, 1)",
+        "out-quint": "cubic-bezier(.23, 1, .32, 1)",
+        "out-expo": "cubic-bezier(.19, 1, .22, 1)",
+        "out-back": "cubic-bezier(.34, 1.56, .64, 1)",
+        "in-out-cubic": "cubic-bezier(.645, .045, .355, 1)",
+        "in-out-quart": "cubic-bezier(.77, 0, .175, 1)",
+        "in-quart": "cubic-bezier(.895, .03, .685, .22)"
+      },
+      "transition-duration": {
+        "micro": "120ms",
+        "fast": "180ms",
+        "base": "240ms",
+        "slow": "300ms"
       }
     }
   },

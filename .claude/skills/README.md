@@ -22,5 +22,15 @@ The Emil Kowalski skills use React and Motion (framer-motion) in examples. Here:
   plus Alpine `x-transition` for enter/leave. No Motion/GSAP/React.
 - Animate `transform` and `opacity` only; never `transition: all`.
 - Every animation has a `motion-reduce:` fallback.
-- Durations and easings: once we settle on them, add them as tokens (`--ease-*`, `--duration-*`) in
-  `hyva.config.json` instead of repeating values.
+- Durations and easings are tokens in `hyva.config.json` (`ease`, `transition-duration`); use the
+  utilities instead of raw values:
+  - `ease-out-quart` - default for enter/exit (dropdowns, popovers, drawers); `ease-out-quad` /
+    `-cubic` gentler, `-quint` / `-expo` stronger.
+  - `ease-in-out-cubic` - something already on screen moves or resizes (accordion, layout shift).
+  - `ease-in-quart` - only for an element that leaves for good.
+  - `ease-out-back` - overshoot for rare "pop" feedback (badge count), never on menus or dialogs.
+  - Plain `ease` for colour / opacity / background hovers, `linear` for progress and spinners.
+  - `duration-micro` 120ms (press, quick fade), `duration-fast` 180ms (dropdown, popover),
+    `duration-base` 240ms (dialog, drawer), `duration-slow` 300ms (upper bound for UI).
+  - Exits faster than enters; popovers scale from `0.96`, not `0`, with `transform-origin` at the
+    trigger.
