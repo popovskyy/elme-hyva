@@ -1,0 +1,18 @@
+<?php
+/**
+ * JSON-LD of a CMS page about one store (FE-63 Outlet): FAQPage (or WebPage) + the store node from the
+ * page's Visit us entry + BreadcrumbList, one @graph (Elme\Theme\ViewModel\StorePage).
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\StorePage;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+
+$page = $viewModels->require(StorePage::class);
+?>
+<script type="application/ld+json"><?= /* @noEscape */ $page->getJsonLdScript() ?></script>
