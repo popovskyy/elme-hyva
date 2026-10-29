@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elme Middle Blocks</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Karla:wght@400;700&display=swap">
+<style>
+/* Theme fonts first (repo copy), Google Fonts as the fallback for the published page. */
+@font-face { font-family: "Karla Theme"; src: url("../../app/design/frontend/Elme/default/web/fonts/karla/Karla-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Karla Theme"; src: url("../../app/design/frontend/Elme/default/web/fonts/karla/Karla-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "DM Serif Theme"; src: url("../../app/design/frontend/Elme/default/web/fonts/dm-serif-display/DMSerifDisplay-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "DM Serif Theme"; src: url("../../app/design/frontend/Elme/default/web/fonts/dm-serif-display/DMSerifDisplay-Italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+
+/* Layout: three directions for the Welcome + Outlet + Curated Catalogues run, each in a phone frame
+   (390) and a wide frame (1280, scaled to fit), with motion that plays when the frame scrolls in.
+   Colours, type and curves are theme tokens; no dark mode on the storefront, so none here. */
+:root {
+  color-scheme: light;
+  --table: #D5DADF;
+  --page: #F5F4EF;
+  --surface: #FFFFFF;
+  --ink: #3A3935;
+  --ink-muted: #676F78;
+  --secondary: #ADBBA1;
+  --sand: #E1DBD1;
+  --border: #CAC9C9;
+  --on-primary: #FFFFFF;
+  --ease-out-quint: cubic-bezier(.23, 1, .32, 1);
+  --font-sans: "Karla Theme", Karla, system-ui, sans-serif;
+  --font-heading: "DM Serif Theme", "DM Serif Display", Georgia, serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--table); color: var(--ink); font-family: var(--font-sans); font-size: 16px; line-height: 1.4; }
+img { display: block; max-width: 100%; height: auto; }
+a { color: inherit; }
+p, h1, h2, h3 { margin: 0; }
+.page { max-width: 1360px; margin: 0 auto; padding-block: 40px 96px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.page > h1 { margin: 0 0 10px; font: 400 40px/1.1 var(--font-heading); }
+.lead { max-width: 64ch; font-size: 17px; }
+.option { margin-top: 64px; }
+.option-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+.option h2.t { font: 400 30px/1.15 var(--font-heading); }
+.option-head p { max-width: 64ch; margin-top: 6px; }
+.replay { min-height: 44px; padding: 0 18px; border: 0; background: var(--ink); color: var(--on-primary); font: 700 14px/1 var(--font-sans); cursor: pointer; }
+.replay:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.frames { display: flex; flex-direction: column; gap: 20px; margin-top: 16px; }
+.frame-label { margin: 0 0 6px; color: var(--ink-muted); font-size: 14px; font-weight: 700; }
+.fit { overflow: hidden; }
+.canvas { background: var(--page); outline: 1px solid var(--border); container: frame / inline-size; transform-origin: top left; }
+.canvas.phone { width: 390px; }
+.canvas.desk { width: 1280px; }
+
+/* storefront pieces */
+.wrap { padding-inline: 20px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 50px; padding: 0 24px; background: var(--ink); color: var(--on-primary); font: 700 15px/1 var(--font-sans); letter-spacing: .5px; text-decoration: none; }
+.btn.outline { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.btn.light { background: var(--surface); color: var(--ink); }
+.actions { display: flex; flex-direction: column; gap: 12px; }
+.link { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; text-underline-offset: 4px; }
+.muted { color: var(--ink-muted); }
+.copy { font-size: 14px; line-height: 20px; }
+.serif { font-family: var(--font-heading); font-weight: 400; }
+em.accent { font-style: italic; }
+.note { padding: 20px; color: var(--ink-muted); font-size: 13px; }
+@container frame (min-width: 700px) {
+  .wrap { padding-inline: 40px; }
+  .actions { flex-direction: row; }
+  .copy { font-size: 15px; line-height: 21px; }
+  .note { padding: 24px 40px; }
+}
+
+/* motion shared: lines rise from masks, blocks rise and fade, run when .play is on the frame */
+.line { display: block; overflow: hidden; padding-bottom: .06em; }
+.line > span { display: block; }
+.play .line > span { animation: rise-line 800ms var(--ease-out-quint) both; animation-delay: calc(var(--d, 0) * 1ms); }
+.play [data-in] { animation: rise-soft 700ms var(--ease-out-quint) both; animation-delay: calc(var(--d, 0) * 1ms); }
+@keyframes rise-line { from { transform: translateY(105%); } to { transform: none; } }
+@keyframes rise-soft { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+
+/* ---------- 1. Statement ---------- */
+.s-welcome { padding-block: 48px 40px; }
+.s-welcome .h { font: 400 34px/38px var(--font-heading); }
+.s-welcome .row { display: grid; gap: 20px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+.s-outlet { display: grid; background: var(--ink); color: var(--on-primary); }
+.s-outlet .body { display: grid; gap: 14px; padding: 28px 20px 32px; justify-items: start; }
+.s-outlet .big { font: 400 56px/0.95 var(--font-heading); }
+.s-outlet .big small { display: block; font-size: 22px; line-height: 1.2; margin-bottom: 6px; }
+.s-outlet p { opacity: .85; }
+.marquee { overflow: hidden; border-block: 1px solid var(--border); background: var(--page); }
+.marquee .track { display: flex; width: max-content; }
+.marquee span { padding: 14px 20px; font: 400 20px/1 var(--font-heading); white-space: nowrap; }
+.marquee span i { font-style: normal; color: var(--secondary); padding-left: 40px; }
+.play .marquee .track { animation: marquee 30s linear infinite; }
+.marquee:hover .track { animation-play-state: paused; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+.s-books { background: var(--sand); padding-block: 48px; }
+.s-books .grid { display: grid; gap: 28px; }
+.s-books .left { display: grid; gap: 14px; justify-items: start; }
+.s-books .h { font: 400 30px/34px var(--font-heading); }
+.shelf { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 0 6px; }
+.book { display: grid; gap: 12px; text-decoration: none; }
+.book .cover { transform: rotate(var(--r)); box-shadow: 0 20px 40px rgba(58,57,53,.28); transition: transform 400ms var(--ease-out-quint), box-shadow 400ms var(--ease-out-quint); }
+.book:hover .cover, .book:focus-visible .cover { transform: rotate(0deg) translateY(-8px); box-shadow: 0 28px 50px rgba(58,57,53,.32); }
+.book .serif { font-size: 20px; }
+@container frame (min-width: 700px) {
+  .s-welcome { padding-block: 80px 64px; }
+  .s-welcome .h { font-size: 64px; line-height: 68px; max-width: 22ch; }
+  .s-welcome .row { grid-template-columns: 1fr auto; align-items: end; margin-top: 40px; padding-top: 28px; }
+  .s-welcome .row p { max-width: 48ch; }
+  .s-outlet { grid-template-columns: 999fr 900fr; align-items: center; }
+  .s-outlet .body { padding: 48px 56px; gap: 18px; }
+  .s-outlet .big { font-size: 112px; }
+  .s-outlet .big small { font-size: 28px; }
+  .marquee span { font-size: 28px; padding: 20px 28px; }
+  .s-books { padding-block: 88px; }
+  .s-books .grid { grid-template-columns: 4fr 6fr; gap: 64px; align-items: center; }
+  .s-books .h { font-size: 45px; line-height: 50px; }
+  .shelf { gap: 48px; max-width: 560px; justify-self: end; width: 100%; }
+}
+@media (hover: none) { .book:hover .cover { transform: rotate(var(--r)); } }
+
+/* ---------- 2. Bento ---------- */
+.bento { display: grid; gap: 12px; padding-block: 40px; }
+.tile { position: relative; overflow: hidden; display: grid; text-decoration: none; }
+.t-welcome { gap: 16px; padding: 24px 20px; background: var(--surface); align-content: end; }
+.t-welcome .h { font: 400 30px/34px var(--font-heading); }
+.t-outlet { background: var(--ink); color: var(--on-primary); align-content: start; }
+.t-outlet .body { display: grid; gap: 8px; padding: 18px 20px 22px; }
+.t-outlet .serif { font-size: 28px; line-height: 1.05; }
+.t-cover img { width: 100%; height: 100%; object-fit: cover; transition: transform 600ms var(--ease-out-quint); }
+.t-cover::after { content: ""; position: absolute; inset: 55% 0 0; background: linear-gradient(to top, rgba(58,57,53,.8), rgba(58,57,53,0)); }
+.t-cover span { position: absolute; z-index: 1; left: 16px; bottom: 14px; color: var(--on-primary); font: 400 22px/1.1 var(--font-heading); }
+.tile:hover img { transform: scale(1.04); }
+.t-cat { gap: 12px; padding: 24px 20px; background: var(--secondary); align-content: space-between; }
+.t-cat .serif { font-size: 28px; line-height: 1.1; }
+.covers2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@container frame (min-width: 700px) {
+  .bento { grid-template-columns: repeat(4, 1fr); grid-auto-rows: minmax(120px, auto); gap: 16px; padding-block: 64px; }
+  .t-welcome { grid-column: 1 / 3; grid-row: 1 / 3; padding: 40px; }
+  .t-welcome .h { font-size: 45px; line-height: 50px; }
+  .t-outlet { grid-column: 3 / 5; grid-row: 1 / 3; }
+  .t-outlet .body { padding: 22px 28px 28px; }
+  .t-outlet .serif { font-size: 40px; }
+  .covers2 { display: contents; }
+  .t-cover.c1 { grid-column: 1; grid-row: 3 / 6; }
+  .t-cover.c2 { grid-column: 2; grid-row: 3 / 6; }
+  .t-cat { grid-column: 3 / 5; grid-row: 3 / 6; padding: 40px; }
+  .t-cat .serif { font-size: 45px; line-height: 50px; }
+}
+
+/* ---------- 3. Sticky story ---------- */
+.story { display: grid; gap: 28px; padding-block: 48px; }
+.story .side { display: grid; gap: 18px; align-content: start; }
+.story .h { font: 400 32px/36px var(--font-heading); }
+.cards { display: grid; gap: 20px; }
+.card { display: grid; background: var(--surface); text-decoration: none; transform-origin: center top; }
+.card .body { display: grid; gap: 8px; padding: 20px 20px 24px; justify-items: start; }
+.card .serif { font-size: 24px; line-height: 1.1; }
+.card.cover { grid-template-columns: 40% 1fr; align-items: center; }
+.card.cover .body { padding: 20px; }
+.play .card { animation: card-in 800ms var(--ease-out-quint) both; animation-delay: calc(var(--d, 0) * 1ms); }
+@keyframes card-in { from { opacity: 0; transform: translateY(40px) scale(.94); } to { opacity: 1; transform: none; } }
+@container frame (min-width: 700px) {
+  .story { grid-template-columns: 5fr 6fr; gap: 72px; padding-block: 88px; align-items: start; }
+  .story .side { position: sticky; top: 40px; }
+  .story .h { font-size: 56px; line-height: 60px; }
+  .cards { gap: 32px; }
+  .card .body { padding: 28px 32px 32px; }
+  .card .serif { font-size: 32px; }
+  .card.cover { grid-template-columns: 220px 1fr; }
+  .card.cover .body { padding: 32px; }
+}
+
+
+/* ---------- A / B: Our Difference + Need assistance ---------- */
+.diff { display: grid; gap: 20px; padding-block: 48px 32px; }
+.diff .lead-s { font: 400 28px/34px var(--font-heading); }
+.ranges { display: grid; gap: 20px; }
+.range h3 { margin-bottom: 10px; font: 700 13px/1 var(--font-sans); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.chips li { padding: 8px 14px; background: var(--surface); border: 1px solid var(--border); font-size: 14px; }
+.play .chips li { animation: rise-soft 600ms var(--ease-out-quint) both; animation-delay: calc(var(--i, 0) * 45ms + 200ms); }
+.contact { display: grid; gap: 16px; padding-block: 24px 56px; }
+.contact .h { font: 400 28px/32px var(--font-heading); }
+.cells { display: grid; gap: 12px; }
+.cell { display: grid; grid-template-columns: 64px 1fr; gap: 16px; align-items: center; padding: 20px; background: var(--surface); text-decoration: none; }
+.cell .ico { position: relative; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--secondary); color: var(--ink); }
+.cell .ico svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+.cell .lbl { font-size: 13px; color: var(--ink-muted); }
+.cell .val { font-weight: 700; font-size: 17px; line-height: 1.3; }
+.caret { display: inline-block; width: 2px; height: 1.05em; margin-left: 2px; vertical-align: -0.15em; background: currentColor; animation: blink 900ms steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+/* phone rings */
+.ring svg { transform-origin: 50% 60%; }
+.play .ring svg, .cell:hover .ring svg { animation: ring 1200ms var(--ease-out-quint) 300ms both; }
+.ring .waves { opacity: 0; }
+.play .ring .waves, .cell:hover .ring .waves { animation: waves 1200ms ease-out 300ms both; }
+@keyframes ring { 0%, 70%, 100% { transform: rotate(0); } 8% { transform: rotate(-16deg); } 16% { transform: rotate(14deg); } 24% { transform: rotate(-12deg); } 32% { transform: rotate(10deg); } 40% { transform: rotate(-6deg); } 48% { transform: rotate(4deg); } }
+@keyframes waves { 0% { opacity: 0; } 15%, 55% { opacity: 1; } 100% { opacity: 0; } }
+/* envelope flap opens while the address types */
+.mail .flap { transform-origin: 50% 25%; transition: transform 500ms var(--ease-out-quint); }
+.play .mail .flap, .cell:hover .mail .flap { animation: flap 1600ms var(--ease-out-quint) 200ms both; }
+@keyframes flap { 0%, 100% { transform: none; } 25%, 75% { transform: scaleY(-1); } }
+/* pin drops in, then the ground ripples */
+.play .pin .drop, .cell:hover .pin .drop { animation: drop 800ms cubic-bezier(.34, 1.56, .64, 1) 200ms both; }
+@keyframes drop { from { transform: translateY(-22px); opacity: 0; } to { transform: none; opacity: 1; } }
+.pin .ripple { position: absolute; left: 50%; bottom: 13px; width: 26px; height: 8px; margin-left: -13px; border: 2px solid var(--ink); border-radius: 50%; opacity: 0; }
+.play .pin .ripple, .cell:hover .pin .ripple { animation: ripple 1400ms ease-out 900ms 2 both; }
+@keyframes ripple { from { transform: scale(.4); opacity: .7; } to { transform: scale(2.2); opacity: 0; } }
+/* B: dark band */
+.band { background: var(--ink); color: var(--on-primary); }
+.band .contact .h { color: var(--on-primary); }
+.band .cell { background: transparent; border-top: 1px solid rgba(255,255,255,.2); padding: 22px 0; }
+.band .cell .lbl { color: rgba(255,255,255,.7); }
+.band .cell .ico { background: rgba(255,255,255,.12); color: var(--on-primary); }
+.band .pin .ripple { border-color: var(--on-primary); }
+.quote { padding-block: 56px 40px; text-align: center; display: grid; gap: 18px; justify-items: center; }
+.quote .q { max-width: 22ch; font: 400 30px/36px var(--font-heading); }
+.quote .copy { max-width: 62ch; }
+@container frame (min-width: 700px) {
+  .diff { grid-template-columns: 5fr 7fr; gap: 24px 64px; padding-block: 88px 48px; }
+  .diff .lead-s { font-size: 40px; line-height: 46px; grid-row: span 2; }
+  .ranges { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .contact { padding-block: 32px 88px; gap: 24px; }
+  .contact .h { font-size: 36px; line-height: 42px; }
+  .cells { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .cell { grid-template-columns: 80px 1fr; padding: 32px; gap: 20px; }
+  .cell .ico { width: 80px; height: 80px; }
+  .cell .ico svg { width: 36px; height: 36px; }
+  .band .cells { gap: 40px; }
+  .band .cell { padding: 28px 0 0; }
+  .quote { padding-block: 96px 64px; }
+  .quote .q { font-size: 48px; line-height: 54px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .play .chips li { animation: fade 300ms ease both; }
+  .play .ring svg, .cell:hover .ring svg, .play .ring .waves, .play .mail .flap, .cell:hover .mail .flap,
+  .play .pin .drop, .cell:hover .pin .drop, .play .pin .ripple, .cell:hover .pin .ripple, .caret { animation: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .play .line > span, .play [data-in], .play .card { animation: fade 300ms ease both; }
+  .play .marquee .track { animation: none; }
+  .book .cover, .t-cover img { transition: none; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <h1>Elme home: Welcome, Outlet and Catalogues</h1>
+  <p class="lead">Two picks on this page. Directions 1 to 3 rework the run under the categories (Welcome, Outlet, Curated Catalogues); A and B rework the bottom pair (Our Difference, Need assistance) with big animated contact icons. Same copy and photos; motion plays when a frame scrolls in, Replay plays it again. Reply like "2 and A".</p>
+
+  <section class="option" aria-labelledby="o1">
+    <div class="option-head">
+      <div><h2 class="t" id="o1">1. Statement</h2><p>A big type statement with an italic accent, the Outlet as a dark band with a giant "80%" and a slow ticker under it, the catalogues as two books that straighten up on hover.</p></div>
+      <button type="button" class="replay" data-replay>Replay</button>
+    </div>
+    <div class="frames" data-variant>
+      <div>
+        <p class="frame-label">Phone</p>
+        <div class="fit"><div class="canvas phone"><div class="stage">
+          <p class="note">Category tiles above.</p>
+          <section class="s-welcome wrap">
+            <h1 class="h">
+              <span class="line"><span style="--d:0">Wholesale artificial</span></span>
+              <span class="line"><span style="--d:90">flowers, plants and</span></span>
+              <span class="line"><span style="--d:180"><em class="accent">home decor</em> for</span></span>
+              <span class="line"><span style="--d:270">Australian retailers</span></span>
+            </h1>
+            <div class="row" data-in style="--d:420">
+              <p class="copy muted">Elme Living is a wholesale trade site. Log in to see your trade prices (ex GST), or apply for a trade account with your ABN.</p>
+              <div class="actions"><a class="btn" href="#o1">Become a Stockist</a><a class="btn outline" href="#o1">Log in</a></div>
+            </div>
+          </section>
+          <section class="s-outlet">
+            <img src="home-middle/outlet.jpg" alt="" width="999" height="428">
+            <div class="body">
+              <p class="big" data-in style="--d:100"><small>Elme Outlet, up to</small>80% off</p>
+              <p class="copy" data-in style="--d:200">End-of-lines, samples and one-off pieces for your floor at our Melbourne outlet. Stockists use it for samples and clearance fills; the public is welcome too.</p>
+              <a class="btn light" href="#o1" data-in style="--d:300">Find Us In-Store</a>
+            </div>
+          </section>
+          <div class="marquee" aria-hidden="true"><div class="track">
+            <span>End-of-lines <i>/</i></span><span>Samples <i>/</i></span><span>One-off pieces <i>/</i></span><span>Up to 80% off <i>/</i></span><span>Melbourne outlet <i>/</i></span>
+            <span>End-of-lines <i>/</i></span><span>Samples <i>/</i></span><span>One-off pieces <i>/</i></span><span>Up to 80% off <i>/</i></span><span>Melbourne outlet <i>/</i></span>
+          </div></div>
+          <section class="s-books">
+            <div class="wrap grid">
+              <div class="left" data-in>
+                <h2 class="h">Curated Catalogues</h2>
+                <p class="copy muted">Plan your next buy with our Lookbook and Virtual Catalogues: style edits and full ranges built for Australian retailers.</p>
+                <a class="link" href="#o1">See All Catalogues <span aria-hidden="true">&rarr;</span></a>
+              </div>
+              <div class="shelf">
+                <a class="book" href="#o1" data-in style="--d:150"><img class="cover" style="--r:-3deg" src="home-middle/lookbook.jpg" alt="" width="900" height="1273"><span class="serif">Lookbook</span></a>
+                <a class="book" href="#o1" data-in style="--d:280"><img class="cover" style="--r:2.5deg" src="home-middle/virtual-catalogues.jpg" alt="" width="620" height="877"><span class="serif">Virtual Catalogues</span></a>
+              </div>
+            </div>
+          </section>
+        </div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="option" aria-labelledby="o2">
+    <div class="option-head">
+      <div><h2 class="t" id="o2">2. Bento</h2><p>The three blocks become one grid of tiles: the welcome, the Outlet, both catalogue covers and a sage catalogue tile; tiles come in one after another and photos zoom a little on hover.</p></div>
+      <button type="button" class="replay" data-replay>Replay</button>
+    </div>
+    <div class="frames" data-variant>
+      <div>
+        <p class="frame-label">Phone</p>
+        <div class="fit"><div class="canvas phone"><div class="stage">
+          <p class="note">Category tiles above.</p>
+          <section class="bento wrap">
+            <div class="tile t-welcome" data-in style="--d:0">
+              <h1 class="h">Wholesale artificial flowers, plants and <em class="accent">home decor</em> for Australian retailers</h1>
+              <p class="copy muted">Log in to see your trade prices (ex GST), or apply for a trade account with your ABN.</p>
+              <div class="actions"><a class="btn" href="#o2">Become a Stockist</a><a class="btn outline" href="#o2">Log in</a></div>
+            </div>
+            <a class="tile t-outlet" href="#o2" data-in style="--d:90">
+              <img src="home-middle/outlet.jpg" alt="" width="999" height="428">
+              <div class="body">
+                <p class="serif">Elme Outlet: up to 80% off</p>
+                <p class="copy" style="opacity:.85">End-of-lines, samples and one-off pieces at our Melbourne outlet.</p>
+                <span class="link">Find Us In-Store <span aria-hidden="true">&rarr;</span></span>
+              </div>
+            </a>
+            <div class="covers2">
+              <a class="tile t-cover c1" href="#o2" data-in style="--d:180"><img src="home-middle/lookbook.jpg" alt="" width="900" height="1273"><span>Lookbook</span></a>
+              <a class="tile t-cover c2" href="#o2" data-in style="--d:270"><img src="home-middle/virtual-catalogues.jpg" alt="" width="620" height="877"><span>Virtual Catalogues</span></a>
+            </div>
+            <a class="tile t-cat" href="#o2" data-in style="--d:360">
+              <p class="serif">Curated Catalogues</p>
+              <p class="copy">Plan your next buy with our Lookbook and Virtual Catalogues: style edits and full ranges built for Australian retailers.</p>
+              <span class="link">See All Catalogues <span aria-hidden="true">&rarr;</span></span>
+            </a>
+          </section>
+        </div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="option" aria-labelledby="o3">
+    <div class="option-head">
+      <div><h2 class="t" id="o3">3. Sticky story</h2><p>On desktop the welcome stays pinned on the left while the Outlet and the two catalogues slide up beside it as cards; on phones it is one column.</p></div>
+      <button type="button" class="replay" data-replay>Replay</button>
+    </div>
+    <div class="frames" data-variant>
+      <div>
+        <p class="frame-label">Phone</p>
+        <div class="fit"><div class="canvas phone"><div class="stage">
+          <p class="note">Category tiles above.</p>
+          <section class="story wrap">
+            <div class="side">
+              <h1 class="h">
+                <span class="line"><span style="--d:0">Wholesale artificial</span></span>
+                <span class="line"><span style="--d:90">flowers, plants and</span></span>
+                <span class="line"><span style="--d:180"><em class="accent">home decor</em> for</span></span>
+                <span class="line"><span style="--d:270">Australian retailers</span></span>
+              </h1>
+              <p class="copy muted" data-in style="--d:380">Elme Living is a wholesale trade site. Log in to see your trade prices (ex GST), or apply for a trade account with your ABN.</p>
+              <div class="actions" data-in style="--d:460"><a class="btn" href="#o3">Become a Stockist</a><a class="btn outline" href="#o3">Log in</a></div>
+            </div>
+            <div class="cards">
+              <a class="card" href="#o3" style="--d:200">
+                <img src="home-middle/outlet.jpg" alt="" width="999" height="428">
+                <div class="body"><p class="serif">Introducing the Elme Outlet</p><p class="copy muted">End-of-lines, samples and one-off pieces for your floor - at up to 80% off - at our Melbourne outlet.</p><span class="link">Find Us In-Store <span aria-hidden="true">&rarr;</span></span></div>
+              </a>
+              <a class="card cover" href="#o3" style="--d:340">
+                <img src="home-middle/lookbook.jpg" alt="" width="900" height="1273">
+                <div class="body"><p class="serif">Lookbook</p><p class="copy muted">Styled rooms and seasonal edits.</p><span class="link">Open <span aria-hidden="true">&rarr;</span></span></div>
+              </a>
+              <a class="card cover" href="#o3" style="--d:480">
+                <img src="home-middle/virtual-catalogues.jpg" alt="" width="620" height="877">
+                <div class="body"><p class="serif">Virtual Catalogues</p><p class="copy muted">Full ranges to browse page by page.</p><span class="link">Open <span aria-hidden="true">&rarr;</span></span></div>
+              </a>
+            </div>
+          </section>
+        </div></div></div>
+      </div>
+    </div>
+  </section>
+  <section class="option" aria-labelledby="oa">
+    <div class="option-head">
+      <div><h2 class="t" id="oa">A. Ranges and big icons</h2><p>Our Difference becomes one strong sentence and the two ranges as chips; the contacts get large icons that act out what they do: the phone rings, the envelope opens while the address types, the pin drops and the ground ripples (also on hover).</p></div>
+      <button type="button" class="replay" data-replay>Replay</button>
+    </div>
+    <div class="frames" data-variant>
+      <div>
+        <p class="frame-label">Phone</p>
+        <div class="fit"><div class="canvas phone"><div class="stage">
+          <section class="diff wrap">
+            <h2 class="lead-s" data-in>Australia's newest wholesaler of artificial flowers, plants and <em class="accent">homewares</em>.</h2>
+            <div class="ranges">
+              <div class="range"><h3>Flora range</h3><ul class="chips"><li style="--i:0">Orchids</li><li style="--i:1">Fiddle Leaf Fig Trees</li><li style="--i:2">Areca Palms</li><li style="--i:3">Bird of Paradise</li><li style="--i:4">Native Botanicals</li><li style="--i:5">Vases and Pots</li></ul></div>
+              <div class="range"><h3>Decorator range</h3><ul class="chips"><li style="--i:0">Wall Art</li><li style="--i:1">Mirrors</li><li style="--i:2">Cushions</li><li style="--i:3">Clocks</li><li style="--i:4">Rugs</li><li style="--i:5">Decorative Items</li><li style="--i:6">Prints</li><li style="--i:7">Elme Living exclusives</li></ul></div>
+            </div>
+            <p class="copy muted" data-in style="--d:300">We pride ourselves on our commitment to sourcing the very best products at affordable prices, to help your customers create their dream spaces.</p>
+          </section>
+            <div class="contact wrap">
+              <h2 class="h" data-in>Need assistance?</h2>
+              <div class="cells">
+                <a class="cell" href="#oa" data-in style="--d:100">
+                  <span class="ico ring"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/><path class="waves" d="M15 2.5a8 8 0 0 1 6.5 6.5M15 6a4.5 4.5 0 0 1 3 3"/></svg></span>
+                  <span><span class="lbl">Call us</span><br><span class="val">(03) 7067 9725</span></span>
+                </a>
+                <a class="cell" href="#oa" data-in style="--d:200">
+                  <span class="ico mail"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path class="flap" d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span>
+                  <span><span class="lbl">Email us</span><br><span class="val" aria-label="hello@elmeliving.com"><span data-type="hello@elmeliving.com" aria-hidden="true">hello@elmeliving.com</span><span class="caret" aria-hidden="true"></span></span></span>
+                </a>
+                <a class="cell" href="#oa" data-in style="--d:300">
+                  <span class="ico pin"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="drop"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></g></svg><span class="ripple" aria-hidden="true"></span></span>
+                  <span><span class="lbl">Visit our Showroom</span><br><span class="val">1 Apollo Court<br>Blackburn VIC 3130</span></span>
+                </a>
+              </div>
+            </div>
+        </div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="option" aria-labelledby="ob">
+    <div class="option-head">
+      <div><h2 class="t" id="ob">B. Quote and dark contact band</h2><p>Our Difference as a centred quote with the full text under it; the contacts sit on a dark band, white icons with the same ring, type and drop.</p></div>
+      <button type="button" class="replay" data-replay>Replay</button>
+    </div>
+    <div class="frames" data-variant>
+      <div>
+        <p class="frame-label">Phone</p>
+        <div class="fit"><div class="canvas phone"><div class="stage">
+          <section class="quote wrap">
+            <h2 class="q" data-in>Australia's newest wholesaler of artificial flowers, plants and <em class="accent">homewares</em>.</h2>
+            <p class="copy muted" data-in style="--d:150">Our extensive 'Flora' range is designed to suit all your needs and includes Orchids, Fiddle Leaf Fig Trees, Areca Palms, Bird of Paradise, and Native Botanicals alongside complementary Vases and Pots of every shape and size. Our 'Decorator' range includes Wall Art, Mirrors, Cushions, Clocks, Rugs, Decorative Items, Prints, and Elme Living exclusives that will add a touch of style to any home or office. We pride ourselves on our commitment to sourcing the very best products at affordable prices, to help your customers create their dream spaces.</p>
+          </section>
+          <section class="band">
+            <div class="contact wrap">
+              <h2 class="h" data-in>Need assistance?</h2>
+              <div class="cells">
+                <a class="cell" href="#ob" data-in style="--d:100">
+                  <span class="ico ring"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/><path class="waves" d="M15 2.5a8 8 0 0 1 6.5 6.5M15 6a4.5 4.5 0 0 1 3 3"/></svg></span>
+                  <span><span class="lbl">Call us</span><br><span class="val">(03) 7067 9725</span></span>
+                </a>
+                <a class="cell" href="#ob" data-in style="--d:200">
+                  <span class="ico mail"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path class="flap" d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span>
+                  <span><span class="lbl">Email us</span><br><span class="val" aria-label="hello@elmeliving.com"><span data-type="hello@elmeliving.com" aria-hidden="true">hello@elmeliving.com</span><span class="caret" aria-hidden="true"></span></span></span>
+                </a>
+                <a class="cell" href="#ob" data-in style="--d:300">
+                  <span class="ico pin"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="drop"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></g></svg><span class="ripple" aria-hidden="true"></span></span>
+                  <span><span class="lbl">Visit our Showroom</span><br><span class="val">1 Apollo Court<br>Blackburn VIC 3130</span></span>
+                </a>
+              </div>
+            </div>
+          </section>
+        </div></div></div>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+(function () {
+  document.querySelectorAll('[data-variant]').forEach(function (frames) {
+    var desk = frames.firstElementChild.cloneNode(true);
+    desk.querySelector('.frame-label').textContent = 'Wide screen';
+    var canvas = desk.querySelector('.canvas');
+    canvas.classList.remove('phone');
+    canvas.classList.add('desk');
+    desk.querySelectorAll('h1').forEach(function (h) {
+      var h2 = document.createElement('h2');
+      h2.className = h.className;
+      h2.innerHTML = h.innerHTML;
+      h.replaceWith(h2);
+    });
+    frames.appendChild(desk);
+  });
+
+  function fit() {
+    document.querySelectorAll('.fit').forEach(function (box) {
+      var canvas = box.firstElementChild;
+      canvas.style.transform = '';
+      var scale = Math.min(1, box.clientWidth / canvas.offsetWidth);
+      canvas.style.transform = scale < 1 ? 'scale(' + scale + ')' : '';
+      box.style.height = Math.ceil(canvas.offsetHeight * scale) + 'px';
+    });
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('load', fit);
+  fit();
+
+
+  // Email: type the address once the frame plays (and again on hover); the full text stays in aria-label.
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function type(el) {
+    if (reduce) { return; }
+    var text = el.getAttribute('data-type');
+    clearInterval(el._t);
+    el.textContent = '';
+    var i = 0;
+    el._t = setInterval(function () {
+      i += 1;
+      el.textContent = text.slice(0, i);
+      if (i >= text.length) { clearInterval(el._t); }
+    }, 55);
+  }
+  document.querySelectorAll('[data-type]').forEach(function (el) {
+    var cell = el.closest('.cell');
+    cell.addEventListener('mouseenter', function () { type(el); });
+  });
+  function play(stage) {
+    stage.classList.remove('play');
+    void stage.offsetWidth;
+    stage.classList.add('play');
+    stage.querySelectorAll('[data-type]').forEach(function (el) { setTimeout(function () { type(el); }, 500); });
+  }
+  var stages = document.querySelectorAll('.stage');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) { play(entry.target); io.unobserve(entry.target); }
+      });
+    }, { threshold: 0.25 });
+    stages.forEach(function (stage) { io.observe(stage); });
+  } else {
+    stages.forEach(function (stage) { stage.classList.add('play'); });
+  }
+  document.querySelectorAll('[data-replay]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      button.closest('.option').querySelectorAll('.stage').forEach(play);
+    });
+  });
+})();
+</script>
+</body>
+</html>
