@@ -116,6 +116,18 @@ class HeroTest extends TestCase
         $this->assertSame(['', '', '/x'], array_column($slides, 'button_link'));
     }
 
+    public function testHeadingLinesAndTone(): void
+    {
+        $slides = $this->hero()->getSlides(['slides' => [
+            ['image_desktop' => '/media/hero/wide.png', 'heading' => "Artificial Flowers\r\n& Plants\n\n", 'tone' => 'light'],
+            ['image_desktop' => '/media/hero/wide.png', 'heading' => 'One line', 'tone' => 'sepia'],
+        ]]);
+
+        $this->assertSame(['Artificial Flowers', '& Plants'], $slides[0]['lines']);
+        $this->assertSame(['One line'], $slides[1]['lines']);
+        $this->assertSame(['light', 'dark'], array_column($slides, 'tone'));
+    }
+
     #[DataProvider('autoplayProvider')]
     public function testAutoplayInterval(array $content, int $expected): void
     {

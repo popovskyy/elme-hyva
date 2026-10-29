@@ -1,8 +1,11 @@
 <?php
 /**
- * Content Studio type `usp_strip` (etc/content_types.xml, FE-16): Become a Stockist benefits —
+ * Content Studio type `usp_strip` (etc/content_types.xml, FE-16): Become a Stockist benefits -
  * image left, heading + trade-fact rows + CTA right. Guests get Create An Account; logged-in
- * customers get My Account (same FPC split as HideForLoggedIn). Server-rendered, no JS.
+ * customers get My Account (same FPC split as HideForLoggedIn). Server-rendered.
+ * With image_2 and image_3 the image becomes a three-photo collage ("Collage" in
+ * docs/design/hero-wow-options.html): the photos fall into place when the section scrolls in and
+ * shift with a fine pointer at different depths (Elme_Theme::home-motion.phtml, home-motion.css).
  *
  * @var \Bart\ContentStudio\Block\Entry $block
  * @var \Magento\Framework\Escaper $escaper
@@ -22,6 +25,7 @@ $content = $block->getContent();
 $heading = $usp->getHeading($content);
 $image = $usp->getImage($content);
 $items = $usp->getItems($content);
+$collage = $usp->getCollage($content);
 
 if ($heading === '' || $image === null || !$items) {
     return;
@@ -49,21 +53,42 @@ $hasImageLink = $guestButton !== null && !$loginOnly->isLoggedIn();
 <section class="elme-usp-strip -mx-(--entry-bleed) mb-10 flex flex-col lg:mb-30 lg:flex-row"
          aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
     <div class="mb-6 lg:mb-0 lg:w-1/2 lg:shrink-0">
-        <?php if ($hasImageLink): ?>
-            <a href="<?= $escaper->escapeUrl($guestButton['link']) ?>"
-               tabindex="-1"
-               aria-hidden="true"
-               class="block">
-        <?php endif; ?>
-        <img src="<?= $escaper->escapeUrl($image['src']) ?>"
-             alt="<?= $escaper->escapeHtmlAttr($image['alt']) ?>"
-             width="<?= (int)$image['width'] ?>"
-             height="<?= (int)$image['height'] ?>"
-             loading="lazy"
-             decoding="async"
-             class="block h-auto w-full">
-        <?php if ($hasImageLink): ?>
-            </a>
+        <?php if ($collage): ?>
+            <div class="elme-collage" data-depth-stage>
+                <div class="elme-collage__layer" data-depth="10">
+                    <img src="<?= $escaper->escapeUrl($collage[1]['src']) ?>" alt=""
+                         width="<?= (int)$collage[1]['width'] ?>" height="<?= (int)$collage[1]['height'] ?>"
+                         loading="lazy" decoding="async" class="elme-collage__card elme-collage__card--back">
+                </div>
+                <div class="elme-collage__layer" data-depth="22">
+                    <img src="<?= $escaper->escapeUrl($image['src']) ?>"
+                         alt="<?= $escaper->escapeHtmlAttr($image['alt']) ?>"
+                         width="<?= (int)$image['width'] ?>" height="<?= (int)$image['height'] ?>"
+                         loading="lazy" decoding="async" class="elme-collage__card elme-collage__card--main">
+                </div>
+                <div class="elme-collage__layer" data-depth="34">
+                    <img src="<?= $escaper->escapeUrl($collage[0]['src']) ?>" alt=""
+                         width="<?= (int)$collage[0]['width'] ?>" height="<?= (int)$collage[0]['height'] ?>"
+                         loading="lazy" decoding="async" class="elme-collage__card elme-collage__card--front">
+                </div>
+            </div>
+        <?php else: ?>
+            <?php if ($hasImageLink): ?>
+                <a href="<?= $escaper->escapeUrl($guestButton['link']) ?>"
+                   tabindex="-1"
+                   aria-hidden="true"
+                   class="block">
+            <?php endif; ?>
+            <img src="<?= $escaper->escapeUrl($image['src']) ?>"
+                 alt="<?= $escaper->escapeHtmlAttr($image['alt']) ?>"
+                 width="<?= (int)$image['width'] ?>"
+                 height="<?= (int)$image['height'] ?>"
+                 loading="lazy"
+                 decoding="async"
+                 class="block h-auto w-full">
+            <?php if ($hasImageLink): ?>
+                </a>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
     <div class="flex flex-col justify-center px-5 text-center

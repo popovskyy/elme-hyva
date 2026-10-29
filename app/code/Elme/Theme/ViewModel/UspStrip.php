@@ -63,6 +63,31 @@ class UspStrip implements ArgumentInterface
     }
 
     /**
+     * Extra photos (image_2, image_3) that turn the side image into a three-photo collage. The
+     * collage needs both; with one or none the template shows the single image.
+     *
+     * @param array<string, mixed> $content
+     * @return list<array{src: string, width: int, height: int}>
+     */
+    public function getCollage(array $content): array
+    {
+        $images = [];
+
+        foreach (['image_2', 'image_3'] as $key) {
+            $src = $this->text($content, $key);
+
+            if ($src === '') {
+                return [];
+            }
+
+            [$width, $height] = $this->readSize($src) ?? self::IMAGE_SIZE;
+            $images[] = ['src' => $src, 'width' => $width, 'height' => $height];
+        }
+
+        return $images;
+    }
+
+    /**
      * @param array<string, mixed> $content
      * @return list<array{title: string, text: string}>
      */

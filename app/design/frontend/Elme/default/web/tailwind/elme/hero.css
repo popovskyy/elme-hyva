@@ -1,6 +1,5 @@
 /*
- * FE-14 hero (Elme_Theme content-type/hero.phtml). The layout is Tailwind in the template; this file only
- * holds what a template cannot say about the page around it.
+ * FE-14 hero (Elme_Theme content-type/hero.phtml), "Cinema" from docs/design/hero-wow-options.html.
  *
  * On the home page the hero is the top banner and sits right under the header, as on production.
  * Banner-breadcrumbs pages get the same from their breadcrumbs. Unlayered, like the .page-main margin in
@@ -10,23 +9,216 @@
     margin-top: 0;
 }
 
+/* White button on dark photos, sage on hover like btn-primary. Unlayered: it has to win over the
+   defaults the btn utility sets on itself. */
+.elme-hero__btn {
+    --btn-stroke: var(--color-surface);
+    --btn-bg: var(--color-surface);
+    --btn-color: var(--color-ink);
+    --btn-hover-stroke: var(--color-secondary);
+    --btn-hover-bg: var(--color-secondary);
+    --btn-hover-color: var(--color-on-secondary);
+    --btn-active-stroke: transparent;
+    --btn-active-bg: var(--color-surface);
+    --btn-active-color: var(--color-ink);
+}
+
 @layer components {
-    /* Photo box at the recommended upload ratio (hero field hints in content_types.xml), so a photo
-       uploaded at that size is shown whole. The slider controls use the same box to sit on the photo. */
+    .elme-hero {
+        --hero-pad: max(var(--entry-bleed), var(--container-gutter));
+
+        @variant md {
+            --hero-pad: max(var(--entry-bleed), var(--container-gutter-desktop));
+        }
+    }
+
+    /* Tall photo: 4:5 on phones, 2:1 from md, never taller than 82% of the screen. */
     .elme-hero__media {
-        aspect-ratio: 3 / 2;
+        aspect-ratio: 4 / 5;
 
         @variant md {
-            aspect-ratio: 2720 / 882;
+            aspect-ratio: 2 / 1;
+            max-height: 82svh;
+            width: 100%;
         }
     }
 
-    /* Copy under the photo lines up with the page container, also where the hero cannot bleed. */
+    /* Fade behind the copy: from the bottom on phones, from the left from md. */
+    .elme-hero__media::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(
+            to top,
+            color-mix(in oklab, var(--color-ink) 94%, transparent) 0%,
+            color-mix(in oklab, var(--color-ink) 82%, transparent) 48%,
+            color-mix(in oklab, var(--color-ink) 30%, transparent) 74%,
+            transparent 88%
+        );
+
+        @variant md {
+            background: linear-gradient(
+                90deg,
+                color-mix(in oklab, var(--color-ink) 88%, transparent) 0%,
+                color-mix(in oklab, var(--color-ink) 60%, transparent) 40%,
+                transparent 66%
+            );
+        }
+    }
+
+    .elme-hero__slide--light .elme-hero__media::after {
+        background: linear-gradient(
+            to top,
+            color-mix(in oklab, var(--color-page) 96%, transparent) 0%,
+            color-mix(in oklab, var(--color-page) 86%, transparent) 50%,
+            transparent 86%
+        );
+
+        @variant md {
+            background: linear-gradient(
+                90deg,
+                color-mix(in oklab, var(--color-page) 92%, transparent) 0%,
+                color-mix(in oklab, var(--color-page) 70%, transparent) 40%,
+                transparent 66%
+            );
+        }
+    }
+
     .elme-hero__copy {
-        padding-inline: max(var(--entry-bleed), var(--container-gutter));
+        padding: 0 var(--hero-pad) --spacing(7);
 
         @variant md {
-            padding-inline: max(var(--entry-bleed), var(--container-gutter-desktop));
+            top: 0;
+            display: flex;
+            align-items: flex-end;
+            width: 58%;
+            padding-bottom: --spacing(14);
         }
     }
+
+    .elme-hero__heading {
+        font-size: var(--text-title-section);
+        line-height: var(--text-title-section--line-height);
+
+        @variant md {
+            font-size: var(--text-title-section-desktop);
+            line-height: var(--text-title-section-desktop--line-height);
+        }
+
+        @variant xl {
+            font-size: var(--text-h1-desktop);
+            line-height: 1.07;
+        }
+    }
+
+    /* One mask per heading line; the text inside rises out of it. */
+    .elme-hero__line {
+        display: block;
+        overflow: hidden;
+        padding-bottom: 0.08em;
+    }
+
+    .elme-hero__line > span {
+        display: block;
+    }
+
+    /* Copy takes the slide colour (white on dark photos), not the base h2 / p colours. */
+    .elme-hero__heading,
+    .elme-hero__copy p {
+        color: inherit;
+    }
+
+
+    .elme-hero__controls {
+        top: --spacing(3);
+        right: --spacing(3);
+
+        @variant md {
+            top: auto;
+            right: var(--hero-pad);
+            bottom: --spacing(14);
+        }
+    }
+
+    .elme-hero__bar > i {
+        transform: scaleX(0);
+        transform-origin: left;
+    }
+
+    .elme-hero__bar > i.is-running {
+        animation: elme-hero-bar linear forwards;
+    }
+
+    /* Entrance of the current slide: photo settles, then drifts; heading lines rise one after another;
+       text and button follow. Slide 1 is .is-current in the HTML, so it plays on load without JS. */
+    @media (prefers-reduced-motion: no-preference) {
+        .elme-hero__slide.is-current .elme-hero__img {
+            animation: elme-hero-settle 1600ms var(--ease-out-quint) both;
+        }
+
+        .elme-hero__slide.is-current .elme-hero__drift {
+            animation: elme-hero-drift 14s linear 1600ms both;
+        }
+
+        .elme-hero__slide.is-current .elme-hero__line > span {
+            animation: elme-hero-line 800ms var(--ease-out-quint) both;
+            animation-delay: 250ms;
+        }
+
+        .elme-hero__slide.is-current .elme-hero__line:nth-child(2) > span {
+            animation-delay: 340ms;
+        }
+
+        .elme-hero__slide.is-current .elme-hero__line:nth-child(3) > span {
+            animation-delay: 430ms;
+        }
+
+        .elme-hero__slide.is-current .elme-hero__line:nth-child(n + 4) > span {
+            animation-delay: 520ms;
+        }
+
+        .elme-hero__slide.is-current .elme-hero__rise {
+            animation: elme-hero-rise 700ms var(--ease-out-quint) 560ms both;
+        }
+
+        .elme-hero__slide.is-current .elme-hero__rise + .elme-hero__rise {
+            animation-delay: 630ms;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .elme-hero__slide.is-current .elme-hero__copy {
+            animation: elme-fade var(--transition-duration-slow) ease both;
+        }
+    }
+}
+
+@keyframes elme-hero-settle {
+    from { transform: scale(1.12); }
+    to { transform: scale(1); }
+}
+
+@keyframes elme-hero-drift {
+    from { transform: scale(1); }
+    to { transform: scale(1.05); }
+}
+
+@keyframes elme-hero-line {
+    from { transform: translateY(105%); }
+    to { transform: none; }
+}
+
+@keyframes elme-hero-rise {
+    from { opacity: 0; transform: translateY(calc(var(--spacing) * 4)); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes elme-hero-bar {
+    to { transform: scaleX(1); }
+}
+
+@keyframes elme-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }

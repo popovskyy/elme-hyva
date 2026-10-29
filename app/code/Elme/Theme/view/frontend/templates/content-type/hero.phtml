@@ -1,17 +1,18 @@
 <?php
 /**
- * Content Studio type `hero` (etc/content_types.xml, FE-14): full-width photo with nothing over it,
- * then the heading (left) and text + button (right) on the page colour under it; stacked on phones
- * (docs/design/homepage-options.html, A2). The photo box has the recommended image ratio (3:2 phone,
- * 2720:882 from md), so a photo uploaded at that size is shown whole.
- * One slide is a plain banner with no JS; two to five become a slider (initElmeHero below); its
- * controls sit on the bottom right of the photo.
+ * Content Studio type `hero` (etc/content_types.xml, FE-14): "Cinema" (docs/design/hero-wow-options.html,
+ * 1). A tall full-bleed photo (4:5 on phones, 2:1 from md, capped at 82% of the screen height) with the
+ * heading, text and button on its dark side. Each slide tone says whether the photo is dark (white
+ * text on a dark fade) or light (ink text on a light fade).
+ *
+ * When a slide shows, its photo settles from 112% and then drifts very slowly, and the heading rises
+ * line by line out of a mask (one line per line break in the Heading field); all in hero.css, so
+ * slide 1 plays on page load with no JS and never starts hidden. Reduced motion: a plain fade.
  *
  * Every slide is rendered here, copy included, so crawlers that run no JS read all of them. The
  * track is a CSS scroll-snap row: before Alpine starts it already shows slide 1 and swipes on touch.
- * Alpine only scrolls it, autoplays, marks the current dot and makes the hidden slides inert.
- *
- * Bleeds into the container gutters like promo_split (--entry-bleed, content-studio.css).
+ * Alpine scrolls it, autoplays with a progress bar, marks the current slide and makes the hidden
+ * slides inert. Bleeds into the container gutters like promo_split (--entry-bleed, content-studio.css).
  *
  * @var \Bart\ContentStudio\Block\Entry $block
  * @var \Magento\Framework\Escaper $escaper
@@ -42,7 +43,7 @@ $isPageTitle = $heroViewModel->isPageTitle($content);
 $heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
 ?>
 <section id="<?= $escaper->escapeHtmlAttr($heroId) ?>"
-         class="elme-hero relative -mx-(--entry-bleed) mb-10 lg:mb-15"
+         class="elme-hero relative -mx-(--entry-bleed) mb-10 overflow-hidden bg-ink lg:mb-15"
     <?php if ($isSlider): ?>
          aria-roledescription="carousel"
          aria-label="<?= $escaper->escapeHtmlAttr(__('Highlights')) ?>"
@@ -68,6 +69,7 @@ $heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier())
             <?php
             $number = $index + 1;
             $isFirst = $index === 0;
+            $isLight = $slide['tone'] === 'light';
             $headingTag = $isPageTitle && $isFirst ? 'h1' : 'h2';
             $headingId = $heroId . '-heading-' . $number;
             $desktop = $slide['desktop'];
@@ -75,7 +77,9 @@ $heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier())
             $hasButton = $slide['button_link'] !== '';
             $mediaTag = $hasButton ? 'a' : 'div';
             ?>
-            <div class="flex w-full shrink-0 snap-start snap-always flex-col"
+            <div class="elme-hero__slide relative w-full shrink-0 snap-start snap-always
+                        <?= $isFirst ? 'is-current' : '' ?>
+                        <?= $isLight ? 'elme-hero__slide--light text-ink' : 'text-on-primary' ?>"
                 <?php if ($isSlider): ?>
                  role="group"
                  aria-roledescription="slide"
@@ -88,48 +92,52 @@ $heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier())
                     <?php // Same destination as the button, so it is skipped by keyboard and screen readers. ?>
                     href="<?= $escaper->escapeUrl($slide['button_link']) ?>" tabindex="-1" aria-hidden="true"
                     <?php endif; ?>
-                    class="elme-hero__media relative block overflow-hidden bg-sand-light">
-                    <picture>
-                        <?php if ($slide['mobile']): ?>
-                            <source media="(min-width: 768px)"
-                                    srcset="<?= $escaper->escapeUrl($desktop['src']) ?>"
-                                    width="<?= (int)$desktop['width'] ?>"
-                                    height="<?= (int)$desktop['height'] ?>">
-                        <?php endif; ?>
-                        <img src="<?= $escaper->escapeUrl($fallback['src']) ?>"
-                             alt="<?= $escaper->escapeHtmlAttr($slide['alt']) ?>"
-                             width="<?= (int)$fallback['width'] ?>"
-                             height="<?= (int)$fallback['height'] ?>"
-                            <?php if ($isFirst): ?>
-                             loading="eager"
-                             fetchpriority="high"
-                            <?php else: ?>
-                             loading="lazy"
-                             decoding="async"
+                    class="elme-hero__media relative block overflow-hidden bg-ink">
+                    <span class="elme-hero__drift block size-full">
+                        <picture>
+                            <?php if ($slide['mobile']): ?>
+                                <source media="(min-width: 768px)"
+                                        srcset="<?= $escaper->escapeUrl($desktop['src']) ?>"
+                                        width="<?= (int)$desktop['width'] ?>"
+                                        height="<?= (int)$desktop['height'] ?>">
                             <?php endif; ?>
-                             class="absolute inset-0 size-full object-cover">
-                    </picture>
+                            <img src="<?= $escaper->escapeUrl($fallback['src']) ?>"
+                                 alt="<?= $escaper->escapeHtmlAttr($slide['alt']) ?>"
+                                 width="<?= (int)$fallback['width'] ?>"
+                                 height="<?= (int)$fallback['height'] ?>"
+                                <?php if ($isFirst): ?>
+                                 loading="eager"
+                                 fetchpriority="high"
+                                <?php else: ?>
+                                 loading="lazy"
+                                 decoding="async"
+                                <?php endif; ?>
+                                 class="elme-hero__img size-full object-cover">
+                        </picture>
+                    </span>
                 </<?= /* @noEscape */ $mediaTag ?>>
-                <div class="elme-hero__copy grid gap-4 pt-6 md:grid-cols-2 md:items-end md:gap-x-16 md:pt-8">
-                    <<?= /* @noEscape */ $headingTag ?> id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-                        class="text-title-section text-balance text-ink lg:text-title-section-desktop">
-                        <?= nl2br($escaper->escapeHtml($slide['heading']), false) ?>
-                    </<?= /* @noEscape */ $headingTag ?>>
-                    <?php if ($slide['text'] !== '' || $hasButton): ?>
-                        <div class="grid justify-items-start gap-5 lg:gap-6">
-                            <?php if ($slide['text'] !== ''): ?>
-                                <p class="max-w-120 text-copy text-pretty text-ink lg:text-copy-desktop">
-                                    <?= nl2br($escaper->escapeHtml($slide['text']), false) ?>
-                                </p>
-                            <?php endif; ?>
-                            <?php if ($hasButton): ?>
+                <div class="elme-hero__copy pointer-events-none absolute inset-x-0 bottom-0 z-1">
+                    <div class="grid max-w-150 gap-4 lg:gap-5">
+                        <<?= /* @noEscape */ $headingTag ?> id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+                            class="elme-hero__heading font-heading font-normal">
+                            <?php foreach ($slide['lines'] as $line): ?>
+                                <span class="elme-hero__line"><span><?= $escaper->escapeHtml($line) ?></span></span>
+                            <?php endforeach; ?>
+                        </<?= /* @noEscape */ $headingTag ?>>
+                        <?php if ($slide['text'] !== ''): ?>
+                            <p class="elme-hero__rise max-w-110 text-copy text-pretty lg:text-copy-desktop">
+                                <?= nl2br($escaper->escapeHtml($slide['text']), false) ?>
+                            </p>
+                        <?php endif; ?>
+                        <?php if ($hasButton): ?>
+                            <div class="elme-hero__rise pointer-events-auto">
                                 <a href="<?= $escaper->escapeUrl($slide['button_link']) ?>"
-                                   class="btn btn-primary w-full sm:w-auto sm:min-w-54">
+                                   class="btn <?= $isLight ? 'btn-primary' : 'elme-hero__btn' ?> w-full sm:w-auto sm:min-w-54">
                                     <?= $escaper->escapeHtml($slide['button_label']) ?>
                                 </a>
-                            <?php endif; ?>
-                        </div>
-                    <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         <?php endforeach; ?>
@@ -143,53 +151,41 @@ $heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier())
         $controlClass = 'flex size-11 items-center justify-center text-on-primary hover:opacity-80
                          focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-on-primary';
         ?>
-        <?php // A box the size of the photo, so the controls sit on its bottom right whatever the copy height. ?>
-        <div class="elme-hero__media pointer-events-none absolute inset-x-0 top-0 flex items-end justify-end
-                    p-3 md:p-(--entry-bleed)">
-        <div x-ref="controls" class="pointer-events-auto invisible flex items-center bg-ink/60 px-1">
-            <?php // Phones swipe; the arrows join from md. ?>
-            <button type="button"
-                    class="<?= /* @noEscape */ $controlClass ?> max-md:hidden"
-                    aria-label="<?= $escaper->escapeHtmlAttr(__('Previous slide')) ?>"
-                    aria-controls="<?= $escaper->escapeHtmlAttr($heroId . '-slides') ?>"
-                    @click="prev">
-                <?= $lucideIcons->chevronLeftHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
-            </button>
-            <div class="flex items-center">
-                <?php for ($index = 0; $index < $count; $index++): ?>
-                    <button type="button"
-                            class="group flex h-11 items-center px-1.5
-                                   focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-on-primary"
-                            aria-label="<?= $escaper->escapeHtmlAttr(__('Go to slide %1', $index + 1)) ?>"
-                            aria-current="<?= $index === 0 ? 'true' : 'false' ?>"
-                            data-index="<?= (int)$index ?>"
-                            :aria-current="dotCurrent"
-                            @click="goToDot">
-                        <span class="block h-0.5 w-5 bg-on-primary/50 transition-[width,background-color]
-                                     duration-(--transition-duration-slow) ease-out-quart group-hover:bg-on-primary/80
-                                     group-aria-[current=true]:w-8 group-aria-[current=true]:bg-on-primary
-                                     motion-reduce:transition-none"></span>
-                    </button>
-                <?php endfor; ?>
-            </div>
-            <button type="button"
-                    class="<?= /* @noEscape */ $controlClass ?> max-md:hidden"
-                    aria-label="<?= $escaper->escapeHtmlAttr(__('Next slide')) ?>"
-                    aria-controls="<?= $escaper->escapeHtmlAttr($heroId . '-slides') ?>"
-                    @click="next">
-                <?= $lucideIcons->chevronRightHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
-            </button>
+        <?php // Top right on phones (the copy fills the bottom), bottom right from md. Invisible until Alpine starts. ?>
+        <div x-ref="controls"
+             class="elme-hero__controls invisible absolute z-2 flex items-center gap-3 bg-ink/60 pl-4">
+            <span class="text-note font-bold tracking-wider text-on-primary tabular-nums" aria-hidden="true"
+                  x-text="counter"><?= sprintf('01 / %02d', $count) ?></span>
             <?php if ($interval): ?>
+                <span class="elme-hero__bar relative block h-0.5 w-16 overflow-hidden bg-on-primary/35 md:w-24"
+                      aria-hidden="true"><i x-ref="bar" class="absolute inset-0 bg-on-primary"></i></span>
+            <?php endif; ?>
+            <div class="flex items-center">
+                <button type="button"
+                        class="<?= /* @noEscape */ $controlClass ?> max-md:hidden"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Previous slide')) ?>"
+                        aria-controls="<?= $escaper->escapeHtmlAttr($heroId . '-slides') ?>"
+                        @click="prev">
+                    <?= $lucideIcons->chevronLeftHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+                </button>
                 <button type="button"
                         class="<?= /* @noEscape */ $controlClass ?>"
-                        aria-label="<?= $escaper->escapeHtmlAttr(__('Pause slideshow')) ?>"
-                        :aria-label="playLabel"
-                        @click="togglePlay">
-                    <span x-show="playing"><?= $lucideIcons->pauseHtml('', 18, 18, ['aria-hidden' => 'true']) ?></span>
-                    <span x-show="isStopped"><?= $lucideIcons->playHtml('', 18, 18, ['aria-hidden' => 'true']) ?></span>
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Next slide')) ?>"
+                        aria-controls="<?= $escaper->escapeHtmlAttr($heroId . '-slides') ?>"
+                        @click="next">
+                    <?= $lucideIcons->chevronRightHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
                 </button>
-            <?php endif; ?>
-        </div>
+                <?php if ($interval): ?>
+                    <button type="button"
+                            class="<?= /* @noEscape */ $controlClass ?>"
+                            aria-label="<?= $escaper->escapeHtmlAttr(__('Pause slideshow')) ?>"
+                            :aria-label="playLabel"
+                            @click="togglePlay">
+                        <span x-show="playing"><?= $lucideIcons->pauseHtml('', 18, 18, ['aria-hidden' => 'true']) ?></span>
+                        <span x-show="isStopped"><?= $lucideIcons->playHtml('', 18, 18, ['aria-hidden' => 'true']) ?></span>
+                    </button>
+                <?php endif; ?>
+            </div>
         </div>
         <script>
             function initElmeHero() {
@@ -267,10 +263,12 @@ $heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier())
                         this.schedule();
                     },
 
-                    // Off-screen slides leave the tab order and the accessibility tree.
+                    // Off-screen slides leave the tab order and the accessibility tree; the current one
+                    // replays its entrance (hero.css keys it on .is-current).
                     markSlides() {
                         this.slides().forEach((slide, i) => {
                             slide.inert = i !== this.index;
+                            slide.classList.toggle('is-current', i === this.index);
                         });
                     },
 
@@ -305,12 +303,38 @@ $heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier())
                         this.schedule();
                     },
 
+                    // The progress bar runs only while a slide change is scheduled and starts over with it.
                     schedule() {
                         clearTimeout(this.timer);
+                        this.timer = null;
 
                         if (this.playing && !this.hovered && !this.focused && !document.hidden) {
                             this.timer = setTimeout(() => this.next(), this.interval);
                         }
+
+                        this.restartBar();
+                    },
+
+                    restartBar() {
+                        const bar = this.$refs.bar;
+
+                        if (!bar) {
+                            return;
+                        }
+
+                        bar.classList.remove('is-running');
+
+                        if (this.timer && !this.reduceMotion) {
+                            bar.style.animationDuration = this.interval + 'ms';
+                            void bar.offsetWidth;
+                            bar.classList.add('is-running');
+                        }
+                    },
+
+                    counter() {
+                        const pad = (n) => String(n).padStart(2, '0');
+
+                        return pad(this.index + 1) + ' / ' + pad(this.count);
                     },
 
                     isStopped() {

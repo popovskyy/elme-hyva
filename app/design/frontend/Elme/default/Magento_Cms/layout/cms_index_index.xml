@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<!-- FE-13: shared CMS blocks above the footer on the home page (also on PDP / styleguide). -->
+<!-- FE-13: shared CMS blocks above the footer on the home page (also on PDP / styleguide).
+     Home scroll motion: Magento_Theme::html/home-motion.phtml. -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
@@ -18,6 +19,11 @@
                     <argument name="block_id" xsi:type="string">need_assistance</argument>
                 </arguments>
             </block>
+        </referenceContainer>
+        <referenceContainer name="before.body.end">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.home.motion"
+                   template="Magento_Theme::html/home-motion.phtml"/>
         </referenceContainer>
     </body>
 </page>

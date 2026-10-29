@@ -1,0 +1,94 @@
+<?php
+/**
+ * Home page scroll motion (styles in web/tailwind/elme/home-motion.css). Marks the homepage sections
+ * and the items inside them, shows what is already on screen, and reveals the rest once as it
+ * scrolls in. Also moves the usp_strip collage layers with a fine pointer. Without this script, or
+ * without IntersectionObserver, nothing is hidden.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<script>
+    (() => {
+        const main = document.querySelector('#maincontent');
+
+        if (!main || !('IntersectionObserver' in window)) {
+            return;
+        }
+
+        const sections = main.querySelectorAll(
+            '.elme-category-tiles, .elme-welcome-cta, .elme-promo-split, .elme-catalogue-covers,'
+            + ' .elme-usp-strip, .elme-our-difference, .elme-need-assistance, .elme-collage'
+        );
+        const groups = '.elme-catalogue-covers li, .elme-usp-strip__items li, .elme-need-assistance__cell';
+        const targets = [];
+
+        sections.forEach((section) => {
+            if (!section.classList.contains('elme-collage')) {
+                section.setAttribute('data-reveal', '');
+            }
+            targets.push(section);
+        });
+        main.querySelectorAll(groups).forEach((item) => {
+            item.setAttribute('data-reveal', '');
+            item.style.setProperty('--i', String(Array.prototype.indexOf.call(item.parentElement.children, item)));
+            targets.push(item);
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-in');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {rootMargin: '0px 0px -8% 0px', threshold: 0.12});
+
+        targets.forEach((target) => {
+            if (target.getBoundingClientRect().top < window.innerHeight) {
+                target.classList.add('is-in');
+            } else {
+                observer.observe(target);
+            }
+        });
+        document.documentElement.classList.add('elme-motion');
+
+        const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (!finePointer || reduceMotion) {
+            return;
+        }
+
+        main.querySelectorAll('[data-depth-stage]').forEach((stage) => {
+            const layers = stage.querySelectorAll('[data-depth]');
+            const area = stage.closest('section') || stage;
+
+            area.addEventListener('pointermove', (event) => {
+                const rect = stage.getBoundingClientRect();
+                const x = (event.clientX - rect.left) / rect.width - 0.5;
+                const y = (event.clientY - rect.top) / rect.height - 0.5;
+
+                layers.forEach((layer) => {
+                    const depth = Number(layer.dataset.depth);
+                    layer.style.transform = `translate(${(x * depth).toFixed(1)}px, ${(y * depth).toFixed(1)}px)`;
+                });
+            });
+            area.addEventListener('pointerleave', () => {
+                layers.forEach((layer) => {
+                    layer.style.transform = '';
+                });
+            });
+        });
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

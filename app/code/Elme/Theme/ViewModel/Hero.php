@@ -24,9 +24,12 @@ class Hero implements ArgumentInterface
 {
     public const MAX_SLIDES = 5;
 
-    public const DESKTOP_SIZE = [2720, 882];
+    public const DESKTOP_SIZE = [2400, 1200];
 
-    public const MOBILE_SIZE = [780, 520];
+    public const MOBILE_SIZE = [900, 1125];
+
+    /** Light photos get dark text on a light fade; dark photos (the default) white text on a dark one. */
+    public const TONES = ['dark', 'light'];
 
     private const INTERVAL_DEFAULT = 7;
 
@@ -51,9 +54,11 @@ class Hero implements ArgumentInterface
      *     mobile: array{src: string, width: int, height: int}|null,
      *     alt: string,
      *     heading: string,
+     *     lines: list<string>,
      *     text: string,
      *     button_label: string,
-     *     button_link: string
+     *     button_link: string,
+     *     tone: string
      * }>
      */
     public function getSlides(array $content): array
@@ -76,15 +81,18 @@ class Hero implements ArgumentInterface
             $buttonLabel = $this->text($row, 'button_label');
             $buttonLink = $this->text($row, 'button_link');
             $hasButton = $buttonLabel !== '' && $buttonLink !== '';
+            $tone = $this->text($row, 'tone');
 
             $slides[] = [
                 'desktop' => $this->image($desktop, self::DESKTOP_SIZE),
                 'mobile' => $mobile !== '' ? $this->image($mobile, self::MOBILE_SIZE) : null,
                 'alt' => $this->text($row, 'image_alt'),
                 'heading' => $heading,
+                'lines' => $this->lines($heading),
                 'text' => $this->text($row, 'text'),
                 'button_label' => $hasButton ? $buttonLabel : '',
                 'button_link' => $hasButton ? $buttonLink : '',
+                'tone' => in_array($tone, self::TONES, true) ? $tone : 'dark',
             ];
 
             if (count($slides) === self::MAX_SLIDES) {
@@ -118,6 +126,18 @@ class Hero implements ArgumentInterface
     public function isPageTitle(array $content): bool
     {
         return !empty($content['is_page_title']);
+    }
+
+    /**
+     * Heading lines as the editor broke them; each line rises on its own when the slide shows.
+     *
+     * @return list<string>
+     */
+    private function lines(string $heading): array
+    {
+        $lines = array_map('trim', preg_split('/\R/', $heading) ?: []);
+
+        return array_values(array_filter($lines, static fn (string $line): bool => $line !== ''));
     }
 
     /**

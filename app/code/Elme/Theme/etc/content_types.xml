@@ -34,8 +34,9 @@
     </type>
 
     <!-- The full-width banner at the top of the home page (and the top banner of About, Careers,
-         Outlet). The photo with nothing over it, then the live heading, text and button under it.
-         One slide is a plain banner; more become a slider. -->
+         Outlet). A tall photo with the live heading, text and button on its quiet side; the photo
+         settles in and the heading rises line by line. One slide is a plain banner; more become a
+         slider with a progress bar. -->
     <type code="hero"
           label="Hero Banner / Slider"
           standalone="true"
@@ -54,14 +55,19 @@
 
         <field name="slides" type="repeater" label="Slides" label_field="heading" max="5" required="true"
                description="One slide is a plain banner; two to five become a slider. Remove a dated campaign (a trade fair) once it is over.">
-            <field name="image_desktop" type="image" label="Desktop image" required="true" recommended="2720x882"
-                   description="Photo only: no words in the image, write them in Heading and Text. JPEG or WebP, not GIF, about 300 KB. Shown whole from tablet up when it has this 2720x882 ratio; another ratio is cropped to it."/>
-            <field name="image_mobile" type="image" label="Mobile image" recommended="780x520"
-                   description="Photo only, JPEG or WebP, about 150 KB, 3:2. Shown whole above the text on phones. Leave empty to use a centre crop of the desktop image."/>
+            <field name="image_desktop" type="image" label="Desktop image" required="true" recommended="2400x1200"
+                   description="Photo only: no words in the image, write them in Heading and Text. JPEG or WebP, not GIF, about 300 KB, 2:1. The text sits on the left 55%, so keep the subject on the right."/>
+            <field name="image_mobile" type="image" label="Mobile image" recommended="900x1125"
+                   description="Photo only, JPEG or WebP, about 150 KB, 4:5 portrait. The text sits on the bottom half. Leave empty to use a centre crop of the desktop image."/>
             <field name="image_alt" type="text" label="Image alt text" maxlength="160"
                    description="What the photo shows (product, room, material). Do not repeat the heading. Empty only if purely decorative."/>
             <field name="heading" type="textarea" label="Heading" required="true" maxlength="70"
-                   description="Live text that search and AI read: say what Elme sells or offers (&quot;Made to Order Sofas, Built for Your Store&quot;), not a mood line (&quot;New Season&quot;). A line break here is a line break on the page."/>
+                   description="Live text that search and AI read: say what Elme sells or offers (&quot;Made to Order Sofas, Built for Your Store&quot;), not a mood line (&quot;New Season&quot;). Each line break is a line on the page and rises on its own; two or three short lines look best."/>
+            <field name="tone" type="select" label="Photo tone" default="dark"
+                   description="Dark photo: white text on a dark fade. Light photo: dark text on a light fade.">
+                <option value="dark" label="Dark photo"/>
+                <option value="light" label="Light photo"/>
+            </field>
             <field name="text" type="textarea" label="Text" maxlength="200"
                    description="One or two plain sentences of fact: trade only, ABN, Melbourne showrooms. No prices, MOQ numbers or ratings."/>
             <field name="button_label" type="text" label="Button label" maxlength="40" width="half"
@@ -159,7 +165,7 @@
           standalone="true"
           group="home"
           icon="image-text"
-          description="Image beside a heading, trade-fact rows and a button. Stacks on mobile."
+          description="Image (or a three-photo collage) beside a heading, trade-fact rows and a button. Stacks on mobile."
           template="Elme_Theme::content-type/usp-strip.phtml"
           version="1">
 
@@ -171,6 +177,10 @@
                description="Side photo. JPEG or WebP. Shown above the text on phones, left on desktop."/>
         <field name="image_alt" type="text" label="Image alt text" maxlength="160"
                description="What the image shows. Leave empty if purely decorative."/>
+        <field name="image_2" type="image" label="Collage photo 2" width="half" recommended="780x520"
+               description="Optional. With photo 3 as well, the side image becomes a three-photo collage that moves with the mouse on desktop. Landscape works best."/>
+        <field name="image_3" type="image" label="Collage photo 3" width="half" recommended="620x450"
+               description="Optional, see photo 2. Both or none."/>
         <field name="items" type="repeater" label="Trade facts" label_field="title" max="6" required="true"
                description="Facts a shop owner needs before applying (ABN, prices ex GST, delivery / MOQ). Not lifestyle fluff.">
             <field name="title" type="text" label="Fact title" required="true" maxlength="60"
