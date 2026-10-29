@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Слайдер категорій — варіанти</title>
+<title>Category tiles - options</title>
 <style>
 @font-face {
   font-family: "Karla";
@@ -257,16 +257,16 @@ h1 {
 </head>
 <body>
 <main class="page">
-  <h1>Слайдер категорій</h1>
-  <p class="lead">Оберіть вигляд. Зараз на головній коло 90px і синя плашка під ним — довге ім’я ламає висоту ряду.</p>
-  <p class="note">Кожен варіант двічі: телефон 390 і широкий екран 1280. Фото ті самі, що на головній. Напишіть номер. Якщо на телефоні й на десктопі мають бути різні — так і скажіть.</p>
+  <h1>Category tiles</h1>
+  <p class="lead">Pick a look. Today the home page shows a 90px circle with a blue bar under it, and a long name breaks the row height.</p>
+  <p class="note">Each variant is shown twice: phone 390 and wide screen 1280. Same photos as on the home page. Reply with a number, or say if phone and desktop should differ.</p>
 
   <section class="option" id="opt-1" aria-labelledby="opt-1-title">
-    <h2 id="opt-1-title">1. Кола без плашки</h2>
-    <p>Коло більше. Ім’я під ним, кольором тексту, без синього прямокутника.</p>
+    <h2 id="opt-1-title">1. Circles without the bar</h2>
+    <p>A bigger circle. The name sits under it in text colour, no blue box.</p>
     <div class="frames">
       <div>
-        <p class="frame-label">Телефон</p>
+        <p class="frame-label">Phone</p>
         <div class="canvas phone v-circles" style="--tile: 156px; --gap: 18px; --inset: 20px; --media: 156px">
           <div class="stage" data-carousel>
             <div class="track" data-track></div>
@@ -274,12 +274,12 @@ h1 {
         </div>
       </div>
       <div>
-        <p class="frame-label">Широкий екран</p>
+        <p class="frame-label">Wide screen</p>
         <div class="canvas desk v-circles" style="--tile: 236px; --gap: 28px; --inset: 0px; --media: 236px">
           <div class="stage" data-carousel>
-            <button type="button" class="arrow arrow-prev" data-prev aria-label="Попередні категорії"></button>
+            <button type="button" class="arrow arrow-prev" data-prev aria-label="Previous categories"></button>
             <div class="track" data-track></div>
-            <button type="button" class="arrow arrow-next" data-next aria-label="Наступні категорії"></button>
+            <button type="button" class="arrow arrow-next" data-next aria-label="Next categories"></button>
           </div>
         </div>
       </div>
@@ -287,11 +287,11 @@ h1 {
   </section>
 
   <section class="option" id="opt-2" aria-labelledby="opt-2-title">
-    <h2 id="opt-2-title">2. Каталог</h2>
-    <p>Прямокутне фото. Ім’я під ним зліва, на кольорі сторінки. Без плашки і без тіні.</p>
+    <h2 id="opt-2-title">2. Catalogue</h2>
+    <p>A rectangular photo. The name under it, left aligned, on the page colour. No bar, no shadow.</p>
     <div class="frames">
       <div>
-        <p class="frame-label">Телефон</p>
+        <p class="frame-label">Phone</p>
         <div class="canvas phone v-catalog" style="--tile: 250px; --gap: 14px; --inset: 20px; --media: 167px">
           <div class="stage" data-carousel>
             <div class="track" data-track></div>
@@ -299,12 +299,12 @@ h1 {
         </div>
       </div>
       <div>
-        <p class="frame-label">Широкий екран</p>
+        <p class="frame-label">Wide screen</p>
         <div class="canvas desk v-catalog" style="--tile: 340px; --gap: 18px; --inset: 0px; --media: 227px">
           <div class="stage" data-carousel>
-            <button type="button" class="arrow arrow-prev" data-prev aria-label="Попередні категорії"></button>
+            <button type="button" class="arrow arrow-prev" data-prev aria-label="Previous categories"></button>
             <div class="track" data-track></div>
-            <button type="button" class="arrow arrow-next" data-next aria-label="Наступні категорії"></button>
+            <button type="button" class="arrow arrow-next" data-next aria-label="Next categories"></button>
           </div>
         </div>
       </div>
@@ -312,11 +312,11 @@ h1 {
   </section>
 
   <section class="option" id="opt-3" aria-labelledby="opt-3-title">
-    <h2 id="opt-3-title">3. Ім’я на фото</h2>
-    <p>Те саме широке фото. Ім’я внизу зліва, на короткому затемненні. Окремої плашки немає.</p>
+    <h2 id="opt-3-title">3. Name on the photo</h2>
+    <p>The same wide photo. The name bottom left on a short scrim. No separate bar.</p>
     <div class="frames">
       <div>
-        <p class="frame-label">Телефон</p>
+        <p class="frame-label">Phone</p>
         <div class="canvas phone v-onphoto" style="--tile: 250px; --gap: 14px; --inset: 20px; --media: 167px">
           <div class="stage" data-carousel>
             <div class="track" data-track></div>
@@ -324,12 +324,12 @@ h1 {
         </div>
       </div>
       <div>
-        <p class="frame-label">Широкий екран</p>
+        <p class="frame-label">Wide screen</p>
         <div class="canvas desk v-onphoto" style="--tile: 340px; --gap: 18px; --inset: 0px; --media: 227px">
           <div class="stage" data-carousel>
-            <button type="button" class="arrow arrow-prev" data-prev aria-label="Попередні категорії"></button>
+            <button type="button" class="arrow arrow-prev" data-prev aria-label="Previous categories"></button>
             <div class="track" data-track></div>
-            <button type="button" class="arrow arrow-next" data-next aria-label="Наступні категорії"></button>
+            <button type="button" class="arrow arrow-next" data-next aria-label="Next categories"></button>
           </div>
         </div>
       </div>
@@ -337,26 +337,26 @@ h1 {
   </section>
 
   <section class="option" id="opt-4" aria-labelledby="opt-4-title">
-    <h2 id="opt-4-title">4. Вітрина</h2>
-    <p>Кадр вищий, на екрані менше плиток. Ім’я велике на фото. Стрілки тонкі по краях ряду.</p>
+    <h2 id="opt-4-title">4. Showcase</h2>
+    <p>A taller frame, fewer tiles on screen. A large name on the photo. Thin arrows at the row edges.</p>
     <div class="frames">
       <div>
-        <p class="frame-label">Телефон</p>
+        <p class="frame-label">Phone</p>
         <div class="canvas phone v-vitrina" style="--tile: 268px; --gap: 12px; --inset: 0px; --media: 335px">
           <div class="stage" data-carousel>
-            <button type="button" class="arrow arrow-prev" data-prev aria-label="Попередні категорії"></button>
+            <button type="button" class="arrow arrow-prev" data-prev aria-label="Previous categories"></button>
             <div class="track" data-track></div>
-            <button type="button" class="arrow arrow-next" data-next aria-label="Наступні категорії"></button>
+            <button type="button" class="arrow arrow-next" data-next aria-label="Next categories"></button>
           </div>
         </div>
       </div>
       <div>
-        <p class="frame-label">Широкий екран</p>
+        <p class="frame-label">Wide screen</p>
         <div class="canvas desk v-vitrina" style="--tile: 340px; --gap: 16px; --inset: 0px; --media: 425px">
           <div class="stage" data-carousel>
-            <button type="button" class="arrow arrow-prev" data-prev aria-label="Попередні категорії"></button>
+            <button type="button" class="arrow arrow-prev" data-prev aria-label="Previous categories"></button>
             <div class="track" data-track></div>
-            <button type="button" class="arrow arrow-next" data-next aria-label="Наступні категорії"></button>
+            <button type="button" class="arrow arrow-next" data-next aria-label="Next categories"></button>
           </div>
         </div>
       </div>

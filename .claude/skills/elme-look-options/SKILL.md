@@ -2,9 +2,9 @@
 name: elme-look-options
 description: >
   Use before changing how an Elme storefront block looks, when the user wants to
-  choose a direction first. Triggers: "варіанти вигляду", "артефакт", "покажи як
-  може виглядати", "я виберу", "зроби приклади", "looks bad, show options",
-  "don't build it yet, let me pick". Builds a standalone HTML page in
+  choose a direction first. Triggers: "show me options", "make an artifact",
+  "show how it could look", "I'll pick", "make examples", "looks bad, show
+  options", "don't build it yet, let me pick" (also when asked in Ukrainian). Builds a standalone HTML page in
   docs/design with two or three real variants (phone and desktop), then stops
   until they name one. Do not edit theme templates in the same step.
 ---
@@ -34,7 +34,8 @@ Colours and type come from `app/design/frontend/Elme/default/web/tailwind/hyva.c
 Photos, if the block has them, go in `docs/design/<slug>/` and are referenced
 relatively (`<slug>/vessels.jpg`). Copy them off the local site. Do not hotlink.
 
-The page is in Ukrainian. Store labels stay as they are on the site (English).
+The page is in English (repo files are English ASCII), even when the user writes in
+Ukrainian. Store labels stay as they are on the site.
 Quiet chrome: the variants are the only thing to judge. Number them `1.`, `2.`,
 `3.` so the user can answer with a number.
 

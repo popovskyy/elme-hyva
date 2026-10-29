@@ -1,6 +1,6 @@
 ---
 name: elme-port-from-luma
-description: Use when porting a page, block, widget or template of the old Elme Living site (Adobe Commerce, Luma-based theme Bart/el) to the Hyvä theme Elme/default in this project - "перенеси блок", "port the header/footer/PLP/PDP/minicart", "make it look like the live site", "rebuild this Elme widget in Hyvä", or when converting LESS/Knockout/RequireJS/jQuery code from m2-bart-group into Tailwind + Alpine.
+description: Use when porting a page, block, widget or template of the old Elme Living site (Adobe Commerce, Luma-based theme Bart/el) to the Hyvä theme Elme/default in this project - "port this block", "port the header/footer/PLP/PDP/minicart", "make it look like the live site", "rebuild this Elme widget in Hyvä", or when converting LESS/Knockout/RequireJS/jQuery code from m2-bart-group into Tailwind + Alpine. Also when asked in Ukrainian.
 ---
 
 # Port an old Elme block to Hyvä

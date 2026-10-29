@@ -1,6 +1,6 @@
 ---
 name: elme-qa
-description: Use when a feature, ported block or bugfix on the new Elme Living storefront (Magento Open Source + Hyvä, this repo) is finished and needs QA before commit or handover, e.g. "QA this", "check if everything is ok", "did I break anything", "перевір чи все ок", "проведи qa", "compare with the old site", or when the ticket needs a changelog and manual QA steps.
+description: Use when a feature, ported block or bugfix on the new Elme Living storefront (Magento Open Source + Hyvä, this repo) is finished and needs QA before commit or handover, e.g. "QA this", "check if everything is ok", "did I break anything", "run qa", "compare with the old site", or when the ticket needs a changelog and manual QA steps. Also when asked in Ukrainian.
 ---
 
 # Elme QA
@@ -73,29 +73,30 @@ bin/clinotty bash -c "rm -rf generated/code/* generated/metadata/*"
 
 Two parts, in this order.
 
-**1. To the user, in Ukrainian: a scannable card, about 8 lines, never prose.**
+**1. To the user, in Ukrainian: a scannable card, about 8 lines, never prose.** The skeleton is in
+English; write the labels and the text in Ukrainian.
 
 ```
-**Вердикт:** ✅ готово / ⚠️ готово з примітками / ❌ не готово
+**Verdict:** ready / ready with notes / not ready
 
-**Знахідки:** немає
-- **blocker** · [Foo.php:42](app/code/Elme/X/Foo.php#L42) — що не так → фікс
+**Findings:** none
+- **blocker** - [Foo.php:42](app/code/Elme/X/Foo.php#L42) - what is wrong -> fix
 
-**Перевірено**
-- **375 / 1440** <сторінка або сценарій> → <результат> ([скрін](/tmp/elme-qa/<run>/<file>.png))
-- **Паритет** <сторінка> старий vs новий → <збігається / відмінності> ([старий](…), [новий](…))
-- **Admin** <меню-шлях> → <результат>
+**Checked**
+- **375 / 1440** <page or scenario> -> <result> ([screenshot](/tmp/elme-qa/<run>/<file>.png))
+- **Parity** <page> old vs new -> <same / differences> ([old](...), [new](...))
+- **Admin** <menu path> -> <result>
 
-**Не перевірено:** <що> — <чому>
-**Тестові дані:** <що створив або змінив> → прибрав
+**Not checked:** <what> - <why>
+**Test data:** <what was created or changed> -> cleaned up
 ```
 
 - One line per bullet; the **bold** carries the keyword (severity, viewport, area).
-- Link every file (`[name:line](relative/path#Lline)`) and the screenshot that proves a "Перевірено"
+- Link every file (`[name:line](relative/path#Lline)`) and the screenshot that proves a "Checked"
   line. No bare paths, no backticked file names.
-- No findings → `**Знахідки:** немає`, one line. No section with nothing to say.
+- No findings -> the "Findings: none" line only. No section with nothing to say.
 - Leave out harness retries, selectors and environment noise that did not block a check.
-- A business rule the change needs but this instance does not have yet goes under "Не перевірено" with
+- A business rule the change needs but this instance does not have yet goes under "Not checked" with
   the reason, not under findings.
 - The changelog block follows directly.
 
