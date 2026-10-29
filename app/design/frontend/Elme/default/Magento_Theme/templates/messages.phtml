@@ -23,6 +23,7 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
 $storeConfig = $viewModels->require(StoreConfig::class);
 
 $defaultSuccessMessageTimeout = $storeConfig->getStoreConfig('hyva_theme_general/messages/success_message_timeout');
+$iconAttrs = ['aria-hidden' => 'true'];
 ?>
 <script>
     <?php if ($defaultSuccessMessageTimeout): ?>
@@ -106,6 +107,19 @@ $defaultSuccessMessageTimeout = $storeConfig->getStoreConfig('hyva_theme_general
             },
             getMessageLive() {
                 return this.message.type === 'error' ? 'assertive' : 'polite';
+            },
+            isSuccess() {
+                return this.message.type === 'success';
+            },
+            isError() {
+                return this.message.type === 'error';
+            },
+            isWarning() {
+                return this.message.type === 'warning';
+            },
+            isNotice() {
+                return this.message.type === 'notice' || this.message.type === 'info'
+                    || (!this.isSuccess() && !this.isError() && !this.isWarning());
             }
         }
     }
@@ -132,14 +146,28 @@ $defaultSuccessMessageTimeout = $storeConfig->getStoreConfig('hyva_theme_general
                             :ui-id="getMessageUiId"
                             :aria-live="getMessageLive"
                         >
-                            <span x-html-safe="message.text"></span>
+                            <span class="message__icon" aria-hidden="true">
+                                <span x-show="isSuccess">
+                                    <?= $lucideIcons->checkHtml('stroke-current', 18, 18, $iconAttrs); ?>
+                                </span>
+                                <span x-show="isError">
+                                    <?= $lucideIcons->circleAlertHtml('stroke-current', 18, 18, $iconAttrs); ?>
+                                </span>
+                                <span x-show="isWarning">
+                                    <?= $lucideIcons->alertTriangleHtml('stroke-current', 18, 18, $iconAttrs); ?>
+                                </span>
+                                <span x-show="isNotice">
+                                    <?= $lucideIcons->infoHtml('stroke-current', 18, 18, $iconAttrs); ?>
+                                </span>
+                            </span>
+                            <span class="message__body" x-html-safe="message.text"></span>
                             <button
                                 type="button"
-                                class="shrink-0 p-2 -me-2 text-ink-muted hover:text-ink"
+                                class="message__close"
                                 aria-label="<?= $escaper->escapeHtml(__('Close message')) ?>"
                                 @click.prevent="removeMessage"
                             >
-                                <?= $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']); ?>
+                                <?= $lucideIcons->xHtml('stroke-current', 18, 18, $iconAttrs); ?>
                             </button>
                         </div>
                     </template>

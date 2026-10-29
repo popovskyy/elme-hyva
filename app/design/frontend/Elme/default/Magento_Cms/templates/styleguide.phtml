@@ -431,26 +431,38 @@ for ($i = 1; $i <= 40; $i++) {
         <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Static types')) ?></p>
         <div class="grid gap-3 max-w-2xl mb-8" role="presentation">
             <div class="message success" role="status">
-                <span><?= $escaper->escapeHtml(__('You saved the shopping list.')) ?></span>
-                <button type="button" class="shrink-0 p-2 -me-2 text-ink-muted" aria-label="<?= $escaper->escapeHtmlAttr(__('Close message')) ?>">
+                <span class="message__icon" aria-hidden="true">
+                    <?= /* @noEscape */ $lucideIcons->checkHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
+                </span>
+                <span class="message__body"><?= $escaper->escapeHtml(__('You saved the shopping list.')) ?></span>
+                <button type="button" class="message__close" aria-label="<?= $escaper->escapeHtmlAttr(__('Close message')) ?>">
                     <?= /* @noEscape */ $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
                 </button>
             </div>
             <div class="message error" role="alert">
-                <span><?= $escaper->escapeHtml(__('The account sign-in was incorrect or your account is disabled temporarily.')) ?></span>
-                <button type="button" class="shrink-0 p-2 -me-2 text-ink-muted" aria-label="<?= $escaper->escapeHtmlAttr(__('Close message')) ?>">
+                <span class="message__icon" aria-hidden="true">
+                    <?= /* @noEscape */ $lucideIcons->circleAlertHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
+                </span>
+                <span class="message__body"><?= $escaper->escapeHtml(__('The account sign-in was incorrect or your account is disabled temporarily.')) ?></span>
+                <button type="button" class="message__close" aria-label="<?= $escaper->escapeHtmlAttr(__('Close message')) ?>">
                     <?= /* @noEscape */ $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
                 </button>
             </div>
             <div class="message notice" role="status">
-                <span><?= $escaper->escapeHtml(__('Add $120.00 more to place your order.')) ?></span>
-                <button type="button" class="shrink-0 p-2 -me-2 text-ink-muted" aria-label="<?= $escaper->escapeHtmlAttr(__('Close message')) ?>">
+                <span class="message__icon" aria-hidden="true">
+                    <?= /* @noEscape */ $lucideIcons->infoHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
+                </span>
+                <span class="message__body"><?= $escaper->escapeHtml(__('Add $120.00 more to place your order.')) ?></span>
+                <button type="button" class="message__close" aria-label="<?= $escaper->escapeHtmlAttr(__('Close message')) ?>">
                     <?= /* @noEscape */ $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
                 </button>
             </div>
             <div class="message warning" role="status">
-                <span><?= $escaper->escapeHtml(__('Only 4 left in stock for this finish.')) ?></span>
-                <button type="button" class="shrink-0 p-2 -me-2 text-ink-muted" aria-label="<?= $escaper->escapeHtmlAttr(__('Close message')) ?>">
+                <span class="message__icon" aria-hidden="true">
+                    <?= /* @noEscape */ $lucideIcons->alertTriangleHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
+                </span>
+                <span class="message__body"><?= $escaper->escapeHtml(__('Only 4 left in stock for this finish.')) ?></span>
+                <button type="button" class="message__close" aria-label="<?= $escaper->escapeHtmlAttr(__('Close message')) ?>">
                     <?= /* @noEscape */ $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
                 </button>
             </div>

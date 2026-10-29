@@ -1,51 +1,103 @@
 /**
- * Elme: page messages + toast stack (old Bart/jl _od-messages.less).
- * In document flow under the header — never sticky/fixed over it (FE-03 QA).
+ * Elme: page messages + toast stack (FE-03).
+ * Surface cards with a type rail + icon — not flat pastel banners.
+ * Page messages stay in document flow under the header (never sticky over it).
  */
 
 @layer components {
     .message {
-        --message-color: var(--color-ink);
-        --message-bg: var(--color-surface-muted);
+        --message-accent: var(--color-ink);
+        --message-tint: var(--color-surface-muted);
+        --message-icon: var(--color-ink);
         position: relative;
         display: flex;
         gap: --spacing(3);
-        align-items: center;
-        justify-content: space-between;
+        align-items: flex-start;
         width: 100%;
-        min-height: --spacing(15);
-        padding-block: --spacing(3);
+        padding-block: --spacing(4);
+        padding-inline: --spacing(4);
         padding-inline-start: --spacing(5);
-        padding-inline-end: --spacing(4);
-        border-width: 1px;
-        border-color: var(--message-color);
-        border-radius: var(--radius-sm);
-        background-color: var(--message-bg);
+        border: 1px solid var(--color-border-light);
+        border-inline-start: 3px solid var(--message-accent);
+        background-color: var(--color-surface);
         color: var(--color-ink);
-        font-size: var(--text-note);
+        font-size: var(--text-copy);
         font-weight: 500;
-        line-height: var(--text-note--line-height);
+        line-height: var(--text-copy--line-height);
         margin-block-end: --spacing(2);
+        box-shadow: 0 1px 0 color-mix(in srgb, var(--color-ink) 4%, transparent);
 
         &.error {
-            --message-color: var(--color-ink);
-            --message-bg: var(--color-error-light);
+            --message-accent: var(--color-error-strong);
+            --message-tint: var(--color-error-light);
+            --message-icon: var(--color-error-strong);
         }
 
         &.success {
-            --message-color: var(--color-olive);
-            --message-bg: var(--color-success-light);
+            --message-accent: var(--color-olive);
+            --message-tint: var(--color-success-light);
+            --message-icon: var(--color-olive);
         }
 
         &.info,
-        &.notice,
+        &.notice {
+            --message-accent: var(--color-accent-dark);
+            --message-tint: var(--color-cool-light);
+            --message-icon: var(--color-accent-dark);
+        }
+
         &.warning {
-            --message-color: var(--color-warning);
-            --message-bg: var(--color-warning-light);
+            --message-accent: var(--color-warning);
+            --message-tint: var(--color-warning-light);
+            --message-icon: color-mix(in srgb, var(--color-warning) 70%, var(--color-ink));
         }
 
         a {
             text-decoration-line: underline;
+            text-underline-offset: 2px;
+        }
+    }
+
+    .message__icon {
+        display: inline-flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: --spacing(9);
+        height: --spacing(9);
+        margin-block-start: 1px;
+        background-color: var(--message-tint);
+        color: var(--message-icon);
+    }
+
+    .message__body {
+        flex: 1 1 auto;
+        min-width: 0;
+        padding-block: --spacing(1);
+    }
+
+    .message__close {
+        display: inline-flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: --spacing(9);
+        height: --spacing(9);
+        margin: calc(--spacing(1) * -1);
+        color: var(--color-ink-muted);
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+        transition: color var(--transition-duration-micro) var(--ease-out-quad);
+
+        &:hover,
+        &:focus-visible {
+            color: var(--color-ink);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
         }
     }
 
@@ -57,17 +109,72 @@
         top: calc(var(--elme-header-row-bottom, 0px) + --spacing(4));
         display: flex;
         flex-direction: column;
-        gap: --spacing(2);
-        align-items: center;
+        gap: --spacing(3);
+        align-items: stretch;
         padding-inline: --spacing(5);
         pointer-events: none;
+
+        @media (width >= theme(--breakpoint-md)) {
+            inset-inline-start: auto;
+            inset-inline-end: 0;
+            align-items: flex-end;
+            padding-inline-end: var(--container-gutter-desktop, --spacing(10));
+            max-width: calc(24rem + var(--container-gutter-desktop, --spacing(10)));
+        }
     }
 
     .elme-toast-stack .message {
         pointer-events: auto;
-        max-width: 25rem;
+        width: 100%;
+        max-width: 24rem;
         margin-block-end: 0;
-        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        box-shadow:
+            0 1px 0 color-mix(in srgb, var(--color-ink) 5%, transparent),
+            0 12px 32px -12px color-mix(in srgb, var(--color-ink) 22%, transparent);
+    }
+
+    .message__timer {
+        position: absolute;
+        inset-inline: 0;
+        inset-block-end: 0;
+        height: 2px;
+        background-color: color-mix(in srgb, var(--message-accent) 25%, transparent);
+        transform-origin: left center;
+        animation: elme-toast-timer var(--toast-ttl, 5s) linear forwards;
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+            opacity: 0;
+        }
+    }
+
+    @keyframes elme-toast-timer {
+        from {
+            transform: scaleX(1);
+        }
+        to {
+            transform: scaleX(0);
+        }
+    }
+
+    @keyframes elme-toast-in {
+        from {
+            opacity: 0;
+            transform: translateY(calc(--spacing(3) * -1));
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .elme-toast-stack .message.is-entering {
+        animation: elme-toast-in var(--transition-duration-base) var(--ease-out-cubic);
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
     }
 }
 
