@@ -7,14 +7,8 @@
 -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="elme_content_page_seo"/>
     <body>
-        <!-- One BreadcrumbList: help JSON-LD owns it (with @id); skip Hyvä’s duplicate blob -->
-        <referenceBlock name="breadcrumbs">
-            <arguments>
-                <argument name="skip_ld_json_schema" xsi:type="boolean">true</argument>
-            </arguments>
-        </referenceBlock>
-
         <!-- Title lives in main so mobile (sidebar order -1) shows Help control above the H1 -->
         <move element="page.main.title" destination="main" before="-"/>
 
@@ -43,15 +37,5 @@
         </referenceContainer>
 
         <referenceContainer name="sidebar.additional" remove="true"/>
-
-        <referenceContainer name="head.additional">
-            <block name="help.head"
-                   template="Magento_Cms::help/head.phtml"/>
-        </referenceContainer>
-
-        <referenceContainer name="before.body.end">
-            <block name="help.jsonld"
-                   template="Magento_Cms::help/jsonld.phtml"/>
-        </referenceContainer>
     </body>
 </page>

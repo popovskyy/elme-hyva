@@ -1,0 +1,342 @@
+<?php
+/**
+ * FE-46: trade Contact Us form — fields, 200-char counter, honeypot, shortcuts, success next steps.
+ * UX-07: visible labels + autocomplete / type="tel". Idea review: two selects, prefill, busy submit.
+ */
+
+declare(strict_types=1);
+
+use Elme\ContactForm\ViewModel\FormData;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+/** @var ViewModelRegistry $viewModels */
+
+$form = $viewModels->require(FormData::class);
+$maxLen = $form->getMessageMaxLength();
+$messageValue = $form->getFieldValue('message');
+$sent = $form->isSentSuccess();
+$sentTopic = $form->getSentEnquiryType();
+$successLinks = $form->getSuccessLinks($sentTopic);
+$shortcuts = $form->getShortcutLinks();
+$businessTypes = $form->getBusinessTypes();
+$enquiryTypes = $form->getEnquiryTypes();
+$selectedBusiness = $form->getFieldValue('business_type');
+$selectedEnquiry = $form->getFieldValue('enquiry_type');
+?>
+<section id="elme-contact-form"
+         class="elme-contact"
+         aria-labelledby="elme-contact-heading"
+         x-data="initElmeContactForm"
+         data-max-length="<?= (int) $maxLen ?>"
+         data-initial-length="<?= (int) mb_strlen($messageValue) ?>"
+         data-sent="<?= $sent ? '1' : '0' ?>">
+
+    <nav class="elme-contact__shortcuts" aria-label="<?= $escaper->escapeHtmlAttr(__('Common requests')) ?>">
+        <p class="elme-contact__shortcuts-label"><?= $escaper->escapeHtml(__('Common requests')) ?></p>
+        <ul class="elme-contact__shortcut-list">
+            <?php foreach ($shortcuts as $link): ?>
+                <li>
+                    <a class="elme-contact__shortcut"
+                       href="<?= $escaper->escapeUrl($link['href']) ?>"
+                        <?php if (!empty($link['external'])): ?>
+                            target="_blank" rel="noopener noreferrer"
+                        <?php endif; ?>>
+                        <?= $escaper->escapeHtml($link['label']) ?>
+                    </a>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </nav>
+
+    <h2 id="elme-contact-heading" class="elme-contact__title" x-text="headingLabel">
+        <?= $escaper->escapeHtml($sent ? __('Message sent') : __('Send us a message')) ?>
+    </h2>
+
+    <div class="elme-contact__success"
+         role="status"
+         aria-live="polite"
+         <?= $sent ? '' : 'hidden' ?>
+         x-bind:hidden="isSuccessHidden">
+        <p class="elme-contact__success-copy">
+            <?= $escaper->escapeHtml(__(
+                'Thanks — your message is with the wholesale desk. We aim to reply within one business day.'
+            )) ?>
+        </p>
+        <?php if ($successLinks): ?>
+            <ul class="elme-contact__success-links">
+                <?php foreach ($successLinks as $link): ?>
+                    <li>
+                        <a href="<?= $escaper->escapeUrl($link['href']) ?>"
+                            <?php if (!empty($link['external'])): ?>
+                                target="_blank" rel="noopener noreferrer"
+                            <?php endif; ?>>
+                            <?= $escaper->escapeHtml($link['label']) ?>
+                        </a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
+        <p class="elme-contact__success-again">
+            <button type="button" class="elme-contact__again" @click="showFormAgain">
+                <?= $escaper->escapeHtml(__('Send another message')) ?>
+            </button>
+        </p>
+    </div>
+
+    <form class="elme-contact__form form contact"
+          action="<?= $escaper->escapeUrl($form->getFormAction()) ?>"
+          method="post"
+          id="elme-contact-form-fields"
+          novalidate
+          <?= $sent ? 'hidden' : '' ?>
+          x-bind:hidden="isFormHidden"
+          @submit="onSubmit">
+
+        <div class="elme-contact__grid">
+            <div class="field required">
+                <label class="label" for="elme-contact-name">
+                    <?= $escaper->escapeHtml(__('Your Name')) ?>
+                </label>
+                <input id="elme-contact-name"
+                       class="form-input w-full"
+                       type="text"
+                       name="name"
+                       required
+                       autocomplete="name"
+                       value="<?= $escaper->escapeHtmlAttr($form->getFieldValue('name')) ?>">
+            </div>
+
+            <div class="field required">
+                <label class="label" for="elme-contact-email">
+                    <?= $escaper->escapeHtml(__('Email')) ?>
+                </label>
+                <input id="elme-contact-email"
+                       class="form-input w-full"
+                       type="email"
+                       name="email"
+                       required
+                       autocomplete="email"
+                       inputmode="email"
+                       spellcheck="false"
+                       value="<?= $escaper->escapeHtmlAttr($form->getFieldValue('email')) ?>">
+            </div>
+
+            <div class="field required">
+                <label class="label" for="elme-contact-telephone">
+                    <?= $escaper->escapeHtml(__('Phone')) ?>
+                </label>
+                <input id="elme-contact-telephone"
+                       class="form-input w-full"
+                       type="tel"
+                       name="telephone"
+                       required
+                       autocomplete="tel"
+                       inputmode="tel"
+                       value="<?= $escaper->escapeHtmlAttr($form->getFieldValue('telephone')) ?>">
+            </div>
+
+            <div class="field required">
+                <label class="label" for="elme-contact-company">
+                    <?= $escaper->escapeHtml(__('Company')) ?>
+                </label>
+                <input id="elme-contact-company"
+                       class="form-input w-full"
+                       type="text"
+                       name="company"
+                       required
+                       autocomplete="organization"
+                       value="<?= $escaper->escapeHtmlAttr($form->getFieldValue('company')) ?>">
+            </div>
+
+            <div class="field required">
+                <label class="label" for="elme-contact-business-type">
+                    <?= $escaper->escapeHtml(__('Business Type')) ?>
+                </label>
+                <select id="elme-contact-business-type"
+                        class="form-select w-full"
+                        name="business_type"
+                        required
+                        data-elme-searchable="0">
+                    <option value=""><?= $escaper->escapeHtml(__('Please select')) ?></option>
+                    <?php foreach ($businessTypes as $code => $label): ?>
+                        <option value="<?= $escaper->escapeHtmlAttr($code) ?>"
+                            <?= $selectedBusiness === $code ? ' selected' : '' ?>>
+                            <?= $escaper->escapeHtml(__($label)) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="field required">
+                <label class="label" for="elme-contact-enquiry-type">
+                    <?= $escaper->escapeHtml(__('Enquiry type')) ?>
+                </label>
+                <select id="elme-contact-enquiry-type"
+                        class="form-select w-full"
+                        name="enquiry_type"
+                        required
+                        data-elme-searchable="0">
+                    <option value=""><?= $escaper->escapeHtml(__('Please select')) ?></option>
+                    <?php foreach ($enquiryTypes as $code => $label): ?>
+                        <option value="<?= $escaper->escapeHtmlAttr($code) ?>"
+                            <?= $selectedEnquiry === $code ? ' selected' : '' ?>>
+                            <?= $escaper->escapeHtml(__($label)) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="field required elme-contact__message">
+                <label class="label" for="elme-contact-message">
+                    <?= $escaper->escapeHtml(__('Message')) ?>
+                </label>
+                <textarea id="elme-contact-message"
+                          class="form-textarea w-full"
+                          name="message"
+                          rows="5"
+                          required
+                          maxlength="<?= (int) $maxLen ?>"
+                          autocomplete="off"
+                          aria-describedby="elme-contact-message-count"
+                          @input="onMessageInput"><?= $escaper->escapeHtml($messageValue) ?></textarea>
+                <p id="elme-contact-message-count"
+                   class="elme-contact__counter field-note"
+                   aria-live="polite">
+                    <span x-text="remainingLabel"><?= $escaper->escapeHtml(
+                        __('%1 characters left', max(0, $maxLen - mb_strlen($messageValue)))
+                    ) ?></span>
+                </p>
+            </div>
+        </div>
+
+        <?php if ($form->isNewsletterEnabled()): ?>
+            <div class="field choice elme-contact__opt-in">
+                <input type="checkbox"
+                       class="form-checkbox"
+                       name="is_subscribed"
+                       value="1"
+                       id="elme-contact-subscribe">
+                <label class="label" for="elme-contact-subscribe">
+                    <?= $escaper->escapeHtml(__('Receive emails on new ranges and trade offers')) ?>
+                </label>
+            </div>
+        <?php endif; ?>
+
+        <?= $block->getBlockHtml('formkey') ?>
+        <?php /* Honeypot — leave empty (spam protection) */ ?>
+        <div class="elme-contact__honeypot" aria-hidden="true">
+            <label for="elme-contact-hideit"><?= $escaper->escapeHtml(__('Leave blank')) ?></label>
+            <input type="text"
+                   id="elme-contact-hideit"
+                   name="hideit"
+                   value=""
+                   tabindex="-1"
+                   autocomplete="off">
+        </div>
+
+        <div class="elme-contact__actions">
+            <button type="submit"
+                    class="btn btn-primary"
+                    :disabled="isSubmitting"
+                    :aria-busy="isSubmitting">
+                <span x-text="submitLabel"></span>
+            </button>
+        </div>
+    </form>
+</section>
+<script>
+    function initElmeContactForm() {
+        return {
+            maxLength: 200,
+            messageLength: 0,
+            submitting: false,
+            sent: false,
+            submitIdleLabel: '<?= $escaper->escapeJs(__('Submit')) ?>',
+            submitBusyLabel: '<?= $escaper->escapeJs(__('Sending…')) ?>',
+            charsLeftSuffix: '<?= $escaper->escapeJs(__('characters left')) ?>',
+            headingForm: '<?= $escaper->escapeJs(__('Send us a message')) ?>',
+            headingSent: '<?= $escaper->escapeJs(__('Message sent')) ?>',
+
+            init() {
+                const root = this.$root;
+                this.maxLength = parseInt(root.dataset.maxLength || '200', 10);
+                this.messageLength = Math.min(
+                    parseInt(root.dataset.initialLength || '0', 10),
+                    this.maxLength
+                );
+                this.sent = root.dataset.sent === '1';
+            },
+
+            isSuccessHidden() {
+                return !this.sent;
+            },
+
+            isFormHidden() {
+                return this.sent;
+            },
+
+            isSubmitting() {
+                return this.submitting;
+            },
+
+            headingLabel() {
+                return this.sent ? this.headingSent : this.headingForm;
+            },
+
+            remainingLabel() {
+                const left = Math.max(0, this.maxLength - this.messageLength);
+                return left + ' ' + this.charsLeftSuffix;
+            },
+
+            submitLabel() {
+                return this.submitting ? this.submitBusyLabel : this.submitIdleLabel;
+            },
+
+            onMessageInput() {
+                const el = this.$event.target;
+                let value = el.value || '';
+                if (value.length > this.maxLength) {
+                    value = value.slice(0, this.maxLength);
+                    el.value = value;
+                }
+                this.messageLength = value.length;
+            },
+
+            onSubmit() {
+                if (this.submitting) {
+                    this.$event.preventDefault();
+                    return;
+                }
+                const form = this.$event.target;
+                if (form && typeof form.checkValidity === 'function' && !form.checkValidity()) {
+                    this.$event.preventDefault();
+                    form.reportValidity();
+                    return;
+                }
+                this.submitting = true;
+            },
+
+            showFormAgain() {
+                this.sent = false;
+                if (window.history && window.history.replaceState) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('sent');
+                    url.searchParams.delete('topic');
+                    window.history.replaceState({}, '', url.pathname + url.search + '#elme-contact-form');
+                }
+            }
+        };
+    }
+    window.addEventListener(
+        'alpine:init',
+        () => Alpine.data('initElmeContactForm', initElmeContactForm),
+        { once: true }
+    );
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

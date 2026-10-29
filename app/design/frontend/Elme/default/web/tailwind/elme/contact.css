@@ -1,0 +1,164 @@
+/**
+ * FE-46: Contact Us form on the help page.
+ */
+@layer components {
+    .elme-contact {
+        margin-block: --spacing(8) --spacing(10);
+        max-inline-size: 42rem;
+    }
+
+    .elme-contact__title {
+        margin: 0 0 --spacing(4);
+        font-family: var(--font-heading);
+        font-size: var(--text-h2);
+        line-height: var(--text-h2--line-height);
+        font-weight: 400;
+        color: var(--color-ink);
+    }
+
+    @media (width >= 1025px) {
+        .elme-contact__title {
+            font-size: var(--text-h2-desktop);
+            line-height: 1.2;
+        }
+    }
+
+    .elme-contact__shortcuts {
+        margin-block-end: --spacing(8);
+        padding-block-end: --spacing(6);
+        border-block-end: 1px solid var(--color-divider);
+    }
+
+    .elme-contact__shortcuts-label {
+        margin: 0 0 --spacing(3);
+        font-size: var(--text-nav);
+        line-height: --spacing(5);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--color-ink-muted);
+    }
+
+    .elme-contact__shortcut-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: --spacing(2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .elme-contact__shortcut {
+        display: inline-flex;
+        align-items: center;
+        min-block-size: --spacing(10);
+        padding-inline: --spacing(4);
+        border: 1px solid var(--color-border);
+        background: var(--color-surface);
+        color: var(--color-ink);
+        font-size: var(--text-nav);
+        line-height: --spacing(5);
+        text-decoration: none;
+        transition:
+            border-color var(--default-transition-duration) var(--default-transition-timing-function),
+            color var(--default-transition-duration) var(--default-transition-timing-function);
+    }
+
+    .elme-contact__shortcut:hover {
+        border-color: var(--color-primary);
+        color: var(--color-link-hover);
+    }
+
+    .elme-contact__shortcut:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    .elme-contact__grid {
+        display: grid;
+        gap: --spacing(5);
+    }
+
+    @media (width >= 768px) {
+        .elme-contact__grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .elme-contact__message {
+            grid-column: 1 / -1;
+        }
+    }
+
+    .elme-contact__counter {
+        margin-block-start: --spacing(1);
+        text-align: end;
+    }
+
+    .elme-contact__opt-in {
+        display: flex;
+        align-items: flex-start;
+        gap: --spacing(3);
+        margin-block: --spacing(6) 0;
+    }
+
+    .elme-contact__opt-in .label {
+        margin: 0;
+        font-weight: 400;
+    }
+
+    .elme-contact__honeypot {
+        position: absolute;
+        inset-inline-start: -10000px;
+        inline-size: 1px;
+        block-size: 1px;
+        overflow: hidden;
+    }
+
+    .elme-contact__actions {
+        margin-block-start: --spacing(6);
+    }
+
+    .elme-contact__success-copy {
+        margin: 0 0 --spacing(4);
+        color: var(--color-ink);
+        max-inline-size: 36rem;
+    }
+
+    .elme-contact__success-links {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(2);
+        margin: 0 0 --spacing(6);
+        padding: 0;
+        list-style: none;
+    }
+
+    .elme-contact__success-links a {
+        color: var(--color-ink);
+        text-decoration: underline;
+        text-underline-offset: 0.15em;
+    }
+
+    .elme-contact__success-links a:hover {
+        color: var(--color-link-hover);
+    }
+
+    .elme-contact__again {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--color-ink);
+        font: inherit;
+        text-decoration: underline;
+        text-underline-offset: 0.15em;
+        cursor: pointer;
+    }
+
+    .elme-contact__again:hover {
+        color: var(--color-link-hover);
+    }
+
+    .elme-contact__again:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+}

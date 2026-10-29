@@ -30,7 +30,7 @@
         <field name="button_label" type="text" label="Button label" maxlength="40" width="half"
                description="Two or three words. Leave empty for no button."/>
         <field name="button_link" type="url" label="Button link" width="half"
-               description="Also links the image. e.g. /showroom-locator/elme-living-melbourne-outlet"/>
+               description="Also links the image. e.g. /outlet-and-clearance-store"/>
         <field name="tone" type="select" label="Look" default="light"
                description="Dark: a charcoal band with white text, for a loud promo like the Outlet.">
             <option value="light" label="Light"/>
@@ -167,6 +167,39 @@
                description="e.g. /virtual-catalogues. Leave empty for no button."/>
     </type>
 
+    <!-- /virtual-catalogues season list (FE-50): cover cards always; flipbook + shop URLs only when
+         logged in (QA 0). Empty catalogues hide the grid (UX-01). -->
+    <type code="virtual_catalogues"
+          label="Virtual Catalogues"
+          standalone="true"
+          group="pages"
+          icon="image-text"
+          description="Seasonal wholesale catalogue covers. Guests see locked covers and trade CTAs; signed-in buyers open flipbooks and shop the range."
+          template="Elme_Theme::content-type/virtual-catalogues.phtml"
+          version="1">
+
+        <field name="intro" type="textarea" label="Intro" maxlength="400"
+               description="Optional plain text under the page H1. Wholesale voice: seasonal catalogues for Australian trade customers."/>
+
+        <field name="catalogues" type="repeater" label="Catalogues" label_field="title" max="12" required="true"
+               description="One card per season. Cover + title are public; Open URL is never printed for guests.">
+            <field name="title" type="text" label="Season title" required="true" maxlength="40" width="half"
+                   description="Visible card H2, e.g. SS27 or AW26."/>
+            <field name="description" type="text" label="Short line" maxlength="120" width="half"
+                   description="Optional line under the title."/>
+            <field name="image" type="image" label="Cover image" required="true" recommended="620x877"
+                   description="Cover art JPEG or WebP. Title field is the text; do not bake words into the image."/>
+            <field name="image_alt" type="text" label="Image alt text" maxlength="160"
+                   description="e.g. Elme Living SS27 catalogue cover. Defaults to the season title."/>
+            <field name="open_url" type="url" label="Open catalogue URL (logged in)" width="half"
+                   description="Issuu embed or PDF URL. Output only for signed-in customers. Never shown to guests or in guest JSON-LD."/>
+            <field name="shop_url" type="url" label="Shop this range URL (logged in)" width="half"
+                   description="Category or new-arrivals path. Output only when signed in. Leave empty to hide the secondary link."/>
+            <field name="shop_label" type="text" label="Shop link label" maxlength="40" width="half"
+                   description="Defaults to Shop this range."/>
+        </field>
+    </type>
+
     <!-- Become a Stockist benefits: image + trade-fact rows + Create An Account (guest) / My Account
          (logged in). -->
     <type code="usp_strip"
@@ -203,8 +236,9 @@
                description="e.g. /customer/account/create. Logged-in customers go to the account dashboard."/>
     </type>
 
+
     <!-- FAQs help page: topic-grouped accordion. Editors add questions without a developer.
-         FE-47 owns FAQPage JSON-LD from these rows (HelpPages + Faq ViewModel). -->
+         FE-47 owns FAQPage JSON-LD from these rows (ContentPage + Faq ViewModel). -->
     <type code="faq"
           label="FAQs Accordion"
           standalone="true"
@@ -240,5 +274,275 @@
             </field>
         </field>
     </type>
+
+    <!-- About (FE-61): lifestyle image + three trade-proof pillars, each with one catalogue / team link. -->
+    <type code="proof_pillars"
+          label="Proof Pillars"
+          standalone="true"
+          group="pages"
+          icon="image-text"
+          description="Image beside a section heading and proof rows (title, one line, one link). Stacks on mobile."
+          template="Elme_Theme::content-type/proof-pillars.phtml"
+          version="1">
+
+        <field name="heading" type="text" label="Section heading" required="true" maxlength="60"
+               description="Section H2, e.g. &quot;Why stockists choose Elme&quot;. Never the page H1."/>
+        <field name="image" type="image" label="Image" required="true" recommended="720x742"
+               description="Side photo. JPEG or WebP. Above the text on phones, left on desktop."/>
+        <field name="image_alt" type="text" label="Image alt text" maxlength="160"
+               description="What the image shows. Leave empty if purely decorative."/>
+        <field name="items" type="repeater" label="Proofs" label_field="title" max="6" required="true"
+               description="Retailer proofs (new range, BDM advice, wholesale account), not lifestyle fluff.">
+            <field name="title" type="text" label="Title" required="true" maxlength="60"
+                   description="Short H3, e.g. &quot;New and exclusive lines&quot;."/>
+            <field name="text" type="textarea" label="One line" maxlength="220"
+                   description="One plain sentence. No prices, ratings or invented figures."/>
+            <field name="link_label" type="text" label="Link label" maxlength="40" width="half"
+                   description="Topic of the link, e.g. &quot;Shop New&quot;, &quot;Meet the Team&quot;."/>
+            <field name="link" type="url" label="Link" width="half"
+                   description="e.g. /new.html, /meet-the-team, /become-a-stockist."/>
+        </field>
+    </type>
+
+    <!-- About / Become a Stockist (FE-61, FE-67): Create an Account + Talk to our team. -->
+    <type code="stockist_cta"
+          label="Stockist CTA"
+          standalone="true"
+          group="pages"
+          icon="image-text"
+          description="Centred band: heading, short line, primary Create an Account (My Account when logged in) and secondary Talk to our team."
+          template="Elme_Theme::content-type/stockist-cta.phtml"
+          version="1">
+
+        <field name="heading" type="text" label="Heading" required="true" maxlength="60"
+               description="Section H2, e.g. &quot;Become a stockist&quot;."/>
+        <field name="text" type="textarea" label="Support line" maxlength="280"
+               description="Optional. One plain sentence under the heading."/>
+        <field name="primary_label" type="text" label="Primary label (guests)" maxlength="40" width="half"
+               description="e.g. &quot;Create an Account&quot;. Logged-in customers see My Account instead."/>
+        <field name="primary_link" type="url" label="Primary link (guests)" width="half"
+               description="e.g. /customer/account/create."/>
+        <field name="secondary_label" type="text" label="Secondary label" maxlength="40" width="half"
+               description="e.g. &quot;Talk to our team&quot;."/>
+        <field name="secondary_link" type="url" label="Secondary link" width="half"
+               description="e.g. /meet-the-team."/>
+    </type>
+
+<!-- "Visit us" card under the Outlet banner (FE-63): name, address with Get directions, phone and
+         opening hours. Address, phone and map pin come from store config (Stores > Configuration >
+         General > Store Information); the hours are edited here. The page JSON-LD (OutletStore) reads
+         the same values, so the card and the schema never disagree. -->
+    <type code="store_visit"
+          label="Store: Visit Us Card"
+          standalone="true"
+          group="pages"
+          icon="image-text"
+          description="Store name, address with Get directions, phone and opening hours. Address and phone come from store config."
+          template="Elme_Theme::content-type/store-visit.phtml"
+          version="1">
+
+        <field name="heading" type="text" label="Heading" required="true" maxlength="40" default="Visit us"
+               description="Card heading (H2), e.g. &quot;Visit us&quot;."/>
+        <field name="store_name" type="text" label="Store name" required="true" maxlength="80"
+               description="Full name, the same everywhere (page H1, store locator, Google profile): &quot;Elme Living Outlet &amp; Clearance Store&quot;. Also the name in search results."/>
+        <field name="intro" type="textarea" label="What the store is" maxlength="220"
+               description="One plain sentence: what is sold there. Search engines use it as the store description."/>
+        <field name="public_note" type="text" label="Who can visit" maxlength="80"
+               description="Short line, e.g. &quot;Open to the public, no trade account needed&quot;. Leave empty for a trade-only showroom."/>
+        <field name="schema_type" type="select" label="Kind of store" default="OutletStore"
+               description="For search engines only. Outlet for the clearance store.">
+            <option value="OutletStore" label="Outlet store"/>
+            <option value="FurnitureStore" label="Furniture store"/>
+            <option value="HomeGoodsStore" label="Homewares store"/>
+            <option value="Store" label="Store"/>
+        </field>
+        <field name="hours" type="repeater" label="Opening hours" label_field="day_from" max="7" required="true"
+               description="One row per run of days with the same hours: Mon to Sat 09:00-17:00, then Sun 10:00-17:00. Days not listed show as closed to search engines.">
+            <field name="day_from" type="select" label="From" required="true" width="half" default="Monday">
+                <option value="Monday" label="Monday"/>
+                <option value="Tuesday" label="Tuesday"/>
+                <option value="Wednesday" label="Wednesday"/>
+                <option value="Thursday" label="Thursday"/>
+                <option value="Friday" label="Friday"/>
+                <option value="Saturday" label="Saturday"/>
+                <option value="Sunday" label="Sunday"/>
+            </field>
+            <field name="day_to" type="select" label="To" width="half" default=""
+                   description="Leave on &quot;Only that day&quot; for a single day.">
+                <option value="" label="Only that day"/>
+                <option value="Monday" label="Monday"/>
+                <option value="Tuesday" label="Tuesday"/>
+                <option value="Wednesday" label="Wednesday"/>
+                <option value="Thursday" label="Thursday"/>
+                <option value="Friday" label="Friday"/>
+                <option value="Saturday" label="Saturday"/>
+                <option value="Sunday" label="Sunday"/>
+            </field>
+            <field name="opens" type="text" label="Opens" required="true" maxlength="5" width="half"
+                   description="24-hour time, e.g. 09:00"/>
+            <field name="closes" type="text" label="Closes" required="true" maxlength="5" width="half"
+                   description="24-hour time, e.g. 17:00"/>
+        </field>
+    </type>
+
+    <!-- Short FAQ (FE-63 Outlet): a heading and a few questions that open and close (native
+         details/summary, no JS). Every answer is in the page HTML, and the page JSON-LD lists the same
+         questions as FAQPage. The /faqs page uses its own accordion (FE-47). -->
+    <type code="faq_list"
+          label="FAQ: Short List"
+          standalone="true"
+          group="pages"
+          icon="image-text"
+          description="Heading and a few questions that open and close. Plain text answers."
+          template="Elme_Theme::content-type/faq-list.phtml"
+          version="1">
+
+        <field name="heading" type="text" label="Heading" required="true" maxlength="60"
+               description="Section heading (H2), e.g. &quot;Good to know&quot;."/>
+        <field name="items" type="repeater" label="Questions" label_field="question" max="10" required="true"
+               description="Three to six short questions. Search engines and AI answers read them word for word.">
+            <field name="question" type="text" label="Question" required="true" maxlength="120"
+                   description="As a customer would ask it, e.g. &quot;Is the outlet open to the public?&quot;."/>
+            <field name="answer" type="textarea" label="Answer" required="true" maxlength="600"
+                   description="Plain sentences, facts first. A blank line starts a new paragraph."/>
+            <field name="anchor" type="text" label="Link name" maxlength="60"
+                   description="Optional. The #name for a direct link to this question, e.g. open-to-the-public. Leave empty to make one from the question."/>
+        </field>
+    </type>
+
+    <!-- Meet the Team (FE-65): H1 + intro, region chips (Alpine visibility only), card grid. Every
+         published person stays in the HTML and in Person JSON-LD; chips never change the URL. -->
+    <type code="team"
+          label="Meet the Team"
+          standalone="true"
+          group="pages"
+          icon="image-text"
+          description="Page H1, intro, region filter chips and a grid of people (photo, role above name, email and phone links)."
+          template="Elme_Theme::content-type/team.phtml"
+          version="1">
+
+        <field name="title" type="text" label="Page heading (H1)" required="true" maxlength="80"
+               default="Meet the Team"
+               description="The only H1 on /meet-the-team. Match the CMS page title / footer label."/>
+        <field name="intro" type="wysiwyg" label="Intro"
+               description="Plain facts: who Elme Living is (Australian B2B wholesaler), that this page lists sales and showroom contacts by region, and that trade prices need a stockist account (/become-a-stockist). No prices or MOQ amounts."/>
+        <field name="heading" type="text" label="Grid heading (H2)" maxlength="60"
+               description="Optional H2 above the cards, e.g. Our account managers. Leave empty for none."/>
+
+        <field name="people" type="repeater" label="People" label_field="name" max="40" required="true"
+               description="One card per person. Switch off or delete when someone leaves. Publish only people with real email and phone — do not invent contacts.">
+            <field name="photo" type="image" label="Photo" recommended="540x540"
+                   description="Headshot, square. Alt text is the person name. JPEG or WebP."/>
+            <field name="name" type="text" label="Name" required="true" maxlength="80" width="half"
+                   description="Shown as the card H3."/>
+            <field name="role" type="text" label="Role" required="true" maxlength="90" width="half"
+                   description="Small text above the name, e.g. VIC Business Development Manager. Not a heading."/>
+            <field name="email" type="text" label="Email" maxlength="120" width="half"
+                   description="Shown as a mailto link. Leave empty if unknown — never invent."/>
+            <field name="phone" type="text" label="Phone" maxlength="40" width="half"
+                   description="Shown as a tel link. Prefer mobile with +61; office landlines are fine."/>
+            <field name="region" type="select" label="Region" required="true" width="half" default="head_office"
+                   description="Chip filter and card label. Head office for national / Blackburn roles.">
+                <option value="head_office" label="Head office"/>
+                <option value="VIC" label="VIC"/>
+                <option value="NSW" label="NSW"/>
+                <option value="QLD" label="QLD"/>
+                <option value="WA" label="WA"/>
+                <option value="SA_TAS" label="SA-TAS"/>
+            </field>
+            <field name="is_visible" type="boolean" label="Show on the page" default="1" width="half"
+                   description="Switch off to hide without deleting the row."/>
+        </field>
+    </type>
+
+    <!-- /fairs-events (FE-66): intro + upcoming trade fairs. Past end dates (Melbourne calendar) never
+         reach the HTML; next start comes first. Card: date block, written range, optional On now,
+         Book a time with your rep. Empty: one line + Blackburn showroom link. -->
+    <type code="events"
+          label="Fairs &amp; Events"
+          standalone="true"
+          group="pages"
+          icon="list"
+          description="Upcoming trade fairs and showroom events. Past end dates leave the page automatically; with none left, one empty message and a showroom link."
+          template="Elme_Theme::content-type/events.phtml"
+          version="1">
+
+        <field name="intro" type="wysiwyg" label="Intro"
+               description="Plain facts above the list: who Elme Living is (Australian B2B wholesaler), what this page is (trade fairs where retailers meet the team), and how to book (Meet the Team / Blackburn showroom). No prices or MOQ numbers."/>
+        <field name="heading" type="text" label="List heading" default="Upcoming fairs" maxlength="60"
+               description="H2 above the list and above the empty message, e.g. Upcoming fairs. Never the page H1."/>
+        <field name="empty_text" type="textarea" label="Empty message" maxlength="200"
+               default="No fairs scheduled right now"
+               description="Shown when every fair has ended. The Blackburn showroom link is added after it, so do not repeat that here."/>
+        <field name="items" type="repeater" label="Events" label_field="name" max="30"
+               description="One row per fair. An event whose end date has passed is left out of the page and the schema entirely (Melbourne calendar day, no cache flush needed).">
+            <field name="name" type="text" label="Event name" required="true" maxlength="80"
+                   description="Visible H3, e.g. Reed Gift Fair. Used for the stable schema id with the start date."/>
+            <field name="start" type="text" label="Start date" required="true" maxlength="10" width="half"
+                   description="Calendar date YYYY-MM-DD (Melbourne). Day + month of this date form the left date block."/>
+            <field name="end" type="text" label="End date" required="true" maxlength="10" width="half"
+                   description="Calendar date YYYY-MM-DD inclusive. Hidden the Melbourne day after this date."/>
+            <field name="city" type="text" label="City" maxlength="60" width="half"
+                   description="e.g. Melbourne. Shown as text under the name, not as a heading."/>
+            <field name="venue" type="text" label="Venue" maxlength="120" width="half"
+                   description="e.g. Melbourne Convention and Exhibition Centre."/>
+            <field name="stand" type="text" label="Stand" maxlength="40" width="half"
+                   description="Optional stand / booth number, e.g. A12."/>
+            <field name="text" type="textarea" label="Short description" maxlength="400"
+                   description="Optional plain sentence under the venue. No prices."/>
+            <field name="link" type="url" label="Fair website" width="half"
+                   description="Optional absolute http(s) URL to the fair's own site. The card CTA stays Book a time with your rep (Meet the Team)."/>
+        </field>
+    </type>
+
+    <!-- Careers page (FE-62): a short intro, then the open roles as rows (title, state, type, Apply by
+         email), or one "no vacancies" message with the careers address. Server-rendered, no JS: a role
+         switched off is not in the HTML at all. No JobPosting markup: roles have no page of their own. -->
+    <type code="vacancies"
+          label="Careers: Open Roles"
+          standalone="true"
+          group="pages"
+          icon="list"
+          description="Intro, then the open roles with an Apply by email link each. With no roles shown, one no-vacancies message and the careers address."
+          template="Elme_Theme::content-type/vacancies.phtml"
+          version="1">
+
+        <field name="intro" type="wysiwyg" label="Intro"
+               description="Plain facts that stay true with or without open roles: who Elme Living is, which teams hire (sales, customer service, showroom, warehouse), where (Blackburn showroom, Tarneit distribution centre) and how to apply."/>
+        <field name="heading" type="text" label="Roles heading" default="Current vacancies" maxlength="60"
+               description="Heading (H2) above the roles and above the no-vacancies message, e.g. &quot;Current vacancies&quot;."/>
+        <field name="email" type="text" label="Careers email" required="true" maxlength="120"
+               description="The one address applications go to, shown once on the page. A role can have its own address below."/>
+        <field name="empty_text" type="textarea" label="No vacancies message" maxlength="300"
+               default="We have no vacancies right now, but we are always glad to hear from people who love design and service."
+               description="Shown when no role is switched on. The careers address and &quot;send your resume and a short cover letter&quot; are added after it, so do not repeat them here."/>
+        <field name="roles" type="repeater" label="Open roles" label_field="title" max="20"
+               description="One row per open role. Switch a role off, or delete it, as soon as it is filled: it then leaves the page completely.">
+            <field name="title" type="text" label="Role title" required="true" maxlength="70"
+                   description="The job title people search for, e.g. &quot;Showroom Sales Consultant&quot;, not &quot;We're hiring!&quot;."/>
+            <field name="state" type="select" label="State" required="true" width="half" default="VIC"
+                   description="Shown in full on the page (Victoria).">
+                <option value="ACT" label="ACT"/>
+                <option value="NSW" label="NSW"/>
+                <option value="NT" label="NT"/>
+                <option value="QLD" label="QLD"/>
+                <option value="SA" label="SA"/>
+                <option value="TAS" label="TAS"/>
+                <option value="VIC" label="VIC"/>
+                <option value="WA" label="WA"/>
+            </field>
+            <field name="employment_type" type="select" label="Employment type" required="true" width="half" default="FULL_TIME">
+                <option value="FULL_TIME" label="Full-time"/>
+                <option value="PART_TIME" label="Part-time"/>
+                <option value="CASUAL" label="Casual"/>
+                <option value="CONTRACTOR" label="Contract"/>
+            </field>
+            <field name="email" type="text" label="Apply to (email)" maxlength="120" width="half"
+                   description="Optional. Leave empty to use the careers email above."/>
+            <field name="is_open" type="boolean" label="Show on the page" default="1" width="half"
+                   description="Switch off when the role is filled or on hold."/>
+        </field>
+    </type>
+
 
 </content_types>
