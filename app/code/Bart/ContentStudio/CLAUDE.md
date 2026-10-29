@@ -447,6 +447,7 @@ of repeating the number.
 | `category_tiles` | `Elme_Theme` | yes | no | Home category strip (FE-15): optional heading + `tiles` repeater (`link`, `label`, `image`). 3:2 photo with the name on a short scrim, bottom left. Scroll-snap carousel with CSP Alpine arrows. View model `Elme\Theme\ViewModel\CategoryTiles`. Editors paste category URLs (no category chooser). |
 | `welcome_cta` | `Elme_Theme` | yes | no | Home Welcome (FE-16): page H1 + wholesale line + Become a Stockist CTA (hidden when logged in). |
 | `catalogue_covers` | `Elme_Theme` | yes | no | Curated Catalogues dusty-blue band (FE-16): cover cards + See All. Empty cards hide the section (UX-01). View model `CatalogueCovers`. |
+| `virtual_catalogues` | `Elme_Theme` | yes | no | `/virtual-catalogues` season covers (FE-50). Guests see locked covers (no flipbook URLs in HTML); logged-in open Issuu + shop links. View model `VirtualCatalogues`. |
 | `usp_strip` | `Elme_Theme` | yes | no | Become a Stockist benefits (FE-16): image + trade-fact rows + Create An Account / My Account. View model `UspStrip`. |
 
 FE-14...16 and FE-47...49 add their types to the same `Elme_Theme/etc/content_types.xml`.
