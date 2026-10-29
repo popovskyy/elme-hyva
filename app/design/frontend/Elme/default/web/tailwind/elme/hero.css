@@ -9,20 +9,6 @@
     margin-top: 0;
 }
 
-/* Dark photos: btn-primary (sage fill and light sweep on hover) starting white instead of charcoal.
-   Unlayered, so it wins over the values btn / btn-primary set on themselves. */
-.elme-hero__btn {
-    --btn-stroke: var(--color-surface);
-    --btn-bg: var(--color-surface);
-    --btn-color: var(--color-ink);
-    --btn-hover-stroke: var(--color-secondary);
-    --btn-hover-bg: var(--color-secondary);
-    --btn-hover-color: var(--color-on-secondary);
-    --btn-active-stroke: transparent;
-    --btn-active-bg: var(--color-surface);
-    --btn-active-color: var(--color-ink);
-}
-
 @layer components {
     .elme-hero {
         --hero-pad: max(var(--entry-bleed), var(--container-gutter));
@@ -130,6 +116,7 @@
     }
 
 
+    /* Line per slide + pause: top right on phones (the copy fills the bottom), bottom right from md. */
     .elme-hero__controls {
         top: --spacing(3);
         right: --spacing(3);
@@ -141,13 +128,86 @@
         }
     }
 
-    .elme-hero__bar > i {
+    .elme-hero__seg > i {
         transform: scaleX(0);
         transform-origin: left;
     }
 
-    .elme-hero__bar > i.is-running {
+    .elme-hero__seg > i.is-running {
         animation: elme-hero-bar linear forwards;
+    }
+
+    .elme-hero__seg > i.is-full {
+        transform: none;
+    }
+
+    /* Arrows: thin chevrons in an outlined circle at the photo edges, only while the hero is hovered or
+       one of them has keyboard focus. They sit above the middle (bottom padding is a share of the width,
+       about a third of the 2:1 photo height), so the left one stays clear of the heading. */
+    .elme-hero__arrows::after {
+        content: none;
+    }
+
+    .elme-hero__arrows {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 --spacing(6) 15%;
+    }
+
+    .elme-hero__arrow {
+        pointer-events: auto;
+        display: grid;
+        place-items: center;
+        width: --spacing(14);
+        height: --spacing(14);
+        border: 1px solid color-mix(in oklab, var(--color-on-primary) 70%, transparent);
+        border-radius: 50%;
+        background: color-mix(in oklab, var(--color-ink) 25%, transparent);
+        color: var(--color-on-primary);
+        backdrop-filter: blur(6px);
+        cursor: pointer;
+        opacity: 0;
+        transition:
+            opacity var(--transition-duration-fast) var(--ease-out-quart),
+            translate var(--transition-duration-fast) var(--ease-out-quart),
+            background-color var(--transition-duration-fast) ease;
+    }
+
+    .elme-hero__arrow--prev {
+        translate: calc(var(--spacing) * -2) 0;
+    }
+
+    .elme-hero__arrow--next {
+        translate: calc(var(--spacing) * 2) 0;
+    }
+
+    .elme-hero:hover .elme-hero__arrow,
+    .elme-hero__arrow:focus-visible {
+        opacity: 1;
+        translate: 0 0;
+    }
+
+    .elme-hero__arrow:hover {
+        background: color-mix(in oklab, var(--color-ink) 50%, transparent);
+    }
+
+    .elme-hero__arrow:focus-visible {
+        outline: --spacing(0.5) solid var(--color-on-primary);
+        outline-offset: --spacing(0.5);
+    }
+
+    @media (hover: none) {
+        .elme-hero__arrows {
+            display: none;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .elme-hero__arrow {
+            transition: none;
+            translate: 0 0;
+        }
     }
 
     /* Entrance of the current slide: photo settles, then drifts; heading lines rise one after another;

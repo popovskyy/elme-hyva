@@ -1,9 +1,10 @@
 <?php
 /**
- * Content Studio type `welcome_cta` (etc/content_types.xml, FE-16): wholesale H1 on the left, text and
- * the two guest choices (apply = the content button, or log in) on the right; stacked on phones
- * (docs/design/homepage-options.html, B1). On home this is the page's only visible H1 (hero stays
- * is_page_title off). Logged-in customers already have an account, so both buttons are omitted.
+ * Content Studio type `welcome_cta` (etc/content_types.xml, FE-16), "Statement"
+ * (docs/design/home-middle-options.html, 1): the wholesale H1 as a large statement, words in *stars*
+ * set in italic, then a rule with the text on the left and the two guest choices (apply = the content
+ * button, or log in) on the right; stacked on phones. On home this is the page's only visible H1 (hero
+ * stays is_page_title off). Logged-in customers already have an account, so both buttons are omitted.
  *
  * @var \Bart\ContentStudio\Block\Entry $block
  * @var \Magento\Framework\Escaper $escaper
@@ -26,16 +27,19 @@ if ($heading === '') {
 $loginOnly = $viewModels->require(LoginOnly::class);
 $isGuest = !$loginOnly->isLoggedIn();
 $showButton = $isGuest && $buttonLabel !== '' && $buttonLink !== '';
+// *home decor* -> italic accent; escaped first, so editors cannot inject markup
+$headingHtml = preg_replace('/\*([^*]+)\*/', '<em class="italic">$1</em>', (string)$escaper->escapeHtml($heading));
 $headingId = 'welcome-cta-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
 ?>
-<section class="elme-welcome-cta mb-10 grid gap-5 py-4 md:grid-cols-2 md:items-center md:gap-x-16 lg:mb-15 lg:py-8"
+<section class="elme-welcome-cta mb-10 pt-6 lg:mb-15 lg:pt-12"
          aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
     <h1 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-        class="text-title-section text-balance font-heading font-normal text-ink lg:text-title-section-desktop">
-        <?= $escaper->escapeHtml($heading) ?>
+        class="elme-welcome-cta__heading max-w-[22ch] text-balance font-heading font-normal text-ink">
+        <?= /* @noEscape */ $headingHtml ?>
     </h1>
     <?php if ($text !== '' || $isGuest): ?>
-        <div class="grid gap-5 lg:gap-6">
+        <div class="mt-6 grid gap-5 border-t border-border pt-5
+                    md:grid-cols-[1fr_auto] md:items-end md:gap-x-16 lg:mt-10 lg:pt-7">
             <?php if ($text !== ''): ?>
                 <p class="max-w-120 text-copy text-pretty text-ink-muted lg:text-copy-desktop">
                     <?= $escaper->escapeHtml($text) ?>

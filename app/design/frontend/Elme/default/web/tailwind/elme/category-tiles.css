@@ -6,8 +6,14 @@
 @layer components {
     .elme-category-tiles__track {
         gap: --spacing(3.5);
-        padding-inline: --spacing(5);
-        scroll-padding-inline: --spacing(5);
+        /* First tile on the same line as the page text (logo, headings), like every home block */
+        padding-inline: max(var(--entry-bleed), var(--container-gutter));
+        scroll-padding-inline: max(var(--entry-bleed), var(--container-gutter));
+
+        @variant md {
+            padding-inline: max(var(--entry-bleed), var(--container-gutter-desktop));
+            scroll-padding-inline: max(var(--entry-bleed), var(--container-gutter-desktop));
+        }
     }
 
     .elme-category-tiles__item {
@@ -100,8 +106,6 @@
     @variant lg {
         .elme-category-tiles__track {
             gap: --spacing(4.5);
-            padding-inline: --spacing(16);
-            scroll-padding-inline: --spacing(16);
         }
 
         .elme-category-tiles__item {

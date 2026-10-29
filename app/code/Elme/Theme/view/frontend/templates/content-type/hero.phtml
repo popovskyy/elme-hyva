@@ -132,7 +132,7 @@ $heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier())
                         <?php if ($hasButton): ?>
                             <div class="elme-hero__rise pointer-events-auto">
                                 <a href="<?= $escaper->escapeUrl($slide['button_link']) ?>"
-                                   class="btn btn-primary <?= $isLight ? '' : 'elme-hero__btn' ?> w-full sm:w-auto sm:min-w-54">
+                                   class="btn btn-primary <?= $isLight ? '' : 'btn-on-dark' ?> w-full sm:w-auto sm:min-w-54">
                                     <?= $escaper->escapeHtml($slide['button_label']) ?>
                                 </a>
                             </div>
@@ -148,44 +148,51 @@ $heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier())
         $lucideIcons = $viewModels->require(LucideIcons::class);
         /** @var HyvaCsp $hyvaCsp */
         $hyvaCsp = $viewModels->require(HyvaCsp::class);
-        $controlClass = 'flex size-11 items-center justify-center text-on-primary hover:opacity-80
-                         focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-on-primary';
         ?>
-        <?php // Top right on phones (the copy fills the bottom), bottom right from md. Invisible until Alpine starts. ?>
-        <div x-ref="controls"
-             class="elme-hero__controls invisible absolute z-2 flex items-center gap-3 bg-ink/60 pl-4">
-            <span class="text-note font-bold tracking-wider text-on-primary tabular-nums" aria-hidden="true"
-                  x-text="counter"><?= sprintf('01 / %02d', $count) ?></span>
+        <?php // Elegant arrows at the photo edges, shown on hover or keyboard focus (pointer devices; phones swipe). ?>
+        <div class="elme-hero__media elme-hero__arrows pointer-events-none absolute inset-x-0 top-0 z-2 max-md:hidden">
+            <button type="button"
+                    class="elme-hero__arrow elme-hero__arrow--prev"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Previous slide')) ?>"
+                    aria-controls="<?= $escaper->escapeHtmlAttr($heroId . '-slides') ?>"
+                    @click="prev">
+                <?= $lucideIcons->chevronLeftHtml('', 28, 28, ['aria-hidden' => 'true', 'stroke-width' => '1.25']) ?>
+            </button>
+            <button type="button"
+                    class="elme-hero__arrow elme-hero__arrow--next"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Next slide')) ?>"
+                    aria-controls="<?= $escaper->escapeHtmlAttr($heroId . '-slides') ?>"
+                    @click="next">
+                <?= $lucideIcons->chevronRightHtml('', 28, 28, ['aria-hidden' => 'true', 'stroke-width' => '1.25']) ?>
+            </button>
+        </div>
+        <?php // One thin line per slide (the current one fills while autoplay runs) and a small pause button. ?>
+        <div x-ref="controls" class="elme-hero__controls invisible absolute z-2 flex items-center bg-ink/40 px-2">
+            <?php for ($index = 0; $index < $count; $index++): ?>
+                <button type="button"
+                        class="group flex h-10 items-center px-1.5
+                               focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-on-primary"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Go to slide %1', $index + 1)) ?>"
+                        aria-current="<?= $index === 0 ? 'true' : 'false' ?>"
+                        data-index="<?= (int)$index ?>"
+                        :aria-current="dotCurrent"
+                        @click="goToDot">
+                    <span class="elme-hero__seg relative block h-0.5 w-8 overflow-hidden bg-on-primary/40 md:w-12">
+                        <i data-fill class="absolute inset-0 bg-on-primary"></i>
+                    </span>
+                </button>
+            <?php endfor; ?>
             <?php if ($interval): ?>
-                <span class="elme-hero__bar relative block h-0.5 w-16 overflow-hidden bg-on-primary/35 md:w-24"
-                      aria-hidden="true"><i x-ref="bar" class="absolute inset-0 bg-on-primary"></i></span>
+                <button type="button"
+                        class="flex size-10 items-center justify-center text-on-primary hover:opacity-80
+                               focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-on-primary"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Pause slideshow')) ?>"
+                        :aria-label="playLabel"
+                        @click="togglePlay">
+                    <span x-show="playing"><?= $lucideIcons->pauseHtml('', 14, 14, ['aria-hidden' => 'true']) ?></span>
+                    <span x-show="isStopped"><?= $lucideIcons->playHtml('', 14, 14, ['aria-hidden' => 'true']) ?></span>
+                </button>
             <?php endif; ?>
-            <div class="flex items-center">
-                <button type="button"
-                        class="<?= /* @noEscape */ $controlClass ?> max-md:hidden"
-                        aria-label="<?= $escaper->escapeHtmlAttr(__('Previous slide')) ?>"
-                        aria-controls="<?= $escaper->escapeHtmlAttr($heroId . '-slides') ?>"
-                        @click="prev">
-                    <?= $lucideIcons->chevronLeftHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
-                </button>
-                <button type="button"
-                        class="<?= /* @noEscape */ $controlClass ?>"
-                        aria-label="<?= $escaper->escapeHtmlAttr(__('Next slide')) ?>"
-                        aria-controls="<?= $escaper->escapeHtmlAttr($heroId . '-slides') ?>"
-                        @click="next">
-                    <?= $lucideIcons->chevronRightHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
-                </button>
-                <?php if ($interval): ?>
-                    <button type="button"
-                            class="<?= /* @noEscape */ $controlClass ?>"
-                            aria-label="<?= $escaper->escapeHtmlAttr(__('Pause slideshow')) ?>"
-                            :aria-label="playLabel"
-                            @click="togglePlay">
-                        <span x-show="playing"><?= $lucideIcons->pauseHtml('', 18, 18, ['aria-hidden' => 'true']) ?></span>
-                        <span x-show="isStopped"><?= $lucideIcons->playHtml('', 18, 18, ['aria-hidden' => 'true']) ?></span>
-                    </button>
-                <?php endif; ?>
-            </div>
         </div>
         <script>
             function initElmeHero() {
@@ -315,26 +322,24 @@ $heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier())
                         this.restartBar();
                     },
 
+                    // The current slide's line fills over the interval; the others are empty, except when
+                    // autoplay is off, then the current one is simply full.
                     restartBar() {
-                        const bar = this.$refs.bar;
+                        this.$root.querySelectorAll('[data-fill]').forEach((fill, i) => {
+                            fill.classList.remove('is-running', 'is-full');
 
-                        if (!bar) {
-                            return;
-                        }
+                            if (i !== this.index) {
+                                return;
+                            }
 
-                        bar.classList.remove('is-running');
-
-                        if (this.timer && !this.reduceMotion) {
-                            bar.style.animationDuration = this.interval + 'ms';
-                            void bar.offsetWidth;
-                            bar.classList.add('is-running');
-                        }
-                    },
-
-                    counter() {
-                        const pad = (n) => String(n).padStart(2, '0');
-
-                        return pad(this.index + 1) + ' / ' + pad(this.count);
+                            if (this.timer && !this.reduceMotion) {
+                                fill.style.animationDuration = this.interval + 'ms';
+                                void fill.offsetWidth;
+                                fill.classList.add('is-running');
+                            } else {
+                                fill.classList.add('is-full');
+                            }
+                        });
                     },
 
                     isStopped() {

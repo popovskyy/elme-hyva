@@ -2,8 +2,9 @@
 /**
  * Home page scroll motion (styles in web/tailwind/elme/home-motion.css). Marks the homepage sections
  * and the items inside them, shows what is already on screen, and reveals the rest once as it
- * scrolls in. Also moves the usp_strip collage layers with a fine pointer. Without this script, or
- * without IntersectionObserver, nothing is hidden.
+ * scrolls in. Also moves the usp_strip collage layers with a fine pointer, and retypes the email address
+ * in Need assistance every 6s while it is on screen (the envelope opens on the same beat, shared-blocks.css).
+ * Without this script, or without IntersectionObserver, nothing is hidden and the address is simply there.
  *
  * @var \Magento\Framework\View\Element\Template $block
  * @var \Magento\Framework\Escaper $escaper
@@ -44,6 +45,43 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             targets.push(item);
         });
 
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // Screen readers read an sr-only copy of the address; only the visible span is retyped.
+        const typeText = (el) => {
+            const text = el.dataset.typeText;
+
+            if (reduceMotion || !text) {
+                return;
+            }
+            clearInterval(el.typing);
+            let length = 0;
+            el.textContent = '';
+            el.typing = setInterval(() => {
+                length += 1;
+                el.textContent = text.slice(0, length);
+                if (length >= text.length) {
+                    clearInterval(el.typing);
+                }
+            }, 55);
+        };
+
+        // Retype on the envelope's 6s beat (its animation starts 1.5s after .is-in), only while on screen.
+        main.querySelectorAll('[data-type-text]').forEach((el) => {
+            let loop = null;
+            new IntersectionObserver(([entry]) => {
+                clearTimeout(loop);
+                clearInterval(loop);
+                if (!entry.isIntersecting) {
+                    return;
+                }
+                loop = setTimeout(() => {
+                    typeText(el);
+                    loop = setInterval(() => typeText(el), 6000);
+                }, 1700);
+            }).observe(el);
+        });
+
         const observer = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
                 if (entry.isIntersecting) {
@@ -63,7 +101,6 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
         document.documentElement.classList.add('elme-motion');
 
         const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         if (!finePointer || reduceMotion) {
             return;

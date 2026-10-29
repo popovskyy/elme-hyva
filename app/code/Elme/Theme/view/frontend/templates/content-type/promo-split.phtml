@@ -1,8 +1,13 @@
 <?php
 /**
  * Content Studio type `promo_split` (etc/content_types.xml): image left; heading, text and a button
- * right. Below desktop it stacks and centres. Production: the Outlet promo on the home page
+ * right. Below desktop it stacks. Production: the Outlet promo on the home page
  * (Bart/el home/_become-retailer.less). Server-rendered, no JS.
+ *
+ * Optional "Statement" look (docs/design/home-middle-options.html, 1): tone `dark` puts it on a
+ * charcoal band with white text, `highlight` is a very large line under the heading ("Up to 80% off"),
+ * and `ticker` lines run as a slow strip under the band (home-statement.css; still when visitors
+ * turn animations off, paused on hover).
  *
  * Bleeds into the container gutters on both sides, like production: the image runs to the screen
  * edge, the text keeps its own inset. --entry-bleed is the gutter only where the entry sits in one
@@ -19,6 +24,9 @@ $heading = trim((string)($content['heading'] ?? ''));
 $text = trim((string)($content['text'] ?? ''));
 $buttonLabel = trim((string)($content['button_label'] ?? ''));
 $buttonLink = trim((string)($content['button_link'] ?? ''));
+$isDark = ($content['tone'] ?? '') === 'dark';
+$highlight = trim((string)($content['highlight'] ?? ''));
+$ticker = array_values(array_filter(array_map('trim', preg_split('/\R/', (string)($content['ticker'] ?? '')) ?: [])));
 
 if ($image === '' || $heading === '') {
     return;
@@ -29,9 +37,11 @@ $headingId = 'promo-split-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIde
 // Saved through HtmlSanitizer already; this keeps an imported entry to the same tags.
 $textTags = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'a', 'ul', 'ol', 'li', 'sup', 'sub'];
 ?>
-<section class="-mx-(--entry-bleed) mt-5 mb-10 flex flex-col lg:mb-30 lg:flex-row"
+<section class="elme-promo-split -mx-(--entry-bleed) mt-5 <?= $ticker ? 'mb-0' : 'mb-10 lg:mb-30' ?>
+                flex flex-col lg:flex-row lg:items-center
+                <?= $isDark ? 'elme-promo-split--dark bg-ink text-on-primary' : 'text-ink' ?>"
          aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
-    <div class="mb-6 lg:mb-0 lg:w-1/2 lg:shrink-0">
+    <div class="<?= $isDark ? '' : 'mb-6' ?> lg:mb-0 lg:w-1/2 lg:shrink-0">
         <?php if ($hasButton): ?>
             <?php // Same destination as the button, so it is skipped by keyboard and screen readers. ?>
             <a href="<?= $escaper->escapeUrl($buttonLink) ?>" tabindex="-1" aria-hidden="true" class="block">
@@ -47,25 +57,45 @@ $textTags = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'a', 'ul', 'ol', 'li', 's
             </a>
         <?php endif; ?>
     </div>
-    <div class="flex flex-col justify-center px-5 text-center
-                lg:w-1/2 lg:max-w-160 lg:pr-5 lg:pl-18 lg:text-left">
+    <div class="flex flex-col justify-center px-5 lg:w-1/2 lg:max-w-160 lg:pr-5 lg:pl-18
+                <?= $isDark ? 'py-8 lg:py-10' : 'text-center lg:text-left' ?>">
         <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-            class="mb-6 text-title-section text-ink lg:mb-5.5 lg:text-title-section-desktop">
+            class="<?= $highlight !== '' ? 'elme-promo-split__kicker' : 'mb-6 text-title-section lg:mb-5.5 lg:text-title-section-desktop' ?>
+                   text-inherit">
             <?= nl2br($escaper->escapeHtml($heading), false) ?>
         </h2>
+        <?php if ($highlight !== ''): ?>
+            <p class="elme-promo-split__highlight mb-5 font-heading text-inherit lg:mb-6">
+                <?= $escaper->escapeHtml($highlight) ?>
+            </p>
+        <?php endif; ?>
         <?php if ($text !== ''): ?>
-            <div class="text-copy text-ink lg:text-copy-desktop
-                        [&_a]:underline [&_p]:m-0 [&_p]:text-ink">
+            <div class="text-copy lg:text-copy-desktop [&_a]:underline [&_p]:m-0
+                        <?= $isDark ? '[&_p]:text-on-primary/85' : '[&_p]:text-ink' ?>">
                 <?= /* @noEscape */ $escaper->escapeHtml($text, $textTags) ?>
             </div>
         <?php endif; ?>
         <?php if ($hasButton): ?>
-            <div class="<?= $text !== '' ? 'mt-3.5 lg:mt-10' : '' ?>">
+            <div class="<?= $text !== '' ? 'mt-6 lg:mt-10' : '' ?>">
                 <a href="<?= $escaper->escapeUrl($buttonLink) ?>"
-                   class="btn btn-primary w-full lg:w-auto lg:min-w-54">
+                   class="btn btn-primary <?= $isDark ? 'btn-on-dark' : '' ?> w-full lg:w-auto lg:min-w-54">
                     <?= $escaper->escapeHtml($buttonLabel) ?>
                 </a>
             </div>
         <?php endif; ?>
     </div>
 </section>
+<?php if ($ticker): ?>
+    <?php // Decorative repeat of facts already on the page, so screen readers skip it. Two copies loop seamlessly. ?>
+    <div class="elme-ticker -mx-(--entry-bleed) mb-10 overflow-hidden border-y border-border lg:mb-15" aria-hidden="true">
+        <div class="elme-ticker__track flex w-max">
+            <?php for ($copy = 0; $copy < 2; $copy++): ?>
+                <?php foreach ($ticker as $item): ?>
+                    <span class="elme-ticker__item whitespace-nowrap font-heading text-ink">
+                        <?= $escaper->escapeHtml($item) ?><span class="elme-ticker__sep">/</span>
+                    </span>
+                <?php endforeach; ?>
+            <?php endfor; ?>
+        </div>
+    </div>
+<?php endif; ?>

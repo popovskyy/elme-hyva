@@ -1,9 +1,10 @@
 <?php
 /**
- * Content Studio type `catalogue_covers` (etc/content_types.xml, FE-16): heading, intro and See All on
- * the left, a list of catalogues on the right; stacked on phones (docs/design/homepage-options.html,
- * C3). Each row is one link: the cover at its own ratio (never cropped), name and short line. Empty
- * cards -> render nothing (UX-01). Server-rendered, no Alpine.
+ * Content Studio type `catalogue_covers` (etc/content_types.xml, FE-16), "Statement"
+ * (docs/design/home-middle-options.html, 1): a sand band with heading, intro and See All on the left
+ * and the covers as books on the right, each slightly turned; a book straightens and lifts on hover
+ * (home-statement.css). Covers keep their own ratio. Empty cards -> render nothing (UX-01).
+ * Server-rendered, no Alpine.
  *
  * @var \Bart\ContentStudio\Block\Entry $block
  * @var \Magento\Framework\Escaper $escaper
@@ -36,65 +37,59 @@ $headingId = $sectionId . '-heading';
 $lucideIcons = $viewModels->require(LucideIcons::class);
 ?>
 <section id="<?= $escaper->escapeHtmlAttr($sectionId) ?>"
-         class="elme-catalogue-covers mb-10 grid gap-6 text-ink lg:mb-15 lg:grid-cols-[4fr_7fr] lg:gap-16"
+         class="elme-catalogue-covers -mx-(--entry-bleed) mb-10 bg-sand-light py-12 text-ink lg:mb-15 lg:py-22"
          aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
-    <div class="grid content-start justify-items-start gap-4 lg:gap-5">
-        <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-            class="text-title-section text-balance font-heading font-normal text-ink lg:text-title-section-desktop">
-            <?= $escaper->escapeHtml($heading) ?>
-        </h2>
-        <?php if ($intro !== ''): ?>
-            <p class="max-w-120 text-copy text-pretty text-ink-muted lg:text-copy-desktop">
-                <?= $escaper->escapeHtml($intro) ?>
-            </p>
-        <?php endif; ?>
-        <?php if ($seeAll !== null): ?>
-            <a href="<?= $escaper->escapeUrl($seeAll['link']) ?>"
-               class="group inline-flex min-h-11 items-center gap-2 font-bold text-ink underline underline-offset-4
-                      hover:text-link-hover focus-visible:outline-2 focus-visible:outline-offset-2
-                      focus-visible:outline-ink">
-                <?= $escaper->escapeHtml($seeAll['label']) ?>
-                <?= $lucideIcons->arrowRightHtml(
-                    'transition-transform duration-(--transition-duration-fast) ease-out-quart
-                     motion-safe:group-hover:translate-x-1',
-                    18,
-                    18,
-                    ['aria-hidden' => 'true']
-                ) ?>
-            </a>
-        <?php endif; ?>
-    </div>
-
-    <ul class="m-0 grid list-none gap-0 p-0">
-        <?php foreach ($cards as $card): ?>
-            <li class="min-w-0 border-t border-border last:border-b">
-                <a href="<?= $escaper->escapeUrl($card['link']) ?>"
-                   class="elme-catalogue-covers__row group grid grid-cols-[6rem_1fr] items-center gap-4 py-4
-                          text-ink no-underline md:grid-cols-[7.5rem_1fr_auto] md:gap-7 md:py-5
-                          focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ink">
-                    <img src="<?= $escaper->escapeUrl($card['image']['src']) ?>"
-                         alt="<?= $escaper->escapeHtmlAttr($card['image_alt']) ?>"
-                         width="<?= (int)$card['image']['width'] ?>"
-                         height="<?= (int)$card['image']['height'] ?>"
-                         loading="lazy"
-                         decoding="async"
-                         class="block h-auto w-full bg-cool-light shadow-md shadow-ink/15">
-                    <span class="grid gap-1.5">
-                        <span class="font-heading text-h3 text-ink group-hover:underline group-hover:underline-offset-4
-                                     lg:text-h3-desktop">
-                            <?= $escaper->escapeHtml($card['title']) ?>
-                        </span>
-                        <?php if ($card['text'] !== ''): ?>
-                            <span class="text-copy text-ink-muted"><?= $escaper->escapeHtml($card['text']) ?></span>
-                        <?php endif; ?>
-                    </span>
-                    <span class="hidden text-ink transition-transform duration-(--transition-duration-fast)
-                                 ease-out-quart motion-safe:group-hover:translate-x-1 md:inline-flex"
-                          aria-hidden="true">
-                        <?= $lucideIcons->arrowRightHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
-                    </span>
+    <div class="elme-catalogue-covers__inner grid gap-8 lg:grid-cols-[4fr_6fr] lg:items-center lg:gap-16">
+        <div class="grid content-start justify-items-start gap-4 lg:gap-5">
+            <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+                class="text-title-section text-balance font-heading font-normal text-ink lg:text-title-section-desktop">
+                <?= $escaper->escapeHtml($heading) ?>
+            </h2>
+            <?php if ($intro !== ''): ?>
+                <p class="max-w-120 text-copy text-pretty text-ink-muted lg:text-copy-desktop">
+                    <?= $escaper->escapeHtml($intro) ?>
+                </p>
+            <?php endif; ?>
+            <?php if ($seeAll !== null): ?>
+                <a href="<?= $escaper->escapeUrl($seeAll['link']) ?>"
+                   class="group inline-flex min-h-11 items-center gap-2 font-bold text-ink underline underline-offset-4
+                          hover:text-link-hover focus-visible:outline-2 focus-visible:outline-offset-2
+                          focus-visible:outline-ink">
+                    <?= $escaper->escapeHtml($seeAll['label']) ?>
+                    <?= $lucideIcons->arrowRightHtml(
+                        'transition-transform duration-(--transition-duration-fast) ease-out-quart
+                         motion-safe:group-hover:translate-x-1',
+                        18,
+                        18,
+                        ['aria-hidden' => 'true']
+                    ) ?>
                 </a>
-            </li>
-        <?php endforeach; ?>
-    </ul>
+            <?php endif; ?>
+        </div>
+
+        <ul class="elme-catalogue-covers__shelf m-0 grid list-none grid-cols-2 gap-5 p-0 lg:w-full lg:max-w-140
+                   lg:justify-self-end lg:gap-12">
+            <?php foreach ($cards as $card): ?>
+                <li class="min-w-0">
+                    <a href="<?= $escaper->escapeUrl($card['link']) ?>"
+                       class="elme-catalogue-covers__book group grid gap-3 text-ink no-underline
+                              focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink">
+                        <img src="<?= $escaper->escapeUrl($card['image']['src']) ?>"
+                             alt="<?= $escaper->escapeHtmlAttr($card['image_alt']) ?>"
+                             width="<?= (int)$card['image']['width'] ?>"
+                             height="<?= (int)$card['image']['height'] ?>"
+                             loading="lazy"
+                             decoding="async"
+                             class="elme-catalogue-covers__cover block h-auto w-full bg-cool-light">
+                        <span class="grid gap-1">
+                            <span class="font-heading text-h3 lg:text-h3-desktop"><?= $escaper->escapeHtml($card['title']) ?></span>
+                            <?php if ($card['text'] !== ''): ?>
+                                <span class="text-copy text-ink-muted"><?= $escaper->escapeHtml($card['text']) ?></span>
+                            <?php endif; ?>
+                        </span>
+                    </a>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
 </section>

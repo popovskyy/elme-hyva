@@ -15,7 +15,7 @@
           standalone="true"
           group="home"
           icon="image-text"
-          description="Image on the left, heading, text and a button on the right. Stacks on mobile."
+          description="Image on the left, heading, text and a button on the right; optional dark band, big line and ticker. Stacks on mobile."
           template="Elme_Theme::content-type/promo-split.phtml"
           version="1">
 
@@ -31,6 +31,15 @@
                description="Two or three words. Leave empty for no button."/>
         <field name="button_link" type="url" label="Button link" width="half"
                description="Also links the image. e.g. /showroom-locator/elme-living-melbourne-outlet"/>
+        <field name="tone" type="select" label="Look" default="light"
+               description="Dark: a charcoal band with white text, for a loud promo like the Outlet.">
+            <option value="light" label="Light"/>
+            <option value="dark" label="Dark band"/>
+        </field>
+        <field name="highlight" type="text" label="Big line" maxlength="20"
+               description="Optional. Shown very large under the heading, e.g. &quot;Up to 80% off&quot;. Keep it short."/>
+        <field name="ticker" type="textarea" label="Ticker" maxlength="200"
+               description="Optional. One short item per line; they run slowly in a strip under the block, e.g. End-of-lines / Samples / One-off pieces."/>
     </type>
 
     <!-- The full-width banner at the top of the home page (and the top banner of About, Careers,

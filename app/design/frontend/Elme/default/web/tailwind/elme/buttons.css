@@ -1,0 +1,16 @@
+/*
+ * Button on a dark ground (hero on a dark photo, dark promo band): add to `btn btn-primary` so it
+ * keeps the sage fill and light sweep on hover but starts white instead of charcoal. Unlayered, so it
+ * wins over the values btn / btn-primary set on themselves.
+ */
+.btn-on-dark {
+    --btn-stroke: var(--color-surface);
+    --btn-bg: var(--color-surface);
+    --btn-color: var(--color-ink);
+    --btn-hover-stroke: var(--color-secondary);
+    --btn-hover-bg: var(--color-secondary);
+    --btn-hover-color: var(--color-on-secondary);
+    --btn-active-stroke: transparent;
+    --btn-active-bg: var(--color-surface);
+    --btn-active-color: var(--color-ink);
+}

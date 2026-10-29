@@ -50,7 +50,7 @@ if ($loginOnly->isLoggedIn()) {
 $headingId = 'usp-strip-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
 $hasImageLink = $guestButton !== null && !$loginOnly->isLoggedIn();
 ?>
-<section class="elme-usp-strip -mx-(--entry-bleed) mb-10 flex flex-col lg:mb-30 lg:flex-row"
+<section class="elme-usp-strip -mx-(--entry-bleed) mb-10 flex flex-col lg:mb-15 lg:flex-row"
          aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
     <div class="mb-6 lg:mb-0 lg:w-1/2 lg:shrink-0">
         <?php if ($collage): ?>

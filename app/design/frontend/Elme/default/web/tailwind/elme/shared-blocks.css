@@ -1,70 +1,67 @@
 /*
  * FE-13 shared CMS blocks: Our Difference (.elme-our-difference) and Need assistance?
  * (.elme-need-assistance). Classes live in CMS HTML / theme templates, not Page Builder inline styles.
+ * Look: docs/design/home-middle-options.html, B (centred quote, dark contact band on the home page).
  */
 @layer components {
-    /* Our Difference (old .seo-block) */
+    /* Our Difference: the first sentence as a centred quote (h2), the rest under it. */
     .elme-our-difference {
-        display: flex;
-        flex-direction: column;
-        max-width: 72rem; /* ~1152px parity with production seo-block */
+        display: grid;
+        justify-items: center;
+        gap: --spacing(5);
+        max-width: 72rem;
         margin-inline: auto;
-        margin-bottom: --spacing(14);
-        gap: --spacing(6);
-        text-align: left;
+        padding-block: --spacing(14) --spacing(10);
+        text-align: center;
+
+        @variant md {
+            padding-block: --spacing(24) --spacing(16);
+        }
     }
 
     .elme-our-difference__title {
+        max-width: 22ch;
         margin: 0;
-        flex-shrink: 0;
         font-family: var(--font-heading);
         font-weight: 400;
-        font-size: var(--text-h2);
-        line-height: var(--text-h2--line-height);
+        font-size: var(--text-title-section);
+        line-height: var(--text-title-section--line-height);
         color: var(--color-ink);
+        text-wrap: balance;
+
+        @variant md {
+            font-size: calc(var(--spacing) * 12);
+            line-height: 1.12;
+        }
     }
 
-    .elme-our-difference__body {
-        min-width: 0;
-        flex: 1;
+    .elme-our-difference__title em {
+        font-style: italic;
     }
 
     .elme-our-difference__body p {
+        max-width: 62ch;
         margin: 0;
-        text-align: left;
         font-size: var(--text-copy);
         line-height: var(--text-copy--line-height);
         color: var(--color-ink-subtle);
-    }
 
-    @variant md {
-        .elme-our-difference {
-            flex-direction: row;
-            align-items: flex-start;
-            margin-bottom: --spacing(22);
-            gap: --spacing(13);
-        }
-
-        .elme-our-difference__title {
-            font-size: var(--text-h2-desktop);
-            line-height: 1.875rem; /* 30px production */
-            white-space: nowrap; /* side-by-side heading stays one line at md+ */
-        }
-
-        .elme-our-difference__body p {
+        @variant md {
             font-size: var(--text-copy-desktop);
             line-height: var(--text-copy-desktop--line-height);
         }
     }
 
-    /* Need assistance? Three cells in a row when the block is at least 40rem wide (home), stacked
-       when narrow (phones, help page side column). The block is its own container, so it follows its
-       column, not the viewport. */
+    /* Need assistance? Three cells in a row when the block is at least 40rem wide, stacked when narrow
+       (phones, help page side column). The block is its own container, so it follows its column. */
     .elme-need-assistance {
         container-type: inline-size;
-        display: grid;
-        gap: --spacing(4);
         margin-bottom: --spacing(14);
+    }
+
+    .elme-need-assistance__inner {
+        display: grid;
+        gap: --spacing(5);
     }
 
     .elme-need-assistance__title {
@@ -73,7 +70,7 @@
         font-weight: 400;
         font-size: var(--text-h2);
         line-height: var(--text-h2--line-height);
-        color: var(--color-ink);
+        color: inherit;
 
         @variant md {
             font-size: var(--text-h2-desktop);
@@ -91,45 +88,71 @@
         border: 1px solid var(--color-border);
     }
 
-    .elme-need-assistance__cell {
+    .elme-need-assistance__cells > li {
         display: grid;
-        align-content: start;
-        gap: --spacing(1.5);
+    }
+
+    /* The whole cell is the link, icon included. */
+    .elme-need-assistance__cell {
+        color: inherit;
+        text-decoration: none;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        gap: --spacing(4);
         padding: --spacing(4) --spacing(5);
         background: var(--color-surface);
     }
 
-    .elme-need-assistance__label {
-        display: flex;
-        align-items: center;
-        gap: --spacing(2);
-        font-size: var(--text-note);
-        line-height: var(--text-note--line-height);
-        color: var(--color-ink-subtle);
+    .elme-need-assistance__text {
+        display: grid;
+        gap: --spacing(1);
+        min-width: 0;
     }
 
     .elme-need-assistance__icon {
-        flex-shrink: 0;
-        stroke-width: 1.5;
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: --spacing(12);
+        height: --spacing(12);
+        border-radius: 50%;
+        background: var(--color-secondary);
+        color: var(--color-ink);
+    }
+
+    .elme-need-assistance__icon svg {
+        width: 50%;
+        height: 50%;
+        overflow: visible;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .elme-need-assistance__label {
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        color: var(--color-ink-subtle);
     }
 
     .elme-need-assistance__value {
         width: fit-content;
         font-weight: 700;
         color: var(--color-ink);
-        text-decoration: none;
         overflow-wrap: anywhere;
     }
 
-    .elme-need-assistance__value:hover {
-        color: var(--color-link-hover);
+    .elme-need-assistance__cell:hover .elme-need-assistance__value {
         text-decoration: underline;
         text-underline-offset: 0.15em;
     }
 
-    .elme-need-assistance__value:focus-visible {
-        outline: --spacing(0.5) solid var(--color-ink);
-        outline-offset: --spacing(0.5);
+    .elme-need-assistance__cell:focus-visible {
+        outline: --spacing(0.5) solid currentColor;
+        outline-offset: calc(var(--spacing) * -0.5);
     }
 
     @container (min-width: 40rem) {
@@ -138,7 +161,13 @@
         }
 
         .elme-need-assistance__cell {
-            padding: --spacing(7) --spacing(8);
+            gap: --spacing(5);
+            padding: --spacing(8);
+        }
+
+        .elme-need-assistance__icon {
+            width: --spacing(20);
+            height: --spacing(20);
         }
 
         .elme-need-assistance__value {
@@ -146,4 +175,133 @@
             line-height: var(--text-copy-desktop--line-height);
         }
     }
+
+    /* Home: a charcoal band at the foot of the page, as wide as the hero and the other bands, white
+       icons on a soft circle. */
+    .cms-index-index .elme-need-assistance {
+        margin-inline: calc(var(--entry-bleed) * -1);
+        margin-bottom: 0;
+        padding: --spacing(12) max(var(--entry-bleed), var(--container-gutter)) --spacing(14);
+        background: var(--color-ink);
+        color: var(--color-on-primary);
+
+        @variant md {
+            padding: --spacing(16) max(var(--entry-bleed), var(--container-gutter-desktop)) --spacing(20);
+        }
+    }
+
+    .cms-index-index .elme-need-assistance__cells {
+        gap: 0;
+        background: none;
+        border: 0;
+    }
+
+    .cms-index-index .elme-need-assistance__cell {
+        padding: --spacing(5) 0;
+        background: none;
+        border-top: 1px solid color-mix(in oklab, var(--color-on-primary) 20%, transparent);
+    }
+
+    @container (min-width: 40rem) {
+        .cms-index-index .elme-need-assistance__cells {
+            gap: --spacing(10);
+        }
+
+        .cms-index-index .elme-need-assistance__cell {
+            padding: --spacing(7) 0 0;
+        }
+    }
+
+    .cms-index-index .elme-need-assistance__icon {
+        background: color-mix(in oklab, var(--color-on-primary) 12%, transparent);
+        color: var(--color-on-primary);
+    }
+
+    .cms-index-index .elme-need-assistance__label {
+        color: color-mix(in oklab, var(--color-on-primary) 72%, transparent);
+    }
+
+    .cms-index-index .elme-need-assistance__value {
+        color: var(--color-on-primary);
+    }
+
+    /* Home: once the band is in view (home-motion adds .is-in) the icons keep acting out what they do,
+       one after another: the phone rings, the envelope opens while the address types (the script
+       retypes it on the same 6s beat), the pin drops and the ground ripples. Off with reduced motion. */
+    .elme-need-assistance__waves {
+        opacity: 0;
+    }
+
+    .elme-need-assistance__ripple {
+        position: absolute;
+        left: 50%;
+        bottom: 22%;
+        width: 34%;
+        height: 10%;
+        border: 2px solid currentColor;
+        border-radius: 50%;
+        opacity: 0;
+        translate: -50% 0;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .elme-need-assistance__icon--ring svg {
+            transform-origin: 50% 60%;
+        }
+
+        .elme-need-assistance.is-in .elme-need-assistance__icon--ring svg {
+            animation: elme-ring 4.5s var(--ease-out-quint) 300ms infinite;
+        }
+
+        .elme-need-assistance.is-in .elme-need-assistance__waves {
+            animation: elme-waves 4.5s ease-out 300ms infinite;
+        }
+
+        .elme-need-assistance__flap {
+            transform-origin: 50% 25%;
+        }
+
+        .elme-need-assistance.is-in .elme-need-assistance__flap {
+            animation: elme-flap 6s var(--ease-out-quint) 1500ms infinite;
+        }
+
+        .elme-need-assistance.is-in .elme-need-assistance__drop {
+            animation: elme-drop 5s var(--ease-out-back) 3000ms infinite;
+        }
+
+        .elme-need-assistance.is-in .elme-need-assistance__ripple {
+            animation: elme-ripple 5s ease-out 3000ms infinite;
+        }
+    }
+}
+
+@keyframes elme-ring {
+    0%, 30%, 100% { transform: rotate(0); }
+    3% { transform: rotate(-16deg); }
+    6% { transform: rotate(14deg); }
+    9% { transform: rotate(-12deg); }
+    12% { transform: rotate(10deg); }
+    15% { transform: rotate(-6deg); }
+    18% { transform: rotate(4deg); }
+}
+
+@keyframes elme-waves {
+    0%, 30%, 100% { opacity: 0; }
+    4%, 20% { opacity: 1; }
+}
+
+@keyframes elme-flap {
+    0%, 45%, 100% { transform: none; }
+    8%, 36% { transform: scaleY(-1); }
+}
+
+@keyframes elme-drop {
+    0% { transform: translateY(calc(var(--spacing) * -5)); opacity: 0; }
+    14%, 100% { transform: none; opacity: 1; }
+}
+
+@keyframes elme-ripple {
+    0%, 14% { transform: scale(0.4); opacity: 0; }
+    16% { transform: scale(0.4); opacity: 0.7; }
+    44%, 100% { transform: scale(2.2); opacity: 0; }
 }
