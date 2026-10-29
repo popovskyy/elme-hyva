@@ -1,0 +1,215 @@
+<?php
+/**
+ * Content Studio type `virtual_catalogues` (FE-50). Cover cards always; flipbook/shop URLs only when
+ * logged in (QA 0). Empty catalogues hide the grid (UX-01). Server-rendered; CSP Alpine viewer for
+ * logged-in flipbooks (iframe src set on open — no blank Issuu frame).
+ *
+ * @var \Bart\ContentStudio\Block\Entry $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ * @var \Hyva\Theme\ViewModel\HyvaCsp $hyvaCsp
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\VirtualCatalogues;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+
+$cataloguesVm = $block->getTypeViewModel();
+if (!$cataloguesVm instanceof VirtualCatalogues) {
+    return;
+}
+
+$content = $block->getContent();
+$items = $cataloguesVm->getCatalogues($content);
+$intro = $cataloguesVm->getIntro($content);
+$isLoggedIn = $cataloguesVm->isLoggedIn();
+$hasCatalogues = $items !== [];
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+
+$sectionId = 'virtual-catalogues-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
+$loginUrl = $cataloguesVm->getLoginUrl();
+$stockistUrl = $cataloguesVm->getStockistUrl();
+?>
+<section id="<?= $escaper->escapeHtmlAttr($sectionId) ?>"
+         class="elme-virtual-catalogues mb-12 text-ink lg:mb-16"
+         <?php if ($hasCatalogues): ?>aria-label="<?= $escaper->escapeHtmlAttr(__('Virtual catalogues')) ?>"<?php endif; ?>>
+
+    <?php if ($intro !== ''): ?>
+        <p class="mb-8 max-w-3xl text-copy text-pretty text-ink-muted lg:mb-10 lg:text-copy-desktop">
+            <?= $escaper->escapeHtml($intro) ?>
+        </p>
+    <?php elseif (!$isLoggedIn): ?>
+        <p class="mb-8 max-w-3xl text-copy text-pretty text-ink-muted lg:mb-10 lg:text-copy-desktop">
+            <?= $escaper->escapeHtml(__(
+                'These are Elme Living wholesale seasonal catalogues for Australian trade customers.'
+                . ' Browse the range covers below, then sign in to open the flipbooks and shop matching'
+                . ' categories. New retailers can apply for a trade account with an ABN.'
+            )) ?>
+        </p>
+    <?php endif; ?>
+
+    <?php if (!$isLoggedIn): ?>
+        <div class="mb-10 flex flex-col gap-3 sm:mb-12 sm:flex-row sm:flex-wrap">
+            <a href="<?= $escaper->escapeUrl($loginUrl) ?>"
+               data-elme-sign-in
+               class="btn btn-primary sm:min-w-40">
+                <?= $escaper->escapeHtml(__('Trade login')) ?>
+            </a>
+            <a href="<?= $escaper->escapeUrl($stockistUrl) ?>"
+               class="btn btn-secondary sm:min-w-54">
+                <?= $escaper->escapeHtml(__('Apply for a trade account')) ?>
+            </a>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($hasCatalogues): ?>
+        <div <?php if ($isLoggedIn): ?>x-data="initVirtualCatalogueViewer"<?php endif; ?>>
+            <ul class="elme-virtual-catalogues__grid m-0 grid list-none grid-cols-1 gap-8 p-0
+                       sm:grid-cols-2 lg:grid-cols-3 lg:gap-10">
+                <?php foreach ($items as $index => $item): ?>
+                    <?php
+                    $titleId = $sectionId . '-title-' . $index;
+                    $canOpen = $isLoggedIn && $item['open_url'] !== '';
+                    $canShop = $isLoggedIn && $item['shop_url'] !== '';
+                    $isFirst = $index === 0;
+                    ?>
+                    <li class="elme-virtual-catalogues__card min-w-0">
+                        <article class="grid gap-4" aria-labelledby="<?= $escaper->escapeHtmlAttr($titleId) ?>">
+                            <div class="elme-virtual-catalogues__cover relative overflow-hidden bg-cool-light">
+                                <img src="<?= $escaper->escapeUrl($item['image']['src']) ?>"
+                                     alt="<?= $escaper->escapeHtmlAttr($item['image_alt']) ?>"
+                                     width="<?= (int) $item['image']['width'] ?>"
+                                     height="<?= (int) $item['image']['height'] ?>"
+                                     <?php if ($isFirst): ?>
+                                         fetchpriority="high"
+                                     <?php else: ?>
+                                         loading="lazy"
+                                     <?php endif; ?>
+                                     decoding="async"
+                                     class="block h-auto w-full">
+                                <?php if (!$isLoggedIn): ?>
+                                    <div class="pointer-events-none absolute inset-0 flex items-end justify-start
+                                                bg-linear-to-t from-ink/55 via-ink/10 to-transparent p-4">
+                                        <span class="inline-flex items-center gap-2 rounded-sm bg-surface/95 px-3 py-1.5
+                                                     text-sm font-bold text-ink shadow-sm">
+                                            <?= $lucideIcons->lockHtml('shrink-0', 16, 16, ['aria-hidden' => 'true']) ?>
+                                            <?= $escaper->escapeHtml(__('Trade login to open')) ?>
+                                        </span>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="grid gap-2">
+                                <h2 id="<?= $escaper->escapeHtmlAttr($titleId) ?>"
+                                    class="font-heading text-h2 font-normal text-ink lg:text-h2-desktop">
+                                    <?= $escaper->escapeHtml($item['title']) ?>
+                                </h2>
+                                <?php if ($item['description'] !== ''): ?>
+                                    <p class="text-copy text-ink-muted"><?= $escaper->escapeHtml($item['description']) ?></p>
+                                <?php endif; ?>
+                            </div>
+
+                            <?php if ($isLoggedIn): ?>
+                                <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                                    <?php if ($canOpen): ?>
+                                        <button type="button"
+                                                class="btn btn-primary"
+                                                @click="openCatalogue"
+                                                data-url="<?= $escaper->escapeUrl($item['open_url']) ?>"
+                                                data-title="<?= $escaper->escapeHtmlAttr($item['title']) ?>">
+                                            <?= $escaper->escapeHtml(__('Open catalogue')) ?>
+                                        </button>
+                                    <?php endif; ?>
+                                    <?php if ($canShop): ?>
+                                        <a href="<?= $escaper->escapeUrl($item['shop_url']) ?>"
+                                           class="btn btn-secondary">
+                                            <?= $escaper->escapeHtml($item['shop_label']) ?>
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
+                        </article>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+
+            <?php if ($isLoggedIn): ?>
+                <div x-show="isOpen"
+                     x-cloak
+                     class="elme-virtual-catalogues__viewer fixed inset-0 z-50 flex items-center justify-center
+                            bg-ink/70 p-4"
+                     role="dialog"
+                     aria-modal="true"
+                     :aria-label="dialogLabel"
+                     @keydown.escape.window="close">
+                    <div class="relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden
+                                rounded-sm bg-surface shadow-lg"
+                         @click.outside="close">
+                        <div class="flex items-center justify-between gap-4 border-b border-divider px-4 py-3">
+                            <p class="m-0 font-heading text-h3 lg:text-h3-desktop" x-text="title"></p>
+                            <button type="button"
+                                    class="btn btn-secondary min-h-11 px-3"
+                                    @click="close"
+                                    aria-label="<?= $escaper->escapeHtmlAttr(__('Close catalogue')) ?>">
+                                <?= $escaper->escapeHtml(__('Close')) ?>
+                            </button>
+                        </div>
+                        <div class="relative min-h-[60vh] w-full bg-cool-light">
+                            <iframe class="absolute inset-0 h-full w-full border-0"
+                                    title="<?= $escaper->escapeHtmlAttr(__('Catalogue flipbook')) ?>"
+                                    :src="iframeSrc"
+                                    allow="clipboard-write; fullscreen"
+                                    loading="lazy"></iframe>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                    function initVirtualCatalogueViewer() {
+                        return {
+                            open: false,
+                            iframeSrc: '',
+                            title: '',
+                            isOpen() {
+                                return this.open;
+                            },
+                            dialogLabel() {
+                                return this.title
+                                    ? <?= /* @noEscape */ json_encode((string) __('Catalogue: %1')) ?>.replace('%1', this.title)
+                                    : <?= /* @noEscape */ json_encode((string) __('Catalogue flipbook')) ?>;
+                            },
+                            openCatalogue() {
+                                const el = this.$event.currentTarget;
+                                const url = el && el.dataset ? (el.dataset.url || '') : '';
+                                if (!url) {
+                                    return;
+                                }
+                                this.title = el.dataset.title || '';
+                                this.iframeSrc = url;
+                                this.open = true;
+                                document.documentElement.classList.add('overflow-hidden');
+                            },
+                            close() {
+                                this.open = false;
+                                this.iframeSrc = '';
+                                this.title = '';
+                                document.documentElement.classList.remove('overflow-hidden');
+                            }
+                        };
+                    }
+                    window.addEventListener(
+                        'alpine:init',
+                        () => Alpine.data('initVirtualCatalogueViewer', initVirtualCatalogueViewer),
+                        { once: true }
+                    );
+                </script>
+                <?php $hyvaCsp->registerInlineScript() ?>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+</section>

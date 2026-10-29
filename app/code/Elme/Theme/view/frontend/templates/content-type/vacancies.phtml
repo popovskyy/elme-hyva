@@ -1,0 +1,90 @@
+<?php
+/**
+ * Content Studio type `vacancies` (etc/content_types.xml, FE-62): the Careers page body under the hero.
+ * A centred intro (as on production), then "Current vacancies" (H2) with one row per open role: title
+ * (H3), state in full, employment type and an "Apply by email" link whose accessible name carries the
+ * role. The careers address is printed once under the rows. With no open role the same H2 keeps one
+ * paragraph and one address, so the outline does not change. Server-rendered, no Alpine.
+ *
+ * @var \Bart\ContentStudio\Block\Entry $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+use Elme\Theme\ViewModel\Vacancies;
+
+$vacancies = $block->getTypeViewModel();
+
+if (!$vacancies instanceof Vacancies) {
+    return;
+}
+
+$content = $block->getContent();
+$roles = $vacancies->getRoles($content);
+$email = $vacancies->getEmail($content);
+$intro = $vacancies->getIntro($content);
+$headingId = 'vacancies-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier()) . '-heading';
+$introTags = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'a', 'ul', 'ol', 'li'];
+$linkClass = 'font-bold text-ink underline underline-offset-4 hover:text-link-hover
+              focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink';
+?>
+<div class="elme-vacancies mx-auto mb-12 max-w-4xl text-ink lg:mb-20">
+    <?php if ($intro !== ''): ?>
+        <div class="mx-auto mb-10 max-w-2xl text-center text-copy text-pretty lg:mb-14 lg:text-copy-desktop
+                    [&_a]:font-bold [&_a]:underline [&_a]:underline-offset-4 [&_li]:my-1 [&_p]:m-0 [&_p]:text-ink [&_p+p]:mt-4
+                    [&_ul]:my-4 [&_ul]:list-inside [&_ul]:list-disc">
+            <?= /* @noEscape */ $escaper->escapeHtml($intro, $introTags) ?>
+        </div>
+    <?php endif; ?>
+
+    <section aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
+        <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+            class="mb-6 text-center font-heading text-title-section font-normal text-balance text-ink
+                   lg:mb-8 lg:text-title-section-desktop">
+            <?= $escaper->escapeHtml($vacancies->getHeading($content)) ?>
+        </h2>
+
+        <?php if ($roles): ?>
+            <ul class="m-0 list-none border-t border-border p-0">
+                <?php foreach ($roles as $role): ?>
+                    <li class="grid gap-3 border-b border-border py-5
+                               lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-center
+                               lg:gap-6 lg:py-6">
+                        <h3 class="m-0 font-heading text-h4 font-normal text-ink">
+                            <?= $escaper->escapeHtml($role['title']) ?>
+                        </h3>
+                        <p class="m-0 flex flex-wrap items-center gap-x-2.5 text-ink-muted lg:contents">
+                            <span><?= $escaper->escapeHtml($role['state_name']) ?></span>
+                            <span class="size-1 rounded-full bg-current lg:hidden" aria-hidden="true"></span>
+                            <span><?= $escaper->escapeHtml($role['employment_label']) ?></span>
+                        </p>
+                        <a href="<?= $escaper->escapeUrl($role['mailto']) ?>"
+                           class="btn btn-secondary mt-1 w-full sm:w-auto sm:justify-self-start lg:mt-0
+                                  lg:justify-self-end">
+                            <?= $escaper->escapeHtml(__('Apply by email')) ?>
+                            <span class="sr-only">
+                                <?= $escaper->escapeHtml(__('for %1, %2', $role['title'], $role['state_name'])) ?>
+                            </span>
+                        </a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+            <?php if ($email !== ''): ?>
+                <p class="mx-auto mt-6 max-w-2xl text-center text-ink-muted lg:mt-8">
+                    <?= $escaper->escapeHtml(__('Applications go to')) ?>
+                    <a href="<?= $escaper->escapeUrl($vacancies->getMailto($content)) ?>"
+                       class="<?= /* @noEscape */ $linkClass ?>"><?= $escaper->escapeHtml($email) ?></a>.
+                    <?= $escaper->escapeHtml(__('Include your resume and a short cover letter.')) ?>
+                </p>
+            <?php endif; ?>
+        <?php else: ?>
+            <p class="mx-auto max-w-2xl text-center text-copy text-pretty text-ink lg:text-copy-desktop">
+                <?= $escaper->escapeHtml($vacancies->getEmptyText($content)) ?>
+                <?php if ($email !== ''): ?>
+                    <?= $escaper->escapeHtml(__('Send your resume and a short cover letter to')) ?>
+                    <a href="<?= $escaper->escapeUrl($vacancies->getMailto($content)) ?>"
+                       class="<?= /* @noEscape */ $linkClass ?>"><?= $escaper->escapeHtml($email) ?></a>.
+                <?php endif; ?>
+            </p>
+        <?php endif; ?>
+    </section>
+</div>

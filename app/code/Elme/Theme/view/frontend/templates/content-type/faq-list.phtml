@@ -1,0 +1,86 @@
+<?php
+/**
+ * Content Studio type `faq_list` (etc/content_types.xml, FE-63): a short FAQ as native details/summary,
+ * so it opens and closes with mouse and keyboard without JS and every answer is in the HTML. A link to
+ * #<item id> opens its item (the small script below; browsers do not do it for a details' own id).
+ * Opening an item only grows the list below it. The page JSON-LD lists the same questions (StorePage).
+ *
+ * @var \Bart\ContentStudio\Block\Entry $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+use Elme\Theme\ViewModel\FaqList;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+
+$faq = $block->getTypeViewModel();
+
+if (!$faq instanceof FaqList) {
+    return;
+}
+
+$content = $block->getContent();
+$heading = $faq->getHeading($content);
+$items = $faq->getItems($content);
+
+if ($heading === '' || !$items) {
+    return;
+}
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+
+$headingId = 'faq-list-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
+?>
+<section class="elme-faq-list mb-10 grid gap-6 text-ink lg:mb-15 lg:grid-cols-12 lg:gap-10"
+         aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
+    <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+        class="m-0 text-title-section lg:col-span-4 lg:text-title-section-desktop">
+        <?= $escaper->escapeHtml($heading) ?>
+    </h2>
+    <div class="border-t border-border lg:col-span-8">
+        <?php foreach ($items as $item): ?>
+            <details id="<?= $escaper->escapeHtmlAttr($item['id']) ?>"
+                     class="group scroll-mt-24 border-b border-border">
+                <summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-5
+                                [&::-webkit-details-marker]:hidden hover:text-link-hover
+                                focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">
+                    <h3 class="m-0 text-h5 font-normal lg:text-h5-desktop">
+                        <?= $escaper->escapeHtml($item['question']) ?>
+                    </h3>
+                    <?= $lucideIcons->chevronDownHtml(
+                        'shrink-0 transition-transform duration-(--transition-duration-fast) ease-out-quart'
+                            . ' group-open:rotate-180'
+                            . ' motion-reduce:transition-none',
+                        20,
+                        20,
+                        ['aria-hidden' => 'true', 'stroke-width' => '1.5']
+                    ) ?>
+                </summary>
+                <div class="max-w-160 pb-5 text-copy lg:text-copy-desktop">
+                    <?php foreach ($item['paragraphs'] as $paragraph): ?>
+                        <p class="mb-3 last:mb-0"><?= nl2br($escaper->escapeHtml($paragraph), false) ?></p>
+                    <?php endforeach; ?>
+                </div>
+            </details>
+        <?php endforeach; ?>
+    </div>
+    <script>
+        (() => {
+            const openTarget = () => {
+                const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+
+                if (target instanceof HTMLDetailsElement && target.closest('.elme-faq-list')) {
+                    target.open = true;
+                }
+            };
+
+            openTarget();
+            window.addEventListener('hashchange', openTarget);
+        })();
+    </script>
+    <?php $hyvaCsp->registerInlineScript() ?>
+</section>

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- FE-66: /fairs-events FPC + block HTML cache rotate on Melbourne calendar day -->
+    <type name="Magento\Framework\App\PageCache\Identifier">
+        <plugin name="elme_theme_events_page_cache_day"
+                type="Elme\Theme\Plugin\EventsPageCacheIdentifierPlugin"/>
+    </type>
+    <type name="Bart\ContentStudio\Block\Entry">
+        <plugin name="elme_theme_events_entry_cache_key"
+                type="Elme\Theme\Plugin\EventsEntryCacheKeyPlugin"/>
+    </type>
+</config>

@@ -1,0 +1,21 @@
+<?php
+/**
+ * FE-66: CollectionPage / WebPage + BreadcrumbList + ItemList / Event JSON-LD for /fairs-events.
+ * Past events are omitted (same Melbourne filter as the events template).
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\Events;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+
+$events = $viewModels->require(Events::class);
+if (!$events->isFairsEventsPage()) {
+    return;
+}
+?>
+<script type="application/ld+json"><?= /* @noEscape */ $events->getJsonLdScript() ?></script>
