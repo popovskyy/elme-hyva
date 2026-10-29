@@ -236,6 +236,51 @@
                description="e.g. /customer/account/create. Logged-in customers go to the account dashboard."/>
     </type>
 
+    <!-- Meet the Team (FE-65): H1 + intro, region chips (Alpine visibility only), card grid. Every
+         published person stays in the HTML and in Person JSON-LD; chips never change the URL. -->
+    <type code="team"
+          label="Meet the Team"
+          standalone="true"
+          group="pages"
+          icon="image-text"
+          description="Page H1, intro, region filter chips and a grid of people (photo, role above name, email and phone links)."
+          template="Elme_Theme::content-type/team.phtml"
+          version="1">
+
+        <field name="title" type="text" label="Page heading (H1)" required="true" maxlength="80"
+               default="Meet the Team"
+               description="The only H1 on /meet-the-team. Match the CMS page title / footer label."/>
+        <field name="intro" type="wysiwyg" label="Intro"
+               description="Plain facts: who Elme Living is (Australian B2B wholesaler), that this page lists sales and showroom contacts by region, and that trade prices need a stockist account (/become-a-stockist). No prices or MOQ amounts."/>
+        <field name="heading" type="text" label="Grid heading (H2)" maxlength="60"
+               description="Optional H2 above the cards, e.g. Our account managers. Leave empty for none."/>
+
+        <field name="people" type="repeater" label="People" label_field="name" max="40" required="true"
+               description="One card per person. Switch off or delete when someone leaves. Publish only people with real email and phone — do not invent contacts.">
+            <field name="photo" type="image" label="Photo" recommended="540x540"
+                   description="Headshot, square. Alt text is the person name. JPEG or WebP."/>
+            <field name="name" type="text" label="Name" required="true" maxlength="80" width="half"
+                   description="Shown as the card H3."/>
+            <field name="role" type="text" label="Role" required="true" maxlength="90" width="half"
+                   description="Small text above the name, e.g. VIC Business Development Manager. Not a heading."/>
+            <field name="email" type="text" label="Email" maxlength="120" width="half"
+                   description="Shown as a mailto link. Leave empty if unknown — never invent."/>
+            <field name="phone" type="text" label="Phone" maxlength="40" width="half"
+                   description="Shown as a tel link. Prefer mobile with +61; office landlines are fine."/>
+            <field name="region" type="select" label="Region" required="true" width="half" default="head_office"
+                   description="Chip filter and card label. Head office for national / Blackburn roles.">
+                <option value="head_office" label="Head office"/>
+                <option value="VIC" label="VIC"/>
+                <option value="NSW" label="NSW"/>
+                <option value="QLD" label="QLD"/>
+                <option value="WA" label="WA"/>
+                <option value="SA_TAS" label="SA-TAS"/>
+            </field>
+            <field name="is_visible" type="boolean" label="Show on the page" default="1" width="half"
+                   description="Switch off to hide without deleting the row."/>
+        </field>
+    </type>
+
     <!-- Careers page (FE-62): a short intro, then the open roles as rows (title, state, type, Apply by
          email), or one "no vacancies" message with the careers address. Server-rendered, no JS: a role
          switched off is not in the HTML at all. No JobPosting markup: roles have no page of their own. -->
