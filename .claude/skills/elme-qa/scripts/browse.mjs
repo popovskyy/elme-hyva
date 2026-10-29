@@ -19,7 +19,7 @@
 //   --full                full-page screenshots instead of the viewport
 //   --steps FILE.mjs      after load, runs `export default async (page, ctx) => result` per target;
 //                         ctx = { brand, host, path, viewport, shot(name) }; result lands in report.json
-//   --admin               log in to the admin first (admin / Admin12345!, local install)
+//   --admin               log in to the admin first (admin / admin123, local install)
 //   --reduced-motion      emulate prefers-reduced-motion: reduce
 //
 // Every target gets a fresh browser context, so nothing is served from a stale cache and no cookie or
@@ -32,7 +32,7 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const HOSTS = { new: 'https://elme-hyva.local', old: 'https://www.elmeliving.com' };
-const ADMIN = { host: HOSTS.new, user: 'admin', pass: 'Admin12345!' };
+const ADMIN = { host: HOSTS.new, user: 'admin', pass: 'admin123' };
 
 // Local-only or third-party noise seen on every page of these sites; reported as a count, not as findings.
 const NOISE = [

@@ -30,7 +30,7 @@ docker exec -it elme_php composer install
 ## Daily use
 
 - `elmeStart` / `elmeStop` / `enterElme` (aliases in `~/.my_aliases`), or the **Elme Living (Hyvä)** card in dev-dashboard (http://127.0.0.1:7777).
-- Storefront https://elme-hyva.local · Admin https://elme-hyva.local/admin (local: `admin` / `Admin12345!`, 2FA disabled locally).
+- Storefront https://elme-hyva.local · Admin https://elme-hyva.local/admin (local: `admin` / `admin123`, 2FA disabled locally).
 - Xdebug: `XDEBUG_MODE=debug docker compose up -d php`.
 - On a phone: `magento-docker/phone-preview.sh` opens a public HTTPS tunnel (Cloudflare quick tunnel, or localhost.run when Cloudflare is blocked), prints the URL and a QR code, and switches the base URL to it; Ctrl+C switches it back. The site is public while it runs, and https://elme-hyva.local redirects to the tunnel meanwhile.
 
@@ -55,7 +55,7 @@ Checkout is our own module `Elme_Checkout` on Elme/default (decision D12 in `doc
 bin/magento setup:install \
   --base-url=https://elme-hyva.local/ --use-secure=1 --use-secure-admin=1 \
   --db-host=mariadb --db-name=elme_magento --db-user=elme --db-password=elme \
-  --admin-user=admin --admin-password='Admin12345!' --admin-email=admin@elme-hyva.local --admin-firstname=Admin --admin-lastname=Elme \
+  --admin-user=admin --admin-password='admin123' --admin-email=admin@elme-hyva.local --admin-firstname=Admin --admin-lastname=Elme \
   --backend-frontname=admin --language=en_AU --currency=AUD --timezone=Australia/Melbourne \
   --search-engine=opensearch --opensearch-host=opensearch --opensearch-port=9200 --opensearch-index-prefix=elme \
   --cache-backend=redis --cache-backend-redis-server=redis --cache-backend-redis-db=0 \
