@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-67 Become a Stockist: How it works + facts + apply CTAs before the usp_strip benefits;
+ * HowTo joins the help-page WebPage @graph.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="content">
+            <block name="elme.become.stockist"
+                   template="Magento_Cms::help/become-stockist.phtml"
+                   before="cms_page"/>
+        </referenceContainer>
+    </body>
+</page>
