@@ -34,7 +34,7 @@ $headingId = 'welcome-cta-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIde
 <section class="elme-welcome-cta mb-10 pt-6 lg:mb-15 lg:pt-12"
          aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
     <h1 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-        class="elme-welcome-cta__heading max-w-[22ch] text-balance font-heading font-normal text-ink">
+        class="elme-welcome-cta__heading text-balance font-heading font-normal text-ink">
         <?= /* @noEscape */ $headingHtml ?>
     </h1>
     <?php if ($text !== '' || $isGuest): ?>

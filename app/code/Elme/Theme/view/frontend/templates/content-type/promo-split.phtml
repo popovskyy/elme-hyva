@@ -86,15 +86,24 @@ $textTags = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'a', 'ul', 'ol', 'li', 's
     </div>
 </section>
 <?php if ($ticker): ?>
-    <?php // Decorative repeat of facts already on the page, so screen readers skip it. Two copies loop seamlessly. ?>
-    <div class="elme-ticker -mx-(--entry-bleed) mb-10 overflow-hidden border-y border-border lg:mb-15" aria-hidden="true">
+    <?php
+    // Decorative repeat of facts already on the page, so screen readers skip it.
+    // Two equal halves. Each half repeats the line 8 times so a wide screen stays full.
+    // home-statement.css moves one half in 30s per repeat, so the speed stays the same.
+    $tickerRepeats = 8;
+    ?>
+    <div class="elme-ticker mb-10 overflow-hidden border-y border-border lg:mb-15" aria-hidden="true">
         <div class="elme-ticker__track flex w-max">
-            <?php for ($copy = 0; $copy < 2; $copy++): ?>
-                <?php foreach ($ticker as $item): ?>
-                    <span class="elme-ticker__item whitespace-nowrap font-heading text-ink">
-                        <?= $escaper->escapeHtml($item) ?><span class="elme-ticker__sep">/</span>
-                    </span>
-                <?php endforeach; ?>
+            <?php for ($half = 0; $half < 2; $half++): ?>
+                <div class="elme-ticker__group">
+                    <?php for ($copy = 0; $copy < $tickerRepeats; $copy++): ?>
+                        <?php foreach ($ticker as $item): ?>
+                            <span class="elme-ticker__item whitespace-nowrap font-heading text-ink">
+                                <?= $escaper->escapeHtml($item) ?><span class="elme-ticker__sep">/</span>
+                            </span>
+                        <?php endforeach; ?>
+                    <?php endfor; ?>
+                </div>
             <?php endfor; ?>
         </div>
     </div>

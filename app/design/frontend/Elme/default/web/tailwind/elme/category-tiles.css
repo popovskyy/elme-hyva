@@ -124,14 +124,14 @@
     }
 
     /* Arrows sit on the photo, so they stay out of the way until the row is hovered.
-       Enter uses ease-out-quart (fast); leave is shorter (micro) so the row settles quickly. */
-    @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+       Enter is fast, leave is shorter; both ease out. Touch does not get the hover scale. */
+    @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
         .elme-category-tiles__arrow {
             opacity: 0;
             pointer-events: none;
             transition:
-                opacity var(--transition-duration-micro) var(--ease-in-quart),
-                translate var(--transition-duration-micro) var(--ease-in-quart);
+                opacity var(--transition-duration-micro) var(--ease-out-quart),
+                translate var(--transition-duration-micro) var(--ease-out-quart);
         }
 
         .elme-category-tiles__arrow--prev {

@@ -4,9 +4,8 @@
  * Placed via CMS block need_assistance or layout. Three cells in a row where the block is wide, stacked
  * where it is narrow (help page side column); shared-blocks.css switches on the block's own width.
  * Each cell is one link, icon included. On the home page it is a dark band
- * (docs/design/home-middle-options.html, B) and the large icons keep acting out what they do, one after
- * another: the phone rings, the envelope opens while the address types (Magento_Theme::html/home-motion.phtml),
- * the pin drops and the ground ripples.
+ * (docs/design/home-middle-options.html, B). Hovering a cell eases its icon: the phone tilts,
+ * the envelope opens, the pin settles and the ground ripples. It eases back on leave.
  */
 
 declare(strict_types=1);
@@ -55,11 +54,7 @@ $email = $contact->getEmail();
                     </span>
                     <span class="elme-need-assistance__text">
                         <span class="elme-need-assistance__label"><?= $escaper->escapeHtml(__('Email us')) ?></span>
-                        <?php // The visible copy is retyped on the home page; screen readers read the sr-only copy. ?>
-                        <span class="elme-need-assistance__value">
-                            <span class="sr-only"><?= $escaper->escapeHtml($email) ?></span>
-                            <span aria-hidden="true" data-type-text="<?= $escaper->escapeHtmlAttr($email) ?>"><?= $escaper->escapeHtml($email) ?></span>
-                        </span>
+                        <span class="elme-need-assistance__value"><?= $escaper->escapeHtml($email) ?></span>
                     </span>
                 </a>
             </li>

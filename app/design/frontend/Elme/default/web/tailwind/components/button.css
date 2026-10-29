@@ -31,9 +31,12 @@
     letter-spacing: var(--btn-letter-spacing);
     user-select: none;
     vertical-align: middle;
-    transition-property: color, background-color, border-color, outline-color;
-    transition-timing-function: var(--default-transition-timing-function);
-    transition-duration: var(--default-transition-duration);
+    transition:
+        color var(--default-transition-duration) var(--default-transition-timing-function),
+        background-color var(--default-transition-duration) var(--default-transition-timing-function),
+        border-color var(--default-transition-duration) var(--default-transition-timing-function),
+        outline-color var(--default-transition-duration) var(--default-transition-timing-function),
+        scale 160ms var(--ease-out-quint);
 
     &:hover {
         border-color: var(--btn-hover-stroke, var(--btn-stroke));
@@ -46,6 +49,12 @@
         border-color: var(--btn-active-stroke, var(--btn-stroke));
         background-color: var(--btn-active-bg, var(--btn-bg));
         color: var(--btn-active-color, var(--btn-color));
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        &:active:not(:disabled, [aria-disabled="true"], .is-loading, [aria-busy="true"]) {
+            scale: 0.97;
+        }
     }
 
     /* Elme: a disabled button keeps its variant colours at half opacity (Bart/jl _buttons.less) */
@@ -195,7 +204,7 @@
             transparent 100%
         );
         transform: translateX(-120%) skewX(-18deg);
-        transition: transform 650ms cubic-bezier(0.22, 1, 0.36, 1);
+        transition: transform var(--transition-duration-slow) cubic-bezier(0.22, 1, 0.36, 1);
         z-index: 0;
         pointer-events: none;
     }
@@ -252,7 +261,7 @@
             transparent 100%
         );
         transform: translateX(-120%) skewX(-18deg);
-        transition: transform 650ms cubic-bezier(0.22, 1, 0.36, 1);
+        transition: transform var(--transition-duration-slow) cubic-bezier(0.22, 1, 0.36, 1);
         z-index: 0;
         pointer-events: none;
         opacity: 0;

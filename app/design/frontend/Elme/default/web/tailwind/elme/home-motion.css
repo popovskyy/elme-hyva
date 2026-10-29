@@ -5,13 +5,13 @@
  * 60ms apart. Anything already on screen when the script starts stays put. Reduced motion: fade only.
  *
  * The usp_strip collage (content-type/usp-strip.phtml): three photos fall into place when the section
- * comes in, then shift with a fine pointer at different depths (the script moves .elme-collage__layer).
+ * comes in.
  */
 @layer components {
     .elme-motion [data-reveal] {
         transition:
-            opacity 600ms var(--ease-out-quint),
-            transform 600ms var(--ease-out-quint);
+            opacity 400ms var(--ease-out-quint),
+            transform 400ms var(--ease-out-quint);
         transition-delay: calc(var(--i, 0) * 60ms);
     }
 
@@ -34,7 +34,6 @@
         position: absolute;
         inset: 0;
         pointer-events: none;
-        transition: transform var(--transition-duration-slow) var(--ease-out-quint);
     }
 
     .elme-collage__card {
@@ -43,8 +42,8 @@
         box-shadow: 0 calc(var(--spacing) * 4) calc(var(--spacing) * 10)
             color-mix(in oklab, var(--color-ink) 28%, transparent);
         transition:
-            opacity 1000ms var(--ease-out-quint),
-            transform 1000ms var(--ease-out-quint);
+            opacity 600ms var(--ease-out-quint),
+            transform 600ms var(--ease-out-quint);
     }
 
     .elme-collage__card--main {
@@ -99,10 +98,6 @@
         .elme-motion [data-reveal]:not(.is-in),
         .elme-motion .elme-collage:not(.is-in) .elme-collage__card {
             transform: none;
-        }
-
-        .elme-collage__layer {
-            transition: none;
         }
     }
 }

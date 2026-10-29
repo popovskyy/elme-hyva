@@ -1,7 +1,7 @@
 <?php
 /**
  * Content Studio type `hero` (etc/content_types.xml, FE-14): "Cinema" (docs/design/hero-wow-options.html,
- * 1). A tall full-bleed photo (4:5 on phones, 2:1 from md, capped at 82% of the screen height) with the
+ * 1). A photo (4:5 on phones, 2:1 from md, 700px tall on desktop) with the
  * heading, text and button on its dark side. Each slide tone says whether the photo is dark (white
  * text on a dark fade) or light (ink text on a light fade).
  *
@@ -12,7 +12,7 @@
  * Every slide is rendered here, copy included, so crawlers that run no JS read all of them. The
  * track is a CSS scroll-snap row: before Alpine starts it already shows slide 1 and swipes on touch.
  * Alpine scrolls it, autoplays with a progress bar, marks the current slide and makes the hidden
- * slides inert. Bleeds into the container gutters like promo_split (--entry-bleed, content-studio.css).
+ * slides inert. On a 1-column page the photo runs to the viewport (hero.css), past the container.
  *
  * @var \Bart\ContentStudio\Block\Entry $block
  * @var \Magento\Framework\Escaper $escaper
@@ -43,7 +43,7 @@ $isPageTitle = $heroViewModel->isPageTitle($content);
 $heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
 ?>
 <section id="<?= $escaper->escapeHtmlAttr($heroId) ?>"
-         class="elme-hero relative -mx-(--entry-bleed) mb-10 overflow-hidden bg-ink lg:mb-15"
+         class="elme-hero relative mb-10 overflow-hidden bg-ink lg:mb-15"
     <?php if ($isSlider): ?>
          aria-roledescription="carousel"
          aria-label="<?= $escaper->escapeHtmlAttr(__('Highlights')) ?>"
@@ -150,7 +150,7 @@ $heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier())
         $hyvaCsp = $viewModels->require(HyvaCsp::class);
         ?>
         <?php // Elegant arrows at the photo edges, shown on hover or keyboard focus (pointer devices; phones swipe). ?>
-        <div class="elme-hero__media elme-hero__arrows pointer-events-none absolute inset-x-0 top-0 z-2 max-md:hidden">
+        <div class="elme-hero__arrows pointer-events-none absolute z-2 max-md:hidden">
             <button type="button"
                     class="elme-hero__arrow elme-hero__arrow--prev"
                     aria-label="<?= $escaper->escapeHtmlAttr(__('Previous slide')) ?>"

@@ -80,9 +80,11 @@
         inset-inline: 0;
         bottom: 0;
         height: 1px;
-        width: 0;
+        width: 100%;
         background: var(--color-ink);
-        transition: width 200ms ease;
+        transform: scaleX(0);
+        transform-origin: left center;
+        transition: transform 200ms var(--ease-out-quint);
     }
 
     .main-menu.navigation .main-menu__item.is-open > .main-menu__trigger > .main-menu__link::after,
@@ -105,7 +107,7 @@
 
     .main-menu.navigation .main-menu__item.is-open > .main-menu__trigger > .main-menu__link::before,
     .main-menu.navigation .main-menu__item:hover > .main-menu__trigger > .main-menu__link::before {
-        width: 100%;
+        transform: scaleX(1);
     }
 
     .main-menu.navigation .main-menu__item.promo > .main-menu__trigger > .main-menu__link,
@@ -258,35 +260,32 @@
         list-style: none;
     }
 
+    /* Editorial cover: the photo is the card. Heading and the shop line sit on a scrim.
+       The old arrow SVG only drew the shaft and the top of the head, so it looked sliced. */
     .main-menu.navigation .menu-promo {
         overflow: hidden;
-        border-radius: var(--radius-menu-promo, 0px);
-        background: var(--color-cool-light);
-        transition: transform 200ms ease, box-shadow 200ms ease;
-    }
-
-    .main-menu.navigation .menu-promo--sand {
-        background: var(--color-sand-light);
+        background: var(--color-ink);
     }
 
     .main-menu.navigation .menu-promo__link {
-        display: flex;
-        flex-direction: column;
-        gap: --spacing(5);
-        padding: --spacing(6);
-        color: var(--color-ink);
+        position: relative;
+        display: block;
+        aspect-ratio: 3 / 4;
+        color: var(--color-on-primary);
         text-decoration: none;
+
+        &:focus-visible {
+            outline: 2px solid var(--color-on-primary);
+            outline-offset: -3px;
+        }
     }
 
     .main-menu.navigation .menu-promo__media {
+        position: absolute;
+        inset: 0;
         display: block;
-        width: 100%;
-        aspect-ratio: 4 / 3;
-        border-radius: calc(var(--radius-menu-promo, 0px) - 2px);
         overflow: hidden;
-        background: var(--color-cool-light);
-        transform: scale(1);
-        transition: transform 280ms ease;
+        background: var(--color-ink);
     }
 
     .main-menu.navigation .menu-promo__media img {
@@ -294,18 +293,35 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transform: scale(1.02);
+        transition: transform 700ms var(--ease-out-quint);
     }
 
-    .main-menu.navigation .menu-promo--sand .menu-promo__media {
-        background: var(--color-sand-light);
+    .main-menu.navigation .menu-promo__body {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        gap: --spacing(2);
+        padding: --spacing(5);
+        background: linear-gradient(
+            to top,
+            color-mix(in oklab, var(--color-ink) 82%, transparent) 0%,
+            color-mix(in oklab, var(--color-ink) 36%, transparent) 38%,
+            transparent 68%
+        );
     }
 
     .main-menu.navigation .menu-promo__heading {
         display: block;
-        margin-bottom: --spacing(1);
-        font-size: var(--text-h5);
-        font-weight: 700;
-        line-height: var(--text-h5--line-height);
+        margin: 0;
+        font-family: var(--font-heading);
+        font-size: var(--text-h3);
+        font-weight: 400;
+        line-height: 1.15;
+        color: var(--color-on-primary);
     }
 
     .main-menu.navigation .menu-promo__cta {
@@ -313,30 +329,35 @@
         align-items: center;
         gap: --spacing(1.5);
         font-size: var(--text-note);
-        color: var(--color-ink);
-        transition: gap 200ms ease;
+        color: var(--color-on-primary);
 
         &::after {
             content: '';
-            width: 16px;
-            height: 16px;
-            background: no-repeat center / contain
-                url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNOS4zMzMzMyAzLjMzMzMzTDE0IDhNMTQgOEwyIDgiIHN0cm9rZT0iIzNBMzkzNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+");
+            width: 18px;
+            height: 18px;
+            background-color: currentColor;
+            transition: transform var(--transition-duration-fast) var(--ease-out-quint);
+            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18' fill='none'%3E%3Cpath d='M3 9h12M10.5 4.5 15 9l-4.5 4.5' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18' fill='none'%3E%3Cpath d='M3 9h12M10.5 4.5 15 9l-4.5 4.5' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask-mode: alpha;
         }
     }
 
-    @media (hover: hover) {
-        .main-menu.navigation .menu-promo:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgb(46 48 50 / 0.12);
+    @media (hover: hover) and (pointer: fine) {
+        .main-menu.navigation .menu-promo:hover .menu-promo__media img {
+            transform: scale(1.08);
+        }
 
-            .menu-promo__media {
-                transform: scale(1.04);
-            }
+        .main-menu.navigation .menu-promo:hover .menu-promo__cta::after,
+        .main-menu.navigation .menu-promo__link:focus-visible .menu-promo__cta::after {
+            transform: translateX(4px);
+        }
+    }
 
-            .menu-promo__cta {
-                gap: --spacing(2.5);
-            }
+    @media (prefers-reduced-motion: reduce) {
+        .main-menu.navigation .menu-promo__media img,
+        .main-menu.navigation .menu-promo__cta::after {
+            transition: none;
         }
     }
 

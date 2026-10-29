@@ -39,7 +39,7 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
 <section id="<?= $escaper->escapeHtmlAttr($sectionId) ?>"
          class="elme-catalogue-covers -mx-(--entry-bleed) mb-10 bg-sand-light py-12 text-ink lg:mb-15 lg:py-22"
          aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
-    <div class="elme-catalogue-covers__inner grid gap-8 lg:grid-cols-[4fr_6fr] lg:items-center lg:gap-16">
+    <div class="elme-catalogue-covers__inner">
         <div class="grid content-start justify-items-start gap-4 lg:gap-5">
             <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
                 class="text-title-section text-balance font-heading font-normal text-ink lg:text-title-section-desktop">
@@ -67,8 +67,7 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
             <?php endif; ?>
         </div>
 
-        <ul class="elme-catalogue-covers__shelf m-0 grid list-none grid-cols-2 gap-5 p-0 lg:w-full lg:max-w-140
-                   lg:justify-self-end lg:gap-12">
+        <ul class="elme-catalogue-covers__shelf m-0 grid list-none grid-cols-2 p-0">
             <?php foreach ($cards as $card): ?>
                 <li class="min-w-0">
                     <a href="<?= $escaper->escapeUrl($card['link']) ?>"

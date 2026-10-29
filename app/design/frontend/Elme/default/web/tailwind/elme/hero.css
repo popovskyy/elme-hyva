@@ -12,20 +12,46 @@
 @layer components {
     .elme-hero {
         --hero-pad: max(var(--entry-bleed), var(--container-gutter));
+        margin-inline: calc(var(--entry-bleed) * -1);
 
         @variant md {
             --hero-pad: max(var(--entry-bleed), var(--container-gutter-desktop));
         }
     }
 
-    /* Tall photo: 4:5 on phones, 2:1 from md, never taller than 82% of the screen. */
+    /* On a 1-column page the photo runs to the viewport, past the 1920 container.
+       Copy stays on the container line via --hero-pad. */
+    :is(.cms-page-view, .cms-index-index).page-layout-1column .elme-hero {
+        width: 100vw;
+        max-width: 100vw;
+        margin-inline: calc(50% - 50vw);
+        --hero-pad: max(
+            var(--container-gutter),
+            calc((100vw - var(--container-max-width)) / 2 + var(--container-gutter))
+        );
+
+        @variant md {
+            --hero-pad: max(
+                var(--container-gutter-desktop),
+                calc((100vw - var(--container-max-width)) / 2 + var(--container-gutter-desktop))
+            );
+        }
+    }
+
+    /* Tall photo: 4:5 on phones, 2:1 from md. Desktop is a fixed 700px. */
     .elme-hero__media {
         aspect-ratio: 4 / 5;
 
         @variant md {
             aspect-ratio: 2 / 1;
-            max-height: 82svh;
+            max-height: 72svh;
             width: 100%;
+        }
+
+        @variant lg {
+            aspect-ratio: auto;
+            height: calc(var(--spacing) * 175);
+            max-height: calc(var(--spacing) * 175);
         }
     }
 
@@ -142,17 +168,17 @@
     }
 
     /* Arrows: thin chevrons in an outlined circle at the photo edges, only while the hero is hovered or
-       one of them has keyboard focus. They sit above the middle (bottom padding is a share of the width,
-       about a third of the 2:1 photo height), so the left one stays clear of the heading. */
+       one of them has keyboard focus. The row fills the slide and centres them on its height. */
     .elme-hero__arrows::after {
         content: none;
     }
 
     .elme-hero__arrows {
+        inset: 0;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 --spacing(6) 15%;
+        padding-inline: --spacing(6);
     }
 
     .elme-hero__arrow {
@@ -222,28 +248,28 @@
         }
 
         .elme-hero__slide.is-current .elme-hero__line > span {
-            animation: elme-hero-line 800ms var(--ease-out-quint) both;
-            animation-delay: 250ms;
+            animation: elme-hero-line 400ms var(--ease-out-quint) both;
+            animation-delay: 60ms;
         }
 
         .elme-hero__slide.is-current .elme-hero__line:nth-child(2) > span {
-            animation-delay: 340ms;
+            animation-delay: 120ms;
         }
 
         .elme-hero__slide.is-current .elme-hero__line:nth-child(3) > span {
-            animation-delay: 430ms;
+            animation-delay: 180ms;
         }
 
         .elme-hero__slide.is-current .elme-hero__line:nth-child(n + 4) > span {
-            animation-delay: 520ms;
+            animation-delay: 240ms;
         }
 
         .elme-hero__slide.is-current .elme-hero__rise {
-            animation: elme-hero-rise 700ms var(--ease-out-quint) 560ms both;
+            animation: elme-hero-rise 280ms var(--ease-out-quint) 180ms both;
         }
 
         .elme-hero__slide.is-current .elme-hero__rise + .elme-hero__rise {
-            animation-delay: 630ms;
+            animation-delay: 180ms;
         }
     }
 

@@ -5,12 +5,18 @@
  */
 @layer components {
     .elme-welcome-cta__heading {
+        max-width: 16ch;
         font-size: var(--text-title-section);
         line-height: var(--text-title-section--line-height);
 
         @variant md {
             font-size: var(--text-title-section-desktop);
             line-height: var(--text-title-section-desktop--line-height);
+        }
+
+        /* Wide enough for two lines: "Wholesale artificial flowers, plants / and home decor…" */
+        @variant lg {
+            max-width: 22em;
         }
 
         @variant xl {
@@ -49,7 +55,13 @@
         color: var(--color-on-primary);
     }
 
-    /* Ticker: two copies of the items move left by one copy, so the loop has no seam. */
+    /* Ticker: two equal halves. The track moves left by one half, so the loop has no seam.
+       Each half repeats the line (--elme-ticker-repeats) so a wide screen never shows a blank. */
+    .elme-ticker__group {
+        display: flex;
+        flex: none;
+    }
+
     .elme-ticker__item {
         padding: --spacing(3.5) --spacing(5);
         font-size: var(--text-h3);
@@ -65,9 +77,35 @@
         color: var(--color-secondary);
     }
 
+    .elme-ticker {
+        margin-inline: calc(var(--entry-bleed) * -1);
+    }
+
+    :is(.cms-page-view, .cms-index-index).page-layout-1column .elme-ticker {
+        width: 100vw;
+        max-width: 100vw;
+        margin-inline: calc(50% - 50vw);
+    }
+
+    /* Sand and ink bands paint past the 1920 container. The section stays put;
+       the shadow is the colour in the side margins. clip-path stops it covering
+       the blocks above and below, and it does not add a scrollbar. */
+    :is(.cms-page-view, .cms-index-index).page-layout-1column .elme-promo-split--dark,
+    :is(.cms-page-view, .cms-index-index).page-layout-1column .elme-catalogue-covers {
+        clip-path: inset(0 -100vmax);
+    }
+
+    :is(.cms-page-view, .cms-index-index).page-layout-1column .elme-promo-split--dark {
+        box-shadow: 0 0 0 100vmax var(--color-ink);
+    }
+
+    :is(.cms-page-view, .cms-index-index).page-layout-1column .elme-catalogue-covers {
+        box-shadow: 0 0 0 100vmax var(--color-sand-light);
+    }
+
     @media (prefers-reduced-motion: no-preference) {
         .elme-ticker__track {
-            animation: elme-ticker 30s linear infinite;
+            animation: elme-ticker calc(30s * var(--elme-ticker-repeats, 8)) linear infinite;
         }
 
         .elme-ticker:hover .elme-ticker__track {
@@ -76,10 +114,36 @@
     }
 
     .elme-catalogue-covers__inner {
+        display: grid;
+        gap: --spacing(8);
         padding-inline: max(var(--entry-bleed), var(--container-gutter));
 
         @variant md {
             padding-inline: max(var(--entry-bleed), var(--container-gutter-desktop));
+        }
+
+        /* Title and covers sit together in the middle of the band. 112px from lg, 160px from xl. */
+        @variant lg {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: calc(var(--spacing) * 28);
+        }
+
+        @variant xl {
+            gap: calc(var(--spacing) * 40);
+        }
+    }
+
+    .elme-catalogue-covers__shelf {
+        gap: --spacing(5);
+
+        @variant lg {
+            flex: 0 1 calc(var(--spacing) * 140);
+            width: calc(var(--spacing) * 140);
+            max-width: 100%;
+            min-width: 0;
+            gap: --spacing(12);
         }
     }
 
@@ -87,9 +151,7 @@
         box-shadow: 0 calc(var(--spacing) * 5) calc(var(--spacing) * 10)
             color-mix(in oklab, var(--color-ink) 28%, transparent);
         transform: rotate(-3deg);
-        transition:
-            transform var(--transition-duration-slow) var(--ease-out-quint),
-            box-shadow var(--transition-duration-slow) var(--ease-out-quint);
+        transition: transform 200ms var(--ease-out-quint);
     }
 
     .elme-catalogue-covers__shelf li:nth-child(even) .elme-catalogue-covers__cover {
@@ -98,9 +160,11 @@
 
     @media (hover: hover) and (pointer: fine) {
         .elme-catalogue-covers__shelf li .elme-catalogue-covers__book:is(:hover, :focus-visible) .elme-catalogue-covers__cover {
-            transform: translateY(calc(var(--spacing) * -2));
-            box-shadow: 0 calc(var(--spacing) * 7) calc(var(--spacing) * 12)
-                color-mix(in oklab, var(--color-ink) 32%, transparent);
+            transform: translateY(calc(var(--spacing) * -2)) rotate(-3deg);
+        }
+
+        .elme-catalogue-covers__shelf li:nth-child(even) .elme-catalogue-covers__book:is(:hover, :focus-visible) .elme-catalogue-covers__cover {
+            transform: translateY(calc(var(--spacing) * -2)) rotate(2.5deg);
         }
     }
 

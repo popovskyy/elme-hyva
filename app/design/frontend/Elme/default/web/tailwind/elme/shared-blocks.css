@@ -20,7 +20,7 @@
     }
 
     .elme-our-difference__title {
-        max-width: 22ch;
+        max-width: 16ch;
         margin: 0;
         font-family: var(--font-heading);
         font-weight: 400;
@@ -32,6 +32,11 @@
         @variant md {
             font-size: calc(var(--spacing) * 12);
             line-height: 1.12;
+        }
+
+        /* Two lines on desktop, not four. */
+        @variant lg {
+            max-width: 22em;
         }
     }
 
@@ -184,6 +189,8 @@
         padding: --spacing(12) max(var(--entry-bleed), var(--container-gutter)) --spacing(14);
         background: var(--color-ink);
         color: var(--color-on-primary);
+        clip-path: inset(0 -100vmax);
+        box-shadow: 0 0 0 100vmax var(--color-ink);
 
         @variant md {
             padding: --spacing(16) max(var(--entry-bleed), var(--container-gutter-desktop)) --spacing(20);
@@ -225,9 +232,8 @@
         color: var(--color-on-primary);
     }
 
-    /* Home: once the band is in view (home-motion adds .is-in) the icons keep acting out what they do,
-       one after another: the phone rings, the envelope opens while the address types (the script
-       retypes it on the same 6s beat), the pin drops and the ground ripples. Off with reduced motion. */
+    /* Icons act out what they do while the cell is hovered or focused, and ease back when it is not.
+       Transitions, not keyframes, so a quick pass does not restart the pin from invisible. */
     .elme-need-assistance__waves {
         opacity: 0;
     }
@@ -235,73 +241,53 @@
     .elme-need-assistance__ripple {
         position: absolute;
         left: 50%;
-        bottom: 22%;
-        width: 34%;
-        height: 10%;
-        border: 2px solid currentColor;
+        bottom: 14%;
+        width: 40%;
+        height: 14%;
+        border: 1.5px solid currentColor;
         border-radius: 50%;
         opacity: 0;
         translate: -50% 0;
     }
 
-    @media (prefers-reduced-motion: no-preference) {
+    @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+        .elme-need-assistance__icon--ring svg,
+        .elme-need-assistance__icon--pin svg,
+        .elme-need-assistance__waves,
+        .elme-need-assistance__flap,
+        .elme-need-assistance__ripple {
+            transition:
+                transform var(--transition-duration-base) var(--ease-out-quint),
+                translate var(--transition-duration-base) var(--ease-out-quint),
+                opacity var(--transition-duration-base) var(--ease-out-quint);
+        }
+
         .elme-need-assistance__icon--ring svg {
             transform-origin: 50% 60%;
-        }
-
-        .elme-need-assistance.is-in .elme-need-assistance__icon--ring svg {
-            animation: elme-ring 4.5s var(--ease-out-quint) 300ms infinite;
-        }
-
-        .elme-need-assistance.is-in .elme-need-assistance__waves {
-            animation: elme-waves 4.5s ease-out 300ms infinite;
         }
 
         .elme-need-assistance__flap {
             transform-origin: 50% 25%;
         }
 
-        .elme-need-assistance.is-in .elme-need-assistance__flap {
-            animation: elme-flap 6s var(--ease-out-quint) 1500ms infinite;
+        .elme-need-assistance__cell:is(:hover, :focus-visible) .elme-need-assistance__icon--ring svg {
+            transform: rotate(-12deg);
         }
 
-        .elme-need-assistance.is-in .elme-need-assistance__drop {
-            animation: elme-drop 5s var(--ease-out-back) 3000ms infinite;
+        .elme-need-assistance__cell:is(:hover, :focus-visible) .elme-need-assistance__waves {
+            opacity: 1;
         }
 
-        .elme-need-assistance.is-in .elme-need-assistance__ripple {
-            animation: elme-ripple 5s ease-out 3000ms infinite;
+        .elme-need-assistance__cell:is(:hover, :focus-visible) .elme-need-assistance__flap {
+            transform: scaleY(-1);
+        }
+
+        .elme-need-assistance__cell:is(:hover, :focus-visible) .elme-need-assistance__icon--pin svg {
+            translate: 0 --spacing(0.5);
+        }
+
+        .elme-need-assistance__cell:is(:hover, :focus-visible) .elme-need-assistance__ripple {
+            opacity: 0.7;
         }
     }
-}
-
-@keyframes elme-ring {
-    0%, 30%, 100% { transform: rotate(0); }
-    3% { transform: rotate(-16deg); }
-    6% { transform: rotate(14deg); }
-    9% { transform: rotate(-12deg); }
-    12% { transform: rotate(10deg); }
-    15% { transform: rotate(-6deg); }
-    18% { transform: rotate(4deg); }
-}
-
-@keyframes elme-waves {
-    0%, 30%, 100% { opacity: 0; }
-    4%, 20% { opacity: 1; }
-}
-
-@keyframes elme-flap {
-    0%, 45%, 100% { transform: none; }
-    8%, 36% { transform: scaleY(-1); }
-}
-
-@keyframes elme-drop {
-    0% { transform: translateY(calc(var(--spacing) * -5)); opacity: 0; }
-    14%, 100% { transform: none; opacity: 1; }
-}
-
-@keyframes elme-ripple {
-    0%, 14% { transform: scale(0.4); opacity: 0; }
-    16% { transform: scale(0.4); opacity: 0.7; }
-    44%, 100% { transform: scale(2.2); opacity: 0; }
 }

@@ -4,8 +4,8 @@
  * image left, heading + trade-fact rows + CTA right. Guests get Create An Account; logged-in
  * customers get My Account (same FPC split as HideForLoggedIn). Server-rendered.
  * With image_2 and image_3 the image becomes a three-photo collage ("Collage" in
- * docs/design/hero-wow-options.html): the photos fall into place when the section scrolls in and
- * shift with a fine pointer at different depths (Elme_Theme::home-motion.phtml, home-motion.css).
+ * docs/design/hero-wow-options.html): the photos fall into place when the section scrolls in
+ * (Elme_Theme::home-motion.phtml, home-motion.css).
  *
  * @var \Bart\ContentStudio\Block\Entry $block
  * @var \Magento\Framework\Escaper $escaper
@@ -54,19 +54,19 @@ $hasImageLink = $guestButton !== null && !$loginOnly->isLoggedIn();
          aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
     <div class="mb-6 lg:mb-0 lg:w-1/2 lg:shrink-0">
         <?php if ($collage): ?>
-            <div class="elme-collage" data-depth-stage>
-                <div class="elme-collage__layer" data-depth="10">
+            <div class="elme-collage">
+                <div class="elme-collage__layer">
                     <img src="<?= $escaper->escapeUrl($collage[1]['src']) ?>" alt=""
                          width="<?= (int)$collage[1]['width'] ?>" height="<?= (int)$collage[1]['height'] ?>"
                          loading="lazy" decoding="async" class="elme-collage__card elme-collage__card--back">
                 </div>
-                <div class="elme-collage__layer" data-depth="22">
+                <div class="elme-collage__layer">
                     <img src="<?= $escaper->escapeUrl($image['src']) ?>"
                          alt="<?= $escaper->escapeHtmlAttr($image['alt']) ?>"
                          width="<?= (int)$image['width'] ?>" height="<?= (int)$image['height'] ?>"
                          loading="lazy" decoding="async" class="elme-collage__card elme-collage__card--main">
                 </div>
-                <div class="elme-collage__layer" data-depth="34">
+                <div class="elme-collage__layer">
                     <img src="<?= $escaper->escapeUrl($collage[0]['src']) ?>" alt=""
                          width="<?= (int)$collage[0]['width'] ?>" height="<?= (int)$collage[0]['height'] ?>"
                          loading="lazy" decoding="async" class="elme-collage__card elme-collage__card--front">
