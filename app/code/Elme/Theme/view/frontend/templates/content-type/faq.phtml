@@ -1,0 +1,266 @@
+<?php
+/**
+ * Content Studio type `faq` (etc/content_types.xml, FE-47): topic accordion with jump strip,
+ * find-as-you-type filter, keyboard open/close and #anchor deep links. Answers are in the HTML
+ * for crawlers; Alpine only toggles open/closed.
+ *
+ * @var \Bart\ContentStudio\Block\Entry $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\ViewModel\HyvaCsp $hyvaCsp
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\Faq;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+
+/** @var ViewModelRegistry $viewModels */
+
+$faq = $block->getTypeViewModel();
+if (!$faq instanceof Faq) {
+    return;
+}
+
+$content = $block->getContent();
+$items = $faq->getItems($content);
+if ($items === []) {
+    return;
+}
+
+$groups = $faq->groupByTopic($items);
+$topicLinks = $faq->getTopicLinks($groups);
+$lucideIcons = $viewModels->require(LucideIcons::class);
+$filterId = 'elme-faq-filter-' . preg_replace('/[^a-z0-9_-]/i', '-', (string)$block->getIdentifier());
+?>
+<div class="elme-faq"
+     x-data="initElmeFaq">
+    <?php if ($topicLinks): ?>
+        <nav class="elme-faq__topics elme-sticky-below-header"
+             aria-label="<?= $escaper->escapeHtmlAttr(__('FAQ topics')) ?>">
+            <ul class="elme-faq__topics-list">
+                <?php foreach ($topicLinks as $link): ?>
+                    <li>
+                        <a class="elme-faq__topic-link"
+                           href="#<?= $escaper->escapeHtmlAttr($link['slug']) ?>"
+                           @click="jumpToTopic"
+                           data-topic-slug="<?= $escaper->escapeHtmlAttr($link['slug']) ?>">
+                            <?= $escaper->escapeHtml(__($link['label'])) ?>
+                        </a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </nav>
+    <?php endif; ?>
+
+    <div class="elme-faq__filter">
+        <label class="elme-faq__filter-label" for="<?= $escaper->escapeHtmlAttr($filterId) ?>">
+            <?= $escaper->escapeHtml(__('Find a question')) ?>
+        </label>
+        <input type="search"
+               id="<?= $escaper->escapeHtmlAttr($filterId) ?>"
+               class="elme-faq__filter-input form-input"
+               name="faq-filter"
+               autocomplete="off"
+               enterkeyhint="search"
+               placeholder="<?= $escaper->escapeHtmlAttr(__('MOQ, freight, GST, track, return…')) ?>"
+               :value="filter"
+               @input="setFilter"
+               aria-controls="elme-faq-list">
+    </div>
+
+    <p class="elme-faq__empty text-ink-muted"
+       x-show="hasNoMatches"
+       x-cloak
+       role="status">
+        <?= $escaper->escapeHtml(__('No questions match that search. Try another keyword, or clear the field.')) ?>
+    </p>
+
+    <div id="elme-faq-list" class="elme-faq__list">
+        <?php foreach ($groups as $group): ?>
+            <section class="elme-faq__topic"
+                     id="<?= $escaper->escapeHtmlAttr($group['slug']) ?>"
+                     data-topic-slug="<?= $escaper->escapeHtmlAttr($group['slug']) ?>"
+                     x-show="isTopicVisible">
+                <h2 class="elme-faq__topic-title"><?= $escaper->escapeHtml(__($group['label'])) ?></h2>
+                <ul class="elme-faq__items">
+                    <?php foreach ($group['items'] as $item): ?>
+                        <?php
+                        $panelId = 'elme-faq-panel-' . $item['anchor'];
+                        $buttonId = 'elme-faq-btn-' . $item['anchor'];
+                        ?>
+                        <li class="elme-faq__item"
+                            id="<?= $escaper->escapeHtmlAttr($item['anchor']) ?>"
+                            data-anchor="<?= $escaper->escapeHtmlAttr($item['anchor']) ?>"
+                            data-search="<?= $escaper->escapeHtmlAttr($item['search_text']) ?>"
+                            data-topic-slug="<?= $escaper->escapeHtmlAttr($item['topic_slug']) ?>"
+                            x-show="isItemVisible"
+                            :class="itemClass">
+                            <h3 class="elme-faq__question">
+                                <button type="button"
+                                        id="<?= $escaper->escapeHtmlAttr($buttonId) ?>"
+                                        class="elme-faq__trigger"
+                                        @click="toggleItem"
+                                        data-anchor="<?= $escaper->escapeHtmlAttr($item['anchor']) ?>"
+                                        :aria-expanded="ariaExpandedFor"
+                                        aria-controls="<?= $escaper->escapeHtmlAttr($panelId) ?>">
+                                    <span class="elme-faq__question-text"><?= $escaper->escapeHtml($item['question']) ?></span>
+                                    <span class="elme-faq__chevron" aria-hidden="true" :class="chevronClass">
+                                        <?= $lucideIcons->chevronDownHtml('elme-faq__chevron-icon', 20, 20, ['aria-hidden' => 'true']) ?>
+                                    </span>
+                                </button>
+                            </h3>
+                            <div id="<?= $escaper->escapeHtmlAttr($panelId) ?>"
+                                 class="elme-faq__answer prose elme-help-body"
+                                 role="region"
+                                 data-anchor="<?= $escaper->escapeHtmlAttr($item['anchor']) ?>"
+                                 aria-labelledby="<?= $escaper->escapeHtmlAttr($buttonId) ?>"
+                                 x-show="isPanelOpen">
+                                <?= /* @noEscape */ $item['answer_html'] ?>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </section>
+        <?php endforeach; ?>
+    </div>
+</div>
+<script>
+    function initElmeFaq() {
+        return {
+            filter: '',
+            openAnchors: {},
+
+            init() {
+                this.openFromHash();
+                window.addEventListener('hashchange', () => this.openFromHash());
+            },
+
+            setFilter() {
+                this.filter = this.$event.target.value;
+            },
+
+            filterQuery() {
+                return (this.filter || '').trim().toLowerCase();
+            },
+
+            hasNoMatches() {
+                const q = this.filterQuery();
+                if (q === '') {
+                    return false;
+                }
+                const items = this.$root.querySelectorAll('.elme-faq__item');
+                for (let i = 0; i < items.length; i++) {
+                    if ((items[i].dataset.search || '').indexOf(q) !== -1) {
+                        return false;
+                    }
+                }
+                return true;
+            },
+
+            isItemVisible() {
+                const q = this.filterQuery();
+                if (q === '') {
+                    return true;
+                }
+                return (this.$el.dataset.search || '').indexOf(q) !== -1;
+            },
+
+            isTopicVisible() {
+                const q = this.filterQuery();
+                if (q === '') {
+                    return true;
+                }
+                const items = this.$el.querySelectorAll('.elme-faq__item');
+                for (let i = 0; i < items.length; i++) {
+                    if ((items[i].dataset.search || '').indexOf(q) !== -1) {
+                        return true;
+                    }
+                }
+                return false;
+            },
+
+            isOpen(anchor) {
+                return !!this.openAnchors[anchor];
+            },
+
+            ariaExpandedFor() {
+                return this.isOpen(this.$el.dataset.anchor) ? 'true' : 'false';
+            },
+
+            isPanelOpen() {
+                return this.isOpen(this.$el.dataset.anchor);
+            },
+
+            itemClass() {
+                return {
+                    'elme-faq__item--open': this.isOpen(this.$el.dataset.anchor)
+                };
+            },
+
+            chevronClass() {
+                const item = this.$el.closest('.elme-faq__item');
+                return {
+                    'elme-faq__chevron--open': !!(item && this.isOpen(item.dataset.anchor))
+                };
+            },
+
+            toggleItem() {
+                const anchor = this.$el.dataset.anchor;
+                if (!anchor) {
+                    return;
+                }
+                const next = Object.assign({}, this.openAnchors);
+                if (next[anchor]) {
+                    delete next[anchor];
+                    this.openAnchors = next;
+                    if (window.location.hash === '#' + anchor) {
+                        history.replaceState(null, '', window.location.pathname + window.location.search);
+                    }
+                    return;
+                }
+                next[anchor] = true;
+                this.openAnchors = next;
+                history.replaceState(null, '', '#' + anchor);
+            },
+
+            openFromHash() {
+                const hash = (window.location.hash || '').replace(/^#/, '');
+                if (!hash || !this.$root.querySelector) {
+                    return;
+                }
+                const safe = (window.CSS && CSS.escape) ? CSS.escape(hash) : hash.replace(/"/g, '');
+                const item = this.$root.querySelector('.elme-faq__item[data-anchor="' + safe + '"]');
+                if (!item) {
+                    return;
+                }
+                const next = Object.assign({}, this.openAnchors);
+                next[hash] = true;
+                this.openAnchors = next;
+                this.$nextTick(() => {
+                    item.scrollIntoView({ block: 'start', behavior: 'smooth' });
+                    const btn = item.querySelector('.elme-faq__trigger');
+                    if (btn) {
+                        btn.focus({ preventScroll: true });
+                    }
+                });
+            },
+
+            jumpToTopic() {
+                const slug = this.$el.dataset.topicSlug;
+                if (!slug) {
+                    return;
+                }
+                this.$event.preventDefault();
+                const safe = (window.CSS && CSS.escape) ? CSS.escape(slug) : slug.replace(/"/g, '');
+                const section = this.$root.querySelector('.elme-faq__topic[data-topic-slug="' + safe + '"]');
+                if (section) {
+                    history.replaceState(null, '', '#' + slug);
+                    section.scrollIntoView({ block: 'start', behavior: 'smooth' });
+                }
+            }
+        }
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeFaq', initElmeFaq), { once: true })
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

@@ -10,6 +10,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * FE-45 curated help side nav + JSON-LD helpers (no VersionsCms on Open Source).
+ * FE-47 upgrades /faqs to FAQPage when Content Studio faq items exist.
  */
 class HelpPages implements ArgumentInterface
 {
@@ -66,7 +67,8 @@ class HelpPages implements ArgumentInterface
 
     public function __construct(
         private readonly CmsPage $cmsPage,
-        private readonly StoreManagerInterface $storeManager
+        private readonly StoreManagerInterface $storeManager,
+        private readonly Faq $faq
     ) {
     }
 
@@ -191,6 +193,14 @@ class HelpPages implements ArgumentInterface
         $description = trim((string) $this->cmsPage->getMetaDescription());
         $title = $this->getCurrentTitle();
 
+        $faqEntities = [];
+        if ($this->getCurrentIdentifier() === 'faqs') {
+            $faqEntities = $this->faq->getSchemaMainEntity($pageUrl);
+            if ($faqEntities !== []) {
+                $schemaType = 'FAQPage';
+            }
+        }
+
         $webpage = [
             '@type' => $schemaType,
             '@id' => $pageUrl . '#webpage',
@@ -208,6 +218,9 @@ class HelpPages implements ArgumentInterface
         $updated = (string) $this->cmsPage->getUpdateTime();
         if ($updated !== '') {
             $webpage['dateModified'] = str_replace(' ', 'T', $updated);
+        }
+        if ($faqEntities !== []) {
+            $webpage['mainEntity'] = $faqEntities;
         }
 
         return [
