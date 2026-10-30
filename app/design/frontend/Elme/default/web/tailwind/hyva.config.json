@@ -59,7 +59,15 @@
         "error": "#FF5942",
         "error-strong": "#D82C0D",
         "error-light": "#FFC3B8",
-        "promo": "#CB4867"
+        "promo": "#CB4867",
+        "toast-success": "#E2E8DB",
+        "toast-success-mark": "#677858",
+        "toast-error": "#F1DDD5",
+        "toast-error-mark": "#A8483C",
+        "toast-warning": "#EEE6D6",
+        "toast-warning-mark": "#94733F",
+        "toast-help": "#E1E7EC",
+        "toast-help-mark": "#5F7A92"
       },
       "text": {
         "base": "16px",

@@ -132,10 +132,11 @@ $defaultSuccessMessageTimeout = $storeConfig->getStoreConfig('hyva_theme_general
                             :ui-id="getMessageUiId"
                             :aria-live="getMessageLive"
                         >
-                            <span x-html-safe="message.text"></span>
+                            <span class="message__badge" aria-hidden="true"></span>
+                            <span class="message__text" x-html-safe="message.text"></span>
                             <button
                                 type="button"
-                                class="shrink-0 p-2 -me-2 text-ink-muted hover:text-ink"
+                                class="message__close"
                                 aria-label="<?= $escaper->escapeHtml(__('Close message')) ?>"
                                 @click.prevent="removeMessage"
                             >

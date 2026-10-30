@@ -33,14 +33,15 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
     <template x-for="toast in toasts" :key="toast.id">
         <div
             class="message"
-            :class="toast.type"
+            :class="toastClass"
             role="status"
             :aria-live="toastLive"
         >
-            <span x-text="toast.text"></span>
+            <span class="message__badge" aria-hidden="true"></span>
+            <span class="message__text" x-text="toast.text"></span>
             <button
                 type="button"
-                class="shrink-0 p-2 -me-2 text-ink-muted hover:text-ink"
+                class="message__close"
                 aria-label="<?= $escaper->escapeHtmlAttr(__('Close notification')) ?>"
                 @click="dismiss"
                 :data-toast-id="toast.id"
@@ -56,6 +57,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             toasts: [],
             nextId: 1,
             defaultHideAfter: 5000,
+            leaveAfter: 180,
 
             eventListeners: {
                 ['@elme-toast.window'](event) {
@@ -73,7 +75,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                     ? 0
                     : (detail.hideAfter || this.defaultHideAfter);
 
-                this.toasts.push({ id, type, text });
+                this.toasts.push({ id, type, text, leaving: false });
 
                 if (hideAfter > 0) {
                     setTimeout(() => this.removeById(id), hideAfter);
@@ -86,7 +88,17 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             },
 
             removeById(id) {
-                this.toasts = this.toasts.filter((toast) => toast.id !== id);
+                const toast = this.toasts.find((item) => item.id === id);
+                if (!toast || toast.leaving) return;
+
+                toast.leaving = true;
+                setTimeout(() => {
+                    this.toasts = this.toasts.filter((item) => item.id !== id);
+                }, this.leaveAfter);
+            },
+
+            toastClass() {
+                return this.toast.leaving ? this.toast.type + ' is-leaving' : this.toast.type;
             },
 
             toastLive() {
