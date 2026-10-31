@@ -1,0 +1,210 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Elme homepage review</title><style>@font-face{font-family:Karla;src:url("../../app/design/frontend/Elme/default/web/fonts/karla/Karla-Regular.woff2") format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Karla;src:url("../../app/design/frontend/Elme/default/web/fonts/karla/Karla-Medium.woff2") format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:Karla;src:url("../../app/design/frontend/Elme/default/web/fonts/karla/Karla-SemiBold.woff2") format("woff2");font-weight:600;font-display:swap}
+@font-face{font-family:"DM Serif Display";src:url("../../app/design/frontend/Elme/default/web/fonts/dm-serif-display/DMSerifDisplay-Regular.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"DM Serif Display";src:url("../../app/design/frontend/Elme/default/web/fonts/dm-serif-display/DMSerifDisplay-Italic.woff2") format("woff2");font-style:italic;font-display:swap}
+:root{--primary:#3A3935;--on:#fff;--sage:#ADBBA1;--olive:#677858;--ink:#3A3935;--muted:#676F78;--page:#F5F4EF;--surface:#fff;--sand:#E1DBD1;--line:#D3D6D9;--div:#DCDCDC;--promo:#CB4867;--table:#D5DADF;--mark:#CB4867}
+*{box-sizing:border-box}
+body{margin:0;background:var(--table);color:var(--ink);font:16px/1.45 Karla,sans-serif}
+img{display:block;max-width:100%}
+.page{padding:48px 40px 96px}
+.page>h1{font:400 40px/1.1 "DM Serif Display",serif;margin:0 0 12px}
+.lead{font-size:17px;max-width:70ch;margin:0}
+.note{margin:8px 0 0;max-width:70ch;color:var(--muted);font-size:15px}
+.option{margin-top:64px}
+.option>h2{font:400 28px/1.15 "DM Serif Display",serif;margin:0 0 8px}
+.option>p{max-width:80ch;margin:0}
+.issues{list-style:none;padding:0;margin:20px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px 28px;max-width:1100px}
+.issues li{display:flex;gap:10px;font-size:15px}
+.issues b{margin-right:4px}
+.mk{flex:none;display:inline-grid;place-items:center;width:24px;height:24px;border-radius:99px;background:var(--mark);color:#fff;font:600 13px/1 Karla,sans-serif}
+.frames{display:flex;gap:32px;align-items:flex-start;margin-top:20px}
+.cap{margin:0 0 8px;font-size:13px;color:var(--muted)}
+.wide-col{min-width:0}
+.zoom-d{zoom:.5}
+.site{container-type:inline-size;background:var(--page);box-shadow:0 1px 3px rgb(0 0 0/.15);overflow:hidden;position:relative}
+.site .mk{position:absolute;z-index:5;width:44px;height:44px;font-size:22px;box-shadow:0 0 0 4px #fff}
+.zoom-m .site .mk{width:26px;height:26px;font-size:14px;box-shadow:0 0 0 2px #fff}
+.site section,.site footer{position:relative}
+.site .mk{top:16px;right:16px}
+.site .mk+.mk,.site section>.mk:last-child{top:auto;bottom:16px;right:16px}
+/* chrome */
+.promo{display:flex;justify-content:space-between;gap:16px;padding:10px 40px;background:var(--sage);font-size:13px;font-weight:500}
+.promo-links{display:flex;gap:20px}
+.hdr{display:flex;align-items:center;gap:32px;padding:18px 40px;background:#fff;border-bottom:1px solid var(--div)}
+.logo{width:150px}
+.nav{display:flex;gap:26px;font-size:15px}.nav .sale{color:var(--promo)}
+.search{flex:1;background:#F3F3F1;padding:12px 16px;color:#999;font-size:13px}
+.login{font-size:13px}
+.burger{display:none;width:22px;height:14px;border-block:2px solid var(--ink)}
+@container (max-width:600px){.promo{padding:8px 20px;font-size:11px}.promo-links{display:none}.hdr{padding:14px 20px;gap:12px}.logo{width:120px}.nav,.search{display:none}.hdr .login{margin-left:auto}.burger{display:block}}
+/* type */
+.disp{font:400 64px/1.05 "DM Serif Display",serif;margin:0;color:#fff}
+.disp.ink{color:var(--ink)}.disp.sm{font-size:44px}
+.disp em{font-style:italic;color:var(--olive)}
+.h2{font:400 34px/1.15 "DM Serif Display",serif;margin:0 0 24px}
+.h2.light{color:#fff}
+@container (max-width:600px){.disp{font-size:34px}.disp.sm{font-size:28px}.h2{font-size:24px;margin-bottom:16px}}
+.btn{display:inline-flex;align-items:center;min-height:50px;padding:0 28px;background:var(--primary);color:#fff;font-weight:500;font-size:15px;letter-spacing:.5px;margin-top:24px}
+.btn.light{background:#fff;color:var(--ink)}
+.btn.outline{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+/* sections */
+.sec{padding:72px 40px}
+@container (max-width:600px){.sec{padding:44px 20px}}
+.dark{background:var(--primary);color:#fff}
+.hero{position:relative;height:640px;overflow:hidden}
+.hero.short{height:520px}
+.hero-img,.hero-img-m{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero-img-m{display:none}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgb(0 0 0/.45),transparent 60%)}
+.hero-copy{position:absolute;z-index:1;left:64px;bottom:72px;max-width:640px}
+.dots{display:flex;gap:8px;margin-top:28px}.dots i{width:28px;height:2px;background:rgb(255 255 255/.4)}.dots i.on{background:#fff}
+@container (max-width:600px){.hero{height:560px}.hero.short{height:460px}.hero-img{display:none}.hero-img-m{display:block}.hero::after{background:linear-gradient(0deg,rgb(0 0 0/.55),transparent 65%)}.hero-copy{left:20px;right:20px;bottom:36px}}
+.carousel{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+.arrows{position:absolute;right:40px;top:80px;font-size:22px}
+.tile{margin:0}.tile img{aspect-ratio:1;object-fit:cover;width:100%}
+.tile figcaption{margin-top:10px;font-size:15px;font-weight:500}
+@container (max-width:600px){.carousel{grid-template-columns:repeat(6,140px);overflow:hidden}.arrows{display:none}}
+.statement{text-align:center;padding-block:110px}
+.statement .disp{max-width:960px;margin:0 auto 20px;font-size:58px}
+.statement p{max-width:600px;margin:0 auto;color:var(--muted)}
+@container (max-width:600px){.statement{padding-block:56px;text-align:left}.statement .disp{font-size:32px}}
+.band{padding:72px 40px}
+.outlet{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;padding-bottom:0}
+.outlet img{width:100%;height:340px;object-fit:cover}
+.kick{text-transform:uppercase;letter-spacing:.12em;font-size:13px;margin:0 0 8px;color:var(--sage)}
+.huge{font:400 96px/1 "DM Serif Display",serif;margin:0 0 16px}
+.ticker{grid-column:1/-1;margin:48px -40px 0;padding:18px 40px;border-top:1px solid rgb(255 255 255/.2);white-space:nowrap;overflow:hidden;font:400 28px/1 "DM Serif Display",serif;color:var(--sage)}
+@container (max-width:600px){.band{padding:48px 20px}.outlet{grid-template-columns:1fr;gap:24px}.outlet img{height:200px}.huge{font-size:52px}.ticker{margin:32px -20px 0;padding:14px 20px;font-size:20px}}
+.covers{display:grid;grid-template-columns:1fr 1fr;gap:32px;max-width:900px}
+.covers figure{margin:0}.covers img{aspect-ratio:3/4;object-fit:cover;width:100%}.covers figcaption{font:400 24px/1.2 "DM Serif Display",serif;margin-top:12px}
+@container (max-width:600px){.covers{gap:12px}.covers figcaption{font-size:17px}}
+.stockist{display:grid;grid-template-columns:1.1fr 1fr;gap:64px;align-items:center}
+.stockist p{color:var(--muted);max-width:440px}
+.collage{position:relative;height:440px}
+.collage img{position:absolute;object-fit:cover;box-shadow:0 10px 30px rgb(0 0 0/.15)}
+.collage img:nth-child(1){left:12%;top:8%;width:44%;height:76%}
+.collage img:nth-child(2){left:52%;top:0;width:34%;height:34%}
+.collage img:nth-child(3){left:0;bottom:0;width:40%;height:38%}
+.stockist.light .collage{height:380px}
+@container (max-width:600px){.stockist{grid-template-columns:1fr;gap:28px}.collage{height:300px}}
+.quote{text-align:center;padding-block:100px}
+.quote .disp{max-width:900px;margin:0 auto 20px}
+.quote p:last-child{max-width:620px;margin:0 auto;color:var(--muted)}
+@container (max-width:600px){.quote{padding-block:56px}}
+.help .cells{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;font-size:17px}
+.help .cells b{display:block;font-weight:400;font-size:13px;color:rgb(255 255 255/.7);margin-bottom:6px}
+.help .cells div{border-top:1px solid rgb(255 255 255/.2);padding-top:20px}
+@container (max-width:600px){.help .cells{grid-template-columns:1fr;gap:0}.help .cells div{padding:16px 0}}
+.posts{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}.posts img{aspect-ratio:1;object-fit:cover;width:100%}
+@container (max-width:600px){.posts{grid-template-columns:repeat(6,150px);overflow:hidden}}
+.ftr{background:var(--primary);color:#fff;padding:56px 40px 72px}
+.logo.inv{filter:invert(1) brightness(2);margin-bottom:28px}
+.fcols{display:grid;grid-template-columns:repeat(4,1fr);gap:32px}.fcols span{height:110px;background:repeating-linear-gradient(transparent 0 14px,rgb(255 255 255/.18) 14px 22px)}
+@container (max-width:600px){.ftr{padding:40px 20px}.fcols{grid-template-columns:1fr 1fr}}
+.assist{display:flex;flex-wrap:wrap;gap:12px 40px;align-items:baseline;padding-bottom:28px;margin-bottom:36px;border-bottom:1px solid rgb(255 255 255/.2);font-size:16px}
+.assist b{font:400 26px/1.1 "DM Serif Display",serif;margin-right:auto}
+@container (max-width:600px){.assist{flex-direction:column;gap:6px}.assist b{font-size:22px;margin-bottom:6px}}
+/* option 1 */
+.intro{padding-block:64px 24px}
+.intro .lead{font-size:22px;line-height:1.4;max-width:820px;margin:0}
+.usps{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:36px}
+.usps div{border-top:2px solid var(--sage);padding-top:16px;color:var(--muted);font-size:15px}
+.usps b{display:block;color:var(--ink);font-weight:600;margin-bottom:4px}
+@container (max-width:600px){.intro .lead{font-size:18px}.usps{grid-template-columns:1fr;gap:18px}}
+.row-head{display:flex;justify-content:space-between;align-items:baseline}.row-head u{font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:28px 20px}
+@container (max-width:600px){.grid{grid-template-columns:1fr 1fr;gap:20px 12px}.tile figcaption{font-size:14px}}
+.cards3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:20px}
+.cards3 figure,.cards2 figure{margin:0;position:relative;overflow:hidden}
+.cards3 img,.cards2 img{width:100%;height:420px;object-fit:cover}
+.cards3 figcaption,.cards2 figcaption{position:absolute;inset:auto 0 0 0;padding:60px 20px 20px;color:#fff;background:linear-gradient(transparent,rgb(0 0 0/.6));font-size:14px}
+.cards3 figcaption b,.cards2 figcaption b{display:block;font:400 26px/1.15 "DM Serif Display",serif;margin-bottom:4px}
+@container (max-width:600px){.cards3,.cards2{grid-template-columns:1fr}.cards3 img,.cards2 img{height:240px}}
+/* option 2 */
+.split{display:grid;grid-template-columns:1.15fr 1fr;align-items:stretch;background:#fff}
+.split-copy{padding:72px 56px 72px 40px;display:flex;flex-direction:column;justify-content:center}
+.split-copy p{color:var(--muted);font-size:17px;margin:18px 0 0;max-width:520px}
+.split-img{width:100%;height:560px;object-fit:cover}
+.bigsearch{margin-top:28px;padding:18px 20px;border:1px solid var(--ink);color:var(--muted);background:#fff;font-size:16px}
+.btns{display:flex;gap:12px;flex-wrap:wrap}.btns .btn{margin-top:16px}
+@container (max-width:600px){.split{grid-template-columns:1fr}.split-copy{padding:36px 20px}.split-img{height:260px;order:-1}}
+.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:var(--sand)}
+.strip div{padding:22px 40px;font-size:14px;color:var(--muted);border-right:1px solid rgb(0 0 0/.08)}
+.strip b{display:block;color:var(--ink);font-size:15px}
+@container (max-width:600px){.strip{grid-template-columns:1fr 1fr}.strip div{padding:14px 20px}}
+.prods{display:grid;grid-template-columns:repeat(5,1fr);gap:20px}
+.pcard{background:#fff;padding:12px}.pimg{display:block;aspect-ratio:1;background:#ECEAE4}.pl{display:block;height:10px;background:#E4E2DC;margin-top:12px}.pl.s{width:50%}
+.ph{font-size:13px;color:var(--muted);margin:12px 0 0}
+@container (max-width:600px){.prods{grid-template-columns:repeat(5,150px);overflow:hidden}}
+.cards2{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+@container (max-width:600px){.cards2{grid-template-columns:1fr}}
+.cta-band{background:var(--primary);color:#fff;padding:64px 40px;text-align:center}
+.cta-band p{color:rgb(255 255 255/.75);margin:12px auto 0}
+@container (max-width:600px){.cta-band{padding:44px 20px}}
+@media (max-width:1100px){.frames{flex-direction:column}}
+</style></head><body><div class="page">
+<h1>Elme homepage: is it too busy?</h1>
+<p class="lead">Short answer: every block is fine on its own, but the page has too many loud moments in a row. Below: the page as it is now with the problems marked, then two calmer directions with the same photos and copy. Reply with a number, or a mix.</p>
+<p class="note">"Now" is rebuilt from the theme code and the options picked earlier (Cinema hero, Statement run, quote + dark contact band), not a screenshot of elme-hyva.local; spacing and some details differ from the live page. Product cards in 2 are grey placeholders.</p>
+<section class="option" id="now"><h2>Now</h2><p>Sage bar, dark hero, carousel, big statement, dark outlet band with ticker, catalogues, collage, big quote, dark contact band, Instagram, dark footer.</p>
+<ol class="issues">
+<li><span class="mk">A</span><b>Stripes.</b> Four charcoal blocks (hero, Outlet, Need assistance, footer) plus the sage bar. The page reads as light / dark / light / dark, so no block stands out.</li>
+<li><span class="mk">B</span><b>Four headlines at display size.</b> Hero heading, the welcome H1, "Up to 80% off" and the Our Difference quote all compete for first place.</li>
+<li><span class="mk">C</span><b>Motion everywhere.</b> Rising hero lines, a ticker, every section fading in on scroll, animated contact icons, button sheen and ripple. Nice one at a time, busy together.</li>
+<li><span class="mk">D</span><b>Same message three times.</b> "Become a Stockist" is in the top bar, under the welcome text and as its own section; Our Difference repeats the welcome in long form.</li>
+<li><span class="mk">E</span><b>Nothing for a buyer who is already a stockist.</b> No products, no Quick Order, no search for SKUs; a logged-in retailer scrolls past marketing to reach the menu.</li>
+<li><span class="mk">F</span><b>Uneven rhythm.</b> Full-bleed bands and contained blocks alternate with different gaps, and the categories are a carousel that hides two of the eight tiles.</li>
+</ol>
+<div class="frames"><div><p class="cap">Phone, 390 px</p><div class="zoom-m"><div class="site" style="width:390px"><div class="promo"><span>Australia's leading wholesale supplier of artificial flora and home decor</span><span class="promo-links"><u>Contact Us</u><u>Become a Stockist</u></span></div><header class="hdr"><img src="homepage-review/logo.svg" alt="Elme Living" class="logo"><nav class="nav"><span>New</span><span>Flowers &amp; Plants</span><span>Homewares</span><span>Furniture</span><span>Outdoor</span><span class="sale">Sale</span></nav><div class="search">Search products by style, rooms</div><span class="login">Log in</span><span class="burger" aria-hidden="true"></span></header>
+<section class="hero dark"><span class="mk">A</span><picture><source media="(max-width:1px)"><img class="hero-img" src="homepage-review/stems-2x1.jpg" alt=""></picture><img class="hero-img-m" src="homepage-review/stems-4x5.jpg" alt=""><div class="hero-copy"><h2 class="disp">Artificial Flowers<br>&amp; Plants for<br>Your Store</h2><span class="btn light">Shop now</span><span class="dots"><i class="on"></i><i></i></span></div><span class="mk">C</span></section>
+<section class="sec"><h2 class="h2">Shop by category</h2><div class="carousel"><figure class="tile"><img src="homepage-review/vessels.jpg" alt=""><figcaption>Vessels</figcaption></figure><figure class="tile"><img src="homepage-review/decor.jpg" alt=""><figcaption>Decor</figcaption></figure><figure class="tile"><img src="homepage-review/floral-stems.jpg" alt=""><figcaption>Floral Stems</figcaption></figure><figure class="tile"><img src="homepage-review/bouquets.jpg" alt=""><figcaption>Bouquets & Bundles</figcaption></figure><figure class="tile"><img src="homepage-review/coffee-tables.jpg" alt=""><figcaption>Coffee Tables</figcaption></figure><figure class="tile"><img src="homepage-review/arrangements.jpg" alt=""><figcaption>Arrangements</figcaption></figure></div><span class="arrows">&larr; &rarr;</span></section>
+<section class="sec statement"><span class="mk">B</span><h1 class="disp ink">Wholesale artificial flowers, plants and <em>home decor</em> for Australian retailers</h1><p>Elme Living is a wholesale trade site. Sign in for your trade prices (ex GST), or apply for an ABN trade account to become a stockist.</p><span class="btn">Become a Stockist</span><span class="mk">D</span></section>
+<section class="band dark outlet"><span class="mk">A</span><div><p class="kick">Introducing the Elme Outlet</p><p class="huge">Up to 80% off</p><p>End-of-lines, samples and one-off pieces for your floor at our Melbourne outlet.</p><span class="btn light">Find Us In-Store</span></div><img src="homepage-review/outlet.jpg" alt=""><div class="ticker">End-of-lines &bull; Samples &bull; One-off pieces &bull; Up to 80% off &bull; Melbourne outlet &bull; End-of-lines &bull; Samples</div><span class="mk">C</span></section>
+<section class="sec"><h2 class="h2">Curated Catalogues</h2><div class="covers"><figure><img src="homepage-review/lookbook.jpg" alt=""><figcaption>Lookbook</figcaption></figure><figure><img src="homepage-review/virtual-catalogues.jpg" alt=""><figcaption>Virtual Catalogues</figcaption></figure></div></section>
+<section class="sec stockist"><div class="collage"><img src="homepage-review/become-stockist.jpg" alt=""><img src="homepage-review/collage-vases.jpg" alt=""><img src="homepage-review/collage-arrangements.jpg" alt=""></div><div><h2 class="disp ink sm">Why stock with Elme Living</h2><p>Apply with your ABN for a wholesale trade account. Once approved, you shop your own trade prices online.</p><span class="mk">D</span></div></section>
+<section class="sec quote"><span class="mk">B</span><p class="disp ink sm">"Elme Living is Australia's newest wholesaler of artificial flowers, plants, and homewares."</p><p>Our extensive 'Flora' range is designed to suit all your needs ... Wall Art, Mirrors, Cushions, Clocks, Rugs ...</p></section>
+<section class="band dark help"><span class="mk">A</span><h2 class="h2 light">Need assistance?</h2><div class="cells"><div><b>Call us</b>(03) 7067 9725</div><div><b>Email us</b>hello@elmeliving.com</div><div><b>Visit our Showroom</b>1 Apollo Court, Blackburn VIC 3130</div></div></section>
+<section class="sec"><h2 class="h2">As styled by you</h2><div class="posts"><img src="homepage-review/post-1.jpg" alt=""><img src="homepage-review/post-2.jpg" alt=""><img src="homepage-review/post-3.jpg" alt=""><img src="homepage-review/post-4.jpg" alt=""><img src="homepage-review/post-5.jpg" alt=""><img src="homepage-review/post-6.jpg" alt=""></div></section>
+<footer class="ftr"><span class="mk">A</span><img src="homepage-review/logo.svg" alt="" class="logo inv"><div class="fcols"><span></span><span></span><span></span><span></span></div></footer></div></div></div><div class="wide-col"><p class="cap">Desktop, 1280 px (shown at half size)</p><div class="zoom-d"><div class="site" style="width:1280px"><div class="promo"><span>Australia's leading wholesale supplier of artificial flora and home decor</span><span class="promo-links"><u>Contact Us</u><u>Become a Stockist</u></span></div><header class="hdr"><img src="homepage-review/logo.svg" alt="Elme Living" class="logo"><nav class="nav"><span>New</span><span>Flowers &amp; Plants</span><span>Homewares</span><span>Furniture</span><span>Outdoor</span><span class="sale">Sale</span></nav><div class="search">Search products by style, rooms</div><span class="login">Log in</span><span class="burger" aria-hidden="true"></span></header>
+<section class="hero dark"><span class="mk">A</span><picture><source media="(max-width:1px)"><img class="hero-img" src="homepage-review/stems-2x1.jpg" alt=""></picture><img class="hero-img-m" src="homepage-review/stems-4x5.jpg" alt=""><div class="hero-copy"><h2 class="disp">Artificial Flowers<br>&amp; Plants for<br>Your Store</h2><span class="btn light">Shop now</span><span class="dots"><i class="on"></i><i></i></span></div><span class="mk">C</span></section>
+<section class="sec"><h2 class="h2">Shop by category</h2><div class="carousel"><figure class="tile"><img src="homepage-review/vessels.jpg" alt=""><figcaption>Vessels</figcaption></figure><figure class="tile"><img src="homepage-review/decor.jpg" alt=""><figcaption>Decor</figcaption></figure><figure class="tile"><img src="homepage-review/floral-stems.jpg" alt=""><figcaption>Floral Stems</figcaption></figure><figure class="tile"><img src="homepage-review/bouquets.jpg" alt=""><figcaption>Bouquets & Bundles</figcaption></figure><figure class="tile"><img src="homepage-review/coffee-tables.jpg" alt=""><figcaption>Coffee Tables</figcaption></figure><figure class="tile"><img src="homepage-review/arrangements.jpg" alt=""><figcaption>Arrangements</figcaption></figure></div><span class="arrows">&larr; &rarr;</span></section>
+<section class="sec statement"><span class="mk">B</span><h1 class="disp ink">Wholesale artificial flowers, plants and <em>home decor</em> for Australian retailers</h1><p>Elme Living is a wholesale trade site. Sign in for your trade prices (ex GST), or apply for an ABN trade account to become a stockist.</p><span class="btn">Become a Stockist</span><span class="mk">D</span></section>
+<section class="band dark outlet"><span class="mk">A</span><div><p class="kick">Introducing the Elme Outlet</p><p class="huge">Up to 80% off</p><p>End-of-lines, samples and one-off pieces for your floor at our Melbourne outlet.</p><span class="btn light">Find Us In-Store</span></div><img src="homepage-review/outlet.jpg" alt=""><div class="ticker">End-of-lines &bull; Samples &bull; One-off pieces &bull; Up to 80% off &bull; Melbourne outlet &bull; End-of-lines &bull; Samples</div><span class="mk">C</span></section>
+<section class="sec"><h2 class="h2">Curated Catalogues</h2><div class="covers"><figure><img src="homepage-review/lookbook.jpg" alt=""><figcaption>Lookbook</figcaption></figure><figure><img src="homepage-review/virtual-catalogues.jpg" alt=""><figcaption>Virtual Catalogues</figcaption></figure></div></section>
+<section class="sec stockist"><div class="collage"><img src="homepage-review/become-stockist.jpg" alt=""><img src="homepage-review/collage-vases.jpg" alt=""><img src="homepage-review/collage-arrangements.jpg" alt=""></div><div><h2 class="disp ink sm">Why stock with Elme Living</h2><p>Apply with your ABN for a wholesale trade account. Once approved, you shop your own trade prices online.</p><span class="mk">D</span></div></section>
+<section class="sec quote"><span class="mk">B</span><p class="disp ink sm">"Elme Living is Australia's newest wholesaler of artificial flowers, plants, and homewares."</p><p>Our extensive 'Flora' range is designed to suit all your needs ... Wall Art, Mirrors, Cushions, Clocks, Rugs ...</p></section>
+<section class="band dark help"><span class="mk">A</span><h2 class="h2 light">Need assistance?</h2><div class="cells"><div><b>Call us</b>(03) 7067 9725</div><div><b>Email us</b>hello@elmeliving.com</div><div><b>Visit our Showroom</b>1 Apollo Court, Blackburn VIC 3130</div></div></section>
+<section class="sec"><h2 class="h2">As styled by you</h2><div class="posts"><img src="homepage-review/post-1.jpg" alt=""><img src="homepage-review/post-2.jpg" alt=""><img src="homepage-review/post-3.jpg" alt=""><img src="homepage-review/post-4.jpg" alt=""><img src="homepage-review/post-5.jpg" alt=""><img src="homepage-review/post-6.jpg" alt=""></div></section>
+<footer class="ftr"><span class="mk">A</span><img src="homepage-review/logo.svg" alt="" class="logo inv"><div class="fcols"><span></span><span></span><span></span><span></span></div></footer></div></div></div></div></section>
+<section class="option" id="o1"><h2>1. Calm gallery</h2><p>Same content, one dark moment (a shorter hero), one display headline, a light intro with the three trade facts, all eight categories in a grid, Outlet and both catalogues as three equal cards, Need assistance folded into the footer. Motion only in the hero.</p><div class="frames"><div><p class="cap">Phone, 390 px</p><div class="zoom-m"><div class="site" style="width:390px"><div class="promo"><span>Australia's leading wholesale supplier of artificial flora and home decor</span><span class="promo-links"><u>Contact Us</u><u>Become a Stockist</u></span></div><header class="hdr"><img src="homepage-review/logo.svg" alt="Elme Living" class="logo"><nav class="nav"><span>New</span><span>Flowers &amp; Plants</span><span>Homewares</span><span>Furniture</span><span>Outdoor</span><span class="sale">Sale</span></nav><div class="search">Search products by style, rooms</div><span class="login">Log in</span><span class="burger" aria-hidden="true"></span></header>
+<section class="hero dark short"><img class="hero-img" src="homepage-review/stems-2x1.jpg" alt=""><img class="hero-img-m" src="homepage-review/stems-4x5.jpg" alt=""><div class="hero-copy"><h1 class="disp">Artificial flowers, plants &amp; home decor, wholesale</h1><span class="btn light">Shop the range</span></div></section>
+<section class="sec intro"><p class="lead">Trade-only wholesaler for Australian retailers. Sign in for your trade prices (ex GST), or apply with your ABN.</p><div class="usps"><div><b>ABN trade account</b>Apply online, we approve and email you.</div><div><b>Your prices, ex GST</b>Customer-specific, shown after sign-in.</div><div><b>Australia-wide delivery</b>Order online, some lines carry a minimum.</div></div></section>
+<section class="sec"><div class="row-head"><h2 class="h2">Shop by category</h2><u>All categories</u></div><div class="grid"><figure class="tile"><img src="homepage-review/vessels.jpg" alt=""><figcaption>Vessels</figcaption></figure><figure class="tile"><img src="homepage-review/decor.jpg" alt=""><figcaption>Decor</figcaption></figure><figure class="tile"><img src="homepage-review/floral-stems.jpg" alt=""><figcaption>Floral Stems</figcaption></figure><figure class="tile"><img src="homepage-review/bouquets.jpg" alt=""><figcaption>Bouquets & Bundles</figcaption></figure><figure class="tile"><img src="homepage-review/coffee-tables.jpg" alt=""><figcaption>Coffee Tables</figcaption></figure><figure class="tile"><img src="homepage-review/arrangements.jpg" alt=""><figcaption>Arrangements</figcaption></figure><figure class="tile"><img src="homepage-review/textiles.jpg" alt=""><figcaption>Textiles</figcaption></figure><figure class="tile"><img src="homepage-review/wall-decor.jpg" alt=""><figcaption>Wall Decor</figcaption></figure></div></section>
+<section class="sec"><h2 class="h2">From the showroom</h2><div class="cards3"><figure><img src="homepage-review/outlet.jpg" alt=""><figcaption><b>Elme Outlet</b>End-of-lines and samples, up to 80% off</figcaption></figure><figure><img src="homepage-review/lookbook.jpg" alt=""><figcaption><b>Lookbook</b>This season styled</figcaption></figure><figure><img src="homepage-review/virtual-catalogues.jpg" alt=""><figcaption><b>Virtual Catalogues</b>Every range, page by page</figcaption></figure></div></section>
+<section class="sec stockist light"><div class="collage"><img src="homepage-review/become-stockist.jpg" alt=""><img src="homepage-review/collage-vases.jpg" alt=""><img src="homepage-review/collage-arrangements.jpg" alt=""></div><div><h2 class="disp ink sm">Become a Stockist</h2><p>Apply with your ABN for a wholesale trade account. Once approved, you shop your own trade prices online.</p><span class="btn">Apply now</span></div></section>
+<section class="sec"><h2 class="h2">As styled by you</h2><div class="posts"><img src="homepage-review/post-1.jpg" alt=""><img src="homepage-review/post-2.jpg" alt=""><img src="homepage-review/post-3.jpg" alt=""><img src="homepage-review/post-4.jpg" alt=""><img src="homepage-review/post-5.jpg" alt=""><img src="homepage-review/post-6.jpg" alt=""></div></section>
+<footer class="ftr"><div class="assist"><b>Need assistance?</b><span>(03) 7067 9725</span><span>hello@elmeliving.com</span><span>1 Apollo Court, Blackburn</span></div><img src="homepage-review/logo.svg" alt="" class="logo inv"><div class="fcols"><span></span><span></span><span></span><span></span></div></footer></div></div></div><div class="wide-col"><p class="cap">Desktop, 1280 px (shown at half size)</p><div class="zoom-d"><div class="site" style="width:1280px"><div class="promo"><span>Australia's leading wholesale supplier of artificial flora and home decor</span><span class="promo-links"><u>Contact Us</u><u>Become a Stockist</u></span></div><header class="hdr"><img src="homepage-review/logo.svg" alt="Elme Living" class="logo"><nav class="nav"><span>New</span><span>Flowers &amp; Plants</span><span>Homewares</span><span>Furniture</span><span>Outdoor</span><span class="sale">Sale</span></nav><div class="search">Search products by style, rooms</div><span class="login">Log in</span><span class="burger" aria-hidden="true"></span></header>
+<section class="hero dark short"><img class="hero-img" src="homepage-review/stems-2x1.jpg" alt=""><img class="hero-img-m" src="homepage-review/stems-4x5.jpg" alt=""><div class="hero-copy"><h1 class="disp">Artificial flowers, plants &amp; home decor, wholesale</h1><span class="btn light">Shop the range</span></div></section>
+<section class="sec intro"><p class="lead">Trade-only wholesaler for Australian retailers. Sign in for your trade prices (ex GST), or apply with your ABN.</p><div class="usps"><div><b>ABN trade account</b>Apply online, we approve and email you.</div><div><b>Your prices, ex GST</b>Customer-specific, shown after sign-in.</div><div><b>Australia-wide delivery</b>Order online, some lines carry a minimum.</div></div></section>
+<section class="sec"><div class="row-head"><h2 class="h2">Shop by category</h2><u>All categories</u></div><div class="grid"><figure class="tile"><img src="homepage-review/vessels.jpg" alt=""><figcaption>Vessels</figcaption></figure><figure class="tile"><img src="homepage-review/decor.jpg" alt=""><figcaption>Decor</figcaption></figure><figure class="tile"><img src="homepage-review/floral-stems.jpg" alt=""><figcaption>Floral Stems</figcaption></figure><figure class="tile"><img src="homepage-review/bouquets.jpg" alt=""><figcaption>Bouquets & Bundles</figcaption></figure><figure class="tile"><img src="homepage-review/coffee-tables.jpg" alt=""><figcaption>Coffee Tables</figcaption></figure><figure class="tile"><img src="homepage-review/arrangements.jpg" alt=""><figcaption>Arrangements</figcaption></figure><figure class="tile"><img src="homepage-review/textiles.jpg" alt=""><figcaption>Textiles</figcaption></figure><figure class="tile"><img src="homepage-review/wall-decor.jpg" alt=""><figcaption>Wall Decor</figcaption></figure></div></section>
+<section class="sec"><h2 class="h2">From the showroom</h2><div class="cards3"><figure><img src="homepage-review/outlet.jpg" alt=""><figcaption><b>Elme Outlet</b>End-of-lines and samples, up to 80% off</figcaption></figure><figure><img src="homepage-review/lookbook.jpg" alt=""><figcaption><b>Lookbook</b>This season styled</figcaption></figure><figure><img src="homepage-review/virtual-catalogues.jpg" alt=""><figcaption><b>Virtual Catalogues</b>Every range, page by page</figcaption></figure></div></section>
+<section class="sec stockist light"><div class="collage"><img src="homepage-review/become-stockist.jpg" alt=""><img src="homepage-review/collage-vases.jpg" alt=""><img src="homepage-review/collage-arrangements.jpg" alt=""></div><div><h2 class="disp ink sm">Become a Stockist</h2><p>Apply with your ABN for a wholesale trade account. Once approved, you shop your own trade prices online.</p><span class="btn">Apply now</span></div></section>
+<section class="sec"><h2 class="h2">As styled by you</h2><div class="posts"><img src="homepage-review/post-1.jpg" alt=""><img src="homepage-review/post-2.jpg" alt=""><img src="homepage-review/post-3.jpg" alt=""><img src="homepage-review/post-4.jpg" alt=""><img src="homepage-review/post-5.jpg" alt=""><img src="homepage-review/post-6.jpg" alt=""></div></section>
+<footer class="ftr"><div class="assist"><b>Need assistance?</b><span>(03) 7067 9725</span><span>hello@elmeliving.com</span><span>1 Apollo Court, Blackburn</span></div><img src="homepage-review/logo.svg" alt="" class="logo inv"><div class="fcols"><span></span><span></span><span></span><span></span></div></footer></div></div></div></div></section>
+<section class="option" id="o2"><h2>2. Trade first</h2><p>Built for the buyer: the H1 and a big SKU search open the page next to one photo, a strip says how trade works, then categories and new arrivals; Outlet and catalogues as two cards, one charcoal "Not a stockist yet?" band, contact in the footer.</p><div class="frames"><div><p class="cap">Phone, 390 px</p><div class="zoom-m"><div class="site" style="width:390px"><div class="promo"><span>Australia's leading wholesale supplier of artificial flora and home decor</span><span class="promo-links"><u>Contact Us</u><u>Become a Stockist</u></span></div><header class="hdr"><img src="homepage-review/logo.svg" alt="Elme Living" class="logo"><nav class="nav"><span>New</span><span>Flowers &amp; Plants</span><span>Homewares</span><span>Furniture</span><span>Outdoor</span><span class="sale">Sale</span></nav><div class="search">Search products by style, rooms</div><span class="login">Log in</span><span class="burger" aria-hidden="true"></span></header>
+<section class="split"><div class="split-copy"><h1 class="disp ink">Wholesale artificial flowers, plants and home decor</h1><p>For Australian retailers. Sign in for your trade prices (ex GST) and Quick Order.</p><div class="bigsearch">Search by product name or SKU</div><div class="btns"><span class="btn">Sign in</span><span class="btn outline">Apply for a trade account</span></div></div><img src="homepage-review/stems-4x5.jpg" alt="" class="split-img"></section>
+<section class="strip"><div><b>Trade prices ex GST</b>after sign-in</div><div><b>Quick Order</b>paste SKUs, add in one go</div><div><b>Minimums shown per line</b>MOQ and pack size</div><div><b>Australia-wide delivery</b>from Melbourne</div></section>
+<section class="sec"><div class="row-head"><h2 class="h2">Shop by category</h2><u>All categories</u></div><div class="grid"><figure class="tile"><img src="homepage-review/vessels.jpg" alt=""><figcaption>Vessels</figcaption></figure><figure class="tile"><img src="homepage-review/decor.jpg" alt=""><figcaption>Decor</figcaption></figure><figure class="tile"><img src="homepage-review/floral-stems.jpg" alt=""><figcaption>Floral Stems</figcaption></figure><figure class="tile"><img src="homepage-review/bouquets.jpg" alt=""><figcaption>Bouquets & Bundles</figcaption></figure><figure class="tile"><img src="homepage-review/coffee-tables.jpg" alt=""><figcaption>Coffee Tables</figcaption></figure><figure class="tile"><img src="homepage-review/arrangements.jpg" alt=""><figcaption>Arrangements</figcaption></figure><figure class="tile"><img src="homepage-review/textiles.jpg" alt=""><figcaption>Textiles</figcaption></figure><figure class="tile"><img src="homepage-review/wall-decor.jpg" alt=""><figcaption>Wall Decor</figcaption></figure></div></section>
+<section class="sec"><div class="row-head"><h2 class="h2">New arrivals</h2><u>View all</u></div><div class="prods"><div class="pcard"><span class="pimg"></span><span class="pl"></span><span class="pl s"></span></div><div class="pcard"><span class="pimg"></span><span class="pl"></span><span class="pl s"></span></div><div class="pcard"><span class="pimg"></span><span class="pl"></span><span class="pl s"></span></div><div class="pcard"><span class="pimg"></span><span class="pl"></span><span class="pl s"></span></div><div class="pcard"><span class="pimg"></span><span class="pl"></span><span class="pl s"></span></div></div><p class="ph">Real products from the product carousel (FE-17); grey cards are placeholders.</p></section>
+<section class="sec"><div class="cards2"><figure class="wide"><img src="homepage-review/outlet.jpg" alt=""><figcaption><b>Elme Outlet, up to 80% off</b>End-of-lines, samples and one-off pieces in Melbourne</figcaption></figure><figure><img src="homepage-review/lookbook.jpg" alt=""><figcaption><b>Curated Catalogues</b>Lookbook and Virtual Catalogues</figcaption></figure></div></section>
+<section class="cta-band"><h2 class="disp sm">Not a stockist yet?</h2><p>Apply with your ABN. We review and email you, usually within a business day.</p><span class="btn light">Apply now</span></section>
+<footer class="ftr"><div class="assist"><b>Need assistance?</b><span>(03) 7067 9725</span><span>hello@elmeliving.com</span><span>1 Apollo Court, Blackburn</span></div><img src="homepage-review/logo.svg" alt="" class="logo inv"><div class="fcols"><span></span><span></span><span></span><span></span></div></footer></div></div></div><div class="wide-col"><p class="cap">Desktop, 1280 px (shown at half size)</p><div class="zoom-d"><div class="site" style="width:1280px"><div class="promo"><span>Australia's leading wholesale supplier of artificial flora and home decor</span><span class="promo-links"><u>Contact Us</u><u>Become a Stockist</u></span></div><header class="hdr"><img src="homepage-review/logo.svg" alt="Elme Living" class="logo"><nav class="nav"><span>New</span><span>Flowers &amp; Plants</span><span>Homewares</span><span>Furniture</span><span>Outdoor</span><span class="sale">Sale</span></nav><div class="search">Search products by style, rooms</div><span class="login">Log in</span><span class="burger" aria-hidden="true"></span></header>
+<section class="split"><div class="split-copy"><h1 class="disp ink">Wholesale artificial flowers, plants and home decor</h1><p>For Australian retailers. Sign in for your trade prices (ex GST) and Quick Order.</p><div class="bigsearch">Search by product name or SKU</div><div class="btns"><span class="btn">Sign in</span><span class="btn outline">Apply for a trade account</span></div></div><img src="homepage-review/stems-4x5.jpg" alt="" class="split-img"></section>
+<section class="strip"><div><b>Trade prices ex GST</b>after sign-in</div><div><b>Quick Order</b>paste SKUs, add in one go</div><div><b>Minimums shown per line</b>MOQ and pack size</div><div><b>Australia-wide delivery</b>from Melbourne</div></section>
+<section class="sec"><div class="row-head"><h2 class="h2">Shop by category</h2><u>All categories</u></div><div class="grid"><figure class="tile"><img src="homepage-review/vessels.jpg" alt=""><figcaption>Vessels</figcaption></figure><figure class="tile"><img src="homepage-review/decor.jpg" alt=""><figcaption>Decor</figcaption></figure><figure class="tile"><img src="homepage-review/floral-stems.jpg" alt=""><figcaption>Floral Stems</figcaption></figure><figure class="tile"><img src="homepage-review/bouquets.jpg" alt=""><figcaption>Bouquets & Bundles</figcaption></figure><figure class="tile"><img src="homepage-review/coffee-tables.jpg" alt=""><figcaption>Coffee Tables</figcaption></figure><figure class="tile"><img src="homepage-review/arrangements.jpg" alt=""><figcaption>Arrangements</figcaption></figure><figure class="tile"><img src="homepage-review/textiles.jpg" alt=""><figcaption>Textiles</figcaption></figure><figure class="tile"><img src="homepage-review/wall-decor.jpg" alt=""><figcaption>Wall Decor</figcaption></figure></div></section>
+<section class="sec"><div class="row-head"><h2 class="h2">New arrivals</h2><u>View all</u></div><div class="prods"><div class="pcard"><span class="pimg"></span><span class="pl"></span><span class="pl s"></span></div><div class="pcard"><span class="pimg"></span><span class="pl"></span><span class="pl s"></span></div><div class="pcard"><span class="pimg"></span><span class="pl"></span><span class="pl s"></span></div><div class="pcard"><span class="pimg"></span><span class="pl"></span><span class="pl s"></span></div><div class="pcard"><span class="pimg"></span><span class="pl"></span><span class="pl s"></span></div></div><p class="ph">Real products from the product carousel (FE-17); grey cards are placeholders.</p></section>
+<section class="sec"><div class="cards2"><figure class="wide"><img src="homepage-review/outlet.jpg" alt=""><figcaption><b>Elme Outlet, up to 80% off</b>End-of-lines, samples and one-off pieces in Melbourne</figcaption></figure><figure><img src="homepage-review/lookbook.jpg" alt=""><figcaption><b>Curated Catalogues</b>Lookbook and Virtual Catalogues</figcaption></figure></div></section>
+<section class="cta-band"><h2 class="disp sm">Not a stockist yet?</h2><p>Apply with your ABN. We review and email you, usually within a business day.</p><span class="btn light">Apply now</span></section>
+<footer class="ftr"><div class="assist"><b>Need assistance?</b><span>(03) 7067 9725</span><span>hello@elmeliving.com</span><span>1 Apollo Court, Blackburn</span></div><img src="homepage-review/logo.svg" alt="" class="logo inv"><div class="fcols"><span></span><span></span><span></span><span></span></div></footer></div></div></div></div></section>
+</div></body></html>
