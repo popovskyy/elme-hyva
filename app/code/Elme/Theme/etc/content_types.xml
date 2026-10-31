@@ -56,7 +56,7 @@
           version="1">
 
         <field name="is_page_title" type="boolean" label="First heading is the page H1"
-               description="Turn on only when this hero is the top banner of the page and nothing else on the page has the H1 (About, Careers, Outlet). Leave off on the home page."/>
+               description="Turn on only when this hero is the top banner of the page and nothing else on the page has the H1 (About, Careers, Outlet, and the home page when Welcome uses the Intro look)."/>
         <field name="autoplay" type="boolean" label="Play slides automatically" default="1"
                description="Only with more than one slide. Stops on hover and focus, has a pause button, and stays off for visitors who turned off animations."/>
         <field name="interval" type="number" label="Seconds per slide" default="7" min="4" max="15"
@@ -94,12 +94,17 @@
           standalone="true"
           group="home"
           icon="image-text"
-          description="Row of category tiles (image + name) that scrolls. Arrows on desktop, swipe on mobile."
+          description="Category tiles (image + name): a row that scrolls (arrows on desktop, swipe on mobile) or a grid of all tiles."
           template="Elme_Theme::content-type/category-tiles.phtml"
           version="1">
 
         <field name="heading" type="text" label="Section heading" maxlength="60"
                description="Optional title above the tiles, e.g. &quot;Shop by category&quot;. Leave empty for none. Never the page H1."/>
+        <field name="layout" type="select" label="Layout" default="carousel"
+               description="Carousel: one row that scrolls. Grid: every tile at once, two per row on phones and four from desktop (best with 4, 8 or 12 tiles).">
+            <option value="carousel" label="Carousel"/>
+            <option value="grid" label="Grid"/>
+        </field>
 
         <field name="tiles" type="repeater" label="Tiles" label_field="label" max="16" required="true"
                description="One row per category. About eight to twelve fit the home page.">
@@ -119,11 +124,11 @@
           standalone="true"
           group="home"
           icon="image-text"
-          description="Heading (page H1 on home) on the left; short wholesale line, the apply button and Log in on the right. No image."
+          description="Statement: heading (page H1 on home), short wholesale line, apply button and Log in. Intro: a short lead with trade facts under a hero that holds the H1. No image."
           template="Elme_Theme::content-type/welcome-cta.phtml"
           version="1">
 
-        <field name="heading" type="text" label="Heading (page H1)" required="true" maxlength="90"
+        <field name="heading" type="text" label="Heading (page H1 in the Statement look)" required="true" maxlength="90"
                description="Stable brand + wholesale identity. On the home page this is the only visible H1. e.g. &quot;Wholesale artificial flowers, plants and home decor for Australian retailers&quot;."/>
         <field name="text" type="textarea" label="Text" maxlength="280"
                description="One guest-visible wholesale line: trade login for prices / apply with ABN. Plain sentences; no prices, MOQ numbers, reviews or ratings."/>
@@ -131,6 +136,16 @@
                description="e.g. &quot;Become a Stockist&quot;. Descriptive, not &quot;Learn more&quot;."/>
         <field name="button_link" type="url" label="Button link" width="half"
                description="Guest destination, e.g. /become-a-stockist. Hidden for logged-in customers."/>
+        <field name="look" type="select" label="Look" default="statement"
+               description="Statement: the heading is the page H1, large, with the apply and Log in buttons. Intro: a short lead under a hero that holds the H1, the text and up to four trade facts, no buttons.">
+            <option value="statement" label="Statement (page H1)"/>
+            <option value="intro" label="Intro with trade facts"/>
+        </field>
+        <field name="facts" type="repeater" label="Trade facts (Intro look)" label_field="title" max="4"
+               description="Shown in the Intro look only: what a shop owner needs to know, e.g. ABN trade account, prices ex GST, Australia-wide delivery.">
+            <field name="title" type="text" label="Fact title" required="true" maxlength="60"/>
+            <field name="text" type="text" label="Fact detail" maxlength="140"/>
+        </field>
     </type>
 
     <!-- Curated Catalogues: heading and intro on the left, a list of small covers (name + short line)
@@ -149,7 +164,7 @@
         <field name="intro" type="textarea" label="Intro" maxlength="320"
                description="Optional short plain text under the heading. Keep it about catalogues as buying tools."/>
         <field name="cards" type="repeater" label="Cover cards" label_field="title" max="4" required="true"
-               description="One to four covers. Distinct links per card (Lookbook vs Virtual Catalogues). Empty or missing images hide the whole band.">
+               description="One to four covers. Distinct links per card (Lookbook vs Virtual Catalogues; in the Photo cards look also the Outlet). Empty or missing images hide the whole band.">
             <field name="image" type="image" label="Cover image" required="true" recommended="620x877"
                    description="Cover art JPEG or WebP. No words baked into the image: the Title field is the text."/>
             <field name="image_alt" type="text" label="Image alt text" maxlength="160"
@@ -165,6 +180,11 @@
                description="Optional. e.g. &quot;See All Catalogues&quot;."/>
         <field name="see_all_link" type="url" label="See all link" width="half"
                description="e.g. /virtual-catalogues. Leave empty for no button."/>
+        <field name="look" type="select" label="Look" default="shelf"
+               description="Shelf: tilted covers on a sand band. Cards: equal photo cards with the title on the photo, on the page background (home &quot;From the showroom&quot;: Outlet, Lookbook, Virtual Catalogues).">
+            <option value="shelf" label="Shelf"/>
+            <option value="cards" label="Photo cards"/>
+        </field>
     </type>
 
     <!-- /virtual-catalogues season list (FE-50): cover cards always; flipbook + shop URLs only when
@@ -270,6 +290,8 @@
             <field name="text" type="textarea" label="Fact detail" maxlength="220"
                    description="One plain sentence. No invented price figures or star ratings."/>
         </field>
+        <field name="show_items" type="boolean" label="Show the trade facts" default="1"
+               description="Turn off when the same facts are already on the page (the home intro), so the block is just photos, heading, intro and button."/>
         <field name="button_label" type="text" label="Button label (guests)" maxlength="40" width="half"
                description="e.g. &quot;Create An Account&quot;. Logged-in customers see My Account instead."/>
         <field name="button_link" type="url" label="Button link (guests)" width="half"

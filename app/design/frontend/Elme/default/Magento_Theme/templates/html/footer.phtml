@@ -2,6 +2,9 @@
 /**
  * FE-10: Elme footer — logo, link columns (accordion on mobile), social, payments.
  * FE-11: newsletter form (Magento_Newsletter::subscribe.phtml) sits in elme-footer__aside above social.
+ * Home "Calm gallery": a "Need assistance?" row (phone, email, showroom from StoreContact) opens the footer.
+ * It hides on pages that already show the Need assistance? block (help pages, About us, Outlet), see
+ * footer.css, so the contacts are never on a page twice.
  */
 
 declare(strict_types=1);
@@ -14,6 +17,33 @@ use Magento\Framework\View\Element\Template;
 ?>
 <div class="elme-footer bg-page text-ink">
     <div class="container pb-0">
+        <section class="elme-footer__assist" aria-labelledby="elme-footer-assist-heading">
+            <h2 id="elme-footer-assist-heading" class="elme-footer__assist-title">
+                <?= $escaper->escapeHtml(__('Need assistance?')) ?>
+            </h2>
+            <ul class="elme-footer__assist-list">
+                <li>
+                    <a href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>">
+                        <span class="elme-footer__assist-label"><?= $escaper->escapeHtml(__('Call us')) ?></span>
+                        <?= $escaper->escapeHtml($contact->getPhoneDisplay()) ?>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= $escaper->escapeUrl($contact->getEmailMailtoHref()) ?>">
+                        <span class="elme-footer__assist-label"><?= $escaper->escapeHtml(__('Email us')) ?></span>
+                        <?= $escaper->escapeHtml($contact->getEmail()) ?>
+                    </a>
+                </li>
+                <?php if ($showroom !== ''): ?>
+                    <li>
+                        <a href="<?= $escaper->escapeUrl($contact->getMapsUrl()) ?>" target="_blank" rel="noopener noreferrer">
+                            <span class="elme-footer__assist-label"><?= $escaper->escapeHtml(__('Visit our Showroom')) ?></span>
+                            <?= $escaper->escapeHtml($showroom) ?>
+                        </a>
+                    </li>
+                <?php endif; ?>
+            </ul>
+        </section>
         <div class="elme-footer__top flex flex-col md:flex-row md:items-start gap-0 md:gap-8
                     border-t border-secondary pt-8 md:pt-16">
             <div class="elme-footer__brand shrink-0 md:max-w-36">

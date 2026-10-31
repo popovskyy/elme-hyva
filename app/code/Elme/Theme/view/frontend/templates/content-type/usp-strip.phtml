@@ -25,6 +25,8 @@ $content = $block->getContent();
 $heading = $usp->getHeading($content);
 $image = $usp->getImage($content);
 $items = $usp->getItems($content);
+// show_items off (home Calm gallery): the facts are already in the welcome intro above
+$showItems = !array_key_exists('show_items', $content) || !empty($content['show_items']);
 $collage = $usp->getCollage($content);
 
 if ($heading === '' || $image === null || !$items) {
@@ -107,6 +109,7 @@ $hasImageLink = $guestButton !== null && !$loginOnly->isLoggedIn();
             </p>
         <?php endif; ?>
 
+        <?php if ($showItems && $items): ?>
         <ul class="elme-usp-strip__items mb-8 list-none p-0 text-left lg:mb-10">
             <?php foreach ($items as $item): ?>
                 <li class="border-b border-border py-5 first:pt-0 last:border-b-0 last:pb-0
@@ -122,6 +125,7 @@ $hasImageLink = $guestButton !== null && !$loginOnly->isLoggedIn();
                 </li>
             <?php endforeach; ?>
         </ul>
+        <?php endif; ?>
 
         <?php if ($button !== null): ?>
             <div>
