@@ -20,11 +20,11 @@
     }
 
     /* On a 1-column page the photo runs to the viewport, past the 1920 container.
-       Copy stays on the container line via --hero-pad. */
+       Copy stays on the container line via --hero-pad.
+       100vw includes the scrollbar, so it shifts the hero left by half that width and the
+       copy misses the logo. Under the container max the entry-bleed margin already meets the
+       screen edge, so the breakout starts only once the viewport is wider than the container. */
     :is(.cms-page-view, .cms-index-index).page-layout-1column .elme-hero {
-        width: 100vw;
-        max-width: 100vw;
-        margin-inline: calc(50% - 50vw);
         --hero-pad: max(
             var(--container-gutter),
             calc((100vw - var(--container-max-width)) / 2 + var(--container-gutter))
@@ -35,6 +35,12 @@
                 var(--container-gutter-desktop),
                 calc((100vw - var(--container-max-width)) / 2 + var(--container-gutter-desktop))
             );
+        }
+
+        @media (width > theme(--breakpoint-3xl)) {
+            width: 100vw;
+            max-width: 100vw;
+            margin-inline: calc(50% - 50vw);
         }
     }
 

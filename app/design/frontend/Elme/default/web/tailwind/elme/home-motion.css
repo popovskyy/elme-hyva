@@ -23,6 +23,9 @@
     .elme-collage {
         position: relative;
         aspect-ratio: 6 / 5;
+        /* Cards fly in from outside the frame. Clip the horizontal overflow so that
+           translate does not widen the page before the section scrolls into view. */
+        overflow-x: clip;
         margin-inline: var(--container-gutter);
 
         @variant lg {

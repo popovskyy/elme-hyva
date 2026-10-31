@@ -42,7 +42,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-16 | Homepage content sections (Outlet promo, Curated Catalogues, Become a Stockist, Welcome) | 3 Homepage | FE-02, FE-14, FE-57 | Done |
 | FE-17 | Product carousel widget (trending / new / related) | 3 Homepage | FE-19, D1 | To do |
 | FE-18 | Category page: banner, title, breadcrumbs, description | 4 PLP & search | FE-04 | To do |
-| FE-19 | Product card (shared tile) | 4 PLP & search | FE-02, FE-53 | To do |
+| FE-19 | Product card (shared tile) | 4 PLP & search | FE-02, FE-53 | Done |
 | FE-20 | PLP toolbar: sort, per page, pagination | 4 PLP & search | FE-18 | To do |
 | FE-21 | Layered navigation (filters) | 4 PLP & search | FE-18, D2 | To do |
 | FE-22 | Search autocomplete in header | 4 PLP & search | FE-06, D1 | To do |
