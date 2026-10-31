@@ -125,7 +125,9 @@
         "width-desktop": "288px"
       },
       "help": {
-        "main-max": "42.5rem"
+        "main-max": "42.5rem",
+        "content-max": "52rem",
+        "shell-max": "79rem"
       },
       "content": {
         "measure": "50rem"

@@ -787,6 +787,8 @@ All content is new; nothing is migrated from the old site. Plain text pages (T&C
 
 **Ref:** production /shipping-and-returns, /privacy-policy (body classes `help-page`, `help-page-banner`); `Bart/el/Magento_VersionsCms/templates/hierarchy/menu.phtml`
 
+**Redesign (31 Oct 2026, help centre look):** trail and both columns centred in one frame (`--help-shell-max`), serif H1 with a sage rule. Below lg one column: the side menu is a swipeable row of chips above the title (current page scrolled into view) and "Need assistance?" moves under the content. From lg: sticky side column with a white "Help centre" menu card (icon per page, charcoal bar + filled icon on the current page, arrow on hover) and a charcoal "Need assistance?" card. Legal pages: serif H2 sections on hairlines, numbered "On this page" card in two columns, body text `ink-muted` (4.5:1 on the page colour). Become a Stockist: lead intro, numbered steps 01-03 on a hairline (no boxes), facts panel with check icons.
+
 **QA:**
 
 - [ ] All six pages use the template; current page highlighted in the side menu

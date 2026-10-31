@@ -17,14 +17,16 @@ use Elme\Theme\ViewModel\BecomeStockist;
 $stockist = $viewModels->require(BecomeStockist::class);
 /** @var LoginOnly $loginOnly */
 $loginOnly = $viewModels->require(LoginOnly::class);
+/** @var \Hyva\Theme\ViewModel\LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(\Hyva\Theme\ViewModel\LucideIcons::class);
 
 $loggedIn = $loginOnly->isLoggedIn();
 $howToId = 'become-stockist-how-it-works';
 $factsId = 'become-stockist-facts';
 ?>
 <div class="elme-become-stockist elme-help-body">
-    <?php foreach ($stockist->getIntroParagraphs() as $paragraph): ?>
-        <p><?= $escaper->escapeHtml($paragraph) ?></p>
+    <?php foreach ($stockist->getIntroParagraphs() as $i => $paragraph): ?>
+        <p<?= $i === 0 ? ' class="elme-become-stockist__lead"' : '' ?>><?= $escaper->escapeHtml($paragraph) ?></p>
     <?php endforeach; ?>
 
     <section class="elme-become-stockist__how" aria-labelledby="<?= $escaper->escapeHtmlAttr($howToId) ?>">
@@ -35,7 +37,7 @@ $factsId = 'become-stockist-facts';
             <?php foreach ($stockist->getSteps() as $step): ?>
                 <li class="elme-become-stockist__step">
                     <span class="elme-become-stockist__step-num" aria-hidden="true">
-                        <?= (int) $step['position'] ?>
+                        <?= $escaper->escapeHtml(sprintf('%02d', (int) $step['position'])) ?>
                     </span>
                     <div class="elme-become-stockist__step-body">
                         <h3 class="elme-become-stockist__step-title">
@@ -56,7 +58,12 @@ $factsId = 'become-stockist-facts';
         </h2>
         <ul class="elme-become-stockist__facts-list">
             <?php foreach ($stockist->getFacts() as $fact): ?>
-                <li><?= $escaper->escapeHtml($fact) ?></li>
+                <li>
+                    <span class="elme-become-stockist__fact-icon" aria-hidden="true">
+                        <?= $lucideIcons->checkHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                    </span>
+                    <span><?= $escaper->escapeHtml($fact) ?></span>
+                </li>
             <?php endforeach; ?>
         </ul>
     </section>
