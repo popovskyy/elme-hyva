@@ -75,6 +75,8 @@
 
     .elme-welcome-intro__fact {
         display: grid;
+        /* equal-height cells: keep title and text together at the top instead of spreading them */
+        align-content: start;
         gap: --spacing(1);
         padding-top: --spacing(4);
         border-top: 2px solid var(--color-secondary);

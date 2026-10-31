@@ -45,7 +45,7 @@ if (($content['look'] ?? '') === 'intro'):
     }
     $facts = array_slice($facts, 0, 4);
     ?>
-<section class="elme-welcome-intro mb-12 pt-10 lg:mb-18 lg:pt-16"
+<section class="elme-welcome-intro mb-12 pt-8 lg:mb-16 lg:pt-10"
          aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
     <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>" class="elme-welcome-intro__lead">
         <?= /* @noEscape */ $headingHtml ?>
