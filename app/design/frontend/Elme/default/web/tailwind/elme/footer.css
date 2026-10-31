@@ -32,13 +32,13 @@
     .elme-footer__assist {
         display: grid;
         gap: --spacing(4);
-        padding-block: --spacing(10) --spacing(8);
+        padding-block: --spacing(6) --spacing(8);
 
         @variant lg {
             grid-template-columns: auto 1fr;
             align-items: baseline;
-            gap: --spacing(12);
-            padding-block: --spacing(14) --spacing(10);
+            gap: --spacing(16);
+            padding-block: --spacing(8) --spacing(8);
         }
     }
 
@@ -72,8 +72,10 @@
             gap: --spacing(10);
         }
 
+        /* contacts follow the title instead of hugging the right edge */
         @variant lg {
-            justify-content: end;
+            justify-content: start;
+            gap: --spacing(14);
         }
 
         a {
