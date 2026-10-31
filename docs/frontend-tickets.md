@@ -6,6 +6,8 @@
 
 Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), **Ref** (production URL and old code in m2-bart-group, theme `Bart/el`), **QA** (checks QA ticks off). A ticket goes to QA only when it also meets the Definition of Done.
 
+**Status** (Overview table): **Done** = merged into `main` from its own `Merge FE-xx` branch; **In review** = the code is in `main` but it was not merged as its own ticket or not yet checked on a running store (QA it, then set Done); **To do** = not started; **Split** = replaced by the tickets named in its title. Last synced with git history on 31 Oct 2026.
+
 **Definition of Done (every ticket)**
 
 - Matches production look at 390 px (mobile), 768 px (tablet), 1440 px and 1920 px (desktop); mobile-first, no horizontal scroll.
@@ -22,22 +24,22 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 
 | ID | Ticket | Epic | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| FE-01 | Design tokens, fonts, base typography | 0 Foundation | — | To do |
-| FE-02 | UI kit: buttons, form fields, qty stepper, badges, breadcrumbs, pager + style-guide page | 0 Foundation | FE-01 | To do |
-| FE-03 | Global feedback: messages/toasts, modal, drawer, loaders, empty states | 0 Foundation | FE-01 | To do |
-| FE-04 | Page layouts and container (1 column, 2 columns left, banner + breadcrumbs, full width) | 0 Foundation | FE-01 | To do |
-| FE-05 | Top bar (USP text, Become a Stockist, Inspiration) | 1 Header & nav | FE-02 | To do |
-| FE-06 | Header desktop + sticky header | 1 Header & nav | FE-02, FE-03 | To do |
-| FE-07 | Header mobile | 1 Header & nav | FE-06 | To do |
-| FE-08 | Mega menu desktop | 1 Header & nav | FE-06, D3 | To do |
-| FE-09 | Mobile menu drawer | 1 Header & nav | FE-07, FE-08 | To do |
-| FE-10 | Footer | 2 Footer & blocks | FE-02 | To do |
-| FE-11 | Newsletter subscribe (footer) + signup popup | 2 Footer & blocks | FE-02, FE-03, D7 | To do |
-| FE-12 | "As styled by you" Instagram slider block | 2 Footer & blocks | FE-02, D10 | To do |
-| FE-13 | Shared CMS blocks: "Our Difference", "Need assistance?" | 2 Footer & blocks | FE-02 | To do |
-| FE-14 | Homepage hero / banner slider | 3 Homepage | FE-04, FE-57 | To do |
-| FE-15 | Category tiles carousel | 3 Homepage | FE-02, FE-57 | To do |
-| FE-16 | Homepage content sections (Outlet promo, Curated Catalogues, Become a Stockist, Welcome) | 3 Homepage | FE-02, FE-14, FE-57 | To do |
+| FE-01 | Design tokens, fonts, base typography | 0 Foundation | — | Done |
+| FE-02 | UI kit: buttons, form fields, qty stepper, badges, breadcrumbs, pager + style-guide page | 0 Foundation | FE-01 | In review |
+| FE-03 | Global feedback: messages/toasts, modal, drawer, loaders, empty states | 0 Foundation | FE-01 | In review |
+| FE-04 | Page layouts and container (1 column, 2 columns left, banner + breadcrumbs, full width) | 0 Foundation | FE-01 | In review |
+| FE-05 | Top bar (USP text, Become a Stockist, Inspiration) | 1 Header & nav | FE-02 | Done |
+| FE-06 | Header desktop + sticky header | 1 Header & nav | FE-02, FE-03 | Done |
+| FE-07 | Header mobile | 1 Header & nav | FE-06 | Done |
+| FE-08 | Mega menu desktop | 1 Header & nav | FE-06, D3 | In review |
+| FE-09 | Mobile menu drawer | 1 Header & nav | FE-07, FE-08 | Done |
+| FE-10 | Footer | 2 Footer & blocks | FE-02 | Done |
+| FE-11 | Newsletter subscribe (footer) + signup popup | 2 Footer & blocks | FE-02, FE-03, D7 | Done |
+| FE-12 | "As styled by you" Instagram slider block | 2 Footer & blocks | FE-02, D10 | Done |
+| FE-13 | Shared CMS blocks: "Our Difference", "Need assistance?" | 2 Footer & blocks | FE-02 | Done |
+| FE-14 | Homepage hero / banner slider | 3 Homepage | FE-04, FE-57 | Done |
+| FE-15 | Category tiles carousel | 3 Homepage | FE-02, FE-57 | Done |
+| FE-16 | Homepage content sections (Outlet promo, Curated Catalogues, Become a Stockist, Welcome) | 3 Homepage | FE-02, FE-14, FE-57 | Done |
 | FE-17 | Product carousel widget (trending / new / related) | 3 Homepage | FE-19, D1 | To do |
 | FE-18 | Category page: banner, title, breadcrumbs, description | 4 PLP & search | FE-04 | To do |
 | FE-19 | Product card (shared tile) | 4 PLP & search | FE-02, FE-53 | To do |
@@ -56,8 +58,8 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-32 | Mini-cart drawer | 6 Cart & checkout | FE-06, FE-03 | To do |
 | FE-33 | Cart page | 6 Cart & checkout | FE-02, FE-32 | To do |
 | FE-34 | Checkout look pass + order success page | 6 Cart & checkout | BE-04, BE-05 | To do |
-| FE-35 | Login, forgot password, reset password | 7 Account | FE-02 | To do |
-| FE-36 | Registration: "Apply for an account" (B2B, ABN) | 7 Account | FE-02 | To do |
+| FE-35 | Login, forgot password, reset password | 7 Account | FE-02 | In review |
+| FE-36 | Registration: "Apply for an account" (B2B, ABN) | 7 Account | FE-02 | In review |
 | FE-37 | Account layout, navigation (B2B/B2C), dashboard | 7 Account | FE-04 | To do |
 | FE-38 | Account info, password, newsletter (address book in FE-69) | 7 Account | FE-37 | To do |
 | FE-39 | Orders: history, order view, invoices/shipments, print (reorder + CSV in BE-14) | 7 Account | FE-37 | To do |
@@ -66,29 +68,30 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-42 | Order templates (saved lists) | 8 B2B | FE-40 | To do |
 | FE-43 | Recently ordered page | 8 B2B | FE-37, FE-19 | To do |
 | FE-44 | Wishlist (ajax add + wishlist page) | 8 B2B | FE-19, FE-37 | To do |
-| FE-45 | Help page template with side nav | 9 CMS | FE-04 | To do |
-| FE-46 | Contact Us form | 9 CMS | FE-45 | To do |
-| FE-47 | FAQs accordion | 9 CMS | FE-45, FE-57 | To do |
+| FE-45 | Help page template with side nav | 9 CMS | FE-04 | Done |
+| FE-46 | Contact Us form | 9 CMS | FE-45 | Done |
+| FE-47 | FAQs accordion | 9 CMS | FE-45, FE-57 | Done |
 | FE-48 | Content pages: About, Careers, Outlet, Style Sourcebook, Meet the Team, Fairs & Events (split into FE-61...FE-67) | 9 CMS | FE-04, FE-57 | Split |
 | FE-49 | Shop the Looks / lookbook with product hotspots | 9 CMS | FE-19, FE-57 | To do |
-| FE-50 | Virtual Catalogues (login only) (Shoppable Instagram in FE-68) | 9 CMS | FE-53 | To do |
+| FE-50 | Virtual Catalogues (login only) (Shoppable Instagram in FE-68) | 9 CMS | FE-53 | Done |
 | FE-51 | Showroom locator (list + location page) | 9 CMS | FE-04 | To do |
-| FE-52 | 404 page | 9 CMS | FE-04 | To do |
-| FE-53 | Login-only rules: price hiding, guest redirects, per-customer data | 10 Cross-cutting | — | To do |
-| FE-54 | Third-party scripts: Zendesk chat, Klaviyo, GTM/GA4, Triple Whale | 10 Cross-cutting | FE-01 | To do |
+| FE-52 | 404 page | 9 CMS | FE-04 | Done |
+| FE-53 | Login-only rules: price hiding, guest redirects, per-customer data | 10 Cross-cutting | — | In review |
+| FE-54 | Third-party scripts: Zendesk chat, Klaviyo, GTM/GA4, Triple Whale | 10 Cross-cutting | FE-01 | Done |
 | FE-55 | SEO markup: structured data, breadcrumbs, meta, canonical | 10 Cross-cutting | FE-18, FE-25 | To do |
 | FE-56 | Final QA pass: devices, accessibility, performance, visual compare | 10 Cross-cutting | all | To do |
-| FE-57 | Content Studio for Open Source + Hyva, with a Page Builder content type | 0 Foundation | FE-01, FE-02, D11 | To do |
+| FE-57 | Content Studio for Open Source + Hyva, with a Page Builder content type | 0 Foundation | FE-01, FE-02, D11 | Done |
 | FE-58 | Theme preview image (media/preview.png) in Elme + Hyvä style | 0 Foundation | FE-01 | To do |
-| FE-61 | About us page | 9 CMS | FE-04, FE-57 | To do |
-| FE-62 | Career opportunities page | 9 CMS | FE-04, FE-57 | To do |
-| FE-63 | Outlet & clearance store page | 9 CMS | FE-04, FE-57 | To do |
-| FE-64 | Style Sourcebook page | 9 CMS | FE-04, FE-57 | To do |
-| FE-65 | Meet the Team page | 9 CMS | FE-04, FE-57 | To do |
-| FE-66 | Fairs & Events page | 9 CMS | FE-04, FE-57 | To do |
-| FE-67 | Become a Stockist page | 9 CMS | FE-04, FE-57, FE-16 | To do |
+| FE-61 | About us page | 9 CMS | FE-04, FE-57 | Done |
+| FE-62 | Career opportunities page | 9 CMS | FE-04, FE-57 | Done |
+| FE-63 | Outlet & clearance store page | 9 CMS | FE-04, FE-57 | Done |
+| FE-64 | Style Sourcebook page | 9 CMS | FE-04, FE-57 | Done |
+| FE-65 | Meet the Team page | 9 CMS | FE-04, FE-57 | Done |
+| FE-66 | Fairs & Events page | 9 CMS | FE-04, FE-57 | Done |
+| FE-67 | Become a Stockist page | 9 CMS | FE-04, FE-57, FE-16 | Done |
 | FE-68 | Shoppable Instagram page (split from FE-50) | 9 CMS | FE-12, D10 | To do |
 | FE-69 | Address book, same form as checkout (split from FE-38) | 7 Account | FE-37, BE-02 | To do |
+| FE-60 | Mobile header hides on scroll down, shows on scroll up (+ button ripple) | 1 Header & nav | FE-07 | Done |
 | FE-70 | Animated Add to Cart button (AJAX add, sending / Added states) | 0 Foundation | FE-02, FE-03 | In review |
 | UX-01 | No empty or broken blocks | 11 UX | FE-12, FE-16, FE-17 | To do |
 | UX-02 | Guest path to a trade account | 11 UX | FE-06, FE-07, FE-19, FE-26 | To do |
