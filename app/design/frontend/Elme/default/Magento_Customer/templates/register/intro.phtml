@@ -1,0 +1,27 @@
+<?php
+/**
+ * Registration ("Split screen", same look as the login, docs/design/login-options.html, 1): the page H1 and
+ * what happens to the application, above the Hyvä register form. Elme is trade-only (elme-business):
+ * retailers apply with an ABN and are approved before they see prices.
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+?>
+<div class="elme-register__intro">
+    <h1 class="elme-login__title"><?= $escaper->escapeHtml(__('Apply for a trade account')) ?></h1>
+    <p class="elme-login__sub">
+        <?= $escaper->escapeHtml(__('Retailers apply with a valid Australian Business Number (ABN). We review your application and email you when your wholesale account is approved.')) ?>
+    </p>
+    <p class="elme-register__signin">
+        <?= $escaper->escapeHtml(__('Already have a trade account?')) ?>
+        <a href="<?= $escaper->escapeUrl($block->getUrl('customer/account/login')) ?>">
+            <?= $escaper->escapeHtml(__('Sign in')) ?>
+        </a>
+    </p>
+</div>

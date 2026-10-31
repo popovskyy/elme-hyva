@@ -346,3 +346,180 @@
         translate: 0 12px;
     }
 }
+
+/*
+ * FE-36 registration in the login's split look (Magento_Customer/layout/customer_account_create.xml).
+ * The form is Hyvä's register.phtml; its fieldsets become numbered sections instead of bordered cards, the
+ * password eye sits inside the field, the actions are a full-width button with Back under it.
+ */
+@layer components {
+    .elme-register__panel {
+        max-width: 42rem;
+        align-content: start;
+    }
+
+    @variant lg {
+        /* the form is long: the photo stays in view while it scrolls */
+        .elme-register .elme-login__media {
+            position: sticky;
+            top: var(--elme-header-bottom, 0px);
+            align-self: start;
+            height: calc(100svh - var(--elme-header-bottom, 0px));
+        }
+    }
+
+    .elme-register__signin {
+        margin: 0;
+        font-size: var(--text-copy-desktop);
+        color: var(--color-ink-muted);
+
+        a {
+            color: var(--color-ink);
+            font-weight: 500;
+            text-decoration: underline;
+            text-underline-offset: 0.2em;
+
+            &:hover {
+                color: var(--color-link-hover);
+            }
+        }
+    }
+
+    .elme-register .form-create-account {
+        counter-reset: elme-register-step;
+    }
+
+    .elme-register .form-create-account fieldset.card {
+        --card-px: 0;
+        --card-py: 0;
+        --card-stroke: transparent;
+        --card-bg: transparent;
+        counter-increment: elme-register-step;
+        display: grid;
+        gap: --spacing(4);
+        padding-top: --spacing(7);
+        border-top: 1px solid var(--color-divider);
+    }
+
+    /* section title: "01  Personal Information" */
+    .elme-register .form-create-account fieldset.card > legend > span,
+    .elme-register .form-create-account fieldset.card > legend {
+        font-family: var(--font-heading);
+        font-weight: 400;
+        font-size: var(--text-h2);
+        line-height: 1.2;
+        color: var(--color-ink);
+    }
+
+    .elme-register .form-create-account fieldset.card > legend > span::before {
+        content: counter(elme-register-step, decimal-leading-zero);
+        display: block;
+        margin-bottom: --spacing(1);
+        font-family: var(--font-sans);
+        font-size: var(--text-note);
+        letter-spacing: 0.12em;
+        color: var(--color-olive);
+    }
+
+    .elme-register .form-create-account .field {
+        margin: 0;
+    }
+
+    /* password + eye: the eye sits inside the field */
+    .elme-register .form-create-account .control:has(> [type="password"], > input[name*="password"]) {
+        position: relative;
+
+        > input {
+            width: 100%;
+            padding-right: --spacing(13);
+        }
+
+        > button {
+            position: absolute;
+            top: 50%;
+            right: --spacing(1);
+            translate: 0 -50%;
+            display: grid;
+            place-items: center;
+            width: --spacing(11);
+            height: --spacing(11);
+            padding: 0;
+            color: var(--color-ink-muted);
+
+            &:hover {
+                color: var(--color-ink);
+            }
+        }
+    }
+
+    .elme-register .form-create-account .form-input:focus {
+        border-color: var(--color-ink);
+        box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-secondary) 45%, transparent);
+    }
+
+    .elme-register #password-strength-meter-container {
+        font-size: var(--text-note);
+        color: var(--color-ink-muted);
+    }
+
+    .elme-register .form-create-account .actions-toolbar {
+        display: grid;
+        gap: --spacing(3);
+        margin-top: --spacing(2);
+        padding-top: --spacing(7);
+        border-top-color: var(--color-divider);
+
+        .primary .btn {
+            width: 100%;
+        }
+
+        .secondary {
+            margin: 0;
+            justify-self: center;
+
+            a {
+                min-height: --spacing(11);
+                display: inline-flex;
+                align-items: center;
+                color: var(--color-ink);
+                text-decoration: underline;
+                text-underline-offset: 0.2em;
+            }
+        }
+    }
+}
+
+/* Unlayered: Hyvä puts my-8 (a utility) on each fieldset and flex/items-center on the password control */
+.elme-register .form-create-account fieldset.card {
+    margin-block: --spacing(8) 0;
+}
+
+.elme-register .form-create-account fieldset.card:first-of-type {
+    margin-top: --spacing(2);
+}
+
+/* Unlayered: Hyvä wraps each password control and the strength meter in a flex row (utilities); stack them,
+   field full width, meter under it */
+.elme-register .form-create-account .field > .flex.flex-wrap {
+    display: grid;
+    gap: --spacing(1.5);
+}
+
+.elme-register .form-create-account .field > .flex.flex-wrap > .control,
+.elme-register .form-create-account .field > .control.flex {
+    width: 100%;
+}
+
+.elme-register .form-create-account .field > .flex.flex-wrap > .self-center {
+    align-self: start;
+    margin: 0;
+}
+
+.elme-register__intro {
+    display: grid;
+    gap: --spacing(3);
+
+    .elme-login__sub {
+        margin: 0;
+    }
+}

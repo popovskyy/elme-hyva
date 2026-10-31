@@ -67,45 +67,116 @@
 }
 
 @layer base {
+    /*
+     * Elme: switches (input[type=checkbox][role=switch], Hyvä newsletter / remote assistance / account forms).
+     * 44 x 24 track, white thumb with a soft shadow that slides with a little overshoot; on: olive track and a
+     * small check in the thumb; hover darkens the track; sage focus ring. Reduced motion: no slide easing.
+     */
     [type="checkbox"][role="switch"] {
-        --switch-width: --spacing(9);
-        --switch-height: --spacing(5);
-        --switch-thumb-offset: calc(var(--switch-width) - var(--switch-height));
-        border-radius: calc(infinity * 1px);
-        border-width: 2px;
+        --switch-width: --spacing(11);
+        --switch-height: --spacing(6);
+        --switch-pad: 3px;
+        --switch-thumb: calc(var(--switch-height) - var(--switch-pad) * 2);
+        --switch-thumb-offset: calc(var(--switch-width) - var(--switch-thumb) - var(--switch-pad) * 2);
+        appearance: none;
+        position: relative;
+        flex: none;
+        display: inline-block;
         block-size: var(--switch-height);
         inline-size: var(--switch-width);
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: calc(infinity * 1px);
+        background-color: var(--color-border);
+        background-image: none;
+        vertical-align: middle;
+        transition: background-color 200ms var(--ease-out-quad);
 
         &:not(:disabled) {
             cursor: pointer;
         }
 
+        &:hover:not(:disabled) {
+            background-color: color-mix(in oklab, var(--color-border) 70%, var(--color-ink));
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
+            box-shadow: 0 0 0 5px color-mix(in oklab, var(--color-secondary) 45%, transparent);
+        }
+
+        /* thumb */
         &::after {
             content: "";
-            display: block;
-            aspect-ratio: 1;
-            height: 100%;
+            position: absolute;
+            top: var(--switch-pad);
+            left: var(--switch-pad);
+            inline-size: var(--switch-thumb);
+            block-size: var(--switch-thumb);
             border-radius: calc(infinity * 1px);
-            border-width: 1px;
-            border-color: var(--form-bg);
-            background-color: var(--form-stroke);
+            background-color: var(--color-surface);
+            /* check mark, faded in when on (olive, drawn as a background so no extra markup is needed) */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23677858' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 0;
+            box-shadow:
+                0 1px 2px color-mix(in oklab, var(--color-ink) 25%, transparent),
+                0 2px 6px color-mix(in oklab, var(--color-ink) 12%, transparent);
             transition:
-                background-color 150ms,
-                border-color 150ms,
-                translate 150ms;
+                translate 260ms var(--ease-out-back),
+                background-size 200ms var(--ease-out-quad),
+                inline-size 160ms var(--ease-out-quad);
+        }
+
+        /* a pressed thumb stretches a little, like a native switch */
+        &:active:not(:disabled)::after {
+            inline-size: calc(var(--switch-thumb) + 4px);
         }
 
         &:checked {
-            background-image: none;
+            background-color: var(--color-olive);
+
+            &:hover:not(:disabled) {
+                background-color: color-mix(in oklab, var(--color-olive) 85%, var(--color-ink));
+            }
 
             &::after {
-                background-color: var(--form-bg);
-                translate: var(--switch-thumb-offset) 0%;
+                translate: var(--switch-thumb-offset) 0;
+                background-size: 60%;
+            }
+
+            &:active:not(:disabled)::after {
+                translate: calc(var(--switch-thumb-offset) - 4px) 0;
             }
         }
 
         &:dir(rtl):checked::after {
-            translate: calc(var(--switch-thumb-offset) / -1) 0%;
+            translate: calc(var(--switch-thumb-offset) * -1) 0;
+        }
+
+        &:disabled {
+            opacity: 0.5;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            &::after {
+                transition-duration: 0ms;
+            }
+        }
+    }
+
+    /* the label next to a switch: same line, comfortable gap, whole row clickable */
+    .field.choice:has(> [role="switch"]) {
+        display: flex;
+        align-items: center;
+        gap: --spacing(3);
+
+        > .label {
+            margin: 0;
+            cursor: pointer;
         }
     }
 }
