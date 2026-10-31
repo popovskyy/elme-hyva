@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Add to Cart button - options (FE-70)</title>
+<style>
+@font-face { font-family: "Karla"; src: url("../../app/design/frontend/Elme/default/web/fonts/karla/Karla-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Karla"; src: url("../../app/design/frontend/Elme/default/web/fonts/karla/Karla-Medium.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "DM Serif Display"; src: url("../../app/design/frontend/Elme/default/web/fonts/dm-serif-display/DMSerifDisplay-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+
+/* tokens.values from web/tailwind/hyva.config.json */
+:root {
+  --primary: #3A3935; --on-primary: #FFFFFF; --secondary: #ADBBA1; --olive: #677858;
+  --ink: #3A3935; --ink-muted: #676F78; --page: #F5F4EF; --surface: #FFFFFF;
+  --sand-light: #E1DBD1; --border: #CAC9C9; --border-light: #D3D6D9;
+  --toast-error: #F1DDD5; --toast-error-mark: #A8483C;
+  --table: #D5DADF;
+  --micro: 120ms; --fast: 180ms; --base: 240ms; --slow: 300ms;
+  --out-quad: cubic-bezier(.25,.46,.45,.94); --out-quart: cubic-bezier(.165,.84,.44,1);
+  --in-quart: cubic-bezier(.895,.03,.685,.22); --out-back: cubic-bezier(.34,1.56,.64,1);
+  --btn-h: 50px;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--table); color: var(--ink); font-family: Karla, sans-serif; font-size: 16px; line-height: 1.45; }
+h1, h2, .pdp-name { font-family: "DM Serif Display", serif; font-weight: 400; }
+.page { padding: 48px 40px 96px; }
+h1 { margin: 0 0 12px; font-size: 40px; line-height: 1.1; }
+.lead, .note, .option p { max-width: 70ch; margin: 0; }
+.lead { font-size: 17px; }
+.note { margin-top: 8px; color: var(--ink-muted); font-size: 15px; }
+
+.controls { position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center;
+  margin: 24px -40px 0; padding: 12px 40px; background: color-mix(in srgb, var(--table) 92%, transparent); backdrop-filter: blur(6px); font-size: 14px; }
+.controls fieldset { display: flex; gap: 4px; align-items: center; margin: 0; padding: 0; border: 0; }
+.controls legend { float: left; margin-right: 8px; color: var(--ink-muted); }
+.controls label { display: inline-flex; align-items: center; padding: 4px 10px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; }
+.controls input { position: absolute; opacity: 0; pointer-events: none; }
+.controls label:has(input:checked) { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+.controls label:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.option { margin-top: 56px; }
+.option h2 { margin: 0 0 8px; font-size: 28px; line-height: 1.15; }
+.frames { display: flex; gap: 32px; align-items: flex-start; margin-top: 20px; }
+.frame-cap { margin: 0 0 8px; font-size: 13px; color: var(--ink-muted); }
+.frame { position: relative; background: var(--page); box-shadow: 0 1px 3px rgb(0 0 0 / .12); overflow: hidden; }
+.phone { width: 390px; flex: none; padding: 20px 20px 24px; border-radius: 28px; }
+.wide-wrap { min-width: 0; flex: 1; overflow-x: auto; padding-bottom: 8px; }
+.wide { width: 1280px; padding: 40px 40px 48px; }
+
+/* page content inside a frame */
+.grid { display: grid; gap: 20px 16px; }
+.phone .grid { grid-template-columns: repeat(2, 1fr); }
+.wide .grid { grid-template-columns: repeat(4, 1fr); gap: 32px 24px; }
+.tile { display: flex; flex-direction: column; background: var(--surface); padding: 12px; }
+.wide .tile { padding: 16px; }
+.img { aspect-ratio: 1; background: var(--sand-light); display: grid; place-items: center; color: var(--ink-muted); font-size: 12px; }
+.name { margin: 10px 0 2px; font-size: 14px; line-height: 18px; text-align: center; }
+.wide .name { font-size: 15px; }
+.price { margin: 0 0 10px; font-size: 13px; color: var(--ink-muted); text-align: center; }
+.tile .atc { margin-top: auto; font-size: 14px; }
+.phone .tile .atc { --btn-px: 12px; width: 100%; }
+.pdp { display: grid; gap: 12px; margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--border-light); }
+.wide .pdp { grid-template-columns: 320px 1fr; gap: 40px; margin-top: 40px; }
+.phone .pdp { grid-template-columns: 120px 1fr; }
+.pdp-name { margin: 0; font-size: 22px; line-height: 1.2; }
+.wide .pdp-name { font-size: 28px; }
+.buy { display: flex; gap: 12px; }
+.qty { display: flex; border: 1px solid var(--border); background: var(--surface); height: var(--btn-h); }
+.qty span { width: 40px; display: grid; place-items: center; }
+.qty b { width: 44px; display: grid; place-items: center; font-weight: 500; border-inline: 1px solid var(--border); }
+.buy .atc { flex: 1; }
+.wide .buy .atc { flex: none; min-width: 240px; }
+
+.toast { position: absolute; top: 12px; right: 12px; left: 12px; z-index: 5; display: flex; gap: 10px; align-items: center; padding: 12px 14px;
+  background: var(--toast-error); font-size: 14px; translate: 0 -8px; opacity: 0; transition: opacity var(--fast), translate var(--fast) var(--out-quad); pointer-events: none; }
+.wide .toast { left: auto; width: 380px; }
+.toast::before { content: ""; width: 8px; height: 8px; border-radius: 99px; background: var(--toast-error-mark); flex: none; }
+.toast.on { opacity: 1; translate: 0 0; }
+
+/* ---------------- shared button (btn btn-primary) ---------------- */
+.atc { position: relative; overflow: hidden; isolation: isolate; display: inline-flex; justify-content: center; align-items: center; gap: 6px;
+  min-height: var(--btn-h); padding: 8px var(--btn-px, 24px); border: 1px solid var(--primary); border-radius: 0;
+  background: var(--primary); color: var(--on-primary); font: 500 15px/1.2 Karla, sans-serif; letter-spacing: .5px; cursor: pointer;
+  transition: background-color var(--base), border-color var(--base), scale 160ms cubic-bezier(.23,1,.32,1); -webkit-tap-highlight-color: transparent; }
+.atc:hover { background: var(--secondary); border-color: var(--secondary); }
+.atc[data-state="sending"], .atc[data-state="success"] { background: var(--primary); border-color: var(--primary); }
+.atc:active { scale: .97; }
+.atc:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.atc svg { width: 22px; height: 22px; flex: none; }
+.atc .stage { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; pointer-events: none; }
+.atc .stage > * { grid-area: 1 / 1; }
+
+/* ---------------- 1. cart + dot (built in FE-70) ---------------- */
+.v1 > .idle { transition: opacity var(--fast) var(--out-quad); }
+.v1:is([data-state="sending"], [data-state="success"]) > .idle { opacity: 0; transition-duration: var(--micro); }
+.v1[data-state="sending"] > svg.idle { transition: none; }
+.v1 .cart { display: inline-flex; opacity: 0; translate: var(--from-x, 0) 0; }
+.v1[data-state="sending"] .cart { opacity: 1; translate: 0 0; transition: translate var(--slow) var(--out-quart); animation: v1-catch 700ms var(--out-quad) var(--slow) infinite; }
+.v1[data-state="success"] .cart { opacity: 0; translate: var(--exit-x, 150%) 0; transition: translate var(--slow) var(--in-quart), opacity var(--slow) var(--in-quart); }
+.v1 .dot { width: 6px; height: 6px; margin-bottom: 4px; border-radius: 99px; background: currentColor; opacity: 0; }
+.v1[data-state="sending"] .dot { animation: v1-drop 700ms var(--in-quart) var(--slow) infinite; }
+.v1 .done { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; opacity: 0; translate: calc(var(--exit-x, 150%) * -1) 0;
+  transition: opacity var(--fast) var(--out-quad), translate 0s linear var(--fast); }
+.v1[data-state="success"] .done { opacity: 1; translate: 0 0; transition: translate var(--slow) var(--out-quart) 80ms, opacity var(--fast) var(--out-quad) 80ms; }
+@keyframes v1-drop { 0% { opacity: 0; transform: translateY(-25px); } 30% { opacity: 1; } 75% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(4px); } }
+@keyframes v1-catch { 0%, 70% { transform: translateY(0); } 82% { transform: translateY(2px); } 100% { transform: translateY(0); } }
+
+/* ---------------- 2. olive fill ---------------- */
+.v2 .fill { position: absolute; inset: 0; z-index: 0; background: var(--olive); transform-origin: left; transform: scaleX(0);
+  transition: transform var(--slow) var(--out-quart), opacity var(--base) linear; }
+.v2[data-state="sending"] .fill { transform: scaleX(.88); transition: transform 3s cubic-bezier(.08,.7,.2,1); }
+.v2[data-state="success"] .fill { transform: scaleX(1); transition: transform var(--fast) var(--out-quad); }
+.v2[data-state="idle-after"] .fill { transform: scaleX(1); opacity: 0; }
+.v2 > .idle { position: relative; z-index: 1; transition: opacity var(--fast); }
+.v2:is([data-state="sending"], [data-state="success"]) > .idle { opacity: 0; transition-duration: var(--micro); }
+.v2 .adding, .v2 .done { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; opacity: 0; transition: opacity var(--fast); }
+.v2[data-state="sending"] .adding { opacity: 1; }
+.v2[data-state="success"] .done { opacity: 1; }
+.v2[data-state="success"] .done svg { animation: pop var(--slow) var(--out-back); }
+@keyframes pop { from { scale: .4; } to { scale: 1; } }
+
+/* ---------------- 3. rolling label + count on the cart ---------------- */
+.v3 .ico { position: relative; display: inline-flex; }
+.v3 .badge { position: absolute; top: -7px; right: -9px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 99px; background: var(--secondary);
+  color: var(--primary); font-size: 11px; font-weight: 500; line-height: 17px; letter-spacing: 0; text-align: center; scale: 0; transition: scale var(--slow) var(--out-back); }
+.v3[data-count] .badge { scale: 1; }
+.v3 .badge.bump { animation: bump 360ms var(--out-back); }
+@keyframes bump { 0% { scale: 1; } 40% { scale: 1.35; } 100% { scale: 1; } }
+.v3 .roll { display: grid; height: 1.2em; overflow: hidden; }
+.v3 .track { display: grid; transition: translate var(--slow) var(--out-quart); }
+.v3 .track > span { display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: 1.2em; white-space: nowrap; }
+.v3[data-state="sending"] .track { translate: 0 -1.2em; }
+.v3[data-state="success"] .track { translate: 0 -2.4em; }
+.v3 .track svg { width: 15px; height: 15px; }
+.v3 .dots i { display: inline-block; width: 3px; height: 3px; margin-left: 2px; border-radius: 9px; background: currentColor; animation: blink 900ms infinite; }
+.v3 .dots i:nth-child(2) { animation-delay: 150ms; } .v3 .dots i:nth-child(3) { animation-delay: 300ms; }
+@keyframes blink { 0%, 100% { opacity: .25; } 40% { opacity: 1; } }
+.v3[data-state="sending"] .ico svg { animation: v3-nudge 700ms var(--out-quad) infinite; }
+@keyframes v3-nudge { 0%, 100% { translate: 0 0; } 50% { translate: 2px 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .atc *, .atc { animation: none !important; translate: none !important; transition-property: opacity !important; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Add to Cart button</h1>
+  <p class="lead">FE-70. Three ways the button can show "sending" and "added". Click any Add to Cart, or watch the first tile in each frame play by itself.</p>
+  <p class="note">Same tiles and buy box in every frame. Square button in site colours, the button never changes size. Product names and prices are placeholders: there is no local catalogue in this build.</p>
+
+  <form class="controls" id="controls">
+    <fieldset><legend>Server answer</legend>
+      <label><input type="radio" name="ok" value="1" checked>Added</label>
+      <label><input type="radio" name="ok" value="0">Error</label>
+    </fieldset>
+    <fieldset><legend>Answer after</legend>
+      <label><input type="radio" name="ms" value="400">0.4 s</label>
+      <label><input type="radio" name="ms" value="1400" checked>1.4 s</label>
+      <label><input type="radio" name="ms" value="4000">4 s</label>
+    </fieldset>
+    <fieldset><legend>Auto play</legend>
+      <label><input type="radio" name="auto" value="1" checked>On</label>
+      <label><input type="radio" name="auto" value="0">Off</label>
+    </fieldset>
+  </form>
+
+  <section class="option" data-variant="v1">
+    <h2>1. Cart and dot</h2>
+    <p>Built in FE-70: the cart slides to the centre and a dot keeps dropping into it, then the cart leaves right and a check with "Added" comes in from the left.</p>
+    <div class="frames"></div>
+  </section>
+
+  <section class="option" data-variant="v2">
+    <h2>2. Olive fill</h2>
+    <p>The button fills with olive from left to right while it waits ("Adding"), turns fully olive with a check on success and fades back; on an error the fill drains back.</p>
+    <div class="frames"></div>
+  </section>
+
+  <section class="option" data-variant="v3">
+    <h2>3. Rolling label and count</h2>
+    <p>The label rolls up to "Adding" and then to "2 in cart", and a sage badge on the cart icon keeps how many of this item are in the cart, so a trade buyer sees it on the tile later too.</p>
+    <div class="frames"></div>
+  </section>
+</div>
+
+<template id="frame-tpl">
+  <div>
+    <p class="frame-cap"></p>
+    <div class="frame">
+      <div class="toast" role="status">The requested qty is not available</div>
+      <div class="grid"></div>
+      <div class="pdp">
+        <div class="img">product photo</div>
+        <div style="display:grid;gap:12px;align-content:start">
+          <p class="pdp-name">Product name</p>
+          <p class="price" style="text-align:left;margin:0">Price ex GST</p>
+          <div class="buy"><div class="qty"><span>&minus;</span><b>6</b><span>+</span></div><span class="slot"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+(function () {
+  const CART = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>';
+  const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+  const DOTS = '<span class="dots"><i></i><i></i><i></i></span>';
+
+  const BUTTONS = {
+    v1: () => `${CART.replace('<svg', '<svg class="idle"')}<span class="idle">Add to Cart</span>
+      <span class="stage" aria-hidden="true"><span class="cart">${CART}</span><span class="dot"></span>
+      <span class="done">${CHECK}<span>Added</span></span></span>`,
+    v2: () => `<span class="fill"></span>${CART.replace('<svg', '<svg class="idle"')}<span class="idle">Add to Cart</span>
+      <span class="stage" aria-hidden="true"><span class="adding">Adding</span><span class="done">${CHECK}<span>Added</span></span></span>`,
+    v3: () => `<span class="ico">${CART}<span class="badge"></span></span>
+      <span class="roll"><span class="track"><span>Add to Cart</span><span>Adding${DOTS}</span><span class="done-line">${CHECK}<span class="n">1</span>&nbsp;in cart</span></span></span>`
+  };
+
+  function frame(variant, kind) {
+    const node = document.getElementById('frame-tpl').content.firstElementChild.cloneNode(true);
+    node.querySelector('.frame-cap').textContent = kind === 'phone' ? 'Phone, 390 px' : 'Desktop, 1280 px';
+    const f = node.querySelector('.frame');
+    f.classList.add(kind);
+    const grid = f.querySelector('.grid');
+    const n = kind === 'phone' ? 2 : 4;
+    for (let i = 1; i <= n; i++) {
+      grid.insertAdjacentHTML('beforeend', `<div class="tile"><div class="img">product photo</div>
+        <p class="name">Product name ${i}</p><p class="price">Price ex GST</p>
+        <button type="button" class="atc ${variant}" data-state="idle" aria-label="Add to Cart, product ${i}">${BUTTONS[variant]()}</button></div>`);
+    }
+    const slot = f.querySelector('.slot');
+    slot.outerHTML = `<button type="button" class="atc ${variant}" data-state="idle" data-qty="6" aria-label="Add to Cart">${BUTTONS[variant]()}</button>`;
+    if (kind === 'wide') {
+      const wrap = document.createElement('div');
+      wrap.className = 'wide-wrap';
+      wrap.appendChild(node);
+      return wrap;
+    }
+    return node;
+  }
+
+  document.querySelectorAll('.option').forEach((sec) => {
+    const v = sec.dataset.variant;
+    const frames = sec.querySelector('.frames');
+    frames.appendChild(frame(v, 'phone'));
+    frames.appendChild(frame(v, 'wide'));
+  });
+
+  const form = document.getElementById('controls');
+  const opt = (name) => new FormData(form).get(name);
+
+  function measure(btn) {
+    const r = btn.getBoundingClientRect();
+    const icon = btn.querySelector(':scope > svg');
+    const ir = icon.getBoundingClientRect();
+    btn.style.setProperty('--from-x', Math.round(ir.left + ir.width / 2 - (r.left + r.width / 2)) + 'px');
+    btn.style.setProperty('--exit-x', Math.round(r.width / 2 + 24) + 'px');
+  }
+
+  function toast(btn) {
+    const t = btn.closest('.frame').querySelector('.toast');
+    t.classList.add('on');
+    clearTimeout(t._t);
+    t._t = setTimeout(() => t.classList.remove('on'), 3000);
+  }
+
+  function play(btn) {
+    if (btn.dataset.state === 'sending') return;
+    clearTimeout(btn._t);
+    if (btn.classList.contains('v1')) { btn.dataset.state = 'idle'; measure(btn); void btn.offsetWidth; }
+    if (btn.classList.contains('v2')) { btn.dataset.state = 'idle'; void btn.offsetWidth; }
+    btn.dataset.state = 'sending';
+    const ok = opt('ok') === '1';
+    const ms = Math.max(Number(opt('ms')), 700);
+    btn._t = setTimeout(() => {
+      if (!ok) { btn.dataset.state = 'idle'; toast(btn); return; }
+      if (btn.classList.contains('v3')) {
+        const count = Number(btn.dataset.count || 0) + Number(btn.dataset.qty || 1);
+        btn.dataset.count = count;
+        btn.querySelector('.n').textContent = count;
+        const b = btn.querySelector('.badge');
+        b.textContent = count;
+        b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump');
+      }
+      btn.dataset.state = 'success';
+      btn._t = setTimeout(() => {
+        btn.dataset.state = btn.classList.contains('v2') ? 'idle-after' : 'idle';
+        if (btn.classList.contains('v2')) btn._t = setTimeout(() => { btn.dataset.state = 'idle'; }, 300);
+      }, 1500);
+    }, ms);
+  }
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.atc');
+    if (btn) play(btn);
+  });
+
+  setInterval(() => {
+    if (opt('auto') !== '1') return;
+    document.querySelectorAll('.frame').forEach((f) => {
+      const btn = f.querySelector('.tile .atc');
+      if (btn.dataset.state === 'idle') play(btn);
+    });
+  }, 4200);
+})();
+</script>
+</body>
+</html>
