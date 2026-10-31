@@ -312,3 +312,48 @@
     from { opacity: 0; }
     to { opacity: 1; }
 }
+
+/*
+ * The slide is a one-cell grid: photo and copy share the cell, so the slide grows when the copy is taller
+ * than the photo's height (very wide but short windows, 4K at 67% zoom, long headings) instead of the
+ * heading running out of the top. The photo stretches to the cell; its own height is only a minimum.
+ * Unlayered: the template's absolute / inset utilities on the copy must lose.
+ */
+.elme-hero__slide {
+    display: grid;
+}
+
+.elme-hero__slide > .elme-hero__media,
+.elme-hero__slide > .elme-hero__copy {
+    grid-area: 1 / 1;
+}
+
+.elme-hero__slide > .elme-hero__media {
+    align-self: stretch;
+    max-height: none;
+}
+
+/* the photo never sizes the slide: it fills whatever height the cell gets */
+.elme-hero__slide > .elme-hero__media > .elme-hero__drift {
+    position: absolute;
+    inset: 0;
+}
+
+.elme-hero__slide > .elme-hero__copy {
+    position: relative;
+    inset: auto;
+    align-self: end;
+    padding-top: --spacing(16);
+}
+
+@variant lg {
+    .elme-hero__slide > .elme-hero__media {
+        height: auto;
+        max-height: none;
+        min-height: calc(var(--spacing) * 175);
+    }
+
+    .cms-index-index .elme-hero__slide > .elme-hero__media {
+        min-height: min(calc(var(--spacing) * 130), 70svh);
+    }
+}
