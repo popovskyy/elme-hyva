@@ -11,11 +11,12 @@ declare(strict_types=1);
  * Elme: copy of Hyvä 1.5.3. FE-70: "Add to Cart" carries btn-atc (AJAX add + animated sending / Added
  * states, see Magento_Theme::elme/atc-button.phtml). "Update item" (cart item configure) keeps the
  * normal post, because updateItemOptions answers with a redirect. FE-27 rebuilds the buy box and must
- * keep btn-atc on its add to cart button.
+ * keep btn-atc on its add to cart button. The accessible name carries the product name, as on the tile.
  */
 
 use Hyva\Theme\Model\ViewModelRegistry;
 use Hyva\Theme\ViewModel\LucideIcons;
+use Hyva\Theme\ViewModel\ProductPage;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 
@@ -25,17 +26,23 @@ use Magento\Framework\View\Element\Template;
 
 /** @var LucideIcons $lucideIcons */
 $lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var ProductPage $productPage */
+$productPage = $viewModels->require(ProductPage::class);
 
 $isCartConfigure = (bool) $block->getData('is_cart_configure');
 $buttonLabel = $isCartConfigure
     ? __('Update item')
     : __('Add to Cart');
+$product = $productPage->getProduct();
+$ariaLabel = $isCartConfigure || !$product
+    ? (string) $buttonLabel
+    : $buttonLabel . ' ' . $product->getName();
 ?>
 
 <button
     type="submit"
     form="product_addtocart_form"
-    aria-label="<?= $escaper->escapeHtmlAttr($buttonLabel) ?>"
+    aria-label="<?= $escaper->escapeHtmlAttr($ariaLabel) ?>"
     class="btn btn-primary<?= $isCartConfigure ? '' : ' btn-atc' ?>"
     id="product-addtocart-button"
     data-addto="cart"

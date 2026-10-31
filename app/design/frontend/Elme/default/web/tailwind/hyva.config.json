@@ -175,7 +175,8 @@
         "micro": "120ms",
         "fast": "180ms",
         "base": "240ms",
-        "slow": "300ms"
+        "slow": "300ms",
+        "loop": "700ms"
       }
     }
   },
