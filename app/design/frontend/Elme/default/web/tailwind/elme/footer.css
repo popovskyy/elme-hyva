@@ -27,80 +27,22 @@
         }
     }
 
-    /* "Need assistance?" row at the top of the footer (home Calm gallery). Hidden on pages that already
-       show the Need assistance? block (help side column, About us, Outlet), so contacts never repeat. */
+    /* Need assistance? block (the shared need-assistance.phtml: cells with sage icons) at the top of the
+       footer, home "Calm gallery". Hidden on pages whose main content already shows the block (help side
+       column, About us, Outlet), so the contacts are never on a page twice. */
     .elme-footer__assist {
-        display: grid;
-        gap: --spacing(4);
-        padding-block: --spacing(6) --spacing(8);
+        padding-block: --spacing(8) --spacing(10);
 
         @variant lg {
-            grid-template-columns: auto 1fr;
-            align-items: baseline;
-            gap: --spacing(16);
-            padding-block: --spacing(8) --spacing(8);
+            padding-block: --spacing(10) --spacing(14);
+        }
+
+        .elme-need-assistance {
+            margin-bottom: 0;
         }
     }
 
-    body:has(.elme-need-assistance) .elme-footer__assist {
+    body:has(main .elme-need-assistance) .elme-footer__assist {
         display: none;
-    }
-
-    .elme-footer__assist-title {
-        margin: 0;
-        font-family: var(--font-heading);
-        font-weight: 400;
-        font-size: var(--text-h2);
-        line-height: 1.2;
-        color: var(--color-ink);
-
-        @variant lg {
-            font-size: var(--text-h2-desktop);
-        }
-    }
-
-    .elme-footer__assist-list {
-        display: grid;
-        gap: --spacing(3);
-        margin: 0;
-        padding: 0;
-        list-style: none;
-
-        @variant md {
-            grid-template-columns: repeat(3, minmax(0, auto));
-            justify-content: start;
-            gap: --spacing(10);
-        }
-
-        /* contacts follow the title instead of hugging the right edge */
-        @variant lg {
-            justify-content: start;
-            gap: --spacing(14);
-        }
-
-        a {
-            display: grid;
-            gap: --spacing(0.5);
-            color: var(--color-ink);
-            font-weight: 500;
-            text-decoration: none;
-
-            &:hover {
-                text-decoration: underline;
-                text-underline-offset: 0.2em;
-            }
-
-            &:focus-visible {
-                outline: 2px solid var(--color-ink);
-                outline-offset: 2px;
-            }
-        }
-    }
-
-    .elme-footer__assist-label {
-        font-size: var(--text-note);
-        line-height: var(--text-note--line-height);
-        font-weight: 400;
-        color: var(--color-ink-muted);
     }
 }

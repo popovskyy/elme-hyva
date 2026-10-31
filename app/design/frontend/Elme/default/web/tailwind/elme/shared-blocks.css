@@ -183,7 +183,7 @@
 
     /* Home: a charcoal band at the foot of the page, as wide as the hero and the other bands, white
        icons on a soft circle. */
-    .cms-index-index .elme-need-assistance {
+    .cms-index-index main .elme-need-assistance {
         margin-inline: calc(var(--entry-bleed) * -1);
         margin-bottom: 0;
         padding: --spacing(12) max(var(--entry-bleed), var(--container-gutter)) --spacing(14);
@@ -197,38 +197,38 @@
         }
     }
 
-    .cms-index-index .elme-need-assistance__cells {
+    .cms-index-index main .elme-need-assistance__cells {
         gap: 0;
         background: none;
         border: 0;
     }
 
-    .cms-index-index .elme-need-assistance__cell {
+    .cms-index-index main .elme-need-assistance__cell {
         padding: --spacing(5) 0;
         background: none;
         border-top: 1px solid color-mix(in oklab, var(--color-on-primary) 20%, transparent);
     }
 
     @container (min-width: 40rem) {
-        .cms-index-index .elme-need-assistance__cells {
+        .cms-index-index main .elme-need-assistance__cells {
             gap: --spacing(10);
         }
 
-        .cms-index-index .elme-need-assistance__cell {
+        .cms-index-index main .elme-need-assistance__cell {
             padding: --spacing(7) 0 0;
         }
     }
 
-    .cms-index-index .elme-need-assistance__icon {
+    .cms-index-index main .elme-need-assistance__icon {
         background: color-mix(in oklab, var(--color-on-primary) 12%, transparent);
         color: var(--color-on-primary);
     }
 
-    .cms-index-index .elme-need-assistance__label {
+    .cms-index-index main .elme-need-assistance__label {
         color: color-mix(in oklab, var(--color-on-primary) 72%, transparent);
     }
 
-    .cms-index-index .elme-need-assistance__value {
+    .cms-index-index main .elme-need-assistance__value {
         color: var(--color-on-primary);
     }
 

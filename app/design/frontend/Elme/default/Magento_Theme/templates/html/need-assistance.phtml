@@ -23,10 +23,12 @@ $contact = $viewModels->require(StoreContact::class);
 
 [$street, $suburbLine] = $contact->getShowroomAddressLines();
 $email = $contact->getEmail();
+// The footer renders this block too; it passes its own id so the page never has the same id twice.
+$headingId = (string) ($block->getData('heading_id') ?: 'elme-need-assistance-heading');
 ?>
-<section class="elme-need-assistance" aria-labelledby="elme-need-assistance-heading">
+<section class="elme-need-assistance" aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
     <div class="elme-need-assistance__inner">
-        <h2 id="elme-need-assistance-heading" class="elme-need-assistance__title">
+        <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>" class="elme-need-assistance__title">
             <?= $escaper->escapeHtml(__('Need assistance?')) ?>
         </h2>
         <ul class="elme-need-assistance__cells">

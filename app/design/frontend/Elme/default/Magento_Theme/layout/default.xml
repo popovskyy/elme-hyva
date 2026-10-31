@@ -84,6 +84,14 @@
                    as="footer.payments"
                    template="Magento_Theme::html/footer/payments.phtml"/>
             <container name="footer.newsletter" as="footer.newsletter" label="Footer newsletter (FE-11)"/>
+            <!-- Home "Calm gallery": contacts open the footer (hidden where main already shows the block) -->
+            <block name="footer.assistance"
+                   as="footer.assistance"
+                   template="Magento_Theme::html/need-assistance.phtml">
+                <arguments>
+                    <argument name="heading_id" xsi:type="string">elme-footer-assistance-heading</argument>
+                </arguments>
+            </block>
         </referenceBlock>
         <referenceBlock name="footer-static-links" remove="true"/>
         <referenceBlock name="footer-cms-content" remove="true"/>
