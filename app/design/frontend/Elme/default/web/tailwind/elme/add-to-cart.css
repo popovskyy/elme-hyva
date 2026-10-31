@@ -1,0 +1,158 @@
+/*
+ * FE-70: animated Add to Cart button (behaviour in Magento_Theme/templates/elme/atc-button.phtml).
+ * <button class="btn btn-primary btn-atc" data-addto="cart">[cart svg]<span>Add to Cart</span></button>
+ * The script appends .btn-atc__stage and sets data-atc-state = idle | sending | success.
+ * The idle icon + label stay in the flow (only faded), so the button never changes size;
+ * the stage is an overlay on top of them.
+ */
+.btn-atc {
+    position: relative;
+    overflow: hidden;
+
+    /* idle content: icon + label */
+    & > :not(.btn-atc__stage, .btn-ripple) {
+        transition: opacity var(--transition-duration-fast) var(--ease-out-quad);
+    }
+
+    &:is([data-atc-state="sending"], [data-atc-state="success"]) > :not(.btn-atc__stage, .btn-ripple) {
+        opacity: 0;
+        transition-duration: var(--transition-duration-micro);
+    }
+
+    /* the stage cart takes over the idle icon in the same spot, so the icon goes at once */
+    &[data-atc-state="sending"] > svg {
+        transition: none;
+    }
+}
+
+.btn-atc__stage {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+
+    & > * {
+        grid-area: 1 / 1;
+    }
+}
+
+/* --- cart ------------------------------------------------------------------------------------ */
+.btn-atc__cart {
+    display: inline-flex;
+    opacity: 0;
+    translate: var(--atc-from-x, 0) 0;
+
+    [data-atc-state="sending"] & {
+        opacity: 1;
+        translate: 0 0;
+        transition: translate var(--transition-duration-slow) var(--ease-out-quart);
+        animation: atc-cart-catch 700ms var(--ease-out-quad) var(--transition-duration-slow) infinite;
+    }
+
+    [data-atc-state="success"] & {
+        opacity: 0;
+        translate: var(--atc-exit-x, 150%) 0;
+        transition:
+            translate var(--transition-duration-slow) var(--ease-in-quart),
+            opacity var(--transition-duration-slow) var(--ease-in-quart);
+    }
+}
+
+/* --- dot dropping into the cart, repeats until the server answers ---------------------------- */
+.btn-atc__dot {
+    inline-size: --spacing(1.5);
+    block-size: --spacing(1.5);
+    margin-block-end: --spacing(1);
+    border-radius: calc(infinity * 1px);
+    background: currentColor;
+    opacity: 0;
+
+    [data-atc-state="sending"] & {
+        animation: atc-dot-drop 700ms var(--ease-in-quart) var(--transition-duration-slow) infinite;
+    }
+}
+
+/* --- check + "Added" -------------------------------------------------------------------------- */
+.btn-atc__done {
+    display: inline-flex;
+    align-items: center;
+    gap: --spacing(1.5);
+    white-space: nowrap;
+    opacity: 0;
+    translate: calc(var(--atc-exit-x, 150%) * -1) 0;
+    /* leaving success: fade out where it is, jump back to the left once invisible */
+    transition:
+        opacity var(--transition-duration-fast) var(--ease-out-quad),
+        translate 0s linear var(--transition-duration-fast);
+
+    [data-atc-state="success"] & {
+        opacity: 1;
+        translate: 0 0;
+        transition:
+            translate var(--transition-duration-slow) var(--ease-out-quart) 80ms,
+            opacity var(--transition-duration-fast) var(--ease-out-quad) 80ms;
+    }
+
+    [data-atc-compact] & .btn-atc__done-label {
+        display: none;
+    }
+}
+
+@keyframes atc-dot-drop {
+    0% {
+        opacity: 0;
+        transform: translateY(calc(var(--btn-min-height) * -0.5));
+    }
+    30% {
+        opacity: 1;
+    }
+    75% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(--spacing(1));
+    }
+}
+
+/* small dip of the cart when the dot lands */
+@keyframes atc-cart-catch {
+    0%,
+    70% {
+        transform: translateY(0);
+    }
+    82% {
+        transform: translateY(--spacing(0.5));
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn-atc__cart,
+    .btn-atc__done {
+        translate: none !important;
+    }
+
+    [data-atc-state] .btn-atc__cart {
+        transition: opacity var(--transition-duration-fast) linear !important;
+    }
+
+    [data-atc-state="sending"] .btn-atc__cart {
+        animation: atc-pulse 900ms ease-in-out infinite alternate;
+    }
+
+    [data-atc-state="sending"] .btn-atc__dot {
+        animation: none;
+    }
+}
+
+@keyframes atc-pulse {
+    to {
+        opacity: 0.4;
+    }
+}

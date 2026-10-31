@@ -9,7 +9,8 @@ declare(strict_types=1);
 
 /**
  * Elme: copy of Hyvä's tile. FE-53: guests get no add to cart form or button (the price is
- * "Sign in to see pricing", see Elme\LoginOnly\Plugin\PriceRenderPlugin). FE-19 replaces this tile.
+ * "Sign in to see pricing", see Elme\LoginOnly\Plugin\PriceRenderPlugin). FE-70: the add to cart button
+ * carries btn-atc (AJAX + animation). FE-19 replaces this tile and must keep that class.
  */
 
 use Elme\LoginOnly\ViewModel\LoginOnly;
@@ -187,8 +188,10 @@ $viewModels->require(BlockJsDependencies::class)->setBlockTemplateDependency($bl
                     </span>
                 </a>
                 <?php else: ?>
+                <?php /* FE-70: btn-atc = AJAX add with the animated sending / Added states (elme/atc-button.phtml) */ ?>
                 <button
-                    class="btn btn-primary text-sm"
+                    type="submit"
+                    class="btn btn-primary btn-atc text-sm"
                     aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Cart') . ' ' . $productName) ?>"
                     data-addto="cart"
                 >
