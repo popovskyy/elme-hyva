@@ -2,8 +2,8 @@
 <!-- Home page, "Calm gallery" (docs/design/homepage-review-options.html, picked 31 Oct 2026):
      CMS content (hero, welcome intro, category grid, From the showroom, Become a Stockist), then the
      FE-12 Instagram slider. Our Difference lives on About us; Need assistance? is in the footer
-     (Magento_Theme::html/footer.phtml) for every page. Motion only in the hero, so the scroll reveal
-     (Magento_Theme::html/home-motion.phtml) is no longer added here. -->
+     (Magento_Theme::html/footer.phtml) for every page. Sections fade and rise in as they scroll into view
+     (Magento_Theme::html/home-motion.phtml, home-motion.css). -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
@@ -15,6 +15,11 @@
                     <argument name="identifier" xsi:type="string">home-instagram-slider</argument>
                 </arguments>
             </block>
+        </referenceContainer>
+        <referenceContainer name="before.body.end">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.home.motion"
+                   template="Magento_Theme::html/home-motion.phtml"/>
         </referenceContainer>
     </body>
 </page>

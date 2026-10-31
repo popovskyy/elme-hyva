@@ -25,11 +25,14 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
         }
 
         const sections = main.querySelectorAll(
-            '.elme-category-tiles, .elme-welcome-cta, .elme-promo-split, .elme-catalogue-covers,'
-            + ' .elme-usp-strip, .elme-instagram-slider, .elme-our-difference, .elme-need-assistance,'
-            + ' .elme-collage'
+            '.elme-category-tiles, .elme-welcome-cta, .elme-welcome-intro, .elme-promo-split,'
+            + ' .elme-catalogue-covers, .elme-showroom-cards, .elme-usp-strip, .elme-instagram-slider,'
+            + ' .elme-our-difference, .elme-need-assistance, .elme-collage'
         );
-        const groups = '.elme-catalogue-covers li, .elme-usp-strip__items li, .elme-need-assistance__cell';
+        // items that come in one after another inside their section (Calm gallery: facts, category grid, cards)
+        const groups = '.elme-catalogue-covers li, .elme-usp-strip__items li, .elme-need-assistance__cell,'
+            + ' .elme-welcome-intro__fact, .elme-category-tiles--grid .elme-category-tiles__item,'
+            + ' .elme-showroom-cards__list > li';
         const targets = [];
 
         sections.forEach((section) => {
