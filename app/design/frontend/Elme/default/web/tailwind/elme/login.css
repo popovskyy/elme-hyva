@@ -1,8 +1,8 @@
 /*
  * FE-35 login, "Split screen" (docs/design/login-options.html, 1). Layout: Magento_Customer/layout/
  * customer_account_login.xml; photo: login/media.phtml; form: form/login.phtml; apply block: newcustomer.phtml.
- * Phones: a photo band above the form. From lg: the photo fills the left half from the header to the footer,
- * the form sits centred in the right half. The photo drifts very slowly (off on reduced motion).
+ * Phones and tablets: a photo band above the form. From lg: the photo fills the space from the header to the
+ * footer, the form sits centred in a fixed-width column on the right. The photo drifts very slowly (off on reduced motion).
  */
 /* Unlayered, like the .page-main margin in theme/page-layout.css that it overrides: photo flush under the header */
 .elme-login-page .page-main {
@@ -537,6 +537,16 @@
 /* Unlayered. The .columns grid has a 16px row gap that showed as a strip between the header and the photo. */
 .elme-login-page .columns {
     row-gap: 0;
+}
+
+/* Unlayered. Hyvä's #customer-login-container (theme/page-customer.css) adds 32px padding above and below (a white
+   strip between the header and the photo, and between the photo and the footer), a row gap and two columns from
+   md. The split layout has its own spacing and columns: drop the padding and gap, and let the layered
+   .elme-login rules above set the columns (one column up to lg). */
+.elme-login:is(#customer-login-container) {
+    grid-template-columns: revert-layer;
+    gap: 0;
+    padding-block: 0;
 }
 
 /* Hyvä puts the two register fieldsets side by side from md (md:grid grid-cols-2): one column here */
