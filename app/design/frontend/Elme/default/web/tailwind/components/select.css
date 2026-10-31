@@ -152,18 +152,36 @@
         }
     }
 
+    /* same ring as .elme-spinner (feedback.css), 20px */
     .elme-select__spinner {
-        border: 2px solid var(--color-border);
-        border-block-start-color: var(--color-ink);
+        --spinner-color: var(--color-olive);
+        --spinner-track: color-mix(in srgb, var(--color-secondary) 38%, transparent);
+        --spinner-width: --spacing(0.75);
         border-radius: 50%;
-        animation: elme-spin 0.7s linear infinite;
+        background:
+            radial-gradient(
+                circle at 50% calc(var(--spinner-width) / 2),
+                var(--spinner-color) calc(var(--spinner-width) / 2 - 0.25px),
+                transparent calc(var(--spinner-width) / 2 + 0.25px)
+            ),
+            conic-gradient(var(--spinner-track), var(--spinner-color));
+        -webkit-mask: radial-gradient(
+            farthest-side,
+            transparent calc(100% - var(--spinner-width) - 0.5px),
+            #000 calc(100% - var(--spinner-width))
+        );
+        mask: radial-gradient(
+            farthest-side,
+            transparent calc(100% - var(--spinner-width) - 0.5px),
+            #000 calc(100% - var(--spinner-width))
+        );
+        animation: elme-spin 0.9s linear infinite;
         color: transparent;
     }
 
     @media (prefers-reduced-motion: reduce) {
         .elme-select__spinner {
-            animation: none;
-            border-color: var(--color-ink);
+            animation: elme-spinner-pulse 1.4s ease-in-out infinite alternate;
         }
     }
 

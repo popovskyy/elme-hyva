@@ -4,6 +4,7 @@
  * wins over the values btn / btn-primary set on themselves.
  */
 .btn-on-dark {
+    --btn-spinner-color: var(--color-olive);
     --btn-stroke: var(--color-surface);
     --btn-bg: var(--color-surface);
     --btn-color: var(--color-ink);
