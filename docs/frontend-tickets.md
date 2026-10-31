@@ -239,6 +239,8 @@ Everything else builds on these four. Ship them first, so other tickets reuse th
 
 **How:** add the class `btn-atc` to the submit button of an add to cart form. `Magento_Theme::elme/atc-button.phtml` (one delegated listener, CSP-safe) posts the form with `X-Requested-With`, so `checkout/cart/add` answers JSON, reads the `messages` section for errors (so the page message bar does not repeat "You added …"), reloads section data for the mini-cart. CSS: `web/tailwind/elme/add-to-cart.css`. Wired on the PLP tile (`product/list/item.phtml`) and the PDP button (`product/view/addtocart.phtml`; "Update item" on cart configure keeps the normal post). FE-19 and FE-27 must keep `btn-atc` on their buttons. "Redirect to cart after adding" = Yes in admin still redirects after the success state.
 
+**Look:** variant 1 "Cart and dot" picked on 31 Oct 2026 from `docs/design/add-to-cart-options.html` (2 olive fill and 3 rolling label + count were rejected).
+
 **Ref:** Dribbble shot the ticket was made from (not checked: Dribbble showed a bot check); compare the sequence with the reference GIF/frames before QA sign-off.
 
 **QA:**
