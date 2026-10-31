@@ -1,0 +1,141 @@
+/*
+ * FE-19 product card: Magento_Catalog::product/list/item.phtml (PLP, search, carousels, wishlist).
+ * White image tile, square, the photo fits inside it (products are cut out on white).
+ */
+@layer components {
+    .elme-card__media img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transition: scale var(--transition-duration-slow) var(--ease-out-quart);
+    }
+
+    @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+        .elme-card:hover .elme-card__media img {
+            scale: 1.04;
+        }
+    }
+
+    /* Two lines of name always take two lines, so SKU, price and buttons line up across a row. */
+    .elme-card__name {
+        min-height: calc(2 * var(--text-copy--line-height));
+
+        @variant lg {
+            min-height: calc(2 * var(--text-copy-desktop--line-height));
+        }
+    }
+
+    .elme-card__price {
+        min-height: --spacing(6);
+    }
+
+    .elme-card__badge {
+        padding: --spacing(1) --spacing(2);
+        font-size: var(--text-label);
+        line-height: var(--text-label--line-height);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--color-on-primary);
+    }
+
+    .elme-card__badge--sale {
+        background: var(--color-promo);
+    }
+
+    .elme-card__badge--new {
+        background: var(--color-olive);
+    }
+
+    .elme-card__stock--in {
+        color: var(--color-olive);
+    }
+
+    .elme-card__stock--low {
+        color: var(--color-toast-warning-mark);
+    }
+
+    /* Hyvä's wishlist button (Magento_Catalog::product/list/wishlist/button.phtml) as a heart on the photo. */
+    .elme-card__wishlist .btn {
+        display: grid;
+        place-items: center;
+        width: --spacing(10);
+        height: --spacing(10);
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: color-mix(in oklab, var(--color-surface) 85%, transparent);
+        color: var(--color-ink);
+        box-shadow: none;
+        transition: color var(--transition-duration-fast) ease, scale var(--transition-duration-fast) var(--ease-out-quart);
+
+        &:hover {
+            color: var(--color-promo);
+        }
+
+        &:active {
+            scale: 0.92;
+        }
+
+        &:focus-visible {
+            outline: --spacing(0.5) solid var(--color-ink);
+            outline-offset: --spacing(0.5);
+        }
+    }
+
+    /* Qty stepper: − [qty] +, as tall as the button next to it. */
+    .elme-qty {
+        display: flex;
+        align-items: stretch;
+        min-height: --spacing(11);
+        border: 1px solid var(--color-border);
+        background: var(--color-surface);
+    }
+
+    .elme-qty__btn {
+        display: grid;
+        place-items: center;
+        width: --spacing(11);
+        flex-shrink: 0;
+        color: var(--color-ink);
+        cursor: pointer;
+        transition: background-color var(--transition-duration-fast) ease;
+
+        &:hover:not(:disabled) {
+            background: var(--color-surface-muted);
+        }
+
+        &:disabled {
+            color: var(--color-placeholder);
+            cursor: default;
+        }
+
+        &:focus-visible {
+            outline: --spacing(0.5) solid var(--color-ink);
+            outline-offset: calc(var(--spacing) * -0.5);
+        }
+    }
+
+    .elme-qty__input {
+        flex: 1 1 auto;
+        width: --spacing(12);
+        min-width: 0;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+        appearance: textfield;
+
+        &::-webkit-inner-spin-button,
+        &::-webkit-outer-spin-button {
+            appearance: none;
+            margin: 0;
+        }
+
+        &:focus-visible {
+            outline: --spacing(0.5) solid var(--color-ink);
+            outline-offset: calc(var(--spacing) * -0.5);
+        }
+    }
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <elme_catalog>
+            <plp>
+                <quick_order>1</quick_order>
+            </plp>
+        </elme_catalog>
+    </default>
+</config>

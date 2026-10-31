@@ -8,16 +8,23 @@
 declare(strict_types=1);
 
 /**
- * Elme: copy of Hyvä's tile. FE-53: guests get no add to cart form or button (the price is
- * "Sign in to see pricing", see Elme\LoginOnly\Plugin\PriceRenderPlugin). FE-70: the add to cart button
- * carries btn-atc (AJAX + animation). FE-19 replaces this tile and must keep that class.
+ * Elme FE-19: the shared product card (PLP, search, carousels, wishlist), built on Hyvä 1.5.3's tile.
+ *
+ * White image tile with one badge (Sale / New) and the wishlist heart, name (2 lines), SKU, price, stock
+ * label, then for logged-in customers a qty stepper in MOQ multiples ("Quick order on PLP",
+ * Stores > Configuration > Elme > Catalog) and Add to Cart.
+ *
+ * FE-53: guests get "Sign in to see pricing" (Elme\LoginOnly\Plugin\PriceRenderPlugin) and no form; logged-in
+ * customers get a price placeholder that loads their own price after render. FE-70: the Add to Cart button
+ * keeps btn-atc (AJAX + animation, Magento_Theme::elme/atc-button.phtml). Look: web/tailwind/elme/product-card.css.
+ * Compare and the review summary are left out: Elme uses neither.
  */
 
 use Elme\LoginOnly\ViewModel\LoginOnly;
+use Elme\Theme\ViewModel\ProductTile;
 use Hyva\Theme\Model\ViewModelRegistry;
-use Hyva\Theme\ViewModel\LucideIcons;
 use Hyva\Theme\ViewModel\BlockJsDependencies;
-use Hyva\Theme\ViewModel\ProductCompare;
+use Hyva\Theme\ViewModel\LucideIcons;
 use Hyva\Theme\ViewModel\ProductListItem;
 use Hyva\Theme\ViewModel\ProductPage;
 use Hyva\Theme\ViewModel\Wishlist;
@@ -29,7 +36,6 @@ use Magento\Framework\Escaper;
 // phpcs:disable Magento2.Templates.ThisInTemplate.FoundThis
 // phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
 // phpcs:disable Generic.Files.LineLength.TooLong
-// phpcs:disable Generic.WhiteSpace.ScopeIndent
 
 /** @var View $block */
 /** @var Escaper $escaper */
@@ -37,127 +43,132 @@ use Magento\Framework\Escaper;
 
 /** @var ProductPage $productViewModel */
 $productViewModel = $viewModels->require(ProductPage::class);
-
 /** @var ProductListItem $productListItemViewModel */
 $productListItemViewModel = $viewModels->require(ProductListItem::class);
-
 /** @var CatalogOutputHelper $catalogOutputHelper */
 $catalogOutputHelper = $this->helper(CatalogOutputHelper::class);
-
-/** @var ProductCompare $compareViewModel */
-$compareViewModel = $viewModels->require(ProductCompare::class);
 /** @var Wishlist $wishlistViewModel */
 $wishlistViewModel = $viewModels->require(Wishlist::class);
-
 /** @var LucideIcons $lucideIcons */
 $lucideIcons = $viewModels->require(LucideIcons::class);
-
+/** @var ProductOptionsData $productOptionsViewmodel */
 $productOptionsViewmodel = $viewModels->require(ProductOptionsData::class);
-
 /** @var LoginOnly $loginOnly */
 $loginOnly = $viewModels->require(LoginOnly::class);
+/** @var ProductTile $tile */
+$tile = $viewModels->require(ProductTile::class);
 
 /** @var Magento\Catalog\Model\Product $product */
 if (! ($product = $block->getData('product'))) {
     return;
 }
 $imageDisplayArea = $block->getData('image_display_area');
-$templateType = $block->getData('template_type');
-$viewMode = $block->getData('view_mode');
+$viewIsGrid = $block->getData('view_mode') !== 'list';
 $showDescription = $block->getData('show_description');
-$showAddToWishlist = $wishlistViewModel->isEnabled();
-$showAddToCompare = $compareViewModel->showInProductList();
-$viewIsGrid = $viewMode === 'grid';
+$hideDetails = $block->getData('hide_details') ?: false;
 $productType = $product->getTypeId();
-$isProductGroupedOrBundle = $productType === 'bundle' || $productType === "grouped";
+$isProductGroupedOrBundle = $productType === 'bundle' || $productType === 'grouped';
 // Elme: only logged-in customers can buy, so only they get the add to cart form
 $canAddToCart = $product->isSaleable() && $loginOnly->isLoggedIn();
-$productId = $product->getId();
-$options   = $productOptionsViewmodel->getOptionsData($product);
-
-$hideDetails       = $block->getData('hide_details') ?: false;
-$hideRatingSummary = $block->getData('hide_rating_summary') ?: false;
-
+$productId = (int) $product->getId();
+$productUrl = $product->getProductUrl();
+$options = $productOptionsViewmodel->getOptionsData($product);
+$productName = $catalogOutputHelper->productAttribute($product, $product->getName(), 'name');
 $imageCustomAttributes = $product->getData('image_custom_attributes')
     ?? $block->getData('image_custom_attributes')
     ?? [];
-$productName = $catalogOutputHelper->productAttribute($product, $product->getName(), 'name');
 
-// Ensure the required JS is rendered on the page
-$viewModels->require(BlockJsDependencies::class)->setBlockTemplateDependency($block, 'Magento_Catalog::product/list/js/price-box.phtml');
+$badge = $tile->getBadge($product);
+$stockLevel = $tile->getStockLevel($product);
+$showStepper = $canAddToCart && !$isProductGroupedOrBundle && $tile->isQuickOrderEnabled();
+$qtyRules = $canAddToCart && !$isProductGroupedOrBundle ? $tile->getQtyRules($product) : null;
+// MOQ 6 is shown as "6", not "6.0000"
+$formatQty = static fn (float $qty): string => rtrim(rtrim(number_format($qty, 4, '.', ''), '0'), '.');
 
+$jsDependencies = $viewModels->require(BlockJsDependencies::class);
+$jsDependencies->setBlockTemplateDependency($block, 'Magento_Catalog::product/list/js/price-box.phtml');
+if ($showStepper) {
+    $jsDependencies->setBlockTemplateDependency($block, 'Magento_Catalog::product/list/js/qty-stepper.phtml');
+}
+
+$dataAttributes = '';
+foreach ($block->getData('product_data_attributes') ?? [] as $attribute => $include) {
+    if ($include) {
+        $dataAttributes .= sprintf(
+            ' data-%s="%s"',
+            $escaper->escapeHtmlAttr($attribute),
+            $escaper->escapeHtmlAttr($product->getData($attribute))
+        );
+    }
+}
+$cardClass = 'item product product-item elme-card group relative flex h-full w-full flex-col bg-surface'
+    . ($viewIsGrid ? '' : ' md:flex-row');
 ?>
-
 <?php if ($canAddToCart): ?>
 <form method="post"
-    action="<?= $escaper->escapeUrl($productViewModel->getAddToCartUrl($product, ['useUencPlaceholder' => true])) ?>"
-    class="item product product-item product_addtocart_form card card-interactive grow flex flex-col w-full <?= $viewIsGrid ? '' : 'md:flex-row' ?>"
-    <?php if ($product->getOptions()): ?>
-    enctype="multipart/form-data"
-    <?php endif; ?>
-    <?php foreach ($block->getData('product_data_attributes') ?? [] as $attribute => $include): ?>
-        <?php if ($include): ?>
-            <?php /** Append data-* attributes based on layout XML arguments */ ?>
-            <?= $escaper->escapeHtml(sprintf('data-%s', $attribute)); ?>="<?= $escaper->escapeHtmlAttr($product->getData($attribute)); ?>"
-        <?php endif; ?>
-    <?php endforeach; ?>
+      action="<?= $escaper->escapeUrl($productViewModel->getAddToCartUrl($product, ['useUencPlaceholder' => true])) ?>"
+      class="product_addtocart_form <?= /* @noEscape */ $cardClass ?>"
+      <?php if ($product->getOptions()): ?>enctype="multipart/form-data"<?php endif; ?>
+      <?= /* @noEscape */ $dataAttributes ?>
 >
-    <?= /** @noEscape */ $block->getBlockHtml('formkey') ?>
-    <input type="hidden" name="product" value="<?= (int)$productId ?>">
+    <?= /* @noEscape */ $block->getBlockHtml('formkey') ?>
+    <input type="hidden" name="product" value="<?= $productId ?>">
     <?php foreach ($options as $optionItem): ?>
     <input type="hidden"
-           name="<?= $escaper->escapeHtml($optionItem['name']) ?>"
-           value="<?= $escaper->escapeHtml($optionItem['value']) ?>">
+           name="<?= $escaper->escapeHtmlAttr($optionItem['name']) ?>"
+           value="<?= $escaper->escapeHtmlAttr($optionItem['value']) ?>">
     <?php endforeach; ?>
-<?php else: ?>
-<div class="item product product-item card card-interactive flex flex-col w-full <?= $viewIsGrid ? '' : 'md:flex-row' ?>"
-     <?php foreach ($block->getData('product_data_attributes')  ?? [] as $attribute => $include): ?>
-         <?php if ($include): ?>
-             <?php /** Append data-* attributes based on layout XML arguments */ ?>
-             <?= $escaper->escapeHtml(sprintf('data-%s', $attribute)); ?>="<?= $escaper->escapeHtmlAttr($product->getData($attribute)); ?>"
-         <?php endif; ?>
-    <?php endforeach; ?>
->
-<?php endif; ?>
-    <?php /* Product Image */ ?>
-    <?php if ($blockImage = $block->getImage($product, $imageDisplayArea)): ?>
-        <a href="<?= $escaper->escapeUrl($product->getProductUrl()) ?>"
-            title="<?= $escaper->escapeHtmlAttr($product->getName()) ?>"
-            class="product photo product-item-photo block mx-auto mb-3 <?= $viewIsGrid ? '' : 'md:w-2/6 md:mb-0 md:shrink-0' ?>"
-            tabindex="-1"
-        >
-            <?= $blockImage
-                ->setTemplate('Magento_Catalog::product/list/image.phtml')
-                ->setData('custom_attributes', $imageCustomAttributes)
-                ->setProductId($productId)
-                ->toHtml();
-            ?>
-        </a>
+    <?php if ($qtyRules && !$showStepper): ?>
+    <input type="hidden" name="qty" value="<?= $escaper->escapeHtmlAttr($formatQty($qtyRules['min'])) ?>">
     <?php endif; ?>
-    <div class="product-info flex flex-col grow <?= $viewIsGrid ? '' : 'md:pl-5 md:w-4/6' ?>">
-        <div class="mt-2 mb-1 items-center justify-center font-semibold text-lg text-center <?= $viewIsGrid ? '' : 'md:text-left' ?>">
-            <a
-                class="product-item-link"
-                href="<?= $escaper->escapeUrl($product->getProductUrl()) ?>"
-            >
-                <?= /* @noEscape */ $productName ?>
-            </a>
-        </div>
+<?php else: ?>
+<div class="<?= /* @noEscape */ $cardClass ?>"<?= /* @noEscape */ $dataAttributes ?>>
+<?php endif; ?>
 
-        <?php if (!$hideRatingSummary): ?>
-        <div class="py-1 mx-auto <?= $viewIsGrid ? '' : 'md:mx-0 md:w-auto' ?>">
-            <?= $block->getReviewsSummaryHtml($product, 'short') ?>
-        </div>
+    <div class="elme-card__media relative <?= $viewIsGrid ? '' : 'md:w-2/6 md:shrink-0' ?>">
+        <a href="<?= $escaper->escapeUrl($productUrl) ?>"
+           class="product photo product-item-photo block aspect-square overflow-hidden bg-surface"
+           tabindex="-1"
+           aria-hidden="true"
+        >
+            <?php if ($blockImage = $block->getImage($product, $imageDisplayArea)): ?>
+                <?= $blockImage
+                    ->setTemplate('Magento_Catalog::product/list/image.phtml')
+                    ->setData('custom_attributes', $imageCustomAttributes)
+                    ->setProductId($productId)
+                    ->toHtml() ?>
+            <?php endif; ?>
+        </a>
+
+        <?php if ($badge): ?>
+            <span class="elme-card__badge elme-card__badge--<?= /* @noEscape */ $badge ?> absolute top-2 left-2 lg:top-3 lg:left-3">
+                <?= $escaper->escapeHtml($badge === ProductTile::BADGE_SALE ? __('Sale') : __('New')) ?>
+            </span>
         <?php endif; ?>
 
-        <?php if ($product->isAvailable() && !$hideDetails): ?>
-            <?= $block->getProductDetailsHtml($product) ?>
+        <?php if ($wishlistViewModel->isEnabled() && $blockWishlist = $block->getChildBlock('wishlist')): ?>
+            <div class="elme-card__wishlist absolute top-1 right-1 lg:top-2 lg:right-2">
+                <?= $blockWishlist->setData('product', $product)->toHtml() ?>
+            </div>
         <?php endif; ?>
+    </div>
+
+    <div class="product-info flex grow flex-col gap-1 px-3 pt-3 pb-4 lg:px-4 lg:pb-5 <?= $viewIsGrid ? '' : 'md:w-4/6' ?>">
+        <a class="product-item-link elme-card__name line-clamp-2 text-copy text-ink hover:underline lg:text-copy-desktop"
+           href="<?= $escaper->escapeUrl($productUrl) ?>"
+        >
+            <?= /* @noEscape */ $productName ?>
+        </a>
+
+        <p class="text-note text-ink-muted">
+            <span class="sr-only"><?= $escaper->escapeHtml(__('SKU')) ?></span>
+            <?= $escaper->escapeHtml($product->getSku()) ?>
+        </p>
 
         <?php if ($showDescription): ?>
-        <div class="mt-2 mb-1 items-center justify-center text-center <?= $viewIsGrid ? '' : 'md:text-left' ?>">
-            <?= /* @noEscape */ $productViewModel->getShortDescriptionForProduct($product) ?>
-        </div>
+            <div class="text-note text-ink-muted">
+                <?= /* @noEscape */ $productViewModel->getShortDescriptionForProduct($product) ?>
+            </div>
         <?php endif; ?>
 
         <?php if ($isProductGroupedOrBundle): ?>
@@ -166,70 +177,90 @@ $viewModels->require(BlockJsDependencies::class)->setBlockTemplateDependency($bl
             </span>
         <?php endif; ?>
 
-        <div class="pt-1"
+        <div class="elme-card__price mt-1"
              x-data="initPriceBox()"
              x-defer="intersect"
-             @update-prices-<?= (int)$productId ?>.window="updatePrice($event.detail);"
+             @update-prices-<?= $productId ?>.window="updatePrice($event.detail);"
         >
             <?= /* @noEscape */ $productListItemViewModel->getProductPriceHtml($product) ?>
         </div>
 
-        <div class="mt-auto pt-3 flex flex-wrap justify-between items-center gap-y-4 gap-x-2">
-            <?php if ($canAddToCart): ?>
-                <?php if ($isProductGroupedOrBundle): ?>
-                <a
-                    href="<?= $escaper->escapeUrl($product->getProductUrl()) ?>"
-                    class="btn btn-primary text-sm"
-                    aria-label="<?= $escaper->escapeHtmlAttr(__('Configure %1 on the product page', $productName)) ?>"
-                >
-                    <?= $lucideIcons->pencilHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
-                    <span class="inline <?= $viewIsGrid ? 'md:hidden lg:inline' : '' ?>">
-                        <?= $escaper->escapeHtml(__('Configure')) ?>
-                    </span>
-                </a>
-                <?php else: ?>
-                <?php /* FE-70: btn-atc = AJAX add with the animated sending / Added states (elme/atc-button.phtml) */ ?>
-                <button
-                    type="submit"
-                    class="btn btn-primary btn-atc text-sm"
-                    aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Cart') . ' ' . $productName) ?>"
-                    data-addto="cart"
-                >
-                    <?= $lucideIcons->shoppingCartHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
-                    <span class="inline <?= $viewIsGrid ? 'md:hidden lg:inline' : '' ?>">
-                        <?= $escaper->escapeHtml(__('Add to Cart')) ?>
-                    </span>
-                </button>
-                <?php endif; ?>
+        <?php if ($stockLevel): ?>
+            <p class="elme-card__stock elme-card__stock--<?= /* @noEscape */ $stockLevel ?> flex items-center gap-1.5 text-note">
+                <span class="size-1.5 shrink-0 rounded-full bg-current" aria-hidden="true"></span>
+                <?= $escaper->escapeHtml($stockLevel === ProductTile::STOCK_IN ? __('In Stock') : __('Low Stock')) ?>
+            </p>
+        <?php endif; ?>
 
-            <?php elseif (!$product->isSaleable()): ?>
-            <div>
-                <?= $block->getChildBlock('stockstatus')->setData('product', $product)->toHtml() ?>
-            </div>
-            <?php else: ?>
-            <div></div>
-            <?php endif; ?>
-            <div class="flex flex-wrap gap-2">
-                <?php if ($showAddToWishlist && $blockWishlist = $block->getChildBlock('wishlist')): ?>
-                    <?= $blockWishlist->setData('product', $product)->toHtml() ?>
-                <?php endif; ?>
-                <?php if ($showAddToCompare): ?>
-                <button x-data="initCompareOnProductList()"
-                        x-defer="intersect"
-                        @click.prevent="addToCompare(<?= (int)$productId ?>)"
-                        aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Compare') . ' ' . $productName) ?>"
-                        type="button"
-                        class="btn p-2 rounded-full"
-                        data-addto="compare"
+        <?php if ($product->isAvailable() && !$hideDetails): ?>
+            <?= $block->getProductDetailsHtml($product) ?>
+        <?php endif; ?>
+
+        <?php if ($canAddToCart): ?>
+        <div class="elme-card__actions mt-auto grid gap-2 pt-3 <?= $showStepper ? '2xl:grid-cols-[auto_1fr]' : '' ?>">
+            <?php if ($isProductGroupedOrBundle): ?>
+                <a href="<?= $escaper->escapeUrl($productUrl) ?>"
+                   class="btn btn-primary w-full text-sm"
+                   aria-label="<?= $escaper->escapeHtmlAttr(__('Configure %1 on the product page', $productName)) ?>"
                 >
-                    <?= $lucideIcons->scaleHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                    <?= $escaper->escapeHtml(__('Configure')) ?>
+                </a>
+            <?php else: ?>
+                <?php if ($showStepper): ?>
+                    <?php $min = $formatQty($qtyRules['min']); $step = $formatQty($qtyRules['step']); ?>
+                    <div class="elme-qty"
+                         x-data="initElmeQtyStepper"
+                         data-min="<?= $escaper->escapeHtmlAttr($min) ?>"
+                         data-step="<?= $escaper->escapeHtmlAttr($step) ?>"
+                    >
+                        <button type="button"
+                                class="elme-qty__btn"
+                                @click="decrement"
+                                :disabled="isAtMin"
+                                aria-label="<?= $escaper->escapeHtmlAttr(__('Decrease quantity')) ?>"
+                        >
+                            <?= $lucideIcons->minusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                        </button>
+                        <input type="number"
+                               name="qty"
+                               value="<?= $escaper->escapeHtmlAttr($min) ?>"
+                               min="<?= $escaper->escapeHtmlAttr($min) ?>"
+                               step="<?= $escaper->escapeHtmlAttr($step) ?>"
+                               inputmode="numeric"
+                               class="elme-qty__input"
+                               x-ref="input"
+                               @change="normalize"
+                               aria-label="<?= $escaper->escapeHtmlAttr(__('Quantity of %1', $productName)) ?>"
+                               <?php if ((float) $step > 1): ?>
+                               aria-describedby="elme-moq-<?= $productId ?>"
+                               <?php endif; ?>
+                        >
+                        <button type="button"
+                                class="elme-qty__btn"
+                                @click="increment"
+                                aria-label="<?= $escaper->escapeHtmlAttr(__('Increase quantity')) ?>"
+                        >
+                            <?= $lucideIcons->plusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                        </button>
+                    </div>
+                <?php endif; ?>
+                <?php /* FE-70: btn-atc = AJAX add with the animated sending / Added states (elme/atc-button.phtml) */ ?>
+                <button type="submit"
+                        class="btn btn-primary btn-atc elme-card__atc w-full text-sm"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Cart') . ' ' . $productName) ?>"
+                        data-addto="cart"
+                >
+                    <?= $lucideIcons->shoppingCartHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                    <span><?= $escaper->escapeHtml(__('Add to Cart')) ?></span>
                 </button>
-                <?php endif; ?>
-                <?php if ($addToBlock = $block->getChildBlock('addto')): ?>
-                    <?= $addToBlock->setProduct($product)->getChildHtml() ?>
-                <?php endif; ?>
-            </div>
+            <?php endif; ?>
         </div>
+        <?php if ($qtyRules && (float) $qtyRules['step'] > 1): ?>
+            <p id="elme-moq-<?= $productId ?>" class="text-note text-ink-muted">
+                <?= $escaper->escapeHtml(__('Sold in multiples of %1', $formatQty($qtyRules['step']))) ?>
+            </p>
+        <?php endif; ?>
+        <?php endif; ?>
     </div>
 <?php if ($canAddToCart): ?>
 </form>

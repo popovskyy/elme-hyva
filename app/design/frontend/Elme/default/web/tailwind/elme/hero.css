@@ -97,6 +97,9 @@
         }
     }
 
+    /* From md the copy column is 58% of the container, not of the slide: on 4K the slide is the full
+       viewport and --hero-pad is the gap to the 1920 container, so a plain 58% with that pad on both
+       sides left the heading a narrow column that wrapped into many lines and rose under the header. */
     .elme-hero__copy {
         padding: 0 var(--hero-pad) --spacing(7);
 
@@ -104,7 +107,8 @@
             top: 0;
             display: flex;
             align-items: flex-end;
-            width: 58%;
+            width: calc(var(--hero-pad) + (100% - 2 * var(--hero-pad)) * 0.58);
+            padding-right: 0;
             padding-bottom: --spacing(14);
         }
     }
