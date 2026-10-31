@@ -38,7 +38,14 @@ $menu = $block->getMenu();
                 $columnNodes[] = $submenuNode;
             }
         }
-        $renderLevel1Item = function ($node) use ($block, $escaper, $menuClass): string {
+        // Few sub-links in the whole section (Sale, Outdoor): a compact panel with large links instead of
+        // near-empty columns. Counted before rendering, so the panel gets its modifier class.
+        $subLinkCount = 0;
+        foreach ($columnNodes as $columnNode) {
+            $subLinkCount += count($block->getNodes($columnNode->getLevel() + 1, $columnNode) ?: []);
+        }
+        $isCompact = $subLinkCount <= 6;
+        $renderLevel1Item = function ($node, int $index = 0) use ($block, $escaper, $menuClass): string {
             $nodeType = (string) $node->getType();
             $childrenLevel = $node->getLevel() + 1;
             $children = $block->getNodes($childrenLevel, $node);
@@ -51,6 +58,7 @@ $menu = $block->getMenu();
                 ($nodeClasses ? ' ' . $nodeClasses : '')
             );
             return '<li class="' . $escaper->escapeHtmlAttr($liClass) . '"'
+                . ' style="--i: ' . (int) $index . '"'
                 . ' data-node-type="' . $escaper->escapeHtmlAttr($nodeType) . '">'
                 . $block->renderMenuNode($node)
                 . $block->renderSubmenu($children, $node, $childrenLevel)
@@ -64,7 +72,7 @@ $menu = $block->getMenu();
              hidden
              role="region"
              aria-label="<?= $escaper->escapeHtmlAttr(__('Submenu for %1', $cleanTitle)) ?>">
-            <div class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__panel container">
+            <div class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__panel container<?= $isCompact ? ' ' . $escaper->escapeHtmlAttr($menuClass) . '__panel--compact' : '' ?>">
                 <div class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__panel-head">
                     <p class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__panel-title">
                         <?= $escaper->escapeHtml($cleanTitle) ?>
@@ -76,14 +84,14 @@ $menu = $block->getMenu();
                 <div class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__panel-body">
                     <ul class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-list
                                <?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-list--level1">
-                        <?php foreach ($columnNodes as $node): ?>
-                            <?= /* @noEscape */ $renderLevel1Item($node) ?>
+                        <?php foreach ($columnNodes as $index => $node): ?>
+                            <?= /* @noEscape */ $renderLevel1Item($node, $index) ?>
                         <?php endforeach; ?>
                     </ul>
                     <?php if ($promoNodes): ?>
                         <ul class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__promo-list">
                             <?php foreach ($promoNodes as $node): ?>
-                                <?= /* @noEscape */ $renderLevel1Item($node) ?>
+                                <?= /* @noEscape */ $renderLevel1Item($node, count($columnNodes)) ?>
                             <?php endforeach; ?>
                         </ul>
                     <?php endif; ?>
