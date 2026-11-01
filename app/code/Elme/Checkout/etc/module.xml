@@ -10,6 +10,7 @@
             <module name="Magento_OfflinePayments"/>
             <module name="Magento_Payment"/>
             <module name="Magento_Quote"/>
+            <module name="Magento_Sales"/>
             <module name="Magento_Tax"/>
             <module name="Hyva_Theme"/>
             <module name="Elme_LoginOnly"/>

@@ -28,6 +28,7 @@ use Magento\Framework\Escaper;
             message: '',
             errorSection: '',
             acceptedAgreements: {},
+            beforePlaceOrderChecks: [],
             placing: false,
             leaving: false,
 
@@ -77,10 +78,24 @@ use Magento\Framework\Escaper;
                     return Promise.resolve(false);
                 }
 
+                return this.enqueue(action, data, sectionCode);
+            },
+
+            enqueue(action, data, sectionCode) {
                 const result = this.queue.then(() => this.send(action, data, sectionCode));
                 this.queue = result;
 
                 return result;
+            },
+
+            /**
+             * For a section that saves while the customer types: its last change must reach the order.
+             *
+             * @param {function(): Promise<boolean>} check runs with the placing flag up, so it sends with enqueue();
+             *     false stops the order and the section shows why
+             */
+            onBeforePlaceOrder(check) {
+                this.beforePlaceOrderChecks.push(check);
             },
 
             /**
@@ -119,8 +134,11 @@ use Magento\Framework\Escaper;
                 }
                 this.placing = true;
 
-                const agreements = Object.keys(this.acceptedAgreements).filter((id) => this.acceptedAgreements[id]);
-                await this.call('placeorder', {agreements}, 'placeorder');
+                const checks = await Promise.all(this.beforePlaceOrderChecks.map((check) => check()));
+                if (checks.every(Boolean)) {
+                    const agreements = Object.keys(this.acceptedAgreements).filter((id) => this.acceptedAgreements[id]);
+                    await this.call('placeorder', {agreements}, 'placeorder');
+                }
 
                 if (!this.leaving) {
                     this.placing = false;

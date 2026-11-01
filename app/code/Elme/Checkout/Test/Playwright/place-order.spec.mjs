@@ -60,6 +60,118 @@ test('login, add a product, saved address, place order, success page', async ({ 
     }).toPass({ timeout: 30_000 });
 });
 
+async function findEmailHtml(request, number) {
+    let id;
+    await expect(async () => {
+        const answer = await request.get(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${EMAIL} ${number}`)}`);
+        id = (await answer.json()).messages[0]?.ID;
+        expect(id).toBeTruthy();
+    }).toPass({ timeout: 30_000 });
+
+    return (await (await request.get(`${MAILPIT}/api/v1/message/${id}`)).json()).HTML;
+}
+
+const detailsSaved = (page) => page.waitForResponse((answer) => answer.url().includes('elme_checkout/action/details'));
+const referenceField = (page) => page.locator('#elme-checkout-reference');
+const instructionsField = (page) => page.locator('#elme-checkout-instructions');
+const placeOrderButton = (page) => page.locator('[data-checkout-section="agreements"] [data-place-order]');
+
+test('order details are kept, checked, and reach My Orders and the email', async ({ page, request }) => {
+    const reference = `PO-${Date.now()}`;
+
+    await login(page);
+    await addProduct(page);
+    await openCheckout(page);
+    await chooseMethods(page);
+
+    const saved = detailsSaved(page);
+    await referenceField(page).fill(`  ${reference}  `);
+    await instructionsField(page).fill('<b>Front door</b>\nRing twice');
+    await instructionsField(page).blur();
+    await saved;
+    await expect(referenceField(page)).toHaveValue(reference);
+    await expect(page.locator('#elme-checkout-instructions-counter')).toHaveText('28 / 250');
+    await page.waitForLoadState('networkidle');
+
+    await openCheckout(page);
+    await expect(referenceField(page)).toHaveValue(reference);
+    await expect(instructionsField(page)).toHaveValue('<b>Front door</b>\nRing twice');
+
+    await referenceField(page).fill('x'.repeat(31));
+    await expect(page.locator('#elme-checkout-reference-error')).toContainText('up to 30 characters');
+    await expect(referenceField(page)).toHaveAttribute('aria-invalid', 'true');
+
+    await placeOrderButton(page).click();
+    await expect(referenceField(page)).toBeFocused();
+    await expect(page).toHaveURL(/\/checkout/);
+    await expect(page.locator('#elme-checkout-reference-error')).toBeVisible();
+
+    await referenceField(page).fill(reference);
+    await expect(page.locator('#elme-checkout-reference-error')).toBeHidden();
+
+    await instructionsField(page).fill('');
+    await instructionsField(page).focus();
+    await page.keyboard.insertText('y'.repeat(260));
+    await expect(instructionsField(page)).toHaveValue('y'.repeat(250));
+    await expect(page.locator('#elme-checkout-instructions-counter')).toHaveText('250 / 250');
+
+    await instructionsField(page).fill('<b>Front door</b>\nRing twice');
+    await chooseMethods(page);
+    await placeOrderButton(page).click();
+    await expect(page).toHaveURL(/checkout\/onepage\/success/, { timeout: 60_000 });
+    const number = orderNumber(await page.locator('#maincontent').innerText());
+
+    await page.goto('/sales/order/history');
+    await page.locator('#maincontent').getByRole('link', { name: /view/i }).first().click();
+    const details = page.locator('[data-order-details]');
+    await expect(details).toContainText(reference);
+    await expect(details).toContainText('<b>Front door</b>');
+    await expect(details.locator('b')).toHaveCount(0);
+
+    const email = await findEmailHtml(request, number);
+    expect(email).toContain(reference);
+    expect(email).toContain('&lt;b&gt;Front door&lt;/b&gt;');
+    expect(email).toContain('Ring twice');
+});
+
+test('the last change goes with the order, even with the focus still in the field', async ({ page }) => {
+    const reference = `PO-${Date.now()}`;
+
+    await login(page);
+    await addProduct(page);
+    await openCheckout(page);
+    await chooseMethods(page);
+
+    await referenceField(page).fill(reference);
+    await placeOrderButton(page).dispatchEvent('click');
+
+    await expect(page).toHaveURL(/checkout\/onepage\/success/, { timeout: 60_000 });
+    await page.goto('/sales/order/history');
+    await page.locator('#maincontent').getByRole('link', { name: /view/i }).first().click();
+    await expect(page.locator('[data-order-details]')).toContainText(reference);
+});
+
+test('empty order details leave no empty labels', async ({ page, request }) => {
+    await login(page);
+    await addProduct(page);
+    await openCheckout(page);
+    await chooseMethods(page);
+    await expect(referenceField(page)).toHaveValue('');
+
+    await placeOrderButton(page).click();
+    await expect(page).toHaveURL(/checkout\/onepage\/success/, { timeout: 60_000 });
+    const number = orderNumber(await page.locator('#maincontent').innerText());
+
+    await page.goto('/sales/order/history');
+    await page.locator('#maincontent').getByRole('link', { name: /view/i }).first().click();
+    await expect(page.locator('#maincontent')).toContainText(number);
+    await expect(page.locator('[data-order-details]')).toHaveCount(0);
+
+    const email = await findEmailHtml(request, number);
+    expect(email).not.toContain('order reference');
+    expect(email).not.toContain('Delivery instructions');
+});
+
 test('a double click on Place order creates one order', async ({ page }) => {
     await login(page);
     await addProduct(page);

@@ -165,6 +165,25 @@ Core's `QuoteManagement` sets the checkout session's last-order data, and `etc/f
 - **The bar for phones and tablets** (`templates/place-order-bar.phtml`) goes away while a field that opens a keyboard
   has the focus, so it cannot cover what the customer is typing in.
 
+## Order details
+
+`Api/OrderDetailsInterface` holds the names `customer_reference` (max 30) and `delivery_instructions` (max 250): the
+columns on `quote`, `sales_order` and `sales_order_grid`, the extension attributes on cart and order, and the order email
+variables. The Pronto order export can read them from the order or its extension attributes.
+
+- **Saving:** `Model/Details/QuoteDetails` is the only writer. The fields save 800 ms after typing stops and on blur. A
+  field that is too long is refused with an inline error, the other one is saved anyway.
+- **Before the order:** `onBeforePlaceOrder()` in the store. Place order sends the last change first, and a refused save
+  stops the order. A section that saves while typing uses this too.
+- **On the order:** `Observer/CopyDetailsToOrder` copies them, `Model\ResourceModel\Order\Grid` in `etc/di.xml` takes them
+  into the grid table.
+- **Search in the order grid:** core replaced the keyword search of this grid with a LIKE on a fixed list of columns, not
+  the fulltext index. `Plugin/OrderGridSearchPlugin` takes its place and adds the reference, also for a term of only
+  digits. Check it when upgrading Magento.
+- **Shown in:** the Account Information table of the admin order view, the top of My Orders order view and its print page,
+  the order email through `Observer/AddDetailsToOrderEmail` and the theme's copy of `order_new.html`.
+- **Success page:** `ViewModel/OrderDetails` gives the details of the order on the page, or else of the last order placed.
+
 ## GST
 
 `Setup/Patch/Data/CreateAuGstTaxRule` creates the AU 10% rate and rule for the default product and customer tax classes

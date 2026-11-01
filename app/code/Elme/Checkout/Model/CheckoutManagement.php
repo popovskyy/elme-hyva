@@ -7,6 +7,7 @@ namespace Elme\Checkout\Model;
 use Elme\Checkout\Api\CheckoutManagementInterface;
 use Elme\Checkout\Api\Data\CheckoutStateInterface;
 use Elme\Checkout\Model\Address\QuoteAddresses;
+use Elme\Checkout\Model\Details\QuoteDetails;
 use Elme\Checkout\Model\Method\QuotePaymentMethod;
 use Elme\Checkout\Model\Method\QuoteShippingMethod;
 use Magento\Framework\Exception\LocalizedException;
@@ -15,9 +16,6 @@ use Magento\Quote\Api\CartManagementInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\QuoteFactory;
 
-/**
- * The method that throws is filled in by BE-05 (details).
- */
 class CheckoutManagement implements CheckoutManagementInterface
 {
     private const PLACE_ORDER_LOCK = 'elme_checkout_place_order_';
@@ -31,7 +29,8 @@ class CheckoutManagement implements CheckoutManagementInterface
         private readonly QuotePaymentMethod $paymentMethod,
         private readonly CartManagementInterface $cartManagement,
         private readonly LockManagerInterface $lockManager,
-        private readonly QuoteFactory $quoteFactory
+        private readonly QuoteFactory $quoteFactory,
+        private readonly QuoteDetails $quoteDetails
     ) {
     }
 
@@ -80,7 +79,9 @@ class CheckoutManagement implements CheckoutManagementInterface
 
     public function saveDetails(int $cartId, array $details): CheckoutStateInterface
     {
-        throw $this->notImplemented(__FUNCTION__);
+        $this->quoteDetails->save($this->cartRepository->getActive($cartId), $details);
+
+        return $this->getState($cartId);
     }
 
     /**
@@ -111,10 +112,5 @@ class CheckoutManagement implements CheckoutManagementInterface
         } finally {
             $this->lockManager->unlock($lockName);
         }
-    }
-
-    private function notImplemented(string $method): LocalizedException
-    {
-        return new LocalizedException(__('Checkout action "%1" is not available yet.', $method));
     }
 }

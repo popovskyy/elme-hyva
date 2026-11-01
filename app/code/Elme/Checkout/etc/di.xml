@@ -24,9 +24,30 @@
                     <item name="sortOrder" xsi:type="number">40</item>
                     <item name="provider" xsi:type="object">Elme\Checkout\Model\Section\PaymentProvider</item>
                 </item>
+                <item name="details" xsi:type="array">
+                    <item name="sortOrder" xsi:type="number">50</item>
+                    <item name="provider" xsi:type="object">Elme\Checkout\Model\Section\DetailsProvider</item>
+                </item>
             </argument>
         </arguments>
     </type>
+
+    <type name="Magento\Quote\Api\CartRepositoryInterface">
+        <plugin name="elme_checkout_quote_details_extension" type="Elme\Checkout\Plugin\QuoteDetailsExtensionPlugin"/>
+    </type>
+    <type name="Magento\Sales\Api\OrderRepositoryInterface">
+        <plugin name="elme_checkout_order_details_extension" type="Elme\Checkout\Plugin\OrderDetailsExtensionPlugin"/>
+    </type>
+
+    <!-- The order grid table is filled from sales_order -->
+    <virtualType name="Magento\Sales\Model\ResourceModel\Order\Grid" type="Magento\Sales\Model\ResourceModel\Grid">
+        <arguments>
+            <argument name="columns" xsi:type="array">
+                <item name="customer_reference" xsi:type="string">sales_order.customer_reference</item>
+                <item name="delivery_instructions" xsi:type="string">sales_order.delivery_instructions</item>
+            </argument>
+        </arguments>
+    </virtualType>
 
     <!-- Checks before place order; the item name identifies the check. See README.md -->
     <type name="Elme\Checkout\Model\PlaceOrderValidatorPool">

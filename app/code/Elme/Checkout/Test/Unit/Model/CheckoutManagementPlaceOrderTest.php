@@ -7,6 +7,7 @@ namespace Elme\Checkout\Test\Unit\Model;
 use Elme\Checkout\Exception\CheckoutInputException;
 use Elme\Checkout\Model\Address\QuoteAddresses;
 use Elme\Checkout\Model\CheckoutManagement;
+use Elme\Checkout\Model\Details\QuoteDetails;
 use Elme\Checkout\Model\Method\QuotePaymentMethod;
 use Elme\Checkout\Model\Method\QuoteShippingMethod;
 use Elme\Checkout\Model\PlaceOrderValidatorPool;
@@ -53,7 +54,8 @@ class CheckoutManagementPlaceOrderTest extends TestCase
             $this->createStub(QuotePaymentMethod::class),
             $this->cartManagement,
             $this->lockManager,
-            $quoteFactory
+            $quoteFactory,
+            $this->createStub(QuoteDetails::class)
         );
     }
 
