@@ -45,19 +45,21 @@
                                as="form"
                                template="Elme_Checkout::section/address/form.phtml"/>
                     </block>
-                    <!-- BE-03, BE-05 replace these placeholders with the real sections -->
-                    <block name="elme.checkout.section.delivery" template="Elme_Checkout::section/placeholder.phtml">
+                    <block name="elme.checkout.section.delivery" template="Elme_Checkout::section/delivery.phtml">
                         <arguments>
                             <argument name="number" xsi:type="number">2</argument>
-                            <argument name="title" xsi:type="string" translate="true">Delivery</argument>
                         </arguments>
                     </block>
-                    <block name="elme.checkout.section.payment" template="Elme_Checkout::section/placeholder.phtml">
+                    <block name="elme.checkout.section.payment" template="Elme_Checkout::section/payment.phtml">
                         <arguments>
                             <argument name="number" xsi:type="number">3</argument>
-                            <argument name="title" xsi:type="string" translate="true">Payment</argument>
                         </arguments>
+                        <!-- Payment renderers: the alias is the method code, "default" takes every other method -->
+                        <block name="elme.checkout.section.payment.renderer.default"
+                               as="default"
+                               template="Elme_Checkout::section/payment/method.phtml"/>
                     </block>
+                    <!-- BE-05 replaces this placeholder with the real section -->
                     <block name="elme.checkout.section.details" template="Elme_Checkout::section/placeholder.phtml">
                         <arguments>
                             <argument name="number" xsi:type="number">4</argument>

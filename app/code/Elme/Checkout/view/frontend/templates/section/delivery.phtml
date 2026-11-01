@@ -1,0 +1,99 @@
+<?php
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\StoreContact;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$contact = $viewModels->require(StoreContact::class);
+?>
+<section class="border border-divider bg-surface p-4 lg:p-6" x-data="elmeCheckoutDelivery">
+    <div class="flex items-center gap-4">
+        <span class="flex size-8 shrink-0 items-center justify-center bg-primary text-copy text-on-primary" aria-hidden="true">
+            <?= (int) $block->getData('number') ?>
+        </span>
+        <h2 class="text-h3 lg:text-h3-desktop"><?= $escaper->escapeHtml(__('Delivery')) ?></h2>
+    </div>
+
+    <p class="mt-4 text-copy text-error-strong" role="alert" x-show="error" x-cloak x-text="error"></p>
+    <p class="mt-4 text-copy text-ink-muted" x-show="locked" x-cloak x-text="locked"></p>
+
+    <p class="mt-4 text-copy text-ink" x-show="hasNoRates" x-cloak>
+        <?= $escaper->escapeHtml(__("We can't deliver to this address online, please call us")) ?>:
+        <a class="underline" href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>">
+            <?= $escaper->escapeHtml($contact->getPhoneDisplay()) ?>
+        </a>
+    </p>
+
+    <fieldset class="mt-4" x-show="hasRates" x-cloak>
+        <legend class="sr-only"><?= $escaper->escapeHtml(__('Delivery method')) ?></legend>
+        <div class="grid gap-3">
+            <template x-for="rate in rates" :key="rate.code">
+                <label class="flex cursor-pointer gap-3 border border-divider p-4 transition-colors duration-fast hover:border-primary has-checked:border-primary has-checked:bg-surface-muted has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-ink">
+                    <input type="radio"
+                           class="mt-1 shrink-0"
+                           name="delivery_method"
+                           :value="rate.code"
+                           :checked="isChecked"
+                           @change="pick">
+                    <span class="min-w-0 flex-1 text-copy text-ink">
+                        <span class="block font-semibold" x-text="rate.carrier_title"></span>
+                        <span class="block" x-text="rate.method_title"></span>
+                    </span>
+                    <span class="shrink-0 text-right text-copy text-ink">
+                        <span class="block font-semibold" x-text="rate.price_formatted"></span>
+                        <span class="block text-note text-ink-muted"><?= $escaper->escapeHtml(__('ex GST')) ?></span>
+                    </span>
+                </label>
+            </template>
+        </div>
+    </fieldset>
+</section>
+<script>
+    function elmeCheckoutDelivery() {
+        return {
+            store() {
+                return Alpine.store('elmeCheckout');
+            },
+            data() {
+                return this.store().section('delivery') || {};
+            },
+            rates() {
+                return this.data().rates || [];
+            },
+            error() {
+                return this.store().sectionError('delivery');
+            },
+            locked() {
+                return this.data().locked || '';
+            },
+            hasRates() {
+                return this.rates().length > 0;
+            },
+            hasNoRates() {
+                return Boolean(this.store().section('delivery')) && !this.locked() && !this.hasRates();
+            },
+            isChecked() {
+                return this.rate.code === (this.store().pickedCode('delivery') ?? this.data().selected);
+            },
+            pick() {
+                this.store().pick(
+                    'shippingmethod',
+                    this.rate.code,
+                    {carrier_code: this.rate.carrier_code, method_code: this.rate.method_code},
+                    'delivery'
+                );
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('elmeCheckoutDelivery', elmeCheckoutDelivery), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

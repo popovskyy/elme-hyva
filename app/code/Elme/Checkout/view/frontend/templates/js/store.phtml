@@ -21,6 +21,8 @@ use Magento\Framework\Escaper;
             state,
             actionUrl: root.dataset.actionUrl,
             loading: {},
+            queue: Promise.resolve(),
+            picks: {},
             sectionErrors: state.errors,
             fieldErrors: {},
             message: '',
@@ -41,13 +43,52 @@ use Magento\Framework\Escaper;
                 return Boolean(this.loading[code]);
             },
 
+            pickedCode(sectionCode) {
+                return this.picks[sectionCode]?.code;
+            },
+
             /**
+             * Runs one action at a time: every answer is a full state, so the answer to the last change must land last.
+             *
              * @param {string} action e.g. "state", the last part of the controller URL
              * @param {Object} data sent as JSON in the "data" field
              * @param {string} sectionCode section that shows the loading flag and takes the errors
              * @returns {Promise<boolean>} true when the server accepted the change
              */
-            async call(action, data = {}, sectionCode = '') {
+            call(action, data = {}, sectionCode = '') {
+                const result = this.queue.then(() => this.send(action, data, sectionCode));
+                this.queue = result;
+
+                return result;
+            },
+
+            /**
+             * For a radio list that saves on every pick: arrow keys walk through the radios and each step is a pick.
+             * While one save runs only the latest pick is kept, so the last one always wins.
+             *
+             * @param {string} action
+             * @param {string} code what the list shows as checked until the save is done, see pickedCode()
+             * @param {Object} data
+             * @param {string} sectionCode
+             */
+            async pick(action, code, data, sectionCode) {
+                const isSaving = Boolean(this.picks[sectionCode]);
+                this.picks[sectionCode] = {code, data};
+                if (isSaving) {
+                    return;
+                }
+
+                let current;
+                let saved;
+                do {
+                    current = this.picks[sectionCode];
+                    saved = await this.call(action, current.data, sectionCode);
+                } while (saved && this.picks[sectionCode] !== current);
+
+                delete this.picks[sectionCode];
+            },
+
+            async send(action, data, sectionCode) {
                 this.loading[sectionCode] = true;
                 this.fieldErrors = {};
                 this.message = '';

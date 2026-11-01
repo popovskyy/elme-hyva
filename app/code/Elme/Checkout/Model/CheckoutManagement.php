@@ -7,11 +7,13 @@ namespace Elme\Checkout\Model;
 use Elme\Checkout\Api\CheckoutManagementInterface;
 use Elme\Checkout\Api\Data\CheckoutStateInterface;
 use Elme\Checkout\Model\Address\QuoteAddresses;
+use Elme\Checkout\Model\Method\QuotePaymentMethod;
+use Elme\Checkout\Model\Method\QuoteShippingMethod;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\CartRepositoryInterface;
 
 /**
- * The methods that throw are filled in by BE-03 (methods), BE-04 (place order), BE-05 (details).
+ * The methods that throw are filled in by BE-04 (place order), BE-05 (details).
  */
 class CheckoutManagement implements CheckoutManagementInterface
 {
@@ -19,7 +21,9 @@ class CheckoutManagement implements CheckoutManagementInterface
         private readonly CartRepositoryInterface $cartRepository,
         private readonly StateBuilder $stateBuilder,
         private readonly PlaceOrderValidatorPool $placeOrderValidators,
-        private readonly QuoteAddresses $quoteAddresses
+        private readonly QuoteAddresses $quoteAddresses,
+        private readonly QuoteShippingMethod $shippingMethod,
+        private readonly QuotePaymentMethod $paymentMethod
     ) {
     }
 
@@ -27,6 +31,8 @@ class CheckoutManagement implements CheckoutManagementInterface
     {
         $quote = $this->cartRepository->getActive($cartId);
         $this->quoteAddresses->initialize($quote);
+        $this->shippingMethod->refresh($quote);
+        $this->paymentMethod->refresh($quote);
 
         return $this->stateBuilder->build($quote);
     }
@@ -52,12 +58,16 @@ class CheckoutManagement implements CheckoutManagementInterface
 
     public function setShippingMethod(int $cartId, string $carrierCode, string $methodCode): CheckoutStateInterface
     {
-        throw $this->notImplemented(__FUNCTION__);
+        $this->shippingMethod->select($this->cartRepository->getActive($cartId), $carrierCode, $methodCode);
+
+        return $this->getState($cartId);
     }
 
     public function setPaymentMethod(int $cartId, string $method): CheckoutStateInterface
     {
-        throw $this->notImplemented(__FUNCTION__);
+        $this->paymentMethod->select($this->cartRepository->getActive($cartId), $method);
+
+        return $this->getState($cartId);
     }
 
     public function saveDetails(int $cartId, array $details): CheckoutStateInterface

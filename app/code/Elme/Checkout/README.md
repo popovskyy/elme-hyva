@@ -114,6 +114,38 @@ add it to `rowTitles` of `Model/Section/TotalsMapper` in `etc/di.xml`. A code in
 
 Country is fixed to AU: `general/country/allow` in `etc/config.xml`, `QuoteAddresses::COUNTRY_ID` on the address.
 
+## Delivery and payment methods
+
+`Model/Method/QuoteShippingMethod` and `QuotePaymentMethod` are the only writers of the quote's methods;
+`Model/Section/DeliveryProvider` and `PaymentProvider` read them.
+
+- **Every state checks the methods again** (`refresh()` in `getState()`): a method that is gone is cleared, a single rate
+  or method is chosen for the customer, and a new price of the chosen rate is saved. So an address or cart change needs
+  no code of its own. Nothing is saved when nothing changed.
+- **A new carrier needs no change here:** rates come from the active Magento carriers. A rate that only carries an error
+  (a carrier's "show method if not applicable") is not on offer.
+- **Rates go through `collectTotals()`:** the shipping total gives the address the qty and weight carriers charge by, and
+  these are not stored on a loaded address.
+- **Shipping assignment:** core keeps the method a quote was loaded with in a shipping assignment and applies it again
+  when the cart is saved. `QuoteShippingMethod` updates it as well, or a new choice would not stick.
+- **Locks:** Delivery needs a delivery address, Payment also needs a delivery method. The server says why in `locked` and
+  refuses the action.
+- **Place order:** `Model/Validator/DeliveryMethodSelected` and `PaymentMethodSelected` are the first two validators.
+
+Add a payment method with its own fields: a block in `elme.checkout.section.payment` with the method code as its alias.
+The template has one root element and runs inside the method loop, with `method` and the `isChecked` and `pick` of
+`elmeCheckoutPayment`. Every other method uses the `default` renderer.
+
+```xml
+<referenceBlock name="elme.checkout.section.payment">
+    <block name="elme.checkout.section.payment.renderer.account_credit"
+           as="account_credit"
+           template="Elme_Checkout::section/payment/account-credit.phtml"/>
+</referenceBlock>
+```
+
+Limit a method per customer with a plugin on `Magento\Payment\Model\MethodList::getAvailableMethods()`.
+
 ## GST
 
 `Setup/Patch/Data/CreateAuGstTaxRule` creates the AU 10% rate and rule for the default product and customer tax classes

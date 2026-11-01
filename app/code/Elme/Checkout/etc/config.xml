@@ -46,5 +46,11 @@
                 <zero_tax>0</zero_tax>
             </sales_display>
         </tax>
+        <payment>
+            <!-- The one way to pay until account credit and card methods arrive -->
+            <checkmo>
+                <active>1</active>
+            </checkmo>
+        </payment>
     </default>
 </config>
