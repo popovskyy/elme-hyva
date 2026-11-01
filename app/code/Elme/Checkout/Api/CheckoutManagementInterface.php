@@ -65,11 +65,12 @@ interface CheckoutManagementInterface
     public function saveDetails(int $cartId, array $details): CheckoutStateInterface;
 
     /**
-     * Runs the place-order validators, then places the order.
+     * Runs the place-order validators, then places the order. A second call for the same cart is refused.
      *
      * @param int $cartId
+     * @param mixed[] $input What the customer confirms with the order: "agreements" holds the accepted agreement ids
      * @return int Order id
      * @throws LocalizedException
      */
-    public function placeOrder(int $cartId): int;
+    public function placeOrder(int $cartId, array $input = []): int;
 }

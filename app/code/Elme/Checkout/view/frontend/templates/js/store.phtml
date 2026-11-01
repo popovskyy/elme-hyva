@@ -26,6 +26,10 @@ use Magento\Framework\Escaper;
             sectionErrors: state.errors,
             fieldErrors: {},
             message: '',
+            errorSection: '',
+            acceptedAgreements: {},
+            placing: false,
+            leaving: false,
 
             section(code) {
                 return this.state.sections[code] || null;
@@ -38,6 +42,18 @@ use Magento\Framework\Escaper;
             },
             clearFieldError(field) {
                 delete this.fieldErrors[field];
+            },
+            clearSectionError(code) {
+                delete this.sectionErrors[code];
+            },
+            isAgreementAccepted(id) {
+                return Boolean(this.acceptedAgreements[id]);
+            },
+            setAgreementAccepted(id, accepted) {
+                this.acceptedAgreements[id] = accepted;
+            },
+            isPlacing() {
+                return this.placing;
             },
             isLoading(code) {
                 return Boolean(this.loading[code]);
@@ -56,6 +72,11 @@ use Magento\Framework\Escaper;
              * @returns {Promise<boolean>} true when the server accepted the change
              */
             call(action, data = {}, sectionCode = '') {
+                // A change after Place order would land on a cart that is an order by then
+                if (this.placing && action !== 'placeorder') {
+                    return Promise.resolve(false);
+                }
+
                 const result = this.queue.then(() => this.send(action, data, sectionCode));
                 this.queue = result;
 
@@ -88,10 +109,61 @@ use Magento\Framework\Escaper;
                 delete this.picks[sectionCode];
             },
 
+            /**
+             * The flag goes up before anything else, so double clicks and Enter spam send one request. It stays up while
+             * the browser goes to the success page. Changes made just before still go first, through the queue of call().
+             */
+            async placeOrder() {
+                if (this.placing) {
+                    return;
+                }
+                this.placing = true;
+
+                const agreements = Object.keys(this.acceptedAgreements).filter((id) => this.acceptedAgreements[id]);
+                await this.call('placeorder', {agreements}, 'placeorder');
+
+                if (!this.leaving) {
+                    this.placing = false;
+                    this.showError();
+                }
+            },
+
+            /**
+             * Takes the customer to what the server refused: the first invalid field of the section (else its first
+             * control, else the section itself), or the message at the top. x-show reveals in a timeout of its own, which
+             * nextTick does not wait for, and a hidden element takes no focus: look again each frame until it is there.
+             */
+            showError(framesLeft = 20) {
+                requestAnimationFrame(() => {
+                    const root = this.errorSection
+                        ? document.querySelector(`[data-checkout-section="${this.errorSection}"]`)
+                        : document.getElementById('elme-checkout-message');
+                    const isShown = (element) => element.getClientRects().length > 0;
+                    if (!root || !isShown(root)) {
+                        if (framesLeft > 0) {
+                            this.showError(framesLeft - 1);
+                        }
+                        return;
+                    }
+
+                    const target = [...root.querySelectorAll('[aria-invalid="true"]')].find(isShown)
+                        || [...root.querySelectorAll('input, select, textarea, button')].find(isShown)
+                        || root;
+                    if (target === root) {
+                        root.setAttribute('tabindex', '-1');
+                    }
+
+                    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+                    root.scrollIntoView({block: 'start', behavior});
+                    target.focus({preventScroll: true});
+                });
+            },
+
             async send(action, data, sectionCode) {
                 this.loading[sectionCode] = true;
                 this.fieldErrors = {};
                 this.message = '';
+                this.errorSection = '';
 
                 try {
                     const response = await fetch(`${this.actionUrl}${action}`, {
@@ -103,6 +175,7 @@ use Magento\Framework\Escaper;
                     const result = await response.json();
 
                     if (result.redirect) {
+                        this.leaving = true;
                         window.location.assign(result.redirect);
                         return false;
                     }
@@ -112,9 +185,14 @@ use Magento\Framework\Escaper;
                         return true;
                     }
 
+                    if (result.state) {
+                        this.state = result.state;
+                        this.sectionErrors = result.state.errors;
+                    }
                     this.fieldErrors = result.field_errors || {};
                     if (result.section) {
                         this.sectionErrors = {...this.sectionErrors, [result.section]: result.message};
+                        this.errorSection = result.section;
                     } else {
                         this.message = result.message;
                     }
@@ -129,14 +207,38 @@ use Magento\Framework\Escaper;
         };
     }
 
+    /**
+     * A Place order button; there is one at the end of the sections and one in the bar for phones.
+     */
+    function elmeCheckoutPlaceOrderButton() {
+        return {
+            isPlacing() {
+                return Alpine.store('elmeCheckout').isPlacing();
+            },
+            isIdle() {
+                return !this.isPlacing();
+            },
+            ariaBusy() {
+                return this.isPlacing() ? 'true' : 'false';
+            },
+            place() {
+                Alpine.store('elmeCheckout').placeOrder();
+            }
+        };
+    }
+
     window.addEventListener('alpine:init', () => {
         Alpine.store('elmeCheckout', elmeCheckoutStore());
+        Alpine.data('elmeCheckoutPlaceOrderButton', elmeCheckoutPlaceOrderButton);
     }, {once: true});
 
-    // A page restored from the back/forward cache may show an old cart
+    // A page restored from the back/forward cache may show an old cart, and may still be on its way to the success page
     window.addEventListener('pageshow', (event) => {
         if (event.persisted) {
-            Alpine.store('elmeCheckout').call('state');
+            const store = Alpine.store('elmeCheckout');
+            store.placing = false;
+            store.leaving = false;
+            store.call('state');
         }
     });
 </script>

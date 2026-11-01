@@ -66,7 +66,19 @@
                             <argument name="title" xsi:type="string" translate="true">Order details</argument>
                         </arguments>
                     </block>
+                    <block name="elme.checkout.place_order" template="Elme_Checkout::section/place-order.phtml">
+                        <block name="elme.checkout.place_order.button"
+                               as="button"
+                               template="Elme_Checkout::section/place-order/button.phtml"/>
+                    </block>
                 </container>
+
+                <!-- Phones and tablets: the total and Place order stay in view at the bottom -->
+                <block name="elme.checkout.place_order.bar" template="Elme_Checkout::place-order-bar.phtml">
+                    <block name="elme.checkout.place_order.bar.button"
+                           as="button"
+                           template="Elme_Checkout::section/place-order/button.phtml"/>
+                </block>
 
                 <block name="elme.checkout.summary" template="Elme_Checkout::section/summary.phtml">
                     <!-- One row template per total segment: the alias is TotalsMapper's "row" -->

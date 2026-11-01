@@ -134,6 +134,11 @@ class QuoteShippingMethod
         return (string) $quote->getShippingAddress()->getShippingMethod();
     }
 
+    public function getSavedPrice(Quote $quote): float
+    {
+        return (float) $quote->getShippingAddress()->getBaseShippingAmount();
+    }
+
     /**
      * Why the section cannot be used yet, null when it can.
      */

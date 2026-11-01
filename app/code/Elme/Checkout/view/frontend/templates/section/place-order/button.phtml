@@ -1,0 +1,22 @@
+<?php
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+?>
+<button type="button"
+        class="btn btn-primary"
+        data-place-order
+        x-data="elmeCheckoutPlaceOrderButton"
+        :disabled="isPlacing"
+        :aria-busy="ariaBusy"
+        @click="place">
+    <span class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none"
+          aria-hidden="true"
+          x-show="isPlacing"
+          x-cloak></span>
+    <span x-show="isIdle"><?= $escaper->escapeHtml(__('Place order')) ?></span>
+    <span x-show="isPlacing" x-cloak><?= $escaper->escapeHtml(__('Placing order...')) ?></span>
+</button>

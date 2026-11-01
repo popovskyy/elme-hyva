@@ -10,7 +10,7 @@ use Magento\Framework\View\Element\Template;
 /** @var Escaper $escaper */
 /** @var HyvaCsp $hyvaCsp */
 ?>
-<section class="border border-divider bg-surface p-4 lg:p-6" x-data="elmeCheckoutAddress">
+<section class="scroll-mt-4 border border-divider bg-surface p-4 lg:p-6" data-checkout-section="address" x-data="elmeCheckoutAddress">
     <div class="flex items-center gap-4">
         <span class="flex size-8 shrink-0 items-center justify-center bg-primary text-copy text-on-primary" aria-hidden="true">
             <?= (int) $block->getData('number') ?>
