@@ -96,7 +96,7 @@
             </table>
             {{depend delivery_instructions}}
             <h3>{{trans "Delivery instructions"}}</h3>
-            <p>{{var delivery_instructions|escape|nl2br}}</p>
+            <p style="overflow-wrap: anywhere; word-break: break-word;">{{var delivery_instructions|escape|nl2br}}</p>
             {{/depend}}
             {{layout handle="sales_email_order_items" order_id=$order_id area="frontend"}}
         </td>

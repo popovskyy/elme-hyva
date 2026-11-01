@@ -18,6 +18,6 @@ $instructions = $viewModel->getDeliveryInstructions();
 <?php if ($instructions !== ''): ?>
     <tr>
         <th><?= $escaper->escapeHtml(__('Delivery instructions')) ?></th>
-        <td><?= /* @noEscape */ nl2br($escaper->escapeHtml($instructions)) ?></td>
+        <td style="overflow-wrap: anywhere;"><?= /* @noEscape */ nl2br($escaper->escapeHtml($instructions)) ?></td>
     </tr>
 <?php endif; ?>

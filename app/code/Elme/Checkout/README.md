@@ -202,3 +202,6 @@ cd app/code/Elme/Checkout/Test/Playwright
 npm install && npx playwright install chromium
 npm test
 ```
+
+The admin part of the long link test runs only with `ADMIN_PASSWORD` set (and `ADMIN_USER`, default `admin`); without it
+that test ends as skipped once its My Orders and email checks have passed.

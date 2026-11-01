@@ -145,6 +145,50 @@ test('the last change goes with the order, even with the focus still in the fiel
     await expect(page.locator('[data-order-details]')).toContainText(instructions);
 });
 
+test('a long link in the instructions wraps in My Orders, the email and admin', async ({ page, request, browser }) => {
+    const link = `https://www.google.com/maps/place/${'a'.repeat(216)}`;
+    const hasSideScroll = (target) => target.evaluate(
+        () => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+    );
+
+    await login(page);
+    await addProduct(page);
+    await openCheckout(page);
+    await chooseMethods(page);
+    await instructionsField(page).fill(link);
+    await placeOrderButton(page).click();
+    await expect(page).toHaveURL(/checkout\/onepage\/success/, { timeout: 60_000 });
+    const number = orderNumber(await page.locator('#maincontent').innerText());
+
+    await page.setViewportSize({ width: 390, height: 800 });
+    await page.goto('/sales/order/history');
+    await page.locator('#maincontent').getByRole('link', { name: /view/i }).first().click();
+    await expect(page.locator('[data-order-details]')).toContainText(link);
+    expect(await hasSideScroll(page)).toBe(false);
+    const orderId = page.url().match(/order_id\/(\d+)/)[1];
+
+    const phone = await browser.newPage({ viewport: { width: 390, height: 800 } });
+    await phone.setContent(await findEmailHtml(request, number));
+    expect(await hasSideScroll(phone)).toBe(false);
+    await phone.close();
+
+    test.skip(!process.env.ADMIN_PASSWORD, 'ADMIN_USER and ADMIN_PASSWORD are needed for the admin check');
+    const admin = await browser.newPage({
+        baseURL: test.info().project.use.baseURL,
+        ignoreHTTPSErrors: true,
+        viewport: { width: 1440, height: 1000 },
+    });
+    await admin.goto('/admin');
+    await admin.locator('#username').fill(process.env.ADMIN_USER || 'admin');
+    await admin.locator('#login').fill(process.env.ADMIN_PASSWORD);
+    await admin.locator('.action-login').click();
+    await admin.waitForLoadState('load');
+    await admin.goto(`/admin/sales/order/view/order_id/${orderId}`);
+    await expect(admin.locator('.order-account-information')).toContainText(link);
+    expect(await hasSideScroll(admin)).toBe(false);
+    await admin.close();
+});
+
 test('empty order details leave no empty labels', async ({ page, request }) => {
     await login(page);
     await addProduct(page);
