@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Elme\Checkout\Api\CheckoutManagementInterface" type="Elme\Checkout\Model\CheckoutManagement"/>
+    <preference for="Elme\Checkout\Api\Data\CheckoutStateInterface" type="Elme\Checkout\Model\CheckoutState"/>
+
+    <!-- Sections of the checkout state; the item name is the section code. See README.md -->
+    <type name="Elme\Checkout\Model\StateBuilder">
+        <arguments>
+            <argument name="providers" xsi:type="array">
+                <item name="summary" xsi:type="array">
+                    <item name="sortOrder" xsi:type="number">10</item>
+                    <item name="provider" xsi:type="object">Elme\Checkout\Model\Section\SummaryProvider</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Checks before place order; the item name identifies the check. See README.md -->
+    <type name="Elme\Checkout\Model\PlaceOrderValidatorPool">
+        <arguments>
+            <argument name="validators" xsi:type="array"/>
+        </arguments>
+    </type>
+
+    <!-- Total segments with their own row block in checkout_index_index.xml; others use the generic row -->
+    <type name="Elme\Checkout\Model\Section\TotalsMapper">
+        <arguments>
+            <argument name="rowTitles" xsi:type="array">
+                <item name="subtotal" xsi:type="string">Subtotal (ex GST)</item>
+                <item name="shipping" xsi:type="string">Shipping</item>
+                <item name="tax" xsi:type="string">GST</item>
+                <item name="grand_total" xsi:type="string">Total (incl GST)</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

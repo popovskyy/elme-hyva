@@ -1,0 +1,129 @@
+<?php
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+?>
+<section class="border border-divider bg-surface" x-data="elmeCheckoutSummary">
+    <h2 class="hidden p-6 pb-0 text-h3-desktop lg:block">
+        <?= $escaper->escapeHtml(__('Order summary')) ?>
+    </h2>
+
+    <h2 class="lg:hidden">
+        <button type="button"
+                class="flex w-full items-center justify-between gap-3 p-4 text-left"
+                aria-controls="elme-checkout-summary-panel"
+                :aria-expanded="ariaExpanded"
+                @click="toggle">
+            <span class="text-h3"><?= $escaper->escapeHtml(__('Order summary')) ?></span>
+            <span class="ml-auto font-semibold" x-text="grandTotal"></span>
+            <span class="shrink-0 transition-transform duration-fast"
+                  :class="chevronClasses"
+                  aria-hidden="true">
+                <?= $heroicons->chevronDownHtml('', 20, 20) ?>
+            </span>
+        </button>
+    </h2>
+
+    <div id="elme-checkout-summary-panel" class="hidden p-4 pt-0 lg:block lg:p-6 lg:pt-4" :class="panelClasses">
+        <p class="text-copy text-error-strong" role="alert" x-show="error" x-text="error"></p>
+
+        <ul class="divide-y divide-divider lg:max-h-[50vh] lg:overflow-y-auto">
+            <template x-for="item in items" :key="item.id">
+                <li class="flex gap-3 py-3">
+                    <template x-if="item.image">
+                        <img class="size-16 shrink-0 object-contain"
+                             :src="item.image.src"
+                             :alt="item.image.alt"
+                             width="64"
+                             height="64"
+                             loading="lazy">
+                    </template>
+                    <div class="min-w-0 flex-1 text-copy">
+                        <p class="font-semibold text-ink" x-text="item.name"></p>
+                        <p class="text-note text-ink-muted" x-text="item.sku"></p>
+                        <template x-for="option in item.options" :key="option.label">
+                            <p class="text-note text-ink-muted">
+                                <span x-text="option.label"></span>:
+                                <span x-text="option.value"></span>
+                            </p>
+                        </template>
+                        <p class="text-note text-ink-muted">
+                            <?= $escaper->escapeHtml(__('Qty')) ?>:
+                            <span x-text="item.qty"></span>
+                        </p>
+                    </div>
+                    <p class="shrink-0 text-copy text-ink" x-text="item.row_total_formatted"></p>
+                </li>
+            </template>
+        </ul>
+
+        <p class="border-t border-divider py-3 text-copy">
+            <a class="underline" href="<?= $escaper->escapeUrl($block->getUrl('checkout/cart')) ?>">
+                <?= $escaper->escapeHtml(__('Edit cart')) ?>
+            </a>
+        </p>
+
+        <div class="border-t border-divider pt-3 text-copy">
+            <template x-for="segment in totals" :key="segment.code">
+                <div>
+                    <?php foreach ($block->getChildNames() as $childName): ?>
+                        <template x-if="isRow" data-row="<?= $escaper->escapeHtmlAttr($block->getLayout()->getElementAlias($childName)) ?>">
+                            <?= $block->getLayout()->renderElement($childName) ?>
+                        </template>
+                    <?php endforeach; ?>
+                </div>
+            </template>
+        </div>
+    </div>
+</section>
+<script>
+    function elmeCheckoutSummary() {
+        return {
+            open: false,
+            summary() {
+                return Alpine.store('elmeCheckout').section('summary') || {};
+            },
+            items() {
+                return this.summary().items || [];
+            },
+            totals() {
+                return this.summary().totals || [];
+            },
+            grandTotal() {
+                return this.summary().grand_total_formatted || '';
+            },
+            error() {
+                return Alpine.store('elmeCheckout').sectionError('summary');
+            },
+            isRow() {
+                return this.segment.row === this.$el.dataset.row;
+            },
+            toggle() {
+                this.open = !this.open;
+            },
+            ariaExpanded() {
+                return this.open ? 'true' : 'false';
+            },
+            chevronClasses() {
+                return {'rotate-180': this.open};
+            },
+            panelClasses() {
+                return {'hidden': !this.open};
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('elmeCheckoutSummary', elmeCheckoutSummary), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

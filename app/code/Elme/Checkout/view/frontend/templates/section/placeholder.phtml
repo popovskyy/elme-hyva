@@ -1,0 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+?>
+<section class="flex items-center gap-4 border border-divider bg-surface p-4 lg:p-6">
+    <span class="flex size-8 shrink-0 items-center justify-center bg-primary text-copy text-on-primary" aria-hidden="true">
+        <?= (int) $block->getData('number') ?>
+    </span>
+    <h2 class="text-h3 lg:text-h3-desktop"><?= $escaper->escapeHtml($block->getData('title')) ?></h2>
+</section>

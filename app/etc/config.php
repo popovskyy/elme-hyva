@@ -362,6 +362,7 @@ return [
         'Magento_WishlistGraphQl' => 1,
         'Bart_ContentStudio' => 1,
         'Hyva_Theme' => 1,
+        'Elme_ContactForm' => 1,
         'Elme_LoginOnly' => 1,
         'Elme_Newsletter' => 1,
         'Elme_Styleguide' => 1,
@@ -370,7 +371,7 @@ return [
         'Hyva_BaseLayoutReset' => 1,
         'Hyva_Email' => 1,
         'Hyva_OrderCancellationWebapi' => 1,
-        'Elme_ContactForm' => 1,
+        'Elme_Theme' => 1,
         'PayPal_Braintree' => 1,
         'PayPal_BraintreeCustomerBalance' => 1,
         'PayPal_BraintreeGiftCard' => 1,
@@ -378,6 +379,6 @@ return [
         'PayPal_BraintreeGiftWrapping' => 1,
         'PayPal_BraintreeGraphQl' => 1,
         'PayPal_BraintreeReward' => 1,
-        'Elme_Theme' => 1
+        'Elme_Checkout' => 1
     ]
 ];
