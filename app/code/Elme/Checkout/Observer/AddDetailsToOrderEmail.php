@@ -19,8 +19,7 @@ class AddDetailsToOrderEmail implements ObserverInterface
         $transport = $observer->getData('transportObject');
         $order = $transport->getData('order');
 
-        foreach ([OrderDetailsInterface::CUSTOMER_REFERENCE, OrderDetailsInterface::DELIVERY_INSTRUCTIONS] as $field) {
-            $transport->setData($field, (string) $order->getData($field));
-        }
+        $field = OrderDetailsInterface::DELIVERY_INSTRUCTIONS;
+        $transport->setData($field, (string) $order->getData($field));
     }
 }

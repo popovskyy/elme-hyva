@@ -3,7 +3,7 @@
  * Copyright 2015 Adobe
  * All Rights Reserved.
  *
- * Elme: core template plus the order reference and delivery instructions.
+ * Elme: core template plus the delivery instructions.
  */
 -->
 <!--@subject {{trans "Your %store_name order confirmation" store_name=$store.frontend_name}} @-->
@@ -26,7 +26,6 @@
 "var order":"Order",
 "var order_id": "Order DB Id",
 "var order_data.customer_name":"Customer Name",
-"var customer_reference":"Customer Reference / PO",
 "var delivery_instructions|escape|nl2br":"Delivery Instructions"
 } @-->
 
@@ -95,10 +94,6 @@
                     {{/depend}}
                 </tr>
             </table>
-            {{depend customer_reference}}
-            <h3>{{trans "Your order reference / PO number"}}</h3>
-            <p>{{var customer_reference}}</p>
-            {{/depend}}
             {{depend delivery_instructions}}
             <h3>{{trans "Delivery instructions"}}</h3>
             <p>{{var delivery_instructions|escape|nl2br}}</p>

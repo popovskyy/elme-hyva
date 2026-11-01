@@ -10,24 +10,13 @@ use Magento\Framework\Escaper;
 /** @var ViewModelRegistry $viewModels */
 
 $details = $viewModels->require(OrderDetails::class);
-$reference = $details->getCustomerReference();
 $instructions = $details->getDeliveryInstructions();
 
-if ($reference === '' && $instructions === '') {
+if ($instructions === '') {
     return;
 }
 ?>
-<dl class="grid gap-4 pt-4 md:grid-cols-2" data-order-details>
-    <?php if ($reference !== ''): ?>
-        <div class="min-w-0">
-            <dt class="mb-1 font-semibold"><?= $escaper->escapeHtml(__('Your order reference / PO number')) ?></dt>
-            <dd class="break-words"><?= $escaper->escapeHtml($reference) ?></dd>
-        </div>
-    <?php endif; ?>
-    <?php if ($instructions !== ''): ?>
-        <div class="min-w-0">
-            <dt class="mb-1 font-semibold"><?= $escaper->escapeHtml(__('Delivery instructions')) ?></dt>
-            <dd class="break-words whitespace-pre-line"><?= $escaper->escapeHtml($instructions) ?></dd>
-        </div>
-    <?php endif; ?>
+<dl class="min-w-0 pt-4" data-order-details>
+    <dt class="mb-1 font-semibold"><?= $escaper->escapeHtml(__('Delivery instructions')) ?></dt>
+    <dd class="break-words whitespace-pre-line"><?= $escaper->escapeHtml($instructions) ?></dd>
 </dl>

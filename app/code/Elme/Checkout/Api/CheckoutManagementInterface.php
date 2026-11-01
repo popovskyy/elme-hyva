@@ -58,7 +58,7 @@ interface CheckoutManagementInterface
 
     /**
      * @param int $cartId
-     * @param string[] $details customer_reference and delivery_instructions; a field not given stays as it is
+     * @param string[] $details delivery_instructions; a field not given stays as it is
      * @return \Elme\Checkout\Api\Data\CheckoutStateInterface
      * @throws LocalizedException
      */

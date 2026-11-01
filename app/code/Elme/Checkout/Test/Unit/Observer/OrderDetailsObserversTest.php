@@ -16,23 +16,30 @@ class OrderDetailsObserversTest extends TestCase
     public function testOrderTakesTheDetailsOfTheQuote(): void
     {
         $order = new DataObject();
-        $quote = new DataObject(['customer_reference' => 'PO-1', 'delivery_instructions' => 'Front door']);
+        $quote = new DataObject(['delivery_instructions' => 'Front door']);
         $observer = new Observer(['event' => new Event(['order' => $order, 'quote' => $quote])]);
 
         (new CopyDetailsToOrder())->execute($observer);
 
-        $this->assertSame('PO-1', $order->getData('customer_reference'));
         $this->assertSame('Front door', $order->getData('delivery_instructions'));
     }
 
     public function testEmailGetsTheDetailsOfTheOrder(): void
     {
-        $order = new DataObject(['customer_reference' => 'PO-1']);
+        $order = new DataObject(['delivery_instructions' => 'Front door']);
         $transport = new DataObject(['order' => $order]);
 
         (new AddDetailsToOrderEmail())->execute(new Observer(['transportObject' => $transport]));
 
-        $this->assertSame('PO-1', $transport->getData('customer_reference'));
+        $this->assertSame('Front door', $transport->getData('delivery_instructions'));
+    }
+
+    public function testEmailGetsEmptyTextWhenTheOrderHasNoDetails(): void
+    {
+        $transport = new DataObject(['order' => new DataObject()]);
+
+        (new AddDetailsToOrderEmail())->execute(new Observer(['transportObject' => $transport]));
+
         $this->assertSame('', $transport->getData('delivery_instructions'));
     }
 }

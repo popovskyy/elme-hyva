@@ -43,7 +43,6 @@
     <virtualType name="Magento\Sales\Model\ResourceModel\Order\Grid" type="Magento\Sales\Model\ResourceModel\Grid">
         <arguments>
             <argument name="columns" xsi:type="array">
-                <item name="customer_reference" xsi:type="string">sales_order.customer_reference</item>
                 <item name="delivery_instructions" xsi:type="string">sales_order.delivery_instructions</item>
             </argument>
         </arguments>

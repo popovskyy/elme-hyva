@@ -33,41 +33,38 @@ class QuoteDetailsTest extends TestCase
         });
     }
 
-    public function testSavesTrimmedValues(): void
+    public function testSavesTrimmedValue(): void
     {
         $this->cartRepository->expects($this->once())->method('save')->with($this->quote);
 
-        $this->details->save($this->quote, [
-            'customer_reference' => "  PO-1\r\n",
-            'delivery_instructions' => " Front door\r\nRing twice ",
-        ]);
+        $this->details->save($this->quote, ['delivery_instructions' => " Front door\r\nRing twice "]);
 
-        $this->assertSame('PO-1', $this->data->getData('customer_reference'));
         $this->assertSame("Front door\nRing twice", $this->data->getData('delivery_instructions'));
     }
 
     public function testEmptyValueClearsTheField(): void
     {
-        $this->data->setData('customer_reference', 'PO-1');
+        $this->data->setData('delivery_instructions', 'Front door');
 
-        $this->details->save($this->quote, ['customer_reference' => '   ']);
+        $this->details->save($this->quote, ['delivery_instructions' => '   ']);
 
-        $this->assertNull($this->data->getData('customer_reference'));
+        $this->assertNull($this->data->getData('delivery_instructions'));
     }
 
     public function testNothingChangedIsNotSaved(): void
     {
-        $this->data->setData('customer_reference', 'PO-1');
+        $this->data->setData('delivery_instructions', 'Front door');
         $this->cartRepository->expects($this->never())->method('save');
 
-        $this->details->save($this->quote, ['customer_reference' => 'PO-1', 'delivery_instructions' => '']);
+        $this->details->save($this->quote, ['delivery_instructions' => 'Front door']);
     }
 
     public function testFieldNotGivenStaysAsItIs(): void
     {
         $this->data->setData('delivery_instructions', 'Front door');
+        $this->cartRepository->expects($this->never())->method('save');
 
-        $this->details->save($this->quote, ['customer_reference' => 'PO-1']);
+        $this->details->save($this->quote, []);
 
         $this->assertSame('Front door', $this->data->getData('delivery_instructions'));
     }
@@ -76,39 +73,28 @@ class QuoteDetailsTest extends TestCase
     {
         $this->cartRepository->expects($this->never())->method('save');
 
-        $this->details->save($this->quote, ['customer_reference' => ['PO-1']]);
+        $this->details->save($this->quote, ['delivery_instructions' => ['Front door']]);
     }
 
     public function testLengthCountsCharactersNotBytes(): void
     {
-        $this->details->save($this->quote, ['customer_reference' => str_repeat("\u{00e9}", 30)]);
+        $this->details->save($this->quote, ['delivery_instructions' => str_repeat("\u{00e9}", 250)]);
 
-        $this->assertSame(str_repeat("\u{00e9}", 30), $this->data->getData('customer_reference'));
-    }
-
-    public function testTooLongReferenceIsRefusedAndTheOtherFieldStillSaved(): void
-    {
-        $this->cartRepository->expects($this->once())->method('save');
-
-        try {
-            $this->details->save($this->quote, [
-                'customer_reference' => str_repeat('x', 31),
-                'delivery_instructions' => 'Front door',
-            ]);
-            $this->fail('A reference of 31 characters must be refused');
-        } catch (CheckoutInputException $exception) {
-            $this->assertSame('details', $exception->getSection());
-            $this->assertSame(['customer_reference'], array_keys($exception->getFieldErrors()));
-        }
-
-        $this->assertNull($this->data->getData('customer_reference'));
-        $this->assertSame('Front door', $this->data->getData('delivery_instructions'));
+        $this->assertSame(str_repeat("\u{00e9}", 250), $this->data->getData('delivery_instructions'));
     }
 
     public function testTooLongInstructionsAreRefused(): void
     {
-        $this->expectException(CheckoutInputException::class);
+        $this->cartRepository->expects($this->never())->method('save');
 
-        $this->details->save($this->quote, ['delivery_instructions' => str_repeat('x', 251)]);
+        try {
+            $this->details->save($this->quote, ['delivery_instructions' => str_repeat('x', 251)]);
+            $this->fail('Instructions of 251 characters must be refused');
+        } catch (CheckoutInputException $exception) {
+            $this->assertSame('details', $exception->getSection());
+            $this->assertSame(['delivery_instructions'], array_keys($exception->getFieldErrors()));
+        }
+
+        $this->assertNull($this->data->getData('delivery_instructions'));
     }
 }

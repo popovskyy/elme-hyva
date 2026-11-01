@@ -18,8 +18,7 @@ class CopyDetailsToOrder implements ObserverInterface
         $order = $observer->getEvent()->getData('order');
         $quote = $observer->getEvent()->getData('quote');
 
-        foreach ([OrderDetailsInterface::CUSTOMER_REFERENCE, OrderDetailsInterface::DELIVERY_INSTRUCTIONS] as $field) {
-            $order->setData($field, $quote->getData($field));
-        }
+        $field = OrderDetailsInterface::DELIVERY_INSTRUCTIONS;
+        $order->setData($field, $quote->getData($field));
     }
 }

@@ -18,8 +18,6 @@ class DetailsProvider implements SectionProviderInterface
     {
         /** @var Quote $quote */
         return [
-            OrderDetailsInterface::CUSTOMER_REFERENCE =>
-                (string) $quote->getData(OrderDetailsInterface::CUSTOMER_REFERENCE),
             OrderDetailsInterface::DELIVERY_INSTRUCTIONS =>
                 (string) $quote->getData(OrderDetailsInterface::DELIVERY_INSTRUCTIONS),
         ];

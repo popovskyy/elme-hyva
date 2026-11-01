@@ -72,42 +72,26 @@ async function findEmailHtml(request, number) {
 }
 
 const detailsSaved = (page) => page.waitForResponse((answer) => answer.url().includes('elme_checkout/action/details'));
-const referenceField = (page) => page.locator('#elme-checkout-reference');
 const instructionsField = (page) => page.locator('#elme-checkout-instructions');
 const placeOrderButton = (page) => page.locator('[data-checkout-section="agreements"] [data-place-order]');
 
 test('order details are kept, checked, and reach My Orders and the email', async ({ page, request }) => {
-    const reference = `PO-${Date.now()}`;
-
     await login(page);
     await addProduct(page);
     await openCheckout(page);
     await chooseMethods(page);
+    await expect(page.locator('#elme-checkout-reference')).toHaveCount(0);
 
     const saved = detailsSaved(page);
-    await referenceField(page).fill(`  ${reference}  `);
-    await instructionsField(page).fill('<b>Front door</b>\nRing twice');
+    await instructionsField(page).fill('  <b>Front door</b>\nRing twice  ');
     await instructionsField(page).blur();
     await saved;
-    await expect(referenceField(page)).toHaveValue(reference);
+    await expect(instructionsField(page)).toHaveValue('<b>Front door</b>\nRing twice');
     await expect(page.locator('#elme-checkout-instructions-counter')).toHaveText('28 / 250');
     await page.waitForLoadState('networkidle');
 
     await openCheckout(page);
-    await expect(referenceField(page)).toHaveValue(reference);
     await expect(instructionsField(page)).toHaveValue('<b>Front door</b>\nRing twice');
-
-    await referenceField(page).fill('x'.repeat(31));
-    await expect(page.locator('#elme-checkout-reference-error')).toContainText('up to 30 characters');
-    await expect(referenceField(page)).toHaveAttribute('aria-invalid', 'true');
-
-    await placeOrderButton(page).click();
-    await expect(referenceField(page)).toBeFocused();
-    await expect(page).toHaveURL(/\/checkout/);
-    await expect(page.locator('#elme-checkout-reference-error')).toBeVisible();
-
-    await referenceField(page).fill(reference);
-    await expect(page.locator('#elme-checkout-reference-error')).toBeHidden();
 
     await instructionsField(page).fill('');
     await instructionsField(page).focus();
@@ -115,7 +99,19 @@ test('order details are kept, checked, and reach My Orders and the email', async
     await expect(instructionsField(page)).toHaveValue('y'.repeat(250));
     await expect(page.locator('#elme-checkout-instructions-counter')).toHaveText('250 / 250');
 
+    // maxlength stops a person, so only a tampered page gets here: the server still refuses it and stops the order
+    await instructionsField(page).evaluate((field) => field.removeAttribute('maxlength'));
+    await instructionsField(page).fill('z'.repeat(251));
+    await expect(page.locator('#elme-checkout-instructions-error')).toContainText('up to 250 characters');
+    await expect(instructionsField(page)).toHaveAttribute('aria-invalid', 'true');
+
+    await placeOrderButton(page).click();
+    await expect(instructionsField(page)).toBeFocused();
+    await expect(page).toHaveURL(/\/checkout/);
+    await expect(page.locator('#elme-checkout-instructions-error')).toBeVisible();
+
     await instructionsField(page).fill('<b>Front door</b>\nRing twice');
+    await expect(page.locator('#elme-checkout-instructions-error')).toBeHidden();
     await chooseMethods(page);
     await placeOrderButton(page).click();
     await expect(page).toHaveURL(/checkout\/onepage\/success/, { timeout: 60_000 });
@@ -124,31 +120,29 @@ test('order details are kept, checked, and reach My Orders and the email', async
     await page.goto('/sales/order/history');
     await page.locator('#maincontent').getByRole('link', { name: /view/i }).first().click();
     const details = page.locator('[data-order-details]');
-    await expect(details).toContainText(reference);
     await expect(details).toContainText('<b>Front door</b>');
     await expect(details.locator('b')).toHaveCount(0);
 
     const email = await findEmailHtml(request, number);
-    expect(email).toContain(reference);
     expect(email).toContain('&lt;b&gt;Front door&lt;/b&gt;');
     expect(email).toContain('Ring twice');
 });
 
 test('the last change goes with the order, even with the focus still in the field', async ({ page }) => {
-    const reference = `PO-${Date.now()}`;
+    const instructions = `Gate code ${Date.now()}`;
 
     await login(page);
     await addProduct(page);
     await openCheckout(page);
     await chooseMethods(page);
 
-    await referenceField(page).fill(reference);
+    await instructionsField(page).fill(instructions);
     await placeOrderButton(page).dispatchEvent('click');
 
     await expect(page).toHaveURL(/checkout\/onepage\/success/, { timeout: 60_000 });
     await page.goto('/sales/order/history');
     await page.locator('#maincontent').getByRole('link', { name: /view/i }).first().click();
-    await expect(page.locator('[data-order-details]')).toContainText(reference);
+    await expect(page.locator('[data-order-details]')).toContainText(instructions);
 });
 
 test('empty order details leave no empty labels', async ({ page, request }) => {
@@ -156,7 +150,7 @@ test('empty order details leave no empty labels', async ({ page, request }) => {
     await addProduct(page);
     await openCheckout(page);
     await chooseMethods(page);
-    await expect(referenceField(page)).toHaveValue('');
+    await expect(instructionsField(page)).toHaveValue('');
 
     await placeOrderButton(page).click();
     await expect(page).toHaveURL(/checkout\/onepage\/success/, { timeout: 60_000 });
@@ -168,7 +162,6 @@ test('empty order details leave no empty labels', async ({ page, request }) => {
     await expect(page.locator('[data-order-details]')).toHaveCount(0);
 
     const email = await findEmailHtml(request, number);
-    expect(email).not.toContain('order reference');
     expect(email).not.toContain('Delivery instructions');
 });
 

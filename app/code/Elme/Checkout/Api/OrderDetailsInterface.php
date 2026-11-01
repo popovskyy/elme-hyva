@@ -10,8 +10,6 @@ namespace Elme\Checkout\Api;
  */
 interface OrderDetailsInterface
 {
-    public const CUSTOMER_REFERENCE = 'customer_reference';
-    public const CUSTOMER_REFERENCE_MAX_LENGTH = 30;
     public const DELIVERY_INSTRUCTIONS = 'delivery_instructions';
     public const DELIVERY_INSTRUCTIONS_MAX_LENGTH = 250;
 }

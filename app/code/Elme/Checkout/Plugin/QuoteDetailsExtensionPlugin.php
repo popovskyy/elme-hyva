@@ -44,7 +44,6 @@ class QuoteDetailsExtensionPlugin
     {
         /** @var Quote $quote */
         $extension = $quote->getExtensionAttributes();
-        $extension->setCustomerReference($quote->getData(OrderDetailsInterface::CUSTOMER_REFERENCE));
         $extension->setDeliveryInstructions($quote->getData(OrderDetailsInterface::DELIVERY_INSTRUCTIONS));
         $quote->setExtensionAttributes($extension);
 

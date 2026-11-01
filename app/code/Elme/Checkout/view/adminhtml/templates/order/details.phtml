@@ -11,17 +11,10 @@ use Magento\Framework\Escaper;
 /** @var OrderDetails $viewModel */
 
 $viewModel = $block->getData('view_model');
-$reference = $viewModel->getCustomerReference();
 $instructions = $viewModel->getDeliveryInstructions();
 
-// Rows of the Account Information table
+// A row of the Account Information table
 ?>
-<?php if ($reference !== ''): ?>
-    <tr>
-        <th><?= $escaper->escapeHtml(__('Customer reference / PO')) ?></th>
-        <td><?= $escaper->escapeHtml($reference) ?></td>
-    </tr>
-<?php endif; ?>
 <?php if ($instructions !== ''): ?>
     <tr>
         <th><?= $escaper->escapeHtml(__('Delivery instructions')) ?></th>

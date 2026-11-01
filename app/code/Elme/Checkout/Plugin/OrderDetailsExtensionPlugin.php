@@ -35,7 +35,6 @@ class OrderDetailsExtensionPlugin
     {
         /** @var Order $order */
         $extension = $order->getExtensionAttributes();
-        $extension->setCustomerReference($order->getData(OrderDetailsInterface::CUSTOMER_REFERENCE));
         $extension->setDeliveryInstructions($order->getData(OrderDetailsInterface::DELIVERY_INSTRUCTIONS));
         $order->setExtensionAttributes($extension);
 

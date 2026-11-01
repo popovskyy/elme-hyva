@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <!-- Before core's ordergrid_fulltext_fallback (sortOrder 10), which it replaces for the order grid -->
-    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\FulltextFilter">
-        <plugin name="elme_checkout_order_grid_search" type="Elme\Checkout\Plugin\OrderGridSearchPlugin" sortOrder="5"/>
-    </type>
-</config>

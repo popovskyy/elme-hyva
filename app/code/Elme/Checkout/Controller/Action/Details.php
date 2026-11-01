@@ -12,13 +12,12 @@ use Magento\Customer\Model\Url as CustomerUrl;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Data\Form\FormKey\Validator as FormKeyValidator;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\UrlInterface;
 use Psr\Log\LoggerInterface;
 
 /**
- * POST elme_checkout/action/details - {customer_reference, delivery_instructions}.
+ * POST elme_checkout/action/details - {delivery_instructions}.
  */
 class Details extends AbstractAction
 {
@@ -50,17 +49,5 @@ class Details extends AbstractAction
     protected function run(int $cartId): CheckoutStateInterface
     {
         return $this->checkoutManagement->saveDetails($cartId, $this->getPayload());
-    }
-
-    /**
-     * The field that was fine has been saved, so the page gets the state with it.
-     */
-    protected function inputErrorData(int $cartId): array
-    {
-        try {
-            return ['state' => $this->checkoutManagement->getState($cartId)->toArray()];
-        } catch (LocalizedException) {
-            return [];
-        }
     }
 }

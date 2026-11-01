@@ -1,19 +1,16 @@
 {
     "quote": {
         "column": {
-            "customer_reference": true,
             "delivery_instructions": true
         }
     },
     "sales_order": {
         "column": {
-            "customer_reference": true,
             "delivery_instructions": true
         }
     },
     "sales_order_grid": {
         "column": {
-            "customer_reference": true,
             "delivery_instructions": true
         }
     }

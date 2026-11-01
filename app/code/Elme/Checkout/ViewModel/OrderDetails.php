@@ -22,11 +22,6 @@ class OrderDetails implements ArgumentInterface
     ) {
     }
 
-    public function getCustomerReference(): string
-    {
-        return (string) $this->getOrder()->getData(OrderDetailsInterface::CUSTOMER_REFERENCE);
-    }
-
     public function getDeliveryInstructions(): string
     {
         return (string) $this->getOrder()->getData(OrderDetailsInterface::DELIVERY_INSTRUCTIONS);
