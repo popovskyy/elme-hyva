@@ -21,13 +21,31 @@
             <!-- cacheable="false": the page holds this customer's cart -->
             <block name="elme.checkout" template="Elme_Checkout::checkout.phtml" cacheable="false">
                 <container name="elme.checkout.sections" label="Checkout sections, in order">
-                    <!-- BE-02, BE-03, BE-05 replace these placeholders with the real sections -->
-                    <block name="elme.checkout.section.address" template="Elme_Checkout::section/placeholder.phtml">
+                    <block name="elme.checkout.section.address" template="Elme_Checkout::section/address.phtml">
                         <arguments>
                             <argument name="number" xsi:type="number">1</argument>
-                            <argument name="title" xsi:type="string" translate="true">Address</argument>
                         </arguments>
+                        <block name="elme.checkout.section.address.shipping.cards"
+                               as="shipping_cards"
+                               template="Elme_Checkout::section/address/cards.phtml">
+                            <arguments>
+                                <argument name="group" xsi:type="string">shipping</argument>
+                                <argument name="legend" xsi:type="string" translate="true">Delivery address</argument>
+                            </arguments>
+                        </block>
+                        <block name="elme.checkout.section.address.billing.cards"
+                               as="billing_cards"
+                               template="Elme_Checkout::section/address/cards.phtml">
+                            <arguments>
+                                <argument name="group" xsi:type="string">billing</argument>
+                                <argument name="legend" xsi:type="string" translate="true">Billing address</argument>
+                            </arguments>
+                        </block>
+                        <block name="elme.checkout.section.address.form"
+                               as="form"
+                               template="Elme_Checkout::section/address/form.phtml"/>
                     </block>
+                    <!-- BE-03, BE-05 replace these placeholders with the real sections -->
                     <block name="elme.checkout.section.delivery" template="Elme_Checkout::section/placeholder.phtml">
                         <arguments>
                             <argument name="number" xsi:type="number">2</argument>

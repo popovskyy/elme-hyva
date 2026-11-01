@@ -2,6 +2,18 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
+        <!-- Elme sells in Australia only; the checkout has no country field -->
+        <general>
+            <country>
+                <allow>AU</allow>
+                <default>AU</default>
+            </country>
+        </general>
+        <customer>
+            <address>
+                <street_lines>2</street_lines>
+            </address>
+        </customer>
         <tax>
             <!-- Catalog prices are entered ex GST; everything is shown ex GST with GST as its own line -->
             <calculation>

@@ -1,0 +1,280 @@
+<?php
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+?>
+<section class="border border-divider bg-surface p-4 lg:p-6" x-data="elmeCheckoutAddress">
+    <div class="flex items-center gap-4">
+        <span class="flex size-8 shrink-0 items-center justify-center bg-primary text-copy text-on-primary" aria-hidden="true">
+            <?= (int) $block->getData('number') ?>
+        </span>
+        <h2 class="text-h3 lg:text-h3-desktop"><?= $escaper->escapeHtml(__('Address')) ?></h2>
+    </div>
+
+    <p class="mt-4 text-copy text-error-strong" role="alert" x-show="error" x-cloak x-text="error"></p>
+
+    <div class="mt-4">
+        <div class="flex items-baseline justify-between gap-4" x-show="isShippingDone" x-cloak>
+            <p class="min-w-0 text-copy text-ink">
+                <span class="font-semibold"><?= $escaper->escapeHtml(__('Deliver to:')) ?></span>
+                <span x-text="shippingLine"></span>
+            </p>
+            <button type="button"
+                    class="shrink-0 text-copy underline"
+                    x-ref="changeShipping"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Change delivery address')) ?>"
+                    @click="openShipping">
+                <?= $escaper->escapeHtml(__('Change')) ?>
+            </button>
+        </div>
+
+        <div x-show="isShippingOpen" x-cloak x-ref="shippingList">
+            <h3 class="mb-3 font-sans text-copy font-semibold text-ink"><?= $escaper->escapeHtml(__('Delivery address')) ?></h3>
+            <?= $block->getChildHtml('shipping_cards') ?>
+            <div class="mt-4 flex flex-wrap items-center gap-4" x-show="canAddAddress">
+                <button type="button" class="btn btn-primary" x-show="canFinishShipping" @click="closeShipping">
+                    <?= $escaper->escapeHtml(__('Done')) ?>
+                </button>
+                <button type="button"
+                        class="text-copy underline"
+                        aria-controls="elme-checkout-address-form"
+                        @click="openForm">
+                    <?= $escaper->escapeHtml(__('Add a new address')) ?>
+                </button>
+            </div>
+            <div id="elme-checkout-address-form">
+                <?= $block->getChildHtml('form') ?>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 border-t border-divider pt-4">
+        <div class="flex items-baseline justify-between gap-4" x-show="isBillingDone" x-cloak>
+            <p class="min-w-0 text-copy text-ink">
+                <span class="font-semibold"><?= $escaper->escapeHtml(__('Invoice to:')) ?></span>
+                <span x-text="billingLine"></span>
+            </p>
+            <button type="button"
+                    class="shrink-0 text-copy underline"
+                    x-ref="changeBilling"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Change billing address')) ?>"
+                    x-show="canChangeBilling"
+                    @click="openBilling">
+                <?= $escaper->escapeHtml(__('Change')) ?>
+            </button>
+        </div>
+
+        <div x-show="billingOpen" x-cloak x-ref="billingList">
+            <h3 class="mb-3 font-sans text-copy font-semibold text-ink"><?= $escaper->escapeHtml(__('Billing address')) ?></h3>
+            <?= $block->getChildHtml('billing_cards') ?>
+            <button type="button" class="btn btn-primary mt-4" @click="closeBilling">
+                <?= $escaper->escapeHtml(__('Done')) ?>
+            </button>
+        </div>
+    </div>
+</section>
+<script>
+    /**
+     * Picking a card saves it straight away, and the list stays open: arrow keys walk through the radios, and each
+     * step is a pick. While one save runs only the latest pick is kept, so the last one always wins.
+     */
+    function elmeCheckoutAddress() {
+        return {
+            shippingOpen: false,
+            billingOpen: false,
+            formOpen: false,
+            picks: {shipping: null, billing: null},
+            saving: {shipping: false, billing: false},
+
+            init() {
+                this.shippingOpen = !this.shipping().is_set;
+                this.formOpen = !this.shipping().is_set && this.addresses().length === 0;
+            },
+            store() {
+                return Alpine.store('elmeCheckout');
+            },
+            data() {
+                return this.store().section('address') || {};
+            },
+            addresses() {
+                return this.data().addresses || [];
+            },
+            shipping() {
+                return this.data().shipping || {};
+            },
+            billing() {
+                return this.data().billing || {};
+            },
+            error() {
+                return this.store().sectionError('address');
+            },
+            isBusy() {
+                return this.store().isLoading('address');
+            },
+
+            isShippingDone() {
+                return this.shipping().is_set && !this.shippingOpen;
+            },
+            isShippingOpen() {
+                return this.shippingOpen;
+            },
+            shippingLine() {
+                return (this.shipping().address || {}).line || '';
+            },
+            canFinishShipping() {
+                return this.shipping().is_set;
+            },
+            canAddAddress() {
+                return !this.formOpen;
+            },
+            openShipping() {
+                this.shippingOpen = true;
+                this.focusCheckedRadio('shippingList');
+            },
+            closeShipping() {
+                this.shippingOpen = false;
+                this.focusWhenShown(() => this.$refs.changeShipping);
+            },
+
+            isBillingDone() {
+                return !this.billingOpen;
+            },
+            billingLine() {
+                if (this.billing().same_as_delivery || !this.billing().is_set) {
+                    return '<?= $escaper->escapeJs(__('Same as delivery address')) ?>';
+                }
+                return (this.billing().address || {}).line || '';
+            },
+            canChangeBilling() {
+                return this.addresses().length > 0;
+            },
+            openBilling() {
+                this.billingOpen = true;
+                this.focusCheckedRadio('billingList');
+            },
+            closeBilling() {
+                this.billingOpen = false;
+                this.focusWhenShown(() => this.$refs.changeBilling);
+            },
+
+            /**
+             * The address book; an address that is on the quote but not in the book stays selectable as its own card.
+             */
+            cards() {
+                const selected = this[this.$el.dataset.group]();
+                if (selected.is_set && !selected.address_id && !selected.same_as_delivery) {
+                    return [...this.addresses(), {...selected.address, id: 0}];
+                }
+                return this.addresses();
+            },
+            checkedId(group) {
+                return this.picks[group] !== null ? this.picks[group] : this[group]().address_id;
+            },
+            isChecked() {
+                const group = this.$el.dataset.group;
+                return this[group]().is_set && !this.isFollowingDelivery(group)
+                    && this.address.id === this.checkedId(group);
+            },
+            isFollowingDelivery(group) {
+                return group === 'billing' && this.billing().same_as_delivery;
+            },
+            pick() {
+                const group = this.$el.dataset.group;
+                this.picks[group] = Number(this.$el.value);
+                // The own card has nothing to save: it is what the quote holds until another card is picked
+                if (this.picks[group] === 0) {
+                    this.picks[group] = null;
+                    return;
+                }
+                this.savePick(group);
+            },
+            async savePick(group) {
+                if (this.saving[group]) {
+                    return;
+                }
+                this.saving[group] = true;
+
+                const action = group === 'shipping' ? 'shippingaddress' : 'billingaddress';
+                let addressId;
+                let saved;
+                do {
+                    addressId = this.picks[group];
+                    saved = await this.store().call(action, {address_id: addressId}, 'address');
+                } while (saved && this.picks[group] !== addressId);
+
+                this.picks[group] = null;
+                this.saving[group] = false;
+            },
+            focusCheckedRadio(listRef) {
+                this.focusWhenShown(() => {
+                    const list = this.$refs[listRef];
+                    return list.querySelector('input[type="radio"]:checked') || list.querySelector('input[type="radio"]');
+                });
+            },
+            /**
+             * x-show reveals an element in a timeout of its own, which $nextTick does not wait for, and a hidden
+             * element takes no focus: look again each frame until it is there.
+             */
+            focusWhenShown(element, framesLeft = 20) {
+                requestAnimationFrame(() => {
+                    const target = element();
+                    if (target?.getClientRects().length) {
+                        target.focus();
+                    } else if (framesLeft > 0) {
+                        this.focusWhenShown(element, framesLeft - 1);
+                    }
+                });
+            },
+
+            canCloseForm() {
+                return this.addresses().length > 0 || this.shipping().is_set;
+            },
+            openForm() {
+                this.formOpen = true;
+                this.focusWhenShown(() => this.$refs.addressForm.querySelector('input'));
+            },
+            closeForm() {
+                this.formOpen = false;
+                this.$refs.addressForm.reset();
+                Object.keys(this.store().fieldErrors).forEach((field) => this.store().clearFieldError(field));
+            },
+            fieldError() {
+                return this.store().fieldError(this.$el.dataset.field);
+            },
+            fieldInvalid() {
+                return this.store().fieldError(this.$el.dataset.field) ? 'true' : 'false';
+            },
+            clearFieldError() {
+                this.store().clearFieldError(this.$el.dataset.field);
+            },
+            async submitNew() {
+                const form = this.$refs.addressForm;
+                // The form is read when sent, not bound field by field: browser autofill just works
+                const data = new FormData(form);
+                const saveToBook = data.has('save_to_book');
+                data.delete('save_to_book');
+
+                const saved = await this.store().call(
+                    'shippingaddress',
+                    {address: Object.fromEntries(data), save_to_book: saveToBook},
+                    'address'
+                );
+                if (saved) {
+                    this.closeForm();
+                    this.closeShipping();
+                    return;
+                }
+                this.focusWhenShown(() => form.querySelector('[aria-invalid="true"]'));
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('elmeCheckoutAddress', elmeCheckoutAddress), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

@@ -34,6 +34,9 @@ use Magento\Framework\Escaper;
             fieldError(field) {
                 return this.fieldErrors[field] || '';
             },
+            clearFieldError(field) {
+                delete this.fieldErrors[field];
+            },
             isLoading(code) {
                 return Boolean(this.loading[code]);
             },

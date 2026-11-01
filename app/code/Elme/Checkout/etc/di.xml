@@ -12,6 +12,10 @@
                     <item name="sortOrder" xsi:type="number">10</item>
                     <item name="provider" xsi:type="object">Elme\Checkout\Model\Section\SummaryProvider</item>
                 </item>
+                <item name="address" xsi:type="array">
+                    <item name="sortOrder" xsi:type="number">20</item>
+                    <item name="provider" xsi:type="object">Elme\Checkout\Model\Section\AddressProvider</item>
+                </item>
             </argument>
         </arguments>
     </type>
