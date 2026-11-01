@@ -6,35 +6,48 @@ namespace Elme\Checkout\Model;
 
 use Elme\Checkout\Api\CheckoutManagementInterface;
 use Elme\Checkout\Api\Data\CheckoutStateInterface;
+use Elme\Checkout\Model\Address\QuoteAddresses;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Api\Data\AddressInterface;
 
 /**
- * The methods that throw are filled in by BE-02 (addresses), BE-03 (methods), BE-04 (place order), BE-05 (details).
+ * The methods that throw are filled in by BE-03 (methods), BE-04 (place order), BE-05 (details).
  */
 class CheckoutManagement implements CheckoutManagementInterface
 {
     public function __construct(
         private readonly CartRepositoryInterface $cartRepository,
         private readonly StateBuilder $stateBuilder,
-        private readonly PlaceOrderValidatorPool $placeOrderValidators
+        private readonly PlaceOrderValidatorPool $placeOrderValidators,
+        private readonly QuoteAddresses $quoteAddresses
     ) {
     }
 
     public function getState(int $cartId): CheckoutStateInterface
     {
-        return $this->stateBuilder->build($this->cartRepository->getActive($cartId));
+        $quote = $this->cartRepository->getActive($cartId);
+        $this->quoteAddresses->initialize($quote);
+
+        return $this->stateBuilder->build($quote);
     }
 
-    public function setShippingAddress(int $cartId, AddressInterface $address): CheckoutStateInterface
+    public function setShippingAddress(int $cartId, int|array $address, bool $saveToBook = false): CheckoutStateInterface
     {
-        throw $this->notImplemented(__FUNCTION__);
+        $quote = $this->cartRepository->getActive($cartId);
+        if (is_array($address)) {
+            $this->quoteAddresses->setNewShipping($quote, $address, $saveToBook);
+        } else {
+            $this->quoteAddresses->selectShipping($quote, $address);
+        }
+
+        return $this->getState($cartId);
     }
 
-    public function setBillingAddress(int $cartId, AddressInterface $address): CheckoutStateInterface
+    public function setBillingAddress(int $cartId, int $addressId): CheckoutStateInterface
     {
-        throw $this->notImplemented(__FUNCTION__);
+        $this->quoteAddresses->selectBilling($this->cartRepository->getActive($cartId), $addressId);
+
+        return $this->getState($cartId);
     }
 
     public function setShippingMethod(int $cartId, string $carrierCode, string $methodCode): CheckoutStateInterface

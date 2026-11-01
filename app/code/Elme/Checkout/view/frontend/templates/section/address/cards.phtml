@@ -1,0 +1,35 @@
+<?php
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+$group = (string) $block->getData('group');
+?>
+<fieldset>
+    <legend class="sr-only"><?= $escaper->escapeHtml($block->getData('legend')) ?></legend>
+    <div class="grid gap-3 md:grid-cols-2">
+        <template x-for="address in cards" :key="address.id" data-group="<?= $escaper->escapeHtmlAttr($group) ?>">
+            <label class="flex cursor-pointer gap-3 border border-divider p-4 transition-colors duration-fast hover:border-primary has-checked:border-primary has-checked:bg-surface-muted has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-ink">
+                <input type="radio"
+                       class="mt-1 shrink-0"
+                       name="<?= $escaper->escapeHtmlAttr($group) ?>_address_id"
+                       data-group="<?= $escaper->escapeHtmlAttr($group) ?>"
+                       :value="address.id"
+                       :checked="isChecked"
+                       @change="pick">
+                <span class="min-w-0 text-copy text-ink">
+                    <span class="block font-semibold" x-text="address.name"></span>
+                    <span class="block" x-show="address.company" x-text="address.company"></span>
+                    <span class="block" x-text="address.street"></span>
+                    <span class="block" x-text="address.locality"></span>
+                    <span class="block text-ink-muted" x-show="address.telephone" x-text="address.telephone"></span>
+                </span>
+            </label>
+        </template>
+    </div>
+</fieldset>

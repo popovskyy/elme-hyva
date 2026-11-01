@@ -6,7 +6,6 @@ namespace Elme\Checkout\Api;
 
 use Elme\Checkout\Api\Data\CheckoutStateInterface;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Quote\Api\Data\AddressInterface;
 
 /**
  * The checkout service: the server owns the state and every change returns the full state.
@@ -25,19 +24,20 @@ interface CheckoutManagementInterface
 
     /**
      * @param int $cartId
-     * @param \Magento\Quote\Api\Data\AddressInterface $address
+     * @param int|mixed[] $address Id of a saved address, or the fields of the checkout address form
+     * @param bool $saveToBook Only for a new address
      * @return \Elme\Checkout\Api\Data\CheckoutStateInterface
      * @throws LocalizedException
      */
-    public function setShippingAddress(int $cartId, AddressInterface $address): CheckoutStateInterface;
+    public function setShippingAddress(int $cartId, int|array $address, bool $saveToBook = false): CheckoutStateInterface;
 
     /**
      * @param int $cartId
-     * @param \Magento\Quote\Api\Data\AddressInterface $address
+     * @param int $addressId Id of a saved address
      * @return \Elme\Checkout\Api\Data\CheckoutStateInterface
      * @throws LocalizedException
      */
-    public function setBillingAddress(int $cartId, AddressInterface $address): CheckoutStateInterface;
+    public function setBillingAddress(int $cartId, int $addressId): CheckoutStateInterface;
 
     /**
      * @param int $cartId

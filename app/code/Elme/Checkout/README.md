@@ -93,6 +93,27 @@ A new Magento total segment shows up by itself: it keeps its own title and uses 
 add it to `rowTitles` of `Model/Section/TotalsMapper` in `etc/di.xml`. A code in `rowTitles` also needs a row block in
 `elme.checkout.summary` in the layout, with the segment code as its alias, or the row renders nothing.
 
+## Addresses
+
+`Model/Address/QuoteAddresses` is the only writer of the quote's addresses; `Model/Section/AddressProvider` reads them.
+
+- **First load:** `getState()` calls `initialize()`: an empty quote gets the default addresses, and a quote address linked
+  to a saved address follows edits made in the account. A default with missing details (imported data) is not
+  preselected; the customer sees the cards instead.
+- **`Plugin/KeepQuoteAddressesPlugin`** is needed because core `Onepage::initCheckout()` puts the default addresses over
+  the quote's on every page load. Without it a reload shows the default instead of the address the customer picked.
+- **Billing:** the default billing address. Without one it follows the delivery address, and the shipping address's
+  `same_as_billing` flag says so. Picking a billing address with Change clears the flag.
+- **Address book:** "Save to my address book" saves at once and links the quote address, with `save_in_address_book`
+  left at 0 so core does not save it a second time at place order. A customer's first address becomes the default for
+  whatever has no default yet, the same rule core has.
+- **Validation:** `Model/Address/AddressValidator` runs Magento's validators and sorts their answers per form field. The
+  field names are those of `templates/section/address/form.phtml`.
+- **The form** is read with `FormData` when sent, so browser autofill needs no bindings. The State select skips the
+  theme's custom select (`data-elme-select-skip`): autofill only fills a native one.
+
+Country is fixed to AU: `general/country/allow` in `etc/config.xml`, `QuoteAddresses::COUNTRY_ID` on the address.
+
 ## GST
 
 `Setup/Patch/Data/CreateAuGstTaxRule` creates the AU 10% rate and rule for the default product and customer tax classes
