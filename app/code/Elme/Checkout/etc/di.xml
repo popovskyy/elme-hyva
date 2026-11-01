@@ -16,6 +16,14 @@
                     <item name="sortOrder" xsi:type="number">20</item>
                     <item name="provider" xsi:type="object">Elme\Checkout\Model\Section\AddressProvider</item>
                 </item>
+                <item name="delivery" xsi:type="array">
+                    <item name="sortOrder" xsi:type="number">30</item>
+                    <item name="provider" xsi:type="object">Elme\Checkout\Model\Section\DeliveryProvider</item>
+                </item>
+                <item name="payment" xsi:type="array">
+                    <item name="sortOrder" xsi:type="number">40</item>
+                    <item name="provider" xsi:type="object">Elme\Checkout\Model\Section\PaymentProvider</item>
+                </item>
             </argument>
         </arguments>
     </type>
@@ -23,7 +31,10 @@
     <!-- Checks before place order; the item name identifies the check. See README.md -->
     <type name="Elme\Checkout\Model\PlaceOrderValidatorPool">
         <arguments>
-            <argument name="validators" xsi:type="array"/>
+            <argument name="validators" xsi:type="array">
+                <item name="delivery_method" xsi:type="object">Elme\Checkout\Model\Validator\DeliveryMethodSelected</item>
+                <item name="payment_method" xsi:type="object">Elme\Checkout\Model\Validator\PaymentMethodSelected</item>
+            </argument>
         </arguments>
     </type>
 
