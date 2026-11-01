@@ -20,7 +20,8 @@ foreach ($block->getChildNames() as $childName) {
     $renderers[$layout->getElementAlias($childName)] = $childName;
 }
 ?>
-<section class="border border-divider bg-surface p-4 lg:p-6"
+<section class="scroll-mt-4 border border-divider bg-surface p-4 lg:p-6"
+         data-checkout-section="payment"
          x-data="elmeCheckoutPayment"
          data-renderers="<?= $escaper->escapeHtmlAttr(implode(' ', array_keys($renderers))) ?>">
     <div class="flex items-center gap-4">

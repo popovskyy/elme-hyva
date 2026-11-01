@@ -75,7 +75,8 @@ the theme; this module is already in the `include` list of `hyva.config.json`.
 
 `Api/PlaceOrderValidatorInterface::validate()` throws when the order must not go through. Throw
 `CheckoutInputException` to point the error at a section. Validators run in pool order and the first failure stops the
-order, in `CheckoutManagement::placeOrder()`.
+order, in `CheckoutManagement::placeOrder()`. `$input` holds what the customer sent with the request, like the accepted
+agreements. For the page to scroll to a new section, its root element needs `data-checkout-section="<code>"`.
 
 ```xml
 <type name="Elme\Checkout\Model\PlaceOrderValidatorPool">
@@ -146,6 +147,24 @@ The template has one root element and runs inside the method loop, with `method`
 
 Limit a method per customer with a plugin on `Magento\Payment\Model\MethodList::getAvailableMethods()`.
 
+## Place order
+
+`Controller/Action/PlaceOrder` calls `CheckoutManagement::placeOrder()` and answers with the URL of the success page.
+Core's `QuoteManagement` sets the checkout session's last-order data, and `etc/frontend/sections.xml` refreshes the mini cart.
+
+- **One order per quote:** the store's `placing` flag stops double clicks in the browser. On the server a lock covers the
+  validators and the order, and the quote is read again from the database inside it. Core's own lock is not enough: the
+  validators can save the quote, and a save from a request that loaded it earlier would make a placed cart active again.
+- **Nothing changes behind the customer's back:** the validators refresh the methods, and a method or delivery price that
+  changed refuses the order, so the customer sees the new choice first. The answer carries the new state.
+- **Errors:** a `CheckoutInputException` shows in its section, other exceptions in the message at the top. `showError()`
+  in the store scrolls there and moves the focus to the first invalid field.
+- **Agreements** come from Magento (Stores > Terms and Conditions; Stores > Configuration > Sales > Checkout > Enable
+  Terms and Conditions). They are rendered once in `templates/section/place-order.phtml`, not in the state: the texts can
+  be long and only the ticks change. Mode "Manually" gets a required checkbox.
+- **The bar for phones and tablets** (`templates/place-order-bar.phtml`) goes away while a field that opens a keyboard
+  has the focus, so it cannot cover what the customer is typing in.
+
 ## GST
 
 `Setup/Patch/Data/CreateAuGstTaxRule` creates the AU 10% rate and rule for the default product and customer tax classes
@@ -156,4 +175,13 @@ order to show prices ex GST with GST as its own line.
 
 ```
 bin/clinotty bash -c "vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist app/code/Elme/Checkout/Test/Unit"
+```
+
+End to end, on the host, against the local site (login, add a product, saved address, place order, success page, My
+Orders, email in Mailpit; double click). It creates a test customer and product and places real local orders:
+
+```
+cd app/code/Elme/Checkout/Test/Playwright
+npm install && npx playwright install chromium
+npm test
 ```

@@ -26,9 +26,9 @@ use Throwable;
 /**
  * Base of the JSON endpoints elme_checkout/action/*: the page's Alpine store POSTs form_key + a JSON "data" field.
  *
- * Success: {"ok": true, "state": {...}}.
- * Failure: {"ok": false, "message": "...", "section": "...", "field_errors": {...}, "redirect": "..."}.
- * A redirect means the checkout cannot go on here: session gone (login) or nothing left to buy (cart).
+ * Success: {"ok": true, "state": {...}}, or {"ok": true, "redirect": "..."} when the checkout is finished.
+ * Failure: {"ok": false, "message": "...", "section": "...", "field_errors": {...}, "state": {...}, "redirect": "..."}.
+ * A failure with a redirect means the checkout cannot go on here: session gone (login) or nothing left to buy (cart).
  *
  * Business rules stay out of here: an action reads the payload and calls CheckoutManagementInterface.
  */
@@ -40,7 +40,7 @@ abstract class AbstractAction implements HttpPostActionInterface, CsrfAwareActio
         private readonly CustomerSession $customerSession,
         private readonly CustomerUrl $customerUrl,
         private readonly CheckoutSession $checkoutSession,
-        private readonly UrlInterface $urlBuilder,
+        protected readonly UrlInterface $urlBuilder,
         private readonly Json $json,
         private readonly LoggerInterface $logger,
         private readonly FormKeyValidator $formKeyValidator
@@ -49,10 +49,10 @@ abstract class AbstractAction implements HttpPostActionInterface, CsrfAwareActio
 
     /**
      * @param int $cartId The cart of the current session, with items
-     * @return CheckoutStateInterface
+     * @return CheckoutStateInterface|mixed[] The new state, or the answer of an action that ends the checkout
      * @throws LocalizedException
      */
-    abstract protected function run(int $cartId): CheckoutStateInterface;
+    abstract protected function run(int $cartId): CheckoutStateInterface|array;
 
     public function execute(): JsonResult
     {
@@ -62,6 +62,7 @@ abstract class AbstractAction implements HttpPostActionInterface, CsrfAwareActio
             ]);
         }
 
+        $cartId = 0;
         try {
             $quote = $this->checkoutSession->getQuote();
             if (!$quote->getId() || !$quote->hasItems()) {
@@ -70,18 +71,34 @@ abstract class AbstractAction implements HttpPostActionInterface, CsrfAwareActio
                 ]);
             }
 
-            return $this->result(200, ['ok' => true, 'state' => $this->run((int) $quote->getId())->toArray()]);
+            $cartId = (int) $quote->getId();
+            $answer = $this->run($cartId);
+
+            return $this->result(200, ['ok' => true] + (
+                $answer instanceof CheckoutStateInterface ? ['state' => $answer->toArray()] : $answer
+            ));
         } catch (CheckoutInputException $exception) {
             return $this->failure(422, $exception->getMessage(), [
                 'section' => $exception->getSection(),
                 'field_errors' => (object) $exception->getFieldErrors(),
-            ]);
+            ] + $this->inputErrorData($cartId));
         } catch (LocalizedException $exception) {
             return $this->failure(400, $exception->getMessage());
         } catch (Throwable $exception) {
             $this->logger->error($exception->getMessage(), ['exception' => $exception]);
             return $this->failure(500, (string) __('Something went wrong. Please try again.'));
         }
+    }
+
+    /**
+     * What goes along with the answer to a CheckoutInputException.
+     *
+     * @param int $cartId
+     * @return mixed[]
+     */
+    protected function inputErrorData(int $cartId): array
+    {
+        return [];
     }
 
     /**

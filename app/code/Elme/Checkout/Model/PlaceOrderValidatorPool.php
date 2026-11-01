@@ -19,13 +19,14 @@ class PlaceOrderValidatorPool
 
     /**
      * @param CartInterface $quote
+     * @param mixed[] $input
      * @return void
      * @throws CheckoutInputException The first failed check
      */
-    public function validate(CartInterface $quote): void
+    public function validate(CartInterface $quote, array $input = []): void
     {
         foreach ($this->validators as $validator) {
-            $validator->validate($quote);
+            $validator->validate($quote, $input);
         }
     }
 }

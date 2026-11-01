@@ -32,8 +32,11 @@
     <type name="Elme\Checkout\Model\PlaceOrderValidatorPool">
         <arguments>
             <argument name="validators" xsi:type="array">
+                <item name="logged_in" xsi:type="object">Elme\Checkout\Model\Validator\CustomerLoggedIn</item>
+                <item name="addresses" xsi:type="object">Elme\Checkout\Model\Validator\AddressesComplete</item>
                 <item name="delivery_method" xsi:type="object">Elme\Checkout\Model\Validator\DeliveryMethodSelected</item>
                 <item name="payment_method" xsi:type="object">Elme\Checkout\Model\Validator\PaymentMethodSelected</item>
+                <item name="agreements" xsi:type="object">Elme\Checkout\Model\Validator\AgreementsAccepted</item>
             </argument>
         </arguments>
     </type>

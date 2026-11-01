@@ -14,8 +14,9 @@ interface PlaceOrderValidatorInterface
 {
     /**
      * @param CartInterface $quote
+     * @param mixed[] $input What the customer sent with the place order request, see CheckoutManagementInterface
      * @return void
      * @throws CheckoutInputException When the order cannot be placed; says which section and fields to fix
      */
-    public function validate(CartInterface $quote): void;
+    public function validate(CartInterface $quote, array $input = []): void;
 }
