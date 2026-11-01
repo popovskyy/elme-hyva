@@ -1,0 +1,44 @@
+<?php
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\StoreContact;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$contact = $viewModels->require(StoreContact::class);
+?>
+<footer class="mt-auto border-t border-divider bg-surface">
+    <div class="container flex flex-col gap-3 py-4 text-note text-ink-muted md:flex-row md:items-center md:justify-between">
+        <p class="md:hidden">
+            <?= $escaper->escapeHtml(__('Need help?')) ?>
+            <a class="text-ink underline" href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>">
+                <?= $escaper->escapeHtml($contact->getPhoneDisplay()) ?>
+            </a>
+            <?= $escaper->escapeHtml(__('or')) ?>
+            <a class="text-ink underline" href="<?= $escaper->escapeUrl($contact->getEmailMailtoHref()) ?>">
+                <?= $escaper->escapeHtml($contact->getEmail()) ?>
+            </a>
+        </p>
+        <p>&copy; <?= (int) date('Y') ?> <?= $escaper->escapeHtml(__('Elme Living')) ?></p>
+        <ul class="flex gap-4">
+            <li>
+                <a class="underline hover:text-ink"
+                   href="<?= $escaper->escapeUrl($block->getUrl('', ['_direct' => 'website-terms-conditions'])) ?>">
+                    <?= $escaper->escapeHtml(__('Terms')) ?>
+                </a>
+            </li>
+            <li>
+                <a class="underline hover:text-ink"
+                   href="<?= $escaper->escapeUrl($block->getUrl('', ['_direct' => 'privacy-policy'])) ?>">
+                    <?= $escaper->escapeHtml(__('Privacy')) ?>
+                </a>
+            </li>
+        </ul>
+    </div>
+</footer>

@@ -15,7 +15,7 @@ New Elme Living storefront (moving off the shared Adobe Commerce instance `m2-ba
 - Breakpoints: mobile = no prefix, tablet = `md:` (768px), desktop = `lg:` (1025px), `xl:` 1280, `2xl:` 1440, `3xl:` 1920. Container is fluid up to 1920px. Write mobile first.
 - Elme-specific CSS: `web/tailwind/elme.css` only imports partials in `web/tailwind/elme/` (typography, prose, header, mobile menu, mega menu, footer). Add a new file there instead of growing one stylesheet. Edited Hyvä copies are marked with an `Elme:` comment (`components/button.css`, `components/wrapper.css`).
 - Build: `cd app/design/frontend/Elme/default/web/tailwind && npm run build` (or `npm run watch`). Commit `web/css/styles.css`.
-- Checkout is our own module `Elme_Checkout` on this theme (decision D12, tickets BE-01...BE-05 in `docs/frontend-tickets.md` Epic 6). No Luma fallback checkout, no Hyva Checkout. Until BE-01 lands `/checkout` shows Hyva's "No Checkout module installed" text.
+- Checkout is our own module `Elme_Checkout` on this theme (decision D12, tickets BE-01...BE-05 in `docs/frontend-tickets.md` Epic 6). No Luma fallback checkout, no Hyva Checkout. How to add a section or a place-order validator: `app/code/Elme/Checkout/README.md`.
 - Alpine components must be CSP-compatible (see the `hyva-alpine-component` skill).
 
 ## Skills

@@ -12,6 +12,9 @@
         "src": "app/code/Elme/LoginOnly"
       },
       {
+        "src": "app/code/Elme/Checkout"
+      },
+      {
         "src": "app/code/Elme/Theme"
       },
       {

@@ -1,0 +1,48 @@
+<?php
+
+declare(strict_types=1);
+
+use Elme\Checkout\ViewModel\Checkout;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$checkout = $viewModels->require(Checkout::class);
+?>
+<div id="elme-checkout"
+     class="pb-6 lg:pb-10"
+     data-state="<?= $escaper->escapeHtmlAttr($checkout->getInitialStateJson()) ?>"
+     data-action-url="<?= $escaper->escapeUrl($block->getUrl('elme_checkout/action')) ?>">
+    <p class="mb-4 border border-error-strong bg-surface p-4 text-copy text-error-strong"
+       role="alert"
+       x-data="elmeCheckoutMessage"
+       x-cloak
+       x-show="message"
+       x-text="message"></p>
+    <div class="flex flex-col gap-6 lg:grid lg:grid-cols-3 lg:items-start lg:gap-10">
+        <aside class="lg:sticky lg:top-6 lg:order-2 lg:col-span-1"
+               aria-label="<?= $escaper->escapeHtmlAttr(__('Order summary')) ?>">
+            <?= $block->getChildHtml('elme.checkout.summary') ?>
+        </aside>
+        <div class="flex flex-col gap-4 lg:order-1 lg:col-span-2">
+            <?= $block->getChildHtml('elme.checkout.sections') ?>
+        </div>
+    </div>
+</div>
+<script>
+    function elmeCheckoutMessage() {
+        return {
+            message() {
+                return Alpine.store('elmeCheckout').message;
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('elmeCheckoutMessage', elmeCheckoutMessage), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
