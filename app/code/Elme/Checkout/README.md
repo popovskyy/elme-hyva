@@ -157,6 +157,9 @@ Core's `QuoteManagement` sets the checkout session's last-order data, and `etc/f
   validators can save the quote, and a save from a request that loaded it earlier would make a placed cart active again.
 - **Nothing changes behind the customer's back:** the validators refresh the methods, and a method or delivery price that
   changed refuses the order, so the customer sees the new choice first. The answer carries the new state.
+- **The checkout page is the only way to order:** the validators run in `CheckoutManagement`, so
+  `Plugin/RefuseApiOrderPlugin` refuses `CartManagementInterface::placeOrder()` for customers and guests in REST, SOAP and
+  GraphQL. Admin and integration tokens stay allowed. Guests have no access to these APIs at all, see `Elme_LoginOnly`.
 - **Errors:** a `CheckoutInputException` shows in its section, other exceptions in the message at the top. `showError()`
   in the store scrolls there and moves the focus to the first invalid field.
 - **Agreements** come from Magento (Stores > Terms and Conditions; Stores > Configuration > Sales > Checkout > Enable

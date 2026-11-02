@@ -10,8 +10,8 @@ use Magento\Framework\Exception\LocalizedException;
 /**
  * The checkout service: the server owns the state and every change returns the full state.
  *
- * The caller decides whose cart this is (frontend actions pass the cart of the session), so the same service
- * can go into webapi.xml for POS or Quick Order later.
+ * The caller decides whose cart this is: frontend actions pass the cart of the session. There is no check here that
+ * the cart is the customer's, so a webapi.xml route must never take the id from the client: use %cart_id% with self ACL.
  */
 interface CheckoutManagementInterface
 {
