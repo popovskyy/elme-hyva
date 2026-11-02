@@ -21,6 +21,7 @@ declare(strict_types=1);
  */
 
 use Elme\LoginOnly\ViewModel\LoginOnly;
+use Elme\QtyRules\Model\QtyRules;
 use Elme\Theme\ViewModel\ProductTile;
 use Hyva\Theme\Model\ViewModelRegistry;
 use Hyva\Theme\ViewModel\BlockJsDependencies;
@@ -57,6 +58,8 @@ $productOptionsViewmodel = $viewModels->require(ProductOptionsData::class);
 $loginOnly = $viewModels->require(LoginOnly::class);
 /** @var ProductTile $tile */
 $tile = $viewModels->require(ProductTile::class);
+/** @var QtyRules $qtyRulesViewModel */
+$qtyRulesViewModel = $viewModels->require(QtyRules::class);
 
 /** @var Magento\Catalog\Model\Product $product */
 if (! ($product = $block->getData('product'))) {
@@ -83,9 +86,7 @@ $stockLevel = $tile->getStockLevel($product);
 $showStepper = $canAddToCart && !$isProductGroupedOrBundle && $tile->isQuickOrderEnabled();
 // Quick order off: no stepper and no Add to Cart (ticket FE-19). Configure stays for grouped/bundle.
 $showForm = $canAddToCart && ($showStepper || $isProductGroupedOrBundle);
-$qtyRules = $canAddToCart && !$isProductGroupedOrBundle ? $tile->getQtyRules($product) : null;
-// MOQ 6 is shown as "6", not "6.0000"
-$formatQty = static fn (float $qty): string => rtrim(rtrim(number_format($qty, 4, '.', ''), '0'), '.');
+$qtyRules = $canAddToCart && !$isProductGroupedOrBundle ? $qtyRulesViewModel->getMinAndStep($product) : null;
 
 $jsDependencies = $viewModels->require(BlockJsDependencies::class);
 $jsDependencies->setBlockTemplateDependency($block, 'Magento_Catalog::product/list/js/price-box.phtml');
@@ -206,7 +207,7 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
                 </a>
             <?php else: ?>
                 <?php if ($showStepper): ?>
-                    <?php $min = $formatQty($qtyRules['min']); $step = $formatQty($qtyRules['step']); ?>
+                    <?php $min = $qtyRulesViewModel->formatQty($qtyRules['min']); $step = $qtyRulesViewModel->formatQty($qtyRules['step']); ?>
                     <div class="elme-qty"
                          x-data="initElmeQtyStepper"
                          data-min="<?= $escaper->escapeHtmlAttr($min) ?>"
@@ -256,7 +257,7 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
         </div>
         <?php if ($qtyRules && (float) $qtyRules['step'] > 1): ?>
             <p id="elme-moq-<?= $productId ?>" class="text-note text-ink-muted">
-                <?= $escaper->escapeHtml(__('Sold in multiples of %1', $formatQty($qtyRules['step']))) ?>
+                <?= $escaper->escapeHtml(__('Sold in multiples of %1', $qtyRulesViewModel->formatQty($qtyRules['step']))) ?>
             </p>
         <?php endif; ?>
         <?php endif; ?>

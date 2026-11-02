@@ -22,18 +22,4 @@ class ProductTileTest extends TestCase
         $this->assertSame(ProductTile::STOCK_IN, ProductTile::stockLevelForQty(10));
         $this->assertSame(ProductTile::STOCK_IN, ProductTile::stockLevelForQty(50));
     }
-
-    public function testQtyStepsInMoqMultiples(): void
-    {
-        $this->assertSame(['min' => 1.0, 'step' => 1.0], ProductTile::qtyRules(0, false, 0));
-        $this->assertSame(['min' => 6.0, 'step' => 6.0], ProductTile::qtyRules(6, false, 0));
-        $this->assertSame(['min' => 6.0, 'step' => 6.0], ProductTile::qtyRules(6, false, 4));
-    }
-
-    public function testQtyIncrementsWinWhenSwitchedOn(): void
-    {
-        $this->assertSame(['min' => 4.0, 'step' => 2.0], ProductTile::qtyRules(4, true, 2));
-        $this->assertSame(['min' => 6.0, 'step' => 2.0], ProductTile::qtyRules(5, true, 2));
-        $this->assertSame(['min' => 12.0, 'step' => 12.0], ProductTile::qtyRules(1, true, 12));
-    }
 }
