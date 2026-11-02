@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Elme\Theme\ViewModel;
 
 use Magento\Catalog\Model\Product;
-use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
@@ -17,7 +16,7 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 /**
- * FE-19 product card (Magento_Catalog::product/list/item.phtml): badge, stock label, qty rules.
+ * FE-19 product card (Magento_Catalog::product/list/item.phtml): badge, stock label.
  *
  * The tile HTML is block cached per customer group and login state (Hyvä ProductListItem +
  * Elme\LoginOnly\Plugin\ProductListItemCacheKeyPlugin), so nothing here may depend on the customer
@@ -43,7 +42,6 @@ class ProductTile implements ArgumentInterface
         private readonly ScopeConfigInterface $scopeConfig,
         private readonly StoreManagerInterface $storeManager,
         private readonly TimezoneInterface $timezone,
-        private readonly StockRegistryInterface $stockRegistry,
         private readonly GetProductSalableQtyInterface $getProductSalableQty,
         private readonly StockResolverInterface $stockResolver,
         private readonly IsSourceItemManagementAllowedForProductTypeInterface $isQtyManagedType
@@ -125,46 +123,6 @@ class ProductTile implements ArgumentInterface
         }
 
         return $qty >= self::IN_STOCK_FROM ? self::STOCK_IN : self::STOCK_LOW;
-    }
-
-    /**
-     * Qty the stepper starts at and jumps by: MOQ (min sale qty) and its multiples, or the
-     * "qty increments" of the stock item when those are switched on.
-     *
-     * @return array{min: float, step: float}
-     */
-    public function getQtyRules(Product $product): array
-    {
-        try {
-            $item = $this->stockRegistry->getStockItem(
-                (int) $product->getId(),
-                (int) $this->storeManager->getWebsite()->getId()
-            );
-        } catch (\Throwable) {
-            return self::qtyRules(1.0, false, 1.0);
-        }
-
-        return self::qtyRules(
-            (float) $item->getMinSaleQty(),
-            (bool) $item->getEnableQtyIncrements(),
-            (float) $item->getQtyIncrements()
-        );
-    }
-
-    /**
-     * @return array{min: float, step: float}
-     */
-    public static function qtyRules(float $minSaleQty, bool $useIncrements, float $increments): array
-    {
-        $min = max(1.0, $minSaleQty);
-        $step = $useIncrements && $increments > 0 ? $increments : $min;
-
-        // The first qty has to be a valid step as well (e.g. MOQ 5, increments of 2 starts at 6).
-        if (fmod($min, $step) > 0) {
-            $min = ceil($min / $step) * $step;
-        }
-
-        return ['min' => $min, 'step' => $step];
     }
 
     private function getStockId(): int

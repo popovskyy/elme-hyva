@@ -8,7 +8,6 @@
         "magento/module-cms": "*",
         "bart/module-content-studio": "*",
         "magento/module-catalog": "*",
-        "magento/module-catalog-inventory": "*",
         "magento/module-inventory-sales-api": "*",
         "magento/module-inventory-configuration-api": "*",
         "magento/module-store": "*"

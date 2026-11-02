@@ -89,4 +89,6 @@ try {
     echo "no cart to clear\n";
 }
 
+require __DIR__ . '/seed-qty-rules.php';
+
 echo json_encode(['sku' => E2E_SKU, 'email' => E2E_EMAIL, 'password' => E2E_PASSWORD]), "\n";
