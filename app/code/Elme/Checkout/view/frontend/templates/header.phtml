@@ -15,7 +15,7 @@ use Magento\Framework\View\Element\Template;
 $contact = $viewModels->require(StoreContact::class);
 $heroicons = $viewModels->require(HeroiconsOutline::class);
 ?>
-<header class="border-b border-divider bg-surface">
+<header class="elme-checkout-header">
     <div class="container flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-4">
         <a href="<?= $escaper->escapeUrl($block->getBaseUrl()) ?>"
            aria-label="<?= $escaper->escapeHtmlAttr(__('Elme Living home page')) ?>">
@@ -25,17 +25,17 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
                  height="38"
                  class="h-8 w-auto lg:h-10">
         </a>
-        <div class="flex items-center gap-2 text-copy text-ink">
+        <div class="elme-checkout-header__secure">
             <?= $heroicons->lockClosedHtml('shrink-0', 20, 20, ['aria-hidden' => 'true']) ?>
             <span><?= $escaper->escapeHtml(__('Secure checkout')) ?></span>
         </div>
         <p class="hidden w-full text-copy text-ink-muted md:block md:w-auto">
             <?= $escaper->escapeHtml(__('Need help?')) ?>
-            <a class="text-ink underline" href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>">
+            <a class="elme-checkout-link" href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>">
                 <?= $escaper->escapeHtml($contact->getPhoneDisplay()) ?>
             </a>
             <?= $escaper->escapeHtml(__('or')) ?>
-            <a class="text-ink underline" href="<?= $escaper->escapeUrl($contact->getEmailMailtoHref()) ?>">
+            <a class="elme-checkout-link" href="<?= $escaper->escapeUrl($contact->getEmailMailtoHref()) ?>">
                 <?= $escaper->escapeHtml($contact->getEmail()) ?>
             </a>
         </p>

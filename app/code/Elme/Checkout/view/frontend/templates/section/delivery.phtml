@@ -15,42 +15,50 @@ use Magento\Framework\View\Element\Template;
 
 $contact = $viewModels->require(StoreContact::class);
 ?>
-<section class="scroll-mt-4 border border-divider bg-surface p-4 lg:p-6" data-checkout-section="delivery" x-data="elmeCheckoutDelivery">
-    <div class="flex items-center gap-4">
-        <span class="flex size-8 shrink-0 items-center justify-center bg-primary text-copy text-on-primary" aria-hidden="true">
-            <?= (int) $block->getData('number') ?>
-        </span>
-        <h2 class="text-h3 lg:text-h3-desktop"><?= $escaper->escapeHtml(__('Delivery')) ?></h2>
+<section class="elme-checkout-section scroll-mt-4"
+         data-checkout-section="delivery"
+         x-data="elmeCheckoutDelivery"
+         :class="busyClass"
+         :aria-busy="ariaBusy">
+    <div class="elme-checkout-section__loader" x-show="isBusy" x-cloak aria-hidden="true">
+        <span class="elme-spinner"></span>
     </div>
 
-    <p class="mt-4 text-copy text-error-strong" role="alert" x-show="error" x-cloak x-text="error"></p>
-    <p class="mt-4 text-copy text-ink-muted" x-show="locked" x-cloak x-text="locked"></p>
+    <div class="elme-checkout-section__head">
+        <span class="elme-checkout-section__step" aria-hidden="true">
+            <?= (int) $block->getData('number') ?>
+        </span>
+        <h2 class="elme-checkout-section__title"><?= $escaper->escapeHtml(__('Delivery')) ?></h2>
+    </div>
 
-    <p class="mt-4 text-copy text-ink" x-show="hasNoRates" x-cloak>
+    <p class="elme-checkout-section__error" role="alert" x-show="error" x-cloak x-text="error"></p>
+    <p class="elme-checkout-section__hint" x-show="locked" x-cloak x-text="locked"></p>
+
+    <p class="elme-checkout-section__body text-copy text-ink" x-show="hasNoRates" x-cloak>
         <?= $escaper->escapeHtml(__("We can't deliver to this address online, please call us")) ?>:
-        <a class="underline" href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>">
+        <a class="elme-checkout-link" href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>">
             <?= $escaper->escapeHtml($contact->getPhoneDisplay()) ?>
         </a>
     </p>
 
-    <fieldset class="mt-4" x-show="hasRates" x-cloak>
+    <fieldset class="elme-checkout-section__body" x-show="hasRates" x-cloak>
         <legend class="sr-only"><?= $escaper->escapeHtml(__('Delivery method')) ?></legend>
-        <div class="grid gap-3">
+        <div class="elme-checkout-options">
             <template x-for="rate in rates" :key="rate.code">
-                <label class="flex cursor-pointer gap-3 border border-divider p-4 transition-colors duration-fast hover:border-primary has-checked:border-primary has-checked:bg-surface-muted has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-ink">
+                <label class="elme-checkout-option">
                     <input type="radio"
-                           class="mt-1 shrink-0"
+                           class="elme-checkout-option__control"
                            name="delivery_method"
                            :value="rate.code"
                            :checked="isChecked"
                            @change="pick">
-                    <span class="min-w-0 flex-1 text-copy text-ink">
-                        <span class="block font-semibold" x-text="rate.carrier_title"></span>
+                    <span class="elme-checkout-option__body">
+                        <span class="elme-checkout-option__title" x-text="rate.carrier_title"></span>
                         <span class="block" x-text="rate.method_title"></span>
                     </span>
-                    <span class="shrink-0 text-right text-copy text-ink">
-                        <span class="block font-semibold" x-text="rate.price_formatted"></span>
-                        <span class="block text-note text-ink-muted"><?= $escaper->escapeHtml(__('ex GST')) ?></span>
+                    <span class="elme-checkout-option__price">
+                        <span class="elme-checkout-option__price-value" x-text="rate.price_formatted"></span>
+                        <span class="elme-checkout-option__price-note"><?= $escaper->escapeHtml(__('ex GST')) ?></span>
                     </span>
                 </label>
             </template>
@@ -74,6 +82,15 @@ $contact = $viewModels->require(StoreContact::class);
             },
             locked() {
                 return this.data().locked || '';
+            },
+            isBusy() {
+                return this.store().isLoading('delivery');
+            },
+            ariaBusy() {
+                return this.isBusy() ? 'true' : 'false';
+            },
+            busyClass() {
+                return {'is-busy': this.isBusy()};
             },
             hasRates() {
                 return this.rates().length > 0;

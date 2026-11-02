@@ -13,24 +13,24 @@ use Magento\Framework\View\Element\Template;
 
 $instructionsField = OrderDetailsInterface::DELIVERY_INSTRUCTIONS;
 ?>
-<section class="scroll-mt-4 border border-divider bg-surface p-4 lg:p-6"
+<section class="elme-checkout-section scroll-mt-4"
          data-checkout-section="details"
          x-data="elmeCheckoutDetails">
-    <div class="flex items-center gap-4">
-        <span class="flex size-8 shrink-0 items-center justify-center bg-primary text-copy text-on-primary" aria-hidden="true">
+    <div class="elme-checkout-section__head">
+        <span class="elme-checkout-section__step" aria-hidden="true">
             <?= (int) $block->getData('number') ?>
         </span>
-        <h2 class="text-h3 lg:text-h3-desktop">
+        <h2 class="elme-checkout-section__title">
             <label for="elme-checkout-instructions">
                 <?= $escaper->escapeHtml(__('Delivery instructions')) ?>
-                <span class="font-sans text-copy font-normal text-ink-muted"><?= $escaper->escapeHtml(__('(optional)')) ?></span>
+                <span class="elme-checkout-section__optional"><?= $escaper->escapeHtml(__('(optional)')) ?></span>
             </label>
         </h2>
     </div>
 
-    <p class="mt-4 text-copy text-error-strong" role="alert" x-show="error" x-cloak x-text="error"></p>
+    <p class="elme-checkout-section__error" role="alert" x-show="error" x-cloak x-text="error"></p>
 
-    <div class="mt-4">
+    <div class="elme-checkout-section__body">
         <div class="field">
             <textarea id="elme-checkout-instructions"
                       class="form-textarea w-full"
@@ -38,7 +38,7 @@ $instructionsField = OrderDetailsInterface::DELIVERY_INSTRUCTIONS;
                       rows="4"
                       maxlength="<?= (int) OrderDetailsInterface::DELIVERY_INSTRUCTIONS_MAX_LENGTH ?>"
                       placeholder="<?= $escaper->escapeHtmlAttr(__('e.g. Please place package at front door.')) ?>"
-                      aria-describedby="elme-checkout-instructions-error elme-checkout-instructions-counter"
+                      aria-describedby="elme-checkout-instructions-error elme-checkout-instructions-counter elme-checkout-instructions-saving"
                       data-field="<?= /* @noEscape */ $instructionsField ?>"
                       :value="value"
                       :aria-invalid="fieldInvalid"
@@ -50,8 +50,14 @@ $instructionsField = OrderDetailsInterface::DELIVERY_INSTRUCTIONS;
                x-show="fieldError"
                x-cloak
                x-text="fieldError"></p>
+            <p id="elme-checkout-instructions-saving"
+               class="elme-checkout-details__saving"
+               x-show="isBusy"
+               x-cloak>
+                <?= $escaper->escapeHtml(__('Saving…')) ?>
+            </p>
             <p id="elme-checkout-instructions-counter"
-               class="mt-1 text-right text-copy text-ink-muted"
+               class="elme-checkout-details__counter"
                data-field="<?= /* @noEscape */ $instructionsField ?>"
                data-max="<?= (int) OrderDetailsInterface::DELIVERY_INSTRUCTIONS_MAX_LENGTH ?>"
                x-text="counter"></p>
@@ -93,6 +99,9 @@ $instructionsField = OrderDetailsInterface::DELIVERY_INSTRUCTIONS;
             },
             fieldInvalid() {
                 return this.fieldError() ? 'true' : 'false';
+            },
+            isBusy() {
+                return this.store().isLoading('details');
             },
             counter() {
                 return `${this.value().length} / ${this.$el.dataset.max}`;

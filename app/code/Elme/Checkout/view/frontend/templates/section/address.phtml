@@ -10,24 +10,32 @@ use Magento\Framework\View\Element\Template;
 /** @var Escaper $escaper */
 /** @var HyvaCsp $hyvaCsp */
 ?>
-<section class="scroll-mt-4 border border-divider bg-surface p-4 lg:p-6" data-checkout-section="address" x-data="elmeCheckoutAddress">
-    <div class="flex items-center gap-4">
-        <span class="flex size-8 shrink-0 items-center justify-center bg-primary text-copy text-on-primary" aria-hidden="true">
-            <?= (int) $block->getData('number') ?>
-        </span>
-        <h2 class="text-h3 lg:text-h3-desktop"><?= $escaper->escapeHtml(__('Address')) ?></h2>
+<section class="elme-checkout-section scroll-mt-4"
+         data-checkout-section="address"
+         x-data="elmeCheckoutAddress"
+         :class="busyClass"
+         :aria-busy="ariaBusy">
+    <div class="elme-checkout-section__loader" x-show="isBusy" x-cloak aria-hidden="true">
+        <span class="elme-spinner"></span>
     </div>
 
-    <p class="mt-4 text-copy text-error-strong" role="alert" x-show="error" x-cloak x-text="error"></p>
+    <div class="elme-checkout-section__head">
+        <span class="elme-checkout-section__step" aria-hidden="true">
+            <?= (int) $block->getData('number') ?>
+        </span>
+        <h2 class="elme-checkout-section__title"><?= $escaper->escapeHtml(__('Address')) ?></h2>
+    </div>
 
-    <div class="mt-4">
-        <div class="flex items-baseline justify-between gap-4" x-show="isShippingDone" x-cloak>
-            <p class="min-w-0 text-copy text-ink">
+    <p class="elme-checkout-section__error" role="alert" x-show="error" x-cloak x-text="error"></p>
+
+    <div class="elme-checkout-section__body">
+        <div class="elme-checkout-line" x-show="isShippingDone" x-cloak>
+            <p class="min-w-0">
                 <span class="font-semibold"><?= $escaper->escapeHtml(__('Deliver to:')) ?></span>
                 <span x-text="shippingLine"></span>
             </p>
             <button type="button"
-                    class="shrink-0 text-copy underline"
+                    class="elme-checkout-link"
                     x-ref="changeShipping"
                     aria-label="<?= $escaper->escapeHtmlAttr(__('Change delivery address')) ?>"
                     @click="openShipping">
@@ -43,7 +51,7 @@ use Magento\Framework\View\Element\Template;
                     <?= $escaper->escapeHtml(__('Done')) ?>
                 </button>
                 <button type="button"
-                        class="text-copy underline"
+                        class="elme-checkout-link"
                         aria-controls="elme-checkout-address-form"
                         @click="openForm">
                     <?= $escaper->escapeHtml(__('Add a new address')) ?>
@@ -55,14 +63,14 @@ use Magento\Framework\View\Element\Template;
         </div>
     </div>
 
-    <div class="mt-4 border-t border-divider pt-4">
-        <div class="flex items-baseline justify-between gap-4" x-show="isBillingDone" x-cloak>
-            <p class="min-w-0 text-copy text-ink">
+    <div class="elme-checkout-section__divider">
+        <div class="elme-checkout-line" x-show="isBillingDone" x-cloak>
+            <p class="min-w-0">
                 <span class="font-semibold"><?= $escaper->escapeHtml(__('Invoice to:')) ?></span>
                 <span x-text="billingLine"></span>
             </p>
             <button type="button"
-                    class="shrink-0 text-copy underline"
+                    class="elme-checkout-link"
                     x-ref="changeBilling"
                     aria-label="<?= $escaper->escapeHtmlAttr(__('Change billing address')) ?>"
                     x-show="canChangeBilling"
@@ -117,6 +125,12 @@ use Magento\Framework\View\Element\Template;
             },
             isBusy() {
                 return this.store().isLoading('address');
+            },
+            ariaBusy() {
+                return this.isBusy() ? 'true' : 'false';
+            },
+            busyClass() {
+                return {'is-busy': this.isBusy()};
             },
 
             isShippingDone() {

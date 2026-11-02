@@ -16,11 +16,11 @@ use Magento\Framework\View\Element\Template;
 $agreementsViewModel = $viewModels->require(Agreements::class);
 $agreements = $agreementsViewModel->getAgreements();
 ?>
-<div class="flex scroll-mt-4 flex-col gap-4" data-checkout-section="agreements" x-data="elmeCheckoutAgreements">
+<div class="elme-checkout-agreements" data-checkout-section="agreements" x-data="elmeCheckoutAgreements">
     <?php if ($agreements): ?>
-        <fieldset class="border border-divider bg-surface p-4 lg:p-6">
+        <fieldset class="elme-checkout-agreements__box">
             <legend class="sr-only"><?= $escaper->escapeHtml(__('Terms and conditions')) ?></legend>
-            <p class="mb-3 text-copy text-error-strong" role="alert" x-show="error" x-cloak x-text="error"></p>
+            <p class="elme-checkout-section__error mb-3" role="alert" x-show="error" x-cloak x-text="error"></p>
             <div class="grid gap-3">
                 <?php foreach ($agreements as $agreement): ?>
                     <?php $agreementId = (int) $agreement['agreementId']; ?>
@@ -42,7 +42,7 @@ $agreements = $agreementsViewModel->getAgreements();
                             <span class="min-w-0 flex-1"><?= /* @noEscape */ $agreement['checkboxText'] ?></span>
                         <?php endif; ?>
                         <button type="button"
-                                class="shrink-0 underline"
+                                class="elme-checkout-link shrink-0"
                                 data-dialog="elme-agreement-dialog-<?= $agreementId ?>"
                                 aria-haspopup="dialog"
                                 @click="openDialog">
@@ -59,7 +59,7 @@ $agreements = $agreementsViewModel->getAgreements();
                     aria-labelledby="elme-agreement-title-<?= $agreementId ?>"
                     @click="closeOnBackdrop">
                 <div class="flex max-h-[85vh] flex-col gap-4 p-4 lg:p-6">
-                    <h2 class="text-h3 lg:text-h3-desktop" id="elme-agreement-title-<?= $agreementId ?>">
+                    <h2 class="elme-checkout-section__title" id="elme-agreement-title-<?= $agreementId ?>">
                         <?= $escaper->escapeHtml(__('Terms and conditions')) ?>
                     </h2>
                     <div class="prose min-h-0 flex-1 overflow-y-auto text-copy">
@@ -73,7 +73,7 @@ $agreements = $agreementsViewModel->getAgreements();
         <?php endforeach; ?>
     <?php endif; ?>
 
-    <div class="hidden justify-end lg:flex">
+    <div class="elme-checkout-place">
         <?= $block->getChildHtml('button') ?>
     </div>
 </div>

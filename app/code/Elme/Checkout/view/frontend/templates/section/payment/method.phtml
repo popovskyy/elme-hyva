@@ -6,15 +6,15 @@ declare(strict_types=1);
  * The renderer of a payment method without fields of its own. Runs inside the x-for of section/payment.phtml.
  */
 ?>
-<label class="flex cursor-pointer gap-3 border border-divider p-4 transition-colors duration-fast hover:border-primary has-checked:border-primary has-checked:bg-surface-muted has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-ink">
+<label class="elme-checkout-option">
     <input type="radio"
-           class="mt-1 shrink-0"
+           class="elme-checkout-option__control"
            name="payment_method"
            :value="method.code"
            :checked="isChecked"
            @change="pick">
-    <span class="min-w-0 text-copy text-ink">
-        <span class="block font-semibold" x-text="method.title"></span>
-        <span class="block whitespace-pre-line text-ink-muted" x-show="method.instructions" x-text="method.instructions"></span>
+    <span class="elme-checkout-option__body">
+        <span class="elme-checkout-option__title" x-text="method.title"></span>
+        <span class="elme-checkout-option__meta whitespace-pre-line" x-show="method.instructions" x-text="method.instructions"></span>
     </span>
 </label>
