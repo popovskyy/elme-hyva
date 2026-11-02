@@ -1,0 +1,23 @@
+<?php
+
+declare(strict_types=1);
+
+use Elme\Checkout\ViewModel\OrderDetails;
+use Magento\Backend\Block\Template;
+use Magento\Framework\Escaper;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var OrderDetails $viewModel */
+
+$viewModel = $block->getData('view_model');
+$instructions = $viewModel->getDeliveryInstructions();
+
+// A row of the Account Information table
+?>
+<?php if ($instructions !== ''): ?>
+    <tr>
+        <th><?= $escaper->escapeHtml(__('Delivery instructions')) ?></th>
+        <td style="overflow-wrap: anywhere;"><?= /* @noEscape */ nl2br($escaper->escapeHtml($instructions)) ?></td>
+    </tr>
+<?php endif; ?>

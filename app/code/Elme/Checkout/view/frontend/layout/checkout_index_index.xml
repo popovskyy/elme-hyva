@@ -59,11 +59,9 @@
                                as="default"
                                template="Elme_Checkout::section/payment/method.phtml"/>
                     </block>
-                    <!-- BE-05 replaces this placeholder with the real section -->
-                    <block name="elme.checkout.section.details" template="Elme_Checkout::section/placeholder.phtml">
+                    <block name="elme.checkout.section.details" template="Elme_Checkout::section/details.phtml">
                         <arguments>
                             <argument name="number" xsi:type="number">4</argument>
-                            <argument name="title" xsi:type="string" translate="true">Order details</argument>
                         </arguments>
                     </block>
                     <block name="elme.checkout.place_order" template="Elme_Checkout::section/place-order.phtml">

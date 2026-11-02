@@ -165,6 +165,23 @@ Core's `QuoteManagement` sets the checkout session's last-order data, and `etc/f
 - **The bar for phones and tablets** (`templates/place-order-bar.phtml`) goes away while a field that opens a keyboard
   has the focus, so it cannot cover what the customer is typing in.
 
+## Order details
+
+The section holds one field, as on the old site: delivery instructions (optional). There is no order reference or PO
+number field because the old Elme checkout has none. `Api/OrderDetailsInterface` holds the name `delivery_instructions`
+(max 250): the column on `quote`, `sales_order` and `sales_order_grid`, the extension attribute on cart and order, and the
+order email variable. The Pronto order export can read it from the order or its extension attributes.
+
+- **Saving:** `Model/Details/QuoteDetails` is the only writer. The field saves 800 ms after typing stops and on blur. Text
+  that is too long is refused with an inline error.
+- **Before the order:** `onBeforePlaceOrder()` in the store. Place order sends the last change first, and a refused save
+  stops the order. A section that saves while typing uses this too.
+- **On the order:** `Observer/CopyDetailsToOrder` copies it, `Model\ResourceModel\Order\Grid` in `etc/di.xml` takes it
+  into the grid table.
+- **Shown in:** the Account Information table of the admin order view, the top of My Orders order view and its print page,
+  the order email through `Observer/AddDetailsToOrderEmail` and the theme's copy of `order_new.html`.
+- **Success page:** `ViewModel/OrderDetails` gives the details of the order on the page, or else of the last order placed.
+
 ## GST
 
 `Setup/Patch/Data/CreateAuGstTaxRule` creates the AU 10% rate and rule for the default product and customer tax classes
@@ -185,3 +202,6 @@ cd app/code/Elme/Checkout/Test/Playwright
 npm install && npx playwright install chromium
 npm test
 ```
+
+The admin part of the long link test runs only with `ADMIN_PASSWORD` set (and `ADMIN_USER`, default `admin`); without it
+that test ends as skipped once its My Orders and email checks have passed.
