@@ -360,6 +360,6 @@
     }
 
     .cms-index-index .elme-hero__slide > .elme-hero__media {
-        min-height: min(calc(var(--spacing) * 130), 70svh);
+        min-height: var(--home-hero-height);
     }
 }

@@ -11,11 +11,17 @@
 
 @layer components {
 
-    /* full-bleed under the header, past the 1920 container */
+    /* full-bleed under the header up to the 1920 container; on wider screens it stays inside it, centred */
     .elme-login {
+        --elme-login-width: min(100vw, var(--container-max-width));
         display: grid;
-        width: 100vw;
-        margin-inline: calc(50% - 50vw);
+        width: var(--elme-login-width);
+        margin-inline: calc(50% - var(--elme-login-width) / 2);
+
+        /* past the container: same left and right edges as the logo and the footer */
+        @media (width > theme(--breakpoint-3xl)) {
+            --elme-login-width: calc(var(--container-max-width) - 2 * var(--container-gutter-desktop));
+        }
         background-color: var(--color-surface);
 
         /* the form column has a comfortable fixed width and the photo takes the rest, so wide screens get a
@@ -369,12 +375,12 @@
     }
 
     @variant lg {
-        /* the form is long: the photo stays in view while it scrolls */
+        /* the photo is as tall as the form, and at most the screen: then it stays in view while the form scrolls */
         .elme-register .elme-login__media {
             position: sticky;
             top: var(--elme-header-bottom, 0px);
-            align-self: start;
-            height: calc(100svh - var(--elme-header-bottom, 0px));
+            height: auto;
+            max-height: calc(100svh - var(--elme-header-bottom, 0px));
         }
     }
 
@@ -537,6 +543,14 @@
 /* Unlayered. The .columns grid has a 16px row gap that showed as a strip between the header and the photo. */
 .elme-login-page .columns {
     row-gap: 0;
+}
+
+/* Unlayered. On very tall screens the page is taller than the block: keep it in the middle, not stuck to the header. */
+@media (width > theme(--breakpoint-3xl)) {
+    .elme-login-page .columns {
+        align-content: center;
+        padding-block: --spacing(12);
+    }
 }
 
 /* Unlayered. Hyvä's #customer-login-container (theme/page-customer.css) adds 32px padding above and below (a white

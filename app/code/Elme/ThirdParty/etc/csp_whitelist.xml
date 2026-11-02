@@ -70,6 +70,7 @@
         </policy>
         <policy id="img-src">
             <values>
+                <value id="elme-cloudinary" type="host">res.cloudinary.com</value>
                 <value id="elme-gtm" type="host">www.googletagmanager.com</value>
                 <value id="elme-ga" type="host">www.google-analytics.com</value>
                 <value id="elme-ga-star" type="host">*.google-analytics.com</value>

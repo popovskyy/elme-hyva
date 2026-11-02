@@ -9,7 +9,7 @@
  * Flow: submit -> button goes to "sending" at once (cart slides to the centre, a dot drops into it
  * until the server answers) -> POST with X-Requested-With, so Magento's cart/add answers JSON ->
  * read the "messages" section (that is where cart/add puts its errors) -> reload section data for
- * the mini-cart -> "success" (cart leaves right, check + "Added" comes in from the left, 1.5s)
+ * the mini-cart -> "success" (cart leaves right, check + "Added" comes in from the left, 2.2s)
  * only when the server confirmed it; otherwise back to idle and the error goes to the toast stack.
  *
  * Requests run one after another, so quick clicks on many tiles never race on the quote and every
@@ -47,8 +47,8 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
 <script>
     (function () {
         const SELECTOR = '.btn-atc';
-        const HOLD_MS = 1500;
-        const MIN_SENDING_MS = 700;
+        const HOLD_MS = 2200;
+        const MIN_SENDING_MS = 1650;
         const TEXT = {
             added: '<?= $escaper->escapeJs(__('Added to cart')) ?>',
             failed: '<?= $escaper->escapeJs(__('We couldn\'t add this item to your cart. Please try again.')) ?>'

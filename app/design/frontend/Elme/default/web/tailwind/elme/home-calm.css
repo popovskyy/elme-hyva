@@ -1,13 +1,15 @@
 /*
  * Home "Calm gallery" (docs/design/homepage-review-options.html, picked 31 Oct 2026):
- * a shorter hero that holds the H1, a light intro with trade facts (welcome_cta look "intro"),
+ * a hero that holds the H1, a light intro with trade facts (welcome_cta look "intro"),
  * all category tiles in a grid (category_tiles layout "grid"), "From the showroom" photo cards
  * (catalogue_covers look "cards"). One dark moment (the hero), motion only in the hero.
  */
 @layer components {
-    /* --- Shorter hero on the home page -------------------------------------------------------- */
+    /* --- Hero on the home page ------------------------------------------------------------------ */
+    /* Grows with wide screens, so the photo keeps about 3:1 on 2K and 4K instead of becoming a strip. */
     .cms-index-index .elme-hero__media {
-        aspect-ratio: 1 / 1;
+        --home-hero-height: min(max(calc(var(--spacing) * 170), 32vw), 75svh);
+        aspect-ratio: 4 / 5;
 
         @variant md {
             aspect-ratio: 2 / 1;
@@ -16,8 +18,8 @@
 
         @variant lg {
             aspect-ratio: auto;
-            height: calc(var(--spacing) * 130);
-            max-height: min(calc(var(--spacing) * 130), 70svh);
+            height: var(--home-hero-height);
+            max-height: var(--home-hero-height);
         }
     }
 
