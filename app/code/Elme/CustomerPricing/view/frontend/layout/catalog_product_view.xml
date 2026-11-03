@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!--
+    Logged in too: the PDP HTML is cached per customer group, and the core product:price:amount tag would put
+    Magento's group price there, not the customer's price. Same template as for guests (Elme_LoginOnly).
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="opengraph.general" template="Elme_LoginOnly::product/view/opengraph/general.phtml"/>
+    </body>
+</page>
