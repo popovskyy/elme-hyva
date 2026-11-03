@@ -37,7 +37,7 @@ foreach ($block->getChildNames() as $childName) {
             <span class="elme-checkout-section__step-number"><?= (int) $block->getData('number') ?></span>
             <?= $heroicons->checkHtml('elme-checkout-section__step-check', 14, 14, ['aria-hidden' => 'true']) ?>
         </span>
-        <h2 class="elme-checkout-section__title"><?= $escaper->escapeHtml(__('Payment')) ?></h2>
+        <h2 class="elme-checkout-section__title"><?= $escaper->escapeHtml(__('Payment method')) ?></h2>
     </div>
 
     <p class="elme-checkout-section__error" role="alert" x-show="error" x-cloak x-text="error"></p>

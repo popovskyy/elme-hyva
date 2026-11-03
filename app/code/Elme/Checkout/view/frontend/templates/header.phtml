@@ -16,27 +16,22 @@ $contact = $viewModels->require(StoreContact::class);
 $heroicons = $viewModels->require(HeroiconsOutline::class);
 ?>
 <header class="elme-checkout-header">
-    <div class="container flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-4">
+    <div class="container flex items-center justify-between gap-6 py-4 lg:py-5">
         <a href="<?= $escaper->escapeUrl($block->getBaseUrl()) ?>"
            aria-label="<?= $escaper->escapeHtmlAttr(__('Elme Living home page')) ?>">
             <img src="<?= $escaper->escapeUrl($block->getViewFileUrl('images/logo.svg')) ?>"
                  alt="<?= $escaper->escapeHtmlAttr(__('Elme Living')) ?>"
                  width="180"
                  height="38"
-                 class="h-8 w-auto lg:h-10">
+                 class="elme-checkout-header__logo">
         </a>
-        <div class="elme-checkout-header__secure">
-            <?= $heroicons->lockClosedHtml('shrink-0', 20, 20, ['aria-hidden' => 'true']) ?>
-            <span><?= $escaper->escapeHtml(__('Secure checkout')) ?></span>
-        </div>
-        <p class="hidden w-full text-copy text-ink-muted md:block md:w-auto">
-            <?= $escaper->escapeHtml(__('Need help?')) ?>
-            <a class="elme-checkout-link" href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>">
-                <?= $escaper->escapeHtml($contact->getPhoneDisplay()) ?>
-            </a>
-            <?= $escaper->escapeHtml(__('or')) ?>
-            <a class="elme-checkout-link" href="<?= $escaper->escapeUrl($contact->getEmailMailtoHref()) ?>">
-                <?= $escaper->escapeHtml($contact->getEmail()) ?>
+        <p class="elme-checkout-header__help">
+            <span class="hidden md:inline"><?= $escaper->escapeHtml(__('Need assistance?')) ?></span>
+            <a class="elme-checkout-header__help-link"
+               href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>"
+               aria-label="<?= $escaper->escapeHtmlAttr(__('Need assistance? Call %1', $contact->getPhoneDisplay())) ?>">
+                <?= $heroicons->questionMarkCircleHtml('shrink-0', 20, 20, ['aria-hidden' => 'true']) ?>
+                <span><?= $escaper->escapeHtml($contact->getPhoneDisplay()) ?></span>
             </a>
         </p>
     </div>

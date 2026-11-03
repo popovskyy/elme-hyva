@@ -74,6 +74,9 @@ $agreements = $agreementsViewModel->getAgreements();
     <?php endif; ?>
 
     <div class="elme-checkout-place">
+        <a class="elme-checkout-link" href="<?= $escaper->escapeUrl($block->getUrl('checkout/cart')) ?>">
+            <?= $escaper->escapeHtml(__('Return to cart')) ?>
+        </a>
         <?= $block->getChildHtml('button') ?>
     </div>
 </div>
