@@ -20,30 +20,36 @@ foreach ($block->getChildNames() as $childName) {
     $renderers[$layout->getElementAlias($childName)] = $childName;
 }
 ?>
-<section class="scroll-mt-4 border border-divider bg-surface p-4 lg:p-6"
+<section class="elme-checkout-section scroll-mt-4"
          data-checkout-section="payment"
          x-data="elmeCheckoutPayment"
-         data-renderers="<?= $escaper->escapeHtmlAttr(implode(' ', array_keys($renderers))) ?>">
-    <div class="flex items-center gap-4">
-        <span class="flex size-8 shrink-0 items-center justify-center bg-primary text-copy text-on-primary" aria-hidden="true">
-            <?= (int) $block->getData('number') ?>
-        </span>
-        <h2 class="text-h3 lg:text-h3-desktop"><?= $escaper->escapeHtml(__('Payment')) ?></h2>
+         data-renderers="<?= $escaper->escapeHtmlAttr(implode(' ', array_keys($renderers))) ?>"
+         :class="busyClass"
+         :aria-busy="ariaBusy">
+    <div class="elme-checkout-section__loader" x-show="isBusy" x-cloak aria-hidden="true">
+        <span class="elme-spinner"></span>
     </div>
 
-    <p class="mt-4 text-copy text-error-strong" role="alert" x-show="error" x-cloak x-text="error"></p>
-    <p class="mt-4 text-copy text-ink-muted" x-show="locked" x-cloak x-text="locked"></p>
+    <div class="elme-checkout-section__head">
+        <span class="elme-checkout-section__step" aria-hidden="true">
+            <?= (int) $block->getData('number') ?>
+        </span>
+        <h2 class="elme-checkout-section__title"><?= $escaper->escapeHtml(__('Payment')) ?></h2>
+    </div>
 
-    <p class="mt-4 text-copy text-ink" x-show="hasNoMethods" x-cloak>
+    <p class="elme-checkout-section__error" role="alert" x-show="error" x-cloak x-text="error"></p>
+    <p class="elme-checkout-section__hint" x-show="locked" x-cloak x-text="locked"></p>
+
+    <p class="elme-checkout-section__body text-copy text-ink" x-show="hasNoMethods" x-cloak>
         <?= $escaper->escapeHtml(__("We can't take payment for this order online, please call us")) ?>:
-        <a class="underline" href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>">
+        <a class="elme-checkout-link" href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>">
             <?= $escaper->escapeHtml($contact->getPhoneDisplay()) ?>
         </a>
     </p>
 
-    <fieldset class="mt-4" x-show="hasMethods" x-cloak>
+    <fieldset class="elme-checkout-section__body" x-show="hasMethods" x-cloak>
         <legend class="sr-only"><?= $escaper->escapeHtml(__('Payment method')) ?></legend>
-        <div class="grid gap-3">
+        <div class="elme-checkout-options">
             <template x-for="method in methods" :key="method.code">
                 <div>
                     <?php foreach ($renderers as $alias => $childName): ?>
@@ -78,6 +84,15 @@ foreach ($block->getChildNames() as $childName) {
             },
             locked() {
                 return this.data().locked || '';
+            },
+            isBusy() {
+                return this.store().isLoading('payment');
+            },
+            ariaBusy() {
+                return this.isBusy() ? 'true' : 'false';
+            },
+            busyClass() {
+                return {'is-busy': this.isBusy()};
             },
             hasMethods() {
                 return this.methods().length > 0;

@@ -10,14 +10,15 @@ use Magento\Framework\View\Element\Template;
 /** @var Escaper $escaper */
 /** @var HyvaCsp $hyvaCsp */
 ?>
-<div class="sticky bottom-0 z-10 -mx-(--container-gutter) mt-4 flex items-center justify-between gap-4 border-t border-divider bg-surface px-(--container-gutter) py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:-mx-(--container-gutter-desktop) md:px-(--container-gutter-desktop) lg:hidden"
+<div class="elme-checkout-bar"
      data-place-order-bar
      x-data="elmeCheckoutPlaceOrderBar"
      x-bind="focusListeners"
-     x-show="isVisible">
-    <p class="min-w-0 text-copy text-ink">
-        <span class="block text-note text-ink-muted"><?= $escaper->escapeHtml(__('Total (incl GST)')) ?></span>
-        <span class="block font-semibold" x-text="grandTotal"></span>
+     x-show="isVisible"
+     x-cloak>
+    <p class="min-w-0">
+        <span class="elme-checkout-bar__total-label"><?= $escaper->escapeHtml(__('Total (incl GST)')) ?></span>
+        <span class="elme-checkout-bar__total-value" x-text="grandTotal"></span>
     </p>
     <?= $block->getChildHtml('button') ?>
 </div>

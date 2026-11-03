@@ -29,7 +29,7 @@ $fields = [
     ['name' => 'telephone', 'label' => __('Phone'), 'autocomplete' => 'tel', 'required' => true, 'type' => 'tel'],
 ];
 ?>
-<form class="mt-4 border border-divider p-4 lg:p-6"
+<form class="elme-checkout-form"
       novalidate
       x-ref="addressForm"
       x-show="formOpen"
@@ -91,10 +91,10 @@ $fields = [
     </div>
 
     <div class="mt-4 flex flex-wrap items-center gap-4">
-        <button type="submit" class="btn btn-primary" :disabled="isBusy">
+        <button type="submit" class="btn btn-primary" :disabled="isBusy" :aria-busy="ariaBusy">
             <?= $escaper->escapeHtml(__('Use this address')) ?>
         </button>
-        <button type="button" class="text-copy underline" x-show="canCloseForm" @click="closeForm">
+        <button type="button" class="elme-checkout-link" x-show="canCloseForm" @click="closeForm">
             <?= $escaper->escapeHtml(__('Cancel')) ?>
         </button>
     </div>
