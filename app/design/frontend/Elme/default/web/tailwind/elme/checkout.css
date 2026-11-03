@@ -569,6 +569,16 @@
         &:focus-visible {
             box-shadow: 0 1px 0 0 var(--color-primary);
         }
+
+        /* An invalid underlined field only turns its underline red (Hyva base draws a box outline), focused or not */
+        &:is(:user-invalid, [aria-invalid="true"]) {
+            border-color: var(--color-error);
+            outline: 0;
+
+            &:focus-visible {
+                box-shadow: 0 1px 0 0 var(--color-error);
+            }
+        }
     }
 
     .elme-checkout-form .form-select {
