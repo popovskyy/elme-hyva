@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Elme\CustomerPricing\Model\Import;
 
 use Elme\CustomerPricing\Model\ProntoCustomerResolver;
+use Elme\CustomerPricing\Model\QuoteRecollect;
 use Elme\CustomerPricing\Model\ResourceModel\ProntoPriceData;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\ResourceModel\Customer as CustomerResource;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
@@ -19,6 +21,9 @@ use Magento\Store\Model\StoreManagerInterface;
  * Pronto feed is its own integration. Rows are upserted on the table's unique key; --replace empties the table first.
  *
  * Type "customer-link" sets the customer attribute pronto_customer_id by e-mail instead of filling a table.
+ *
+ * Active customer carts the change can reprice are flagged for a recollect: by SKU where every row (old and new) has
+ * one, otherwise all of them.
  */
 class CsvLoader
 {
@@ -59,7 +64,8 @@ class CsvLoader
         private readonly CustomerRepositoryInterface $customerRepository,
         private readonly CustomerFactory $customerFactory,
         private readonly CustomerResource $customerResource,
-        private readonly StoreManagerInterface $storeManager
+        private readonly StoreManagerInterface $storeManager,
+        private readonly QuoteRecollect $quoteRecollect
     ) {
     }
 
@@ -87,7 +93,11 @@ class CsvLoader
             $rows[] = $this->validate($type, $row, $line);
         }
 
-        return $table === null ? $this->linkCustomers($rows) : $this->write($table, $rows, $replace);
+        if ($table === null) {
+            return $this->linkCustomers($rows);
+        }
+
+        return $this->write($table, isset($columns['sku']), $rows, $replace);
     }
 
     /**
@@ -172,14 +182,14 @@ class CsvLoader
                 ),
             };
             foreach ($needs as $column) {
-                if ($row[$column] === null) {
+                if (($row[$column] ?? null) === null) {
                     throw new LocalizedException(
                         __('Line %1: discount type %2 needs %3', $line, $row['discount_type'], $column)
                     );
                 }
             }
             if ($row['discount_type'] === ProntoPriceData::TYPE_MARKETING_SKU
-                && $row['price'] === null && $row['discount'] === null
+                && ($row['price'] ?? null) === null && ($row['discount'] ?? null) === null
             ) {
                 throw new LocalizedException(__('Line %1: discount type 20 needs a price or a discount', $line));
             }
@@ -191,13 +201,17 @@ class CsvLoader
     /**
      * @param array<int, array<string, ?string>> $rows
      */
-    private function write(string $table, array $rows, bool $replace): int
+    private function write(string $table, bool $hasSku, array $rows, bool $replace): int
     {
+        if (!$rows && !$replace) {
+            return 0;
+        }
         $connection = $this->resource->getConnection();
         $tableName = $this->resource->getTableName($table);
 
         $connection->beginTransaction();
         try {
+            $skus = $hasSku ? $this->getAffectedSkus($connection, $tableName, $rows, $replace) : null;
             if ($replace) {
                 $connection->delete($tableName);
             }
@@ -210,7 +224,29 @@ class CsvLoader
             throw $e;
         }
 
+        $skus === null ? $this->quoteRecollect->all() : $this->quoteRecollect->bySkus($skus);
+
         return count($rows);
+    }
+
+    /**
+     * SKUs of the new rows, and with --replace of the rows about to be deleted; null when a row has no SKU (an item
+     * group discount), as the SKUs it reprices are not known here.
+     *
+     * @param array<int, array<string, ?string>> $rows
+     * @return string[]|null
+     */
+    private function getAffectedSkus(AdapterInterface $connection, string $tableName, array $rows, bool $replace): ?array
+    {
+        // Not array_column(): it skips the rows of a file without a sku column.
+        $skus = array_map(static fn (array $row): ?string => $row['sku'] ?? null, $rows);
+        if ($replace) {
+            $skus = array_merge($skus, $connection->fetchCol(
+                $connection->select()->distinct()->from($tableName, ['sku'])
+            ));
+        }
+
+        return in_array(null, $skus, true) ? null : array_values(array_unique($skus));
     }
 
     /**
@@ -219,6 +255,7 @@ class CsvLoader
     private function linkCustomers(array $rows): int
     {
         $websiteId = (int) $this->storeManager->getDefaultStoreView()?->getWebsiteId();
+        $customerIds = [];
         foreach ($rows as $row) {
             try {
                 $customerId = (int) $this->customerRepository->get((string) $row['email'], $websiteId)->getId();
@@ -229,7 +266,9 @@ class CsvLoader
             $this->customerResource->load($customer, $customerId);
             $customer->setData(ProntoCustomerResolver::ATTRIBUTE_CODE, $row['pronto_customer_id']);
             $this->customerResource->saveAttribute($customer, ProntoCustomerResolver::ATTRIBUTE_CODE);
+            $customerIds[] = $customerId;
         }
+        $this->quoteRecollect->byCustomerIds($customerIds);
 
         return count($rows);
     }

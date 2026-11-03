@@ -37,9 +37,16 @@ without the attribute, or without mappings, pays the list price.
 
 ## Cart
 
-`Observer\ApplyCustomerPrices` on `sales_quote_collect_totals_before` (storefront, REST, SOAP, GraphQL) sets each line's
-`custom_price` to the customer price on every totals collection: add to cart, qty change, reorder, Quick Order and
-checkout all reprice from the current mappings. Admin order creation keeps Magento's or the admin's price.
+`Observer\ApplyCustomerPrices` on `sales_quote_collect_totals_before` (every area) sets each line of a customer's
+active cart to the customer price on every totals collection: add to cart, qty change, reorder, Quick Order and
+checkout all reprice from the current mappings. Inactive quotes are skipped, so admin order creation keeps Magento's or
+the admin's price.
+
+The cart page shows stored totals, so a cart is only repriced after a mapping change when it is flagged
+(`quote.trigger_recollect`, recollected on its next load). `Model\QuoteRecollect` flags active customer carts by SKU,
+by customer or all of them. The CSV import calls it after every load (by SKU when every old and new row has one,
+otherwise all; `customer-link` by customer), and so does saving a customer whose `pronto_customer_id` changed
+(`Observer\RecollectOnProntoIdChange`). The Pronto feed must call it too.
 
 ## Test data
 

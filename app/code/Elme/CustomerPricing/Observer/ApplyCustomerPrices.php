@@ -13,12 +13,13 @@ use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Item;
 
 /**
- * sales_quote_collect_totals_before (storefront, REST, GraphQL): every cart line of a customer gets the customer
- * price as its custom price, so the cart costs what the price endpoint shows. It runs on each totals collection, so
- * add to cart, qty changes, reorder, Quick Order and checkout all reprice from the current Pronto mappings.
+ * sales_quote_collect_totals_before (every area): every line of a customer's active cart gets the customer price as
+ * its custom price, so the cart costs what the price endpoint shows. It runs on each totals collection, so add to
+ * cart, qty changes, reorder, Quick Order and checkout all reprice from the current Pronto mappings, and so does a cart
+ * flagged by Model\QuoteRecollect wherever it is loaded next (storefront, admin, cron).
  *
- * A line without a customer price drops the custom price and falls back to Magento's price. Admin order creation is
- * not covered (other area), so an admin custom price is kept there.
+ * A line without a customer price drops the custom price and falls back to Magento's price. Inactive quotes are left
+ * alone: admin order creation works on one, so an admin custom price is kept there.
  */
 class ApplyCustomerPrices implements ObserverInterface
 {
@@ -34,7 +35,7 @@ class ApplyCustomerPrices implements ObserverInterface
         /** @var Quote $quote */
         $quote = $observer->getEvent()->getData('quote');
         $customerId = (int) $quote->getCustomerId();
-        if (!$customerId) {
+        if (!$customerId || !$quote->getIsActive()) {
             return;
         }
 

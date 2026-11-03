@@ -86,6 +86,17 @@ class ApplyCustomerPricesTest extends TestCase
         $this->observer->execute($this->event($this->quote(0, [$this->item('simple', 2)])));
     }
 
+    public function testInactiveQuoteOfAdminOrderCreationIsLeftAlone(): void
+    {
+        $item = $this->item('simple', 2);
+        $item->setCustomPrice(500.0)->setOriginalCustomPrice(500.0);
+        $this->priceProvider->expects($this->never())->method('getPrices');
+
+        $this->observer->execute($this->event($this->quote(7, [$item])->setIsActive(false)));
+
+        $this->assertSame(500.0, $item->getCustomPrice());
+    }
+
     public function testBundleLineIsLeftAlone(): void
     {
         $this->priceProvider->expects($this->never())->method('getPrices');
@@ -125,7 +136,7 @@ class ApplyCustomerPricesTest extends TestCase
     {
         $quote = $this->createPartialMock(Quote::class, ['getAllVisibleItems']);
         $quote->method('getAllVisibleItems')->willReturn($items);
-        $quote->setData('customer_id', $customerId)->setData('customer_group_id', 1);
+        $quote->setData('customer_id', $customerId)->setData('customer_group_id', 1)->setData('is_active', 1);
 
         return $quote;
     }
