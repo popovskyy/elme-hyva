@@ -29,7 +29,7 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
             <span class="elme-checkout-section__step-number"><?= (int) $block->getData('number') ?></span>
             <?= $heroicons->checkHtml('elme-checkout-section__step-check', 14, 14, ['aria-hidden' => 'true']) ?>
         </span>
-        <h2 class="elme-checkout-section__title"><?= $escaper->escapeHtml(__('Address')) ?></h2>
+        <h2 class="elme-checkout-section__title"><?= $escaper->escapeHtml(__('Delivery details')) ?></h2>
     </div>
 
     <p class="elme-checkout-section__error" role="alert" x-show="sectionErrorText" x-cloak x-text="sectionErrorText"></p>

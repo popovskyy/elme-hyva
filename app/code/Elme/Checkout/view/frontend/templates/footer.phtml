@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Elme\Theme\ViewModel\StoreContact;
 use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 
@@ -12,33 +13,37 @@ use Magento\Framework\View\Element\Template;
 /** @var ViewModelRegistry $viewModels */
 
 $contact = $viewModels->require(StoreContact::class);
+$heroicons = $viewModels->require(HeroiconsOutline::class);
 ?>
 <footer class="elme-checkout-footer">
-    <div class="container flex flex-col gap-3 py-4 text-note text-ink-muted md:flex-row md:items-center md:justify-between">
-        <p class="md:hidden">
-            <?= $escaper->escapeHtml(__('Need help?')) ?>
-            <a class="elme-checkout-link" href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>">
+    <div class="container elme-checkout-footer__inner">
+        <div class="elme-checkout-footer__help">
+            <p class="elme-checkout-footer__help-title"><?= $escaper->escapeHtml(__('Need help?')) ?></p>
+            <a class="elme-checkout-footer__help-link" href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>">
+                <?= $heroicons->phoneHtml('shrink-0', 18, 18, ['aria-hidden' => 'true']) ?>
                 <?= $escaper->escapeHtml($contact->getPhoneDisplay()) ?>
             </a>
-            <?= $escaper->escapeHtml(__('or')) ?>
-            <a class="elme-checkout-link" href="<?= $escaper->escapeUrl($contact->getEmailMailtoHref()) ?>">
+            <a class="elme-checkout-footer__help-link" href="<?= $escaper->escapeUrl($contact->getEmailMailtoHref()) ?>">
+                <?= $heroicons->mailHtml('shrink-0', 18, 18, ['aria-hidden' => 'true']) ?>
                 <?= $escaper->escapeHtml($contact->getEmail()) ?>
             </a>
-        </p>
-        <p>&copy; <?= (int) date('Y') ?> <?= $escaper->escapeHtml(__('Elme Living')) ?></p>
-        <ul class="flex gap-4">
-            <li>
-                <a class="elme-checkout-link"
-                   href="<?= $escaper->escapeUrl($block->getUrl('', ['_direct' => 'website-terms-conditions'])) ?>">
-                    <?= $escaper->escapeHtml(__('Terms')) ?>
-                </a>
-            </li>
-            <li>
-                <a class="elme-checkout-link"
-                   href="<?= $escaper->escapeUrl($block->getUrl('', ['_direct' => 'privacy-policy'])) ?>">
-                    <?= $escaper->escapeHtml(__('Privacy')) ?>
-                </a>
-            </li>
-        </ul>
+        </div>
+        <div class="elme-checkout-footer__legal">
+            <ul class="flex gap-4">
+                <li>
+                    <a class="elme-checkout-link"
+                       href="<?= $escaper->escapeUrl($block->getUrl('', ['_direct' => 'website-terms-conditions'])) ?>">
+                        <?= $escaper->escapeHtml(__('Terms')) ?>
+                    </a>
+                </li>
+                <li>
+                    <a class="elme-checkout-link"
+                       href="<?= $escaper->escapeUrl($block->getUrl('', ['_direct' => 'privacy-policy'])) ?>">
+                        <?= $escaper->escapeHtml(__('Privacy')) ?>
+                    </a>
+                </li>
+            </ul>
+            <p>&copy; <?= (int) date('Y') ?> <?= $escaper->escapeHtml(__('Elme Living')) ?></p>
+        </div>
     </div>
 </footer>

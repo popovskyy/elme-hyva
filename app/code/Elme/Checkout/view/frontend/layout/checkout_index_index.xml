@@ -7,6 +7,12 @@
         <referenceContainer name="checkout.header.container" remove="true"/>
         <!-- Snowdog's inline plugin has no CSP hash, CSP is enforced here, and this page has no menu to collapse -->
         <referenceBlock name="alpine-plugin-collapse" remove="true"/>
+        <!-- The steps carry the visible titles, as on the old checkout; the h1 stays for screen readers -->
+        <referenceBlock name="page.main.title">
+            <arguments>
+                <argument name="css_class" xsi:type="string">sr-only</argument>
+            </arguments>
+        </referenceBlock>
 
         <referenceContainer name="page.wrapper">
             <block name="elme.checkout.header"
