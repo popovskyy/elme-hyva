@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
 use Magento\Framework\Escaper;
 
 /** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
 ?>
 <button type="button"
         class="btn btn-primary"
@@ -13,5 +16,6 @@ use Magento\Framework\Escaper;
         :disabled="isPlacing"
         :aria-busy="ariaBusy"
         @click="place">
+    <?= $viewModels->require(HeroiconsOutline::class)->lockClosedHtml('elme-checkout-place__icon', 18, 18, ['aria-hidden' => 'true']) ?>
     <?= $escaper->escapeHtml(__('Place order')) ?>
 </button>

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Checkout - options</title>
+<style>
+@font-face {
+  font-family: "Karla";
+  src: url("../../app/design/frontend/Elme/default/web/fonts/karla/Karla-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Karla";
+  src: url("../../app/design/frontend/Elme/default/web/fonts/karla/Karla-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Karla";
+  src: url("../../app/design/frontend/Elme/default/web/fonts/karla/Karla-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "DM Serif Display";
+  src: url("../../app/design/frontend/Elme/default/web/fonts/dm-serif-display/DMSerifDisplay-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* tokens from app/design/frontend/Elme/default/web/tailwind/hyva.config.json */
+  --primary: #3A3935;
+  --on-primary: #FFFFFF;
+  --secondary: #ADBBA1;
+  --on-secondary: #FFFFFF;
+  --tertiary: #D4C8B3;
+  --accent-dark: #68839C;
+  --ink: #3A3935;
+  --ink-muted: #676F78;
+  --ink-subtle: #797D81;
+  --page: #F5F4EF;
+  --surface: #FFFFFF;
+  --surface-muted: #F8F8F8;
+  --sand-light: #E1DBD1;
+  --border: #CAC9C9;
+  --border-light: #D3D6D9;
+  --divider: #DCDCDC;
+  --table: #D5DADF;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--table);
+  color: var(--ink);
+  font-family: Karla, sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+}
+button, input, textarea { font: inherit; color: inherit; }
+h1, h2, .m-serif { font-family: "DM Serif Display", serif; font-weight: 400; }
+
+.page { padding: 48px 40px 120px; }
+h1.page-title { margin: 0 0 12px; font-size: 40px; line-height: 1.1; }
+.lead, .note { max-width: 64ch; margin: 0; }
+.lead { font-size: 17px; }
+.note { margin-top: 8px; color: var(--ink-muted); font-size: 15px; }
+
+.option { margin-top: 64px; }
+.option h2.option-title { margin: 0 0 8px; font-size: 28px; line-height: 1.15; }
+.option p.option-note { margin: 0 0 20px; max-width: 70ch; color: var(--ink-muted); font-size: 15px; }
+
+.frames { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 28px; }
+.frame-label { margin: 0 0 8px; color: var(--ink-muted); font-size: 14px; font-weight: 500; }
+
+.canvas { background: var(--page); outline: 1px solid var(--border-light); }
+.canvas.phone { width: 390px; }
+.canvas.desk { width: 1280px; }
+
+/* ---- shared checkout mock structure ---- */
+.mock { padding: 20px 20px 28px; }
+.desk .mock { padding: 0; }
+
+.m-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--divider);
+}
+.desk .m-head { padding: 24px 40px; }
+.m-logo { font-family: "DM Serif Display", serif; font-size: 20px; }
+.m-secure {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  color: var(--ink-muted);
+}
+.m-secure svg { width: 14px; height: 14px; flex: none; }
+.m-help { font-size: 13px; color: var(--ink-muted); }
+.m-help a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+.desk .m-help { order: 2; }
+.desk .m-secure { order: 1; margin-left: auto; margin-right: 24px; }
+
+.m-body { padding: 24px 0 0; }
+.desk .m-body { padding: 40px 40px 0; }
+h1.m-title { margin: 0 0 20px; font-size: 24px; }
+.desk h1.m-title { font-size: 30px; margin-bottom: 28px; }
+
+.m-grid { display: flex; flex-direction: column; gap: 24px; }
+.desk .m-grid { display: grid; grid-template-columns: 1fr 360px; gap: 48px; align-items: start; }
+
+.m-sections { display: flex; flex-direction: column; min-width: 0; }
+.m-summary { order: -1; }
+.desk .m-summary { order: 0; position: sticky; top: 24px; }
+
+.m-step-head { display: flex; align-items: center; gap: 14px; }
+.m-step-title { margin: 0; font-size: 18px; }
+.desk .m-step-title { font-size: 20px; }
+.m-step-title small { font-weight: 400; color: var(--ink-muted); font-size: 0.75em; }
+
+.m-line { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.m-line p { margin: 0; font-size: 14px; }
+.desk .m-line p { font-size: 15px; }
+.m-link { font-size: 14px; color: var(--ink); text-decoration: underline; text-underline-offset: 2px; background: none; border: 0; padding: 0; cursor: pointer; white-space: nowrap; }
+
+.m-option { display: flex; align-items: center; gap: 14px; }
+.m-radio { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border); position: relative; }
+.m-option.is-checked .m-radio { border-color: var(--ink); }
+.m-option.is-checked .m-radio::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--ink); }
+.m-option-body { flex: 1; min-width: 0; font-size: 15px; }
+.m-option-title { font-weight: 600; display: block; }
+.m-option-price { text-align: right; font-size: 15px; white-space: nowrap; }
+.m-option-price small { display: block; color: var(--ink-muted); font-size: 12px; }
+
+.m-textarea {
+  width: 100%;
+  min-height: 90px;
+  padding: 14px 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  resize: vertical;
+}
+.m-charcount { margin-top: 4px; text-align: right; font-size: 12px; color: var(--ink-subtle); }
+
+.m-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 50px;
+  padding: 0 24px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border: 0;
+  background: var(--primary);
+  color: var(--on-primary);
+  cursor: pointer;
+}
+.m-cta svg { width: 16px; height: 16px; flex: none; }
+.m-trust { margin: 10px 0 0; text-align: center; font-size: 13px; color: var(--ink-muted); }
+
+.m-thumb {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  background: var(--sand-light);
+}
+.m-thumb svg { width: 26px; height: 26px; color: var(--ink); opacity: 0.6; }
+
+.m-item { display: flex; align-items: flex-start; gap: 14px; }
+.m-item-info { flex: 1; min-width: 0; font-size: 14px; }
+.m-item-name { margin: 0; font-weight: 600; }
+.m-item-sku, .m-item-qty { margin: 2px 0 0; color: var(--ink-muted); font-size: 13px; }
+.m-item-price { margin: 0; font-size: 14px; white-space: nowrap; }
+
+.m-editcart { display: inline-block; margin: 14px 0; }
+
+.m-totals { margin: 0; }
+.m-total-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 7px 0; font-size: 14px; }
+.m-total-row dt, .m-total-row dd { margin: 0; font-weight: 400; }
+.m-total-row dd { font-variant-numeric: tabular-nums; }
+.m-grand dt, .m-grand dd { font-weight: 700; font-size: 17px; }
+
+.m-stickybar { display: none; }
+.phone .m-stickybar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-top: 1px solid var(--divider);
+}
+.m-stickybar p { margin: 0; display: flex; flex-direction: column; font-size: 13px; color: var(--ink-muted); }
+.m-stickybar strong { font-size: 16px; color: var(--ink); font-weight: 700; }
+.m-stickybar .m-cta { width: auto; min-width: 150px; }
+.phone .m-sections > .m-cta, .phone .m-sections > .m-trust { display: none; }
+
+.m-foot {
+  margin-top: 28px;
+  padding: 16px 0;
+  border-top: 1px solid var(--divider);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+.desk .m-foot { padding: 20px 40px; }
+.m-foot-links { display: flex; gap: 16px; }
+.m-foot-links a { color: var(--ink-muted); text-decoration: underline; text-underline-offset: 2px; }
+
+/* ===================== v1 - Quiet ledger ===================== */
+.v1 .m-step { padding: 26px 0; border-top: 1px solid var(--divider); }
+.v1 .m-step:first-child { border-top: 0; padding-top: 0; }
+.v1 .m-step-head { margin-bottom: 16px; }
+.v1 .m-step-badge {
+  flex: none; width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center;
+  border: 1.5px solid var(--border); color: var(--ink-muted); font-size: 13px; font-weight: 600;
+}
+.v1 .m-step[data-done="true"] .m-step-badge { background: var(--secondary); border-color: var(--secondary); color: var(--on-secondary); font-size: 0; }
+.v1 .m-step[data-done="true"] .m-step-badge::after { content: "\2713"; font-size: 13px; }
+.v1 .m-step-body { display: flex; flex-direction: column; gap: 14px; }
+.v1 .m-option { padding: 2px 0; }
+.v1 .m-summary { padding-top: 20px; border-top: 1px solid var(--divider); }
+.desk.v1 .m-summary { padding-top: 0; border-top: 0; border-left: 1px solid var(--divider); padding-left: 40px; }
+.v1 .m-summary h2 { font-size: 20px; margin: 0 0 18px; }
+.v1 .m-totals { margin-top: 6px; padding-top: 10px; border-top: 1px dashed var(--border-light); }
+.v1 .m-total-row { border-bottom: 1px dashed var(--border-light); }
+.v1 .m-grand { border-bottom: 0; border-top: 2px solid var(--ink); margin-top: 4px; padding-top: 12px; }
+.v1 .m-cta { margin-top: 28px; }
+
+/* ===================== v2 - Connected path ===================== */
+.v2 .m-sections { position: relative; padding-left: 44px; }
+.v2 .m-sections::before {
+  content: ""; position: absolute; left: 12px; top: 13px; bottom: 60px; width: 1px; background: var(--border-light);
+}
+.v2 .m-step { position: relative; padding: 0 0 36px; }
+.v2 .m-step:last-of-type { padding-bottom: 24px; }
+.v2 .m-step-head { margin-bottom: 16px; }
+.v2 .m-step-badge {
+  position: absolute; left: -44px; top: 0;
+  flex: none; width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--page);
+  border: 1.5px solid var(--border-light); color: var(--ink-subtle); font-size: 13px; font-weight: 600;
+}
+.v2 .m-step[data-done="true"] .m-step-badge { background: var(--secondary); border-color: var(--secondary); color: var(--on-secondary); font-size: 0; }
+.v2 .m-step[data-done="true"] .m-step-badge::after { content: "\2713"; font-size: 13px; }
+.v2 .m-step[data-current="true"] .m-step-badge { border: 2px solid var(--ink); color: var(--ink); background: var(--page); }
+.v2 .m-step-body { display: flex; flex-direction: column; gap: 14px; }
+.v2 .m-summary { background: var(--sand-light); padding: 24px; }
+.v2 .m-summary h2 { font-size: 20px; margin: 0 0 18px; }
+.v2 .m-totals { margin-top: 6px; }
+.v2 .m-total-row { border-bottom: 1px solid rgba(58,57,53,0.14); }
+.v2 .m-grand { border-bottom: 0; border-top: 2px solid var(--primary); margin-top: 4px; padding-top: 12px; }
+.v2 .m-thumb { border-radius: 50%; }
+.v2 .m-cta { margin-top: 28px; }
+
+/* ===================== v3 - Editorial, refined ===================== */
+.v3 .m-step {
+  padding: 24px;
+  margin-bottom: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+}
+.v3 .m-step-head { margin-bottom: 16px; }
+.v3 .m-step-badge {
+  flex: none; width: 24px; height: 24px; display: grid; place-items: center;
+  background: var(--sand-light); color: var(--ink); font-size: 12px; font-weight: 700;
+}
+.v3 .m-step[data-done="true"] .m-step-badge { background: var(--secondary); color: var(--on-secondary); font-size: 0; }
+.v3 .m-step[data-done="true"] .m-step-badge::after { content: "\2713"; font-size: 12px; }
+.v3 .m-step-body { display: flex; flex-direction: column; gap: 14px; }
+.v3 .m-option { padding: 12px; background: var(--surface-muted); }
+.v3 .m-summary-card { background: var(--surface); border: 1px solid var(--border-light); }
+.v3 .m-summary-pad { padding: 24px 24px 0; }
+.v3 .m-summary h2 { font-size: 20px; margin: 0 0 18px; }
+.v3 .m-editcart { margin: 14px 0 0; padding-bottom: 20px; }
+.v3 .m-totals { padding: 0 24px; }
+.v3 .m-total-row { border-bottom: 1px solid var(--divider); }
+.v3 .m-grand {
+  border-bottom: 0; margin: 4px -24px 0; padding: 16px 24px;
+  background: var(--primary); color: var(--on-primary);
+}
+.v3 .m-grand dt, .v3 .m-grand dd { color: inherit; }
+.v3 .m-cta { margin-top: 28px; }
+</style>
+</head>
+<body>
+<main class="page">
+<h1 class="page-title">Checkout - three looks</h1>
+<p class="lead">
+  Same four steps, same order summary, same numbers as elme-hyva.local/checkout/ right now
+  (Address, Delivery, Payment, Delivery instructions; $900.00 subtotal, $45.00 shipping,
+  $94.50 GST, $1,039.50 total). What changes is only how it looks: the step markers, the
+  card chrome, the product placeholder, and how the total is set off. Pick a number, or a
+  mix such as "2 on the phone, 1 on desktop".
+</p>
+<p class="note">Product thumbnail is a placeholder in every option on purpose - today it shows a broken
+  Magento mark on the live checkout, so all three replace it with a plain line icon on a sand tile
+  instead of inventing a real product photo.</p>
+
+<section class="option">
+  <h2 class="option-title">1. Quiet ledger</h2>
+  <p class="option-note">No boxes at all. Steps are separated by a single hairline, step markers are small
+    outline circles that turn sage with a check once done, options are a plain radio row. The summary sits
+    flush in its column with a dashed rule between lines, like a receipt, and the total gets one bold rule
+    above it instead of a block of colour.</p>
+  <div class="frames">
+    <div>
+      <p class="frame-label">Phone, 390px</p>
+      <div class="canvas phone"><div class="mock v1" data-variant="1"></div></div>
+    </div>
+    <div>
+      <p class="frame-label">Desktop, 1280px</p>
+      <div class="canvas desk"><div class="mock v1" data-variant="1"></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="option">
+  <h2 class="option-title">2. Connected path</h2>
+  <p class="option-note">A thin line runs down the left edge and threads through all four step markers, so the
+    page reads as one path instead of four separate forms - done steps are filled sage circles with a check,
+    the open step gets a dark ring. The order summary becomes a warm sand panel, like a packing slip, with the
+    total underlined in the brand's dark ink.</p>
+  <div class="frames">
+    <div>
+      <p class="frame-label">Phone, 390px</p>
+      <div class="canvas phone"><div class="mock v2" data-variant="2"></div></div>
+    </div>
+    <div>
+      <p class="frame-label">Desktop, 1280px</p>
+      <div class="canvas desk"><div class="mock v2" data-variant="2"></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="option">
+  <h2 class="option-title">3. Editorial, refined</h2>
+  <p class="option-note">Keeps the card-per-step shape closest to what is live today, so it is the lowest-risk
+    change: lighter hairline borders instead of heavy ones, step markers as small sand squares that turn sage
+    when done, and the grand total breaks out of the card as a full-width dark band so the number you actually
+    pay is the one thing that pops.</p>
+  <div class="frames">
+    <div>
+      <p class="frame-label">Phone, 390px</p>
+      <div class="canvas phone"><div class="mock v3" data-variant="3"></div></div>
+    </div>
+    <div>
+      <p class="frame-label">Desktop, 1280px</p>
+      <div class="canvas desk"><div class="mock v3" data-variant="3"></div></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<template id="mock-template">
+  <div class="m-head">
+    <span class="m-logo">elme living</span>
+    <span class="m-secure">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="9" rx="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      SECURE CHECKOUT
+    </span>
+    <span class="m-help">Need help? <a href="#">(03) 7067 9725</a> or <a href="#">hello@elmeliving.com</a></span>
+  </div>
+  <div class="m-body">
+    <h1 class="m-title">Checkout</h1>
+    <div class="m-grid">
+      <div class="m-sections">
+        <section class="m-step" data-done="true">
+          <div class="m-step-head">
+            <span class="m-step-badge">1</span>
+            <h2 class="m-step-title">Address</h2>
+          </div>
+          <div class="m-step-body">
+            <div class="m-line">
+              <p><strong>Deliver to:</strong> E2E Checkout, Elme E2E, 1 Test Street, Melbourne VIC 3000</p>
+              <button class="m-link" type="button">Change</button>
+            </div>
+            <div class="m-line">
+              <p><strong>Invoice to:</strong> E2E Checkout, Elme E2E, 1 Test Street, Melbourne VIC 3000</p>
+              <button class="m-link" type="button">Change</button>
+            </div>
+          </div>
+        </section>
+        <section class="m-step" data-done="true">
+          <div class="m-step-head">
+            <span class="m-step-badge">2</span>
+            <h2 class="m-step-title">Delivery</h2>
+          </div>
+          <div class="m-step-body">
+            <label class="m-option is-checked">
+              <span class="m-radio"></span>
+              <span class="m-option-body"><span class="m-option-title">Flat Rate</span>Fixed</span>
+              <span class="m-option-price">$45.00<small>ex GST</small></span>
+            </label>
+          </div>
+        </section>
+        <section class="m-step" data-done="true">
+          <div class="m-step-head">
+            <span class="m-step-badge">3</span>
+            <h2 class="m-step-title">Payment</h2>
+          </div>
+          <div class="m-step-body">
+            <label class="m-option is-checked">
+              <span class="m-radio"></span>
+              <span class="m-option-body"><span class="m-option-title">Check / Money order</span></span>
+            </label>
+          </div>
+        </section>
+        <section class="m-step" data-current="true">
+          <div class="m-step-head">
+            <span class="m-step-badge">4</span>
+            <h2 class="m-step-title">Delivery instructions <small>(optional)</small></h2>
+          </div>
+          <div class="m-step-body">
+            <textarea class="m-textarea" readonly>QA note 1793631422349</textarea>
+            <div class="m-charcount">21 / 250</div>
+          </div>
+        </section>
+        <button class="m-cta" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="9" rx="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          Place order
+        </button>
+        <p class="m-trust">Your order is reviewed and invoiced by our team.</p>
+      </div>
+      <aside class="m-summary">
+        <div class="m-summary-pad">
+          <h2>Order summary</h2>
+          <div class="m-item">
+            <span class="m-thumb" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 3h6l1 4a4 4 0 0 1-8 0l1-4Z"/><path d="M12 11v6"/><path d="M8 20c0-1.7 1.8-3 4-3s4 1.3 4 3"/></svg>
+            </span>
+            <div class="m-item-info">
+              <p class="m-item-name">E2E checkout product</p>
+              <p class="m-item-sku">E2E-CHECKOUT</p>
+              <p class="m-item-qty">Qty: 9</p>
+            </div>
+            <p class="m-item-price">$900.00</p>
+          </div>
+          <button class="m-link m-editcart" type="button">Edit cart</button>
+        </div>
+        <dl class="m-totals">
+          <div class="m-total-row"><dt>Subtotal (ex GST)</dt><dd>$900.00</dd></div>
+          <div class="m-total-row"><dt>Shipping</dt><dd>$45.00</dd></div>
+          <div class="m-total-row"><dt>GST</dt><dd>$94.50</dd></div>
+          <div class="m-total-row m-grand"><dt>Total (incl GST)</dt><dd>$1,039.50</dd></div>
+        </dl>
+      </aside>
+    </div>
+    <div class="m-stickybar">
+      <p><span>Total (incl GST)</span><strong>$1,039.50</strong></p>
+      <button class="m-cta" type="button">Place order</button>
+    </div>
+    <div class="m-foot">
+      <span>&copy; 2026 Elme Living</span>
+      <span class="m-foot-links"><a href="#">Terms</a><a href="#">Privacy</a></span>
+    </div>
+  </div>
+</template>
+
+<script>
+(function () {
+  var tpl = document.getElementById('mock-template');
+  document.querySelectorAll('.mock').forEach(function (el) {
+    el.appendChild(tpl.content.cloneNode(true));
+  });
+})();
+</script>
+</body>
+</html>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Elme\Theme\ViewModel\StoreContact;
 use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
 use Hyva\Theme\ViewModel\HyvaCsp;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
@@ -14,6 +15,7 @@ use Magento\Framework\View\Element\Template;
 /** @var HyvaCsp $hyvaCsp */
 
 $contact = $viewModels->require(StoreContact::class);
+$heroicons = $viewModels->require(HeroiconsOutline::class);
 $layout = $block->getLayout();
 $renderers = [];
 foreach ($block->getChildNames() as $childName) {
@@ -31,8 +33,9 @@ foreach ($block->getChildNames() as $childName) {
     </div>
 
     <div class="elme-checkout-section__head">
-        <span class="elme-checkout-section__step" aria-hidden="true">
-            <?= (int) $block->getData('number') ?>
+        <span class="elme-checkout-section__step" :class="stepClass" aria-hidden="true">
+            <span class="elme-checkout-section__step-number"><?= (int) $block->getData('number') ?></span>
+            <?= $heroicons->checkHtml('elme-checkout-section__step-check', 14, 14, ['aria-hidden' => 'true']) ?>
         </span>
         <h2 class="elme-checkout-section__title"><?= $escaper->escapeHtml(__('Payment')) ?></h2>
     </div>
@@ -90,6 +93,9 @@ foreach ($block->getChildNames() as $childName) {
             },
             ariaBusy() {
                 return this.isBusy() ? 'true' : 'false';
+            },
+            stepClass() {
+                return {'is-done': Boolean(this.data().selected)};
             },
             busyClass() {
                 return {'is-busy': this.isBusy()};

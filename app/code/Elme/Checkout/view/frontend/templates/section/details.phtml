@@ -18,7 +18,7 @@ $instructionsField = OrderDetailsInterface::DELIVERY_INSTRUCTIONS;
          x-data="elmeCheckoutDetails">
     <div class="elme-checkout-section__head">
         <span class="elme-checkout-section__step" aria-hidden="true">
-            <?= (int) $block->getData('number') ?>
+            <span class="elme-checkout-section__step-number"><?= (int) $block->getData('number') ?></span>
         </span>
         <h2 class="elme-checkout-section__title">
             <label for="elme-checkout-instructions">

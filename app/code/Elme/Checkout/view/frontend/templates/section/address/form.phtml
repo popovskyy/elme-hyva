@@ -29,11 +29,11 @@ $fields = [
     ['name' => 'telephone', 'label' => __('Phone'), 'autocomplete' => 'tel', 'required' => true, 'type' => 'tel'],
 ];
 ?>
-<form class="elme-checkout-form"
+<?php // The submit and cancel buttons sit in the dialog footer of section/address.phtml (form="elme-checkout-address-form") ?>
+<form id="elme-checkout-address-form"
+      class="elme-checkout-form"
       novalidate
       x-ref="addressForm"
-      x-show="formOpen"
-      x-cloak
       @submit.prevent="submitNew">
     <div class="grid gap-x-4 gap-y-3 md:grid-cols-2">
         <?php foreach ($fields as $field): ?>
@@ -85,17 +85,8 @@ $fields = [
         <?php endforeach; ?>
     </div>
 
-    <div class="field choice mt-4">
+    <div class="field choice mt-5">
         <input id="elme-checkout-address-save" type="checkbox" name="save_to_book" checked>
         <label for="elme-checkout-address-save"><?= $escaper->escapeHtml(__('Save to my address book')) ?></label>
-    </div>
-
-    <div class="mt-4 flex flex-wrap items-center gap-4">
-        <button type="submit" class="btn btn-primary" :disabled="isBusy" :aria-busy="ariaBusy">
-            <?= $escaper->escapeHtml(__('Use this address')) ?>
-        </button>
-        <button type="button" class="elme-checkout-link" x-show="canCloseForm" @click="closeForm">
-            <?= $escaper->escapeHtml(__('Cancel')) ?>
-        </button>
     </div>
 </form>

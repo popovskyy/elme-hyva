@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 
 /** @var Template $block */
 /** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
 
 $group = (string) $block->getData('group');
 ?>
@@ -31,5 +34,14 @@ $group = (string) $block->getData('group');
                 </span>
             </label>
         </template>
+        <?php if ($block->getData('can_add')): ?>
+            <button type="button"
+                    class="elme-checkout-option elme-checkout-option--add"
+                    aria-controls="elme-checkout-address-form"
+                    @click="openForm">
+                <?= $viewModels->require(HeroiconsOutline::class)->plusHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+                <?= $escaper->escapeHtml(__('Add a new address')) ?>
+            </button>
+        <?php endif; ?>
     </div>
 </fieldset>
