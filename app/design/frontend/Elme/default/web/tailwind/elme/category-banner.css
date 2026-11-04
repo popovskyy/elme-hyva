@@ -1,0 +1,185 @@
+/*
+ * FE-18 category PLP header (old Bart/el Magento_Catalog/.../_category-banner.less).
+ * Image above the title stack on mobile; content left / image right from lg.
+ * Without an image: compact visible H1 + breadcrumbs (+ description) — never a hidden H1.
+ */
+
+/* Flush under the header when the banner owns the top of the PLP (same idea as hero/login). */
+.catalog-category-view .page-main:has(.category-banner) {
+    margin-top: 0;
+}
+
+.catalog-category-view .columns.top:has(.category-banner),
+.catalog-category-view .category-view:has(.category-banner) {
+    padding-top: 0;
+}
+
+@layer components {
+    .category-banner {
+        --category-banner-bg: transparent;
+        background-color: var(--category-banner-bg);
+        width: 100%;
+    }
+
+    .category-banner__wrapper {
+        display: flex;
+        flex-direction: column-reverse;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .category-banner__content {
+        display: flex;
+        flex-direction: column;
+        padding: --spacing(10) var(--container-gutter);
+    }
+
+    .category-banner--no-image .category-banner__content {
+        padding-block: --spacing(6) --spacing(8);
+    }
+
+    .category-banner__title {
+        margin-bottom: --spacing(5);
+    }
+
+    .category-banner__title h1 {
+        margin: 0;
+        font-family: var(--font-heading);
+        font-weight: 400;
+        font-size: var(--text-banner-title);
+        line-height: var(--text-banner-title--line-height);
+        color: var(--color-primary);
+    }
+
+    /* Neutralise the global breadcrumbs .container when crumbs sit in the content column. */
+    .category-banner .breadcrumbs .container {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding-inline: 0;
+    }
+
+    .category-banner .breadcrumbs ol {
+        padding-block: 0;
+        margin-bottom: --spacing(4);
+    }
+
+    .category-banner__description {
+        color: var(--color-primary);
+        max-width: var(--category-banner-content-max);
+    }
+
+    .category-banner__description :where(p, li, span, a) {
+        color: var(--color-primary);
+        font-weight: 400;
+    }
+
+    .category-banner__description :where(*):last-child {
+        margin-bottom: 0;
+    }
+
+    .category-banner__image {
+        width: 100%;
+    }
+
+    .category-banner__picture {
+        display: flex;
+        width: 100%;
+    }
+
+    /* Compact mobile hero so the first products are not pushed ~600px down (UX-03 will refine further). */
+    .category-banner__img {
+        width: 100%;
+        max-height: var(--category-banner-mobile-image-max);
+        height: auto;
+        object-fit: cover;
+        aspect-ratio: 16 / 9;
+    }
+
+    @variant lg {
+        .category-banner--has-image .category-banner__wrapper {
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-items: center;
+            min-height: var(--category-banner-min-height);
+        }
+
+        .category-banner--has-image .category-banner__content {
+            position: relative;
+            width: 30%;
+            padding: 0 var(--container-gutter-desktop) 0 var(--container-gutter-desktop);
+        }
+
+        .category-banner--has-image .category-banner__image {
+            width: 70%;
+        }
+
+        .category-banner--has-image .category-banner__img {
+            max-height: none;
+            aspect-ratio: auto;
+            height: 100%;
+            min-height: var(--category-banner-min-height);
+        }
+
+        .category-banner--has-image .category-banner__title {
+            margin-bottom: --spacing(9);
+        }
+
+        .category-banner__title h1 {
+            font-size: var(--text-banner-title-desktop);
+            line-height: var(--text-banner-title-desktop--line-height);
+        }
+
+        .category-banner--has-image .category-banner__title,
+        .category-banner--has-image .category-banner__description {
+            width: 100%;
+            max-width: var(--category-banner-content-max);
+        }
+
+        /* Between lg and xl, crumbs sit at the top of the content column (old absolute top: 16px). */
+        .category-banner--has-image .breadcrumbs {
+            position: absolute;
+            top: --spacing(4);
+            left: var(--container-gutter-desktop);
+            right: var(--container-gutter-desktop);
+            margin: 0;
+        }
+
+        .category-banner--has-image .breadcrumbs ol {
+            margin-bottom: 0;
+        }
+
+        .category-banner--no-image .category-banner__content {
+            padding-inline: var(--container-gutter-desktop);
+            padding-block: --spacing(8) --spacing(10);
+            max-width: calc(var(--category-banner-content-max) + 2 * var(--container-gutter-desktop));
+        }
+    }
+
+    @variant xl {
+        .category-banner--has-image .category-banner__content {
+            width: 40%;
+            align-items: center;
+        }
+
+        .category-banner--has-image .category-banner__image {
+            width: 60%;
+        }
+
+        .category-banner--has-image .breadcrumbs {
+            position: relative;
+            top: auto;
+            left: auto;
+            right: auto;
+            order: 0;
+            width: 100%;
+            max-width: var(--category-banner-content-max);
+            margin-bottom: --spacing(10);
+        }
+
+        .category-banner--has-image .category-banner__title,
+        .category-banner--has-image .category-banner__description {
+            order: 1;
+        }
+    }
+}

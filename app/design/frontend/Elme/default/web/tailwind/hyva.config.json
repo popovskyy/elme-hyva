@@ -109,7 +109,16 @@
         "noroute-lead": "26px",
         "noroute-lead--line-height": "30px",
         "noroute-lead-desktop": "35px",
-        "noroute-lead-desktop--line-height": "40px"
+        "noroute-lead-desktop--line-height": "40px",
+        "banner-title": "27px",
+        "banner-title--line-height": "35px",
+        "banner-title-desktop": "42px",
+        "banner-title-desktop--line-height": "40px"
+      },
+      "category-banner": {
+        "content-max": "365px",
+        "min-height": "360px",
+        "mobile-image-max": "14rem"
       },
       "breakpoint": {
         "sm": "480px",
