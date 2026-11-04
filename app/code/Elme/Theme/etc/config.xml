@@ -34,7 +34,21 @@
             <review>
                 <active>0</active>
             </review>
+            <!-- FE-20: PLP toolbar defaults (data patch also writes these into core_config_data). -->
+            <frontend>
+                <grid_per_page>24</grid_per_page>
+                <grid_per_page_values>12,24,36,48</grid_per_page_values>
+                <list_per_page>24</list_per_page>
+                <list_per_page_values>12,24,36,48</list_per_page_values>
+                <default_sort_by>position</default_sort_by>
+            </frontend>
         </catalog>
+        <design>
+            <pagination>
+                <pagination_frame>5</pagination_frame>
+                <pagination_frame_skip>5</pagination_frame_skip>
+            </pagination>
+        </design>
         <elme_catalog>
             <plp>
                 <quick_order>1</quick_order>

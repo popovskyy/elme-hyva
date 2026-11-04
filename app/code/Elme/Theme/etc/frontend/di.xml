@@ -10,4 +10,11 @@
         <plugin name="elme_theme_events_entry_cache_key"
                 type="Elme\Theme\Plugin\EventsEntryCacheKeyPlugin"/>
     </type>
+
+    <!-- FE-20: stable sort option order (after LoginOnly hides price for guests). -->
+    <type name="Magento\Catalog\Block\Product\ProductList\Toolbar">
+        <plugin name="elme_theme_reorder_plp_orders"
+                type="Elme\Theme\Plugin\ReorderPlpAvailableOrdersPlugin"
+                sortOrder="20"/>
+    </type>
 </config>
