@@ -18,6 +18,8 @@ use Throwable;
 /**
  * FE-18 category PLP header: name, description, desktop/mobile images, optional background colour.
  *
+ * An absolute http(s) image (a Cloudinary URL pasted on the category) is returned as stored.
+ * Magento's category image service would otherwise prefix it with /media/catalog/category/.
  * Does not fall back to the parent name/description (old Overdose Banner bug for level > 2).
  */
 class CategoryBanner implements ArgumentInterface
@@ -164,8 +166,22 @@ class CategoryBanner implements ArgumentInterface
     private function imageUrl(string $attributeCode): string
     {
         $category = $this->getCategory();
-        if (!$category || !$category->getData($attributeCode)) {
+        if (!$category) {
             return '';
+        }
+
+        $image = $category->getData($attributeCode);
+        if (!is_string($image)) {
+            return '';
+        }
+
+        $image = trim($image);
+        if ($image === '') {
+            return '';
+        }
+
+        if (preg_match('#\Ahttps?://#i', $image) === 1) {
+            return $image;
         }
 
         try {

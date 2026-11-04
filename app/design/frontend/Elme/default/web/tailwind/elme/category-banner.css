@@ -1,7 +1,7 @@
 /*
- * FE-18 category PLP header (old Bart/el Magento_Catalog/.../_category-banner.less).
- * Image above the title stack on mobile; content left / image right from lg.
- * Without an image: compact visible H1 + breadcrumbs (+ description) — never a hidden H1.
+ * FE-18 category PLP header.
+ * With a photo: a short cover band, copy overlaid at the bottom left (crumbs, H1, description).
+ * The file's own height never sizes the band. Without a photo: a compact text header.
  */
 
 /* Flush under the header when the banner owns the top of the PLP (same idea as hero/login). */
@@ -21,27 +21,6 @@
         width: 100%;
     }
 
-    .category-banner__wrapper {
-        display: flex;
-        flex-direction: column-reverse;
-        justify-content: center;
-        width: 100%;
-    }
-
-    .category-banner__content {
-        display: flex;
-        flex-direction: column;
-        padding: --spacing(10) var(--container-gutter);
-    }
-
-    .category-banner--no-image .category-banner__content {
-        padding-block: --spacing(6) --spacing(8);
-    }
-
-    .category-banner__title {
-        margin-bottom: --spacing(5);
-    }
-
     .category-banner__title h1 {
         margin: 0;
         font-family: var(--font-heading);
@@ -51,22 +30,9 @@
         color: var(--color-primary);
     }
 
-    /* Neutralise the global breadcrumbs .container when crumbs sit in the content column. */
-    .category-banner .breadcrumbs .container {
-        width: 100%;
-        max-width: none;
-        margin: 0;
-        padding-inline: 0;
-    }
-
-    .category-banner .breadcrumbs ol {
-        padding-block: 0;
-        margin-bottom: --spacing(4);
-    }
-
     .category-banner__description {
-        color: var(--color-primary);
         max-width: var(--category-banner-content-max);
+        color: var(--color-primary);
     }
 
     .category-banner__description :where(p, li, span, a) {
@@ -78,77 +44,17 @@
         margin-bottom: 0;
     }
 
-    .category-banner__image {
-        width: 100%;
-    }
-
-    .category-banner__picture {
+    .category-banner--no-image .category-banner__content {
         display: flex;
-        width: 100%;
+        flex-direction: column;
+        padding: --spacing(6) var(--container-gutter) --spacing(8);
     }
 
-    /* Compact mobile hero so the first products are not pushed ~600px down (UX-03 will refine further). */
-    .category-banner__img {
-        width: 100%;
-        max-height: var(--category-banner-mobile-image-max);
-        height: auto;
-        object-fit: cover;
-        aspect-ratio: 16 / 9;
+    .category-banner--no-image .category-banner__title {
+        margin-bottom: --spacing(3);
     }
 
-    @variant lg {
-        .category-banner--has-image .category-banner__wrapper {
-            flex-direction: row;
-            flex-wrap: nowrap;
-            align-items: center;
-            min-height: var(--category-banner-min-height);
-        }
-
-        .category-banner--has-image .category-banner__content {
-            position: relative;
-            width: 30%;
-            padding: 0 var(--container-gutter-desktop) 0 var(--container-gutter-desktop);
-        }
-
-        .category-banner--has-image .category-banner__image {
-            width: 70%;
-        }
-
-        .category-banner--has-image .category-banner__img {
-            max-height: none;
-            aspect-ratio: auto;
-            height: 100%;
-            min-height: var(--category-banner-min-height);
-        }
-
-        .category-banner--has-image .category-banner__title {
-            margin-bottom: --spacing(9);
-        }
-
-        .category-banner__title h1 {
-            font-size: var(--text-banner-title-desktop);
-            line-height: var(--text-banner-title-desktop--line-height);
-        }
-
-        .category-banner--has-image .category-banner__title,
-        .category-banner--has-image .category-banner__description {
-            width: 100%;
-            max-width: var(--category-banner-content-max);
-        }
-
-        /* Between lg and xl, crumbs sit at the top of the content column (old absolute top: 16px). */
-        .category-banner--has-image .breadcrumbs {
-            position: absolute;
-            top: --spacing(4);
-            left: var(--container-gutter-desktop);
-            right: var(--container-gutter-desktop);
-            margin: 0;
-        }
-
-        .category-banner--has-image .breadcrumbs ol {
-            margin-bottom: 0;
-        }
-
+    @variant md {
         .category-banner--no-image .category-banner__content {
             padding-inline: var(--container-gutter-desktop);
             padding-block: --spacing(8) --spacing(10);
@@ -156,30 +62,132 @@
         }
     }
 
-    @variant xl {
-        .category-banner--has-image .category-banner__content {
-            width: 40%;
-            align-items: center;
+    @variant lg {
+        .category-banner__title h1 {
+            font-size: var(--text-banner-title-desktop);
+            line-height: var(--text-banner-title-desktop--line-height);
         }
+    }
+}
 
-        .category-banner--has-image .category-banner__image {
-            width: 60%;
-        }
+/* Photo band. Unlayered so it wins over the breadcrumb and .container utilities. */
+.category-banner--has-image .category-banner__frame {
+    display: grid;
+    min-height: var(--category-banner-height);
+    margin: var(--container-gutter);
+    border-radius: var(--category-banner-radius);
+    overflow: hidden;
+}
 
-        .category-banner--has-image .breadcrumbs {
-            position: relative;
-            top: auto;
-            left: auto;
-            right: auto;
-            order: 0;
-            width: 100%;
-            max-width: var(--category-banner-content-max);
-            margin-bottom: --spacing(10);
-        }
+.category-banner--has-image .category-banner__media,
+.category-banner--has-image .category-banner__content {
+    grid-area: 1 / 1;
+}
 
-        .category-banner--has-image .category-banner__title,
-        .category-banner--has-image .category-banner__description {
-            order: 1;
-        }
+.category-banner--has-image .category-banner__media {
+    position: relative;
+    min-height: 100%;
+}
+
+.category-banner--has-image .category-banner__picture,
+.category-banner--has-image .category-banner__img {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* Left and bottom scrim so white type holds on a light photo and a dark one. */
+.category-banner--has-image .category-banner__media::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+        linear-gradient(
+            to top,
+            color-mix(in oklab, var(--color-ink) 72%, transparent) 0%,
+            color-mix(in oklab, var(--color-ink) 28%, transparent) 42%,
+            transparent 70%
+        ),
+        linear-gradient(
+            90deg,
+            color-mix(in oklab, var(--color-ink) 78%, transparent) 0%,
+            color-mix(in oklab, var(--color-ink) 46%, transparent) 36%,
+            transparent 66%
+        );
+}
+
+.category-banner--has-image .category-banner__content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    min-height: var(--category-banner-height);
+    max-width: calc(var(--category-banner-content-max) + 2 * var(--container-gutter));
+    padding: var(--container-gutter);
+}
+
+.category-banner--has-image .category-banner__title {
+    margin-bottom: --spacing(2);
+}
+
+.category-banner .breadcrumbs .container {
+    width: auto;
+    max-width: none !important;
+    margin: 0;
+    padding-inline: 0;
+}
+
+.category-banner .breadcrumbs ol {
+    margin: 0 0 --spacing(3);
+    padding: 0;
+}
+
+.category-banner--has-image .category-banner__title h1,
+.category-banner--has-image .category-banner__description,
+.category-banner--has-image .category-banner__description :where(p, li, span, a) {
+    color: var(--color-on-primary);
+}
+
+.category-banner--has-image .category-banner__description {
+    --link-color: var(--color-on-primary);
+}
+
+.category-banner--has-image .breadcrumbs :is(ol, a, span) {
+    color: var(--color-on-primary);
+}
+
+.category-banner--has-image .breadcrumbs a:hover {
+    color: var(--color-on-primary);
+}
+
+.category-banner--has-image .breadcrumbs a:focus-visible {
+    outline: 2px solid var(--color-on-primary);
+    outline-offset: 2px;
+}
+
+@variant md {
+    .category-banner--has-image .category-banner__frame {
+        margin: var(--container-gutter-desktop);
+    }
+
+    .category-banner--has-image .category-banner__content {
+        max-width: calc(var(--category-banner-content-max) + 2 * var(--container-gutter-desktop));
+        padding: var(--container-gutter-desktop);
+    }
+}
+
+@variant lg {
+    .category-banner--has-image .category-banner__frame,
+    .category-banner--has-image .category-banner__content {
+        min-height: var(--category-banner-height-desktop);
     }
 }

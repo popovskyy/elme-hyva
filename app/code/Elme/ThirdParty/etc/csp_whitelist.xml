@@ -93,6 +93,8 @@
                 <value id="elme-klaviyo-star" type="host">*.klaviyo.com</value>
                 <value id="elme-zdassets" type="host">static.zdassets.com</value>
                 <value id="elme-zdassets-star" type="host">*.zdassets.com</value>
+                <!-- Klaviyo company fonts stylesheet -->
+                <value id="elme-google-fonts" type="host">fonts.googleapis.com</value>
             </values>
         </policy>
         <policy id="font-src">
@@ -102,6 +104,8 @@
                 <value id="elme-klaviyo-star" type="host">*.klaviyo.com</value>
                 <value id="elme-zdassets" type="host">static.zdassets.com</value>
                 <value id="elme-zdassets-star" type="host">*.zdassets.com</value>
+                <value id="elme-google-fonts" type="host">fonts.googleapis.com</value>
+                <value id="elme-gstatic-fonts" type="host">fonts.gstatic.com</value>
             </values>
         </policy>
         <policy id="frame-src">

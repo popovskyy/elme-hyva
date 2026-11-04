@@ -84,7 +84,7 @@ class CreateCareerOpportunitiesPage implements DataPatchInterface
 
     private function copyHeroImage(): void
     {
-        $from = BP . '/app/design/frontend/Elme/default/web/images/fe14/vases-desktop.jpg';
+        $from = BP . '/app/design/frontend/Elme/default/web/images/sample-images/vases-desktop.jpg';
         $targetDir = BP . '/pub/media/' . self::MEDIA_DIR;
 
         if (!is_file($from) || (!is_dir($targetDir) && !mkdir($targetDir, 0775, true) && !is_dir($targetDir))) {

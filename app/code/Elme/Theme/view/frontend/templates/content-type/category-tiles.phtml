@@ -2,9 +2,9 @@
 /**
  * Content Studio type `category_tiles` (etc/content_types.xml, FE-15): carousel of category tiles
  * (image + label) linking to category URLs. Look: a 3:2 photo with the name on a short scrim at the
- * bottom left (docs/design/category-tiles-options.html, variant 3). Swipe everywhere; prev/next
+ * bottom left (variant 3). Swipe everywhere; prev/next
  * arrows from desktop up. Layout "grid" shows every tile at once instead (two per row on phones, four
- * from lg; home "Calm gallery", docs/design/homepage-review-options.html), no Alpine. Child-category dropdowns from the old Bart widget are not ported.
+ * from lg; home "Calm gallery"), no Alpine. Child-category dropdowns from the old Bart widget are not ported.
  *
  * Every tile is server-rendered so crawlers that run no JS still see the links. Alpine only scrolls
  * the track and wires the arrows. Bleed into the container gutters like hero / promo_split.

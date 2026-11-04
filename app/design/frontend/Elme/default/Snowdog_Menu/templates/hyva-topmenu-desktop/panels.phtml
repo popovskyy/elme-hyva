@@ -1,0 +1,451 @@
+<?php
+/**
+ * FE-08 desktop mega panels, after the page content.
+ * The header keeps the top-level links. These panels are the bulky HTML, so they
+ * stay out of the way of the hero image. clampOpenPanel() places the open one
+ * under the header.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Snowdog\Menu\Block\Menu;
+
+/** @var Menu $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$menu = $block->getMenu();
+if (!$menu) {
+    return;
+}
+
+$menuClass = $menu->getCssClass() ?: 'main-menu';
+?>
+<div id="elme-mega-panels"
+     class="<?= $escaper->escapeHtmlAttr($menuClass) ?> navigation elme-mega-panels hidden lg:block">
+<?php foreach ($block->getNodes() as $node): ?>
+    <?php
+    $childrenLevel = $node->getLevel() + 1;
+    $children = $block->getNodes($childrenLevel, $node);
+    if (!$children) {
+        continue;
+    }
+    $node->setIsParent(true);
+    ?>
+    <?= /* @noEscape */ $block->renderSubmenu($children, $node, $childrenLevel) ?>
+<?php endforeach; ?>
+</div>
+    <script>
+        function initElmeMegaMenu() {
+            return {
+                openId: null,
+                enterTimer: null,
+                leaveTimer: null,
+                suppressTimer: null,
+                hoverDelay: 220,
+                // Matches the panel / overlay transition in elme/mega-menu.css
+                fadeMs: 200,
+                suppressHover: false,
+                _onResize: null,
+                _onTab: null,
+
+                panelsRoot() {
+                    return document.getElementById('elme-mega-panels') || this.$root;
+                },
+
+                menuListeners: {
+                    ['@keydown.window.escape']() {
+                        if (this.openId === null) {
+                            return;
+                        }
+                        this.closeAll(true);
+                    }
+                },
+
+                init() {
+                    this.markCurrent();
+                    this.syncParentLinkAria();
+                    this._onResize = () => {
+                        if (this.openId !== null) {
+                            this.clampOpenPanel();
+                        }
+                    };
+                    this.$watch('openId', () => {
+                        this.syncPanels();
+                        this.syncParentLinkAria();
+                        if (this.openId !== null) {
+                            this.$nextTick(() => {
+                                requestAnimationFrame(() => this.clampOpenPanel());
+                            });
+                        }
+                    });
+                    this.syncPanels();
+                    window.addEventListener('resize', this._onResize);
+                    this._onTab = (event) => this.onDocumentTab(event);
+                    document.addEventListener('keydown', this._onTab);
+                    const panelsRoot = this.panelsRoot();
+                    if (panelsRoot && panelsRoot !== this.$root) {
+                        panelsRoot.addEventListener('mouseenter', () => this.clearTimers());
+                        panelsRoot.addEventListener('mouseleave', () => this.onPanelsLeave());
+                    }
+                },
+
+                destroy() {
+                    if (this._onResize) {
+                        window.removeEventListener('resize', this._onResize);
+                    }
+                    if (this._onTab) {
+                        document.removeEventListener('keydown', this._onTab);
+                    }
+                },
+
+                /**
+                 * Drive item / panel / overlay state in JS — Alpine CSP cannot evaluate
+                 * `openId === '…'` in x-show/:class, and $el in child methods is the x-data root.
+                 */
+                syncPanels() {
+                    const id = this.openId;
+                    this.$root.querySelectorAll('.main-menu__item--parent').forEach((item) => {
+                        const open = id !== null && item.dataset.nodeId === id;
+                        item.classList.toggle('is-open', open);
+                        item.classList.toggle('menu-active', open);
+                    });
+                    const panels = Array.from(this.panelsRoot().querySelectorAll('.main-menu__inner-wrapper--level1'));
+                    if (id !== null) {
+                        this.clampOpenPanel();
+                    }
+                    // Moving from one top item to another: swap panels without the fade, so two
+                    // half-transparent panels never show on top of each other.
+                    const swap = id !== null && panels.some((panel) => !panel.hidden && panel.dataset.submenuId !== id);
+                    panels.forEach((panel) => {
+                        const open = id !== null && panel.dataset.submenuId === id;
+                        this.fade(panel, open, swap, () => {
+                            panel.style.left = '';
+                            panel.style.top = '';
+                            panel.style.width = '';
+                        });
+                    });
+                    const overlay = this.$root.querySelector('.menu-overlay');
+                    if (overlay) {
+                        this.fade(overlay, id !== null, false, () => {
+                            overlay.style.top = '';
+                            document.documentElement.style.removeProperty('--elme-header-bottom');
+                        });
+                    }
+                },
+
+                /**
+                 * Show / hide an element with the CSS opacity transition on .is-open: unhide, then add the
+                 * class a frame later; on close remove the class and set [hidden] once the fade is over.
+                 */
+                fade(el, open, instant, onHidden) {
+                    if (el._closeTimer) {
+                        clearTimeout(el._closeTimer);
+                        el._closeTimer = null;
+                    }
+                    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                    const animate = !instant && !reduced;
+                    if (open) {
+                        el.hidden = false;
+                        const show = () => el.classList.add('is-open');
+                        if (animate) {
+                            requestAnimationFrame(show);
+                        } else {
+                            show();
+                        }
+                        return;
+                    }
+                    el.classList.remove('is-open');
+                    if (el.hidden) {
+                        return;
+                    }
+                    const finish = () => {
+                        if (el.classList.contains('is-open')) {
+                            return;
+                        }
+                        el.hidden = true;
+                        onHidden();
+                    };
+                    if (animate) {
+                        el._closeTimer = setTimeout(finish, this.fadeMs + 40);
+                    } else {
+                        finish();
+                    }
+                },
+
+                clearTimers() {
+                    if (this.enterTimer) {
+                        clearTimeout(this.enterTimer);
+                        this.enterTimer = null;
+                    }
+                    if (this.leaveTimer) {
+                        clearTimeout(this.leaveTimer);
+                        this.leaveTimer = null;
+                    }
+                },
+
+                /**
+                 * Flush the level-1 panel to #header bottom, full viewport width (its content sits in
+                 * .container, aligned with the header row). Panels are position:absolute against
+                 * .main-menu (items are not relative), so every top item opens in the same place.
+                 */
+                clampOpenPanel() {
+                    const id = this.openId;
+                    if (id === null) {
+                        return;
+                    }
+                    const panel = this.panelsRoot().querySelector(
+                        '.main-menu__inner-wrapper--level1[data-submenu-id="' + id + '"]'
+                    );
+                    if (!panel) {
+                        return;
+                    }
+                    const header = document.getElementById('header');
+                    const menuRect = this.panelsRoot().getBoundingClientRect();
+                    const headerRect = header
+                        ? header.getBoundingClientRect()
+                        : { left: 0, bottom: menuRect.bottom, width: document.documentElement.clientWidth };
+
+                    // Same box as #header (full bleed, scrollbar gutter excluded), so the panel's .container
+                    // lines up with the header row and never adds a horizontal scroll.
+                    panel.style.top = Math.max(0, headerRect.bottom - menuRect.top) + 'px';
+                    panel.style.left = (headerRect.left - menuRect.left) + 'px';
+                    panel.style.width = headerRect.width + 'px';
+
+                    // Hover bridge (::after on the open trigger, see mega-menu.css) over the header padding
+                    // between the link and the panel, so a slow pointer does not close the panel on the way.
+                    const trigger = this.$root.querySelector(
+                        '.main-menu__item.is-open > .main-menu__trigger'
+                    );
+                    if (trigger) {
+                        const gap = headerRect.bottom - trigger.getBoundingClientRect().bottom;
+                        this.$root.style.setProperty('--elme-menu-bridge', Math.max(0, gap) + 'px');
+                    }
+
+                    const overlay = this.$root.querySelector('.menu-overlay');
+                    if (overlay) {
+                        overlay.style.top = headerRect.bottom + 'px';
+                    }
+                    document.documentElement.style.setProperty(
+                        '--elme-header-bottom',
+                        headerRect.bottom + 'px'
+                    );
+                },
+
+                open(id) {
+                    this.clearSuppressHover();
+                    this.openId = id;
+                    document.body.classList.add('menu-active');
+                    // Alpine CSP: sync immediately; clamp after layout (hidden→shown).
+                    this.syncPanels();
+                    this.syncParentLinkAria();
+                    setTimeout(() => this.clampOpenPanel(), 0);
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => this.clampOpenPanel());
+                    });
+                },
+
+                clearSuppressHover() {
+                    if (this.suppressTimer) {
+                        clearTimeout(this.suppressTimer);
+                        this.suppressTimer = null;
+                    }
+                    this.suppressHover = false;
+                },
+
+                closeAll(fromKeyboard) {
+                    this.clearTimers();
+                    this.openId = null;
+                    document.body.classList.remove('menu-active');
+                    // Offsets stay until the close fade finishes (fade() onHidden).
+                    // Esc/overlay: briefly ignore hover so a stuck :hover does not reopen,
+                    // then clear so the next intentional hover works without leave+re-enter.
+                    if (fromKeyboard) {
+                        this.suppressHover = true;
+                        if (this.suppressTimer) {
+                            clearTimeout(this.suppressTimer);
+                        }
+                        this.suppressTimer = setTimeout(() => {
+                            this.suppressHover = false;
+                            this.suppressTimer = null;
+                        }, 100);
+                    } else {
+                        this.clearSuppressHover();
+                    }
+                },
+
+                onItemEnter() {
+                    // Pointer entered a top item — always allow hover open (clears Esc suppress).
+                    this.clearSuppressHover();
+                    const id = this.$el.dataset.nodeId;
+                    const hasSub = this.$el.classList.contains('main-menu__item--parent');
+                    this.clearTimers();
+                    if (!hasSub) {
+                        this.openId = null;
+                        document.body.classList.remove('menu-active');
+                        return;
+                    }
+                    this.enterTimer = setTimeout(() => {
+                        if (this.$el.matches(':hover')) {
+                            this.open(id);
+                        }
+                    }, this.hoverDelay);
+                },
+
+                onItemLeave() {
+                    this.clearTimers();
+                    const el = this.$el;
+                    this.leaveTimer = setTimeout(() => {
+                        if (this.openId !== el.dataset.nodeId) {
+                            return;
+                        }
+                        // Still over this item (its trigger bridge counts) or its open panel. Not #header:
+                        // the overlay lives in the header, so header:hover would keep the panel open.
+                        if (el.matches(':hover')) {
+                            return;
+                        }
+                        const panel = this.panelsRoot().querySelector(
+                            '.main-menu__inner-wrapper--level1[data-submenu-id="' + this.openId + '"]'
+                        );
+                        if (panel && !panel.hidden && panel.matches(':hover')) {
+                            return;
+                        }
+                        this.closeAll(false);
+                    }, this.hoverDelay);
+                },
+
+                onParentKeyToggle() {
+                    const target = this.$event.target;
+                    // Only the top-level link (not any future nested focusables in the trigger).
+                    if (!target || !target.closest || !target.closest('.main-menu__link')) {
+                        return;
+                    }
+                    const id = this.$event.currentTarget.dataset.nodeId;
+                    if (!id) {
+                        return;
+                    }
+                    if (this.openId === id) {
+                        this.closeAll(true);
+                    } else {
+                        this.open(id);
+                    }
+                },
+
+                onOverlayClick() {
+                    this.closeAll(true);
+                },
+
+                syncParentLinkAria() {
+                    this.$root.querySelectorAll('.main-menu__item--parent').forEach((item) => {
+                        const link = item.querySelector(':scope > .main-menu__trigger > .main-menu__link');
+                        if (!link) {
+                            return;
+                        }
+                        const id = item.dataset.nodeId;
+                        link.setAttribute('aria-haspopup', 'true');
+                        link.setAttribute('aria-expanded', this.openId === id ? 'true' : 'false');
+                        link.setAttribute('aria-controls', 'submenu-' + id);
+                    });
+                },
+
+                markCurrent() {
+                    const path = window.location.pathname.replace(/\/$/, '') || '/';
+                    const roots = [this.$root];
+                    const panels = this.panelsRoot();
+                    if (panels !== this.$root) {
+                        roots.push(panels);
+                    }
+                    roots.forEach((root) => root.querySelectorAll('a[href]').forEach((link) => {
+                        try {
+                            const url = new URL(link.href, window.location.origin);
+                            const hrefPath = url.pathname.replace(/\/$/, '') || '/';
+                            if (hrefPath === path) {
+                                link.classList.add('current');
+                                const item = link.closest('.main-menu__item');
+                                if (item) {
+                                    item.classList.add('current');
+                                }
+                            }
+                        } catch (e) {
+                            // ignore bad hrefs
+                        }
+                    }));
+                },
+
+                onPanelsLeave() {
+                    this.clearTimers();
+                    this.leaveTimer = setTimeout(() => {
+                        const openItem = this.$root.querySelector('.main-menu__item.is-open');
+                        if (openItem && openItem.matches(':hover')) {
+                            return;
+                        }
+                        const panel = this.panelsRoot().querySelector(
+                            '.main-menu__inner-wrapper--level1[data-submenu-id="' + this.openId + '"]'
+                        );
+                        if (panel && !panel.hidden && panel.matches(':hover')) {
+                            return;
+                        }
+                        if (this.openId !== null) {
+                            this.closeAll(false);
+                        }
+                    }, this.hoverDelay);
+                },
+
+                // Panels are not inside the trigger's <li>, so Tab will not walk into them on its own.
+                onDocumentTab(event) {
+                    if (event.key !== 'Tab' || this.openId === null) {
+                        return;
+                    }
+                    const panel = this.panelsRoot().querySelector(
+                        '.main-menu__inner-wrapper--level1[data-submenu-id="' + this.openId + '"]'
+                    );
+                    if (!panel || panel.hidden) {
+                        return;
+                    }
+                    const trigger = this.$root.querySelector(
+                        '.main-menu__item.is-open > .main-menu__trigger .main-menu__link'
+                    );
+                    const focusables = Array.from(panel.querySelectorAll('a[href], button:not([disabled])'))
+                        .filter((el) => !el.closest('[hidden]'));
+                    if (!focusables.length || !trigger) {
+                        return;
+                    }
+                    const active = document.activeElement;
+                    const first = focusables[0];
+                    const last = focusables[focusables.length - 1];
+                    if (!event.shiftKey && active === trigger) {
+                        event.preventDefault();
+                        first.focus();
+                        return;
+                    }
+                    if (event.shiftKey && active === first) {
+                        event.preventDefault();
+                        trigger.focus();
+                        return;
+                    }
+                    if (!event.shiftKey && active === last) {
+                        event.preventDefault();
+                        this.focusAfterOpenItem();
+                    }
+                },
+
+                focusAfterOpenItem() {
+                    const items = Array.from(this.$root.querySelectorAll('.main-menu__list > .main-menu__item'));
+                    const current = this.$root.querySelector('.main-menu__item.is-open');
+                    const index = items.indexOf(current);
+                    this.closeAll(true);
+                    const next = items[index + 1];
+                    const link = next && next.querySelector('.main-menu__link');
+                    if (link) {
+                        link.focus();
+                    }
+                }
+            }
+        }
+        window.addEventListener('alpine:init', () => Alpine.data('initElmeMegaMenu', initElmeMegaMenu), {once: true})
+    </script>
+<?php $hyvaCsp->registerInlineScript() ?>

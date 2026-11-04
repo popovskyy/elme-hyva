@@ -243,7 +243,7 @@ Everything else builds on these four. Ship them first, so other tickets reuse th
 
 **How:** add the class `btn-atc` to the submit button of an add to cart form. `Magento_Theme::elme/atc-button.phtml` (one delegated listener, CSP-safe) posts the form with `X-Requested-With`, so `checkout/cart/add` answers JSON, reads the `messages` section for errors (so the page message bar does not repeat "You added …"), reloads section data for the mini-cart. CSS: `web/tailwind/elme/add-to-cart.css`. Wired on the PLP tile (`product/list/item.phtml`) and the PDP button (`product/view/addtocart.phtml`; "Update item" on cart configure keeps the normal post). FE-19 and FE-27 must keep `btn-atc` on their buttons. "Redirect to cart after adding" = Yes in admin still redirects after the success state.
 
-**Look:** variant 1 "Cart and dot" picked on 31 Oct 2026 from `docs/design/add-to-cart-options.html` (2 olive fill and 3 rolling label + count were rejected).
+**Look:** variant 1 "Cart and dot" picked on 31 Oct 2026 (2 olive fill and 3 rolling label + count were rejected).
 
 **Ref:** Dribbble shot the ticket was made from (not checked: Dribbble showed a bot check); compare the sequence with the reference GIF/frames before QA sign-off.
 
@@ -425,7 +425,7 @@ Production category page: banner with title and breadcrumbs, a Filters button th
 
 ### FE-18 Category page header
 
-**Scope:** category banner (title + breadcrumbs left, image right on desktop; image on top on mobile), category description, layout without banner when the category has no image.
+**Scope:** category banner: a short photo band (lifestyle image, cropped, copy overlaid at the bottom left: breadcrumbs, the H1 and the description). A compact text header when the category has no image.
 
 **Ref:** `Bart/el/Overdose_CategoryBanner/templates/category/banner.phtml`, `banner_wrapper.phtml`
 
@@ -1184,7 +1184,7 @@ These decisions change the scope of the tickets named in **Affects**. Make them 
 | D10 | Instagram feed | Overdose InstaFeed | Instagram API module · static images in CMS | FE-12, FE-50 |
 | D11 | CMS content | Adobe Page Builder + LESS classes | **Decided:** new content, no migration; Page Builder for plain text pages, own copy of Content Studio (Open Source + Hyva) for structured blocks, placed with its Page Builder content type or widget; no CMS Tailwind JIT | FE-14...16, FE-47...49, FE-57 |
 | D12 | Checkout | Luma checkout (Adobe Commerce) with Elme Knockout mixins | **Decided:** own module `Elme_Checkout` on Elme/default (one page, server-side state, CSP Alpine). Luma fallback checkout removed; no Hyva Checkout (paid licence per installation) | FE-34, BE-01...BE-05 |
-| D13 | Home page layout | Hero, statement, dark Outlet band, catalogues, collage, Our Difference, dark Need assistance band | **Decided (31 Oct 2026):** "Calm gallery" from `docs/design/homepage-review-options.html`: hero with the H1 (made taller on 2 Nov 2026: 4:5 on phones, at least 680px or 32vw on desktop, at most 75svh, so the photos show), intro with three trade facts, all categories in a grid, Outlet + Lookbook + Virtual Catalogues as three photo cards, Become a Stockist collage with button, Instagram; Our Difference only on About us, Need assistance? in the footer; motion only in the hero (patch `HomeCalmGallery`) | FE-14...16, FE-12, FE-13 |
+| D13 | Home page layout | Hero, statement, dark Outlet band, catalogues, collage, Our Difference, dark Need assistance band | **Decided (31 Oct 2026):** "Calm gallery": hero with the H1 (made taller on 2 Nov 2026: 4:5 on phones, at least 680px or 32vw on desktop, at most 75svh, so the photos show), intro with three trade facts, all categories in a grid, Outlet + Lookbook + Virtual Catalogues as three photo cards, Become a Stockist collage with button, Instagram; Our Difference only on About us, Need assistance? in the footer; motion only in the hero and the Become a Stockist collage (4 Nov 2026: scroll reveals removed from the other home sections; seeded by `SeedHomepageContentSections`) | FE-14...16, FE-12, FE-13 |
 | D14 | Cart | Custom Quick Order cart on a per-customer list, default mini-cart and cart page removed | **Decided (2 Nov 2026, chief engineer):** port it. The working cart is the list `cart_list` (sku + qty), edits save without touching the quote, and the quote is rebuilt from it when /checkout opens. Open: migration of saved lists, place of the coupon field | BE-16, FE-32, FE-33, FE-40...FE-44 |
 | D15 | Public APIs | Core anonymous REST and GraphQL open | **Decided (2 Nov 2026):** closed for guests, because they gave prices and placed guest orders on the login-only site. `Elme_LoginOnly` refuses anonymous REST and SOAP routes (only `/V1/integration/admin/token` stays open) and all guest GraphQL. `Elme_Checkout` refuses API orders from customers and guests, so the place-order validators cannot be skipped; admin and integration tokens stay allowed. A feature that needs a public route adds it to `allowedPaths` in `Elme_LoginOnly/etc/webapi_rest/di.xml` | FE-53, BE-08, payment webhooks |
 

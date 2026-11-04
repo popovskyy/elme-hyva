@@ -235,7 +235,7 @@
         padding-inline: --spacing(1);
         border-radius: 9999px;
         box-shadow: 0 0 0 2px var(--color-surface);
-        background-color: var(--color-accent-dark);
+        background-color: var(--color-primary);
         color: var(--color-on-primary);
         font-size: var(--text-label);
         line-height: --spacing(4.5);

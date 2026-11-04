@@ -128,7 +128,7 @@ class CreateAboutUsPage implements DataPatchInterface
      */
     public static function syncImagesToMedia(): void
     {
-        $sourceDir = BP . '/app/design/frontend/Elme/default/web/images/fe61';
+        $sourceDir = BP . '/app/design/frontend/Elme/default/web/images/sample-images';
         $targetDir = BP . '/pub/media/' . self::MEDIA_DIR;
 
         if (!is_dir($targetDir) && !mkdir($targetDir, 0775, true) && !is_dir($targetDir)) {

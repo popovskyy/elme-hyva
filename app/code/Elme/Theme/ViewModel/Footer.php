@@ -114,7 +114,7 @@ class Footer implements ArgumentInterface
 
     public function getLogoUrl(): string
     {
-        return $this->assetRepository->getUrl('images/footer-logo.svg');
+        return $this->assetRepository->getUrl('images/logo.svg');
     }
 
     private function filteredBlockHtml(string $identifier): string

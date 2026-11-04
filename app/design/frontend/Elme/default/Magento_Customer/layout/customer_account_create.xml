@@ -19,8 +19,8 @@
                    template="Magento_Customer::login/media.phtml"
                    before="-">
                 <arguments>
-                    <argument name="image_desktop" xsi:type="string">images/fe14/register-olive.webp</argument>
-                    <argument name="image_mobile" xsi:type="string">images/fe14/register-olive-mobile.webp</argument>
+                    <argument name="image_desktop" xsi:type="string">images/sample-images/register-olive.webp</argument>
+                    <argument name="image_mobile" xsi:type="string">images/sample-images/register-olive-mobile.webp</argument>
                     <argument name="kicker" xsi:type="string">Trade account</argument>
                     <argument name="quote" xsi:type="string">Wholesale flowers, plants and decor for your store.</argument>
                 </arguments>

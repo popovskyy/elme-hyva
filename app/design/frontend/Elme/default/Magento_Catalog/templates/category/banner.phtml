@@ -1,7 +1,7 @@
 <?php
 /**
- * FE-18: category PLP header — title + breadcrumbs (+ description) left, image right on lg+;
- * image above the title stack on mobile. Without an image: visible H1 + crumbs (+ description).
+ * FE-18: category PLP header. With an image the photo fills a short band and the
+ * breadcrumbs, H1 and description sit on it. Without an image: a compact text header.
  */
 
 declare(strict_types=1);
@@ -30,10 +30,16 @@ $sectionClass = $hasImage
 ?>
 <section class="<?= $escaper->escapeHtmlAttr($sectionClass) ?>"
          aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-    <?php if ($backgroundColour !== ''): ?>
+    <?php if (!$hasImage && $backgroundColour !== ''): ?>
          style="--category-banner-bg: <?= $escaper->escapeHtmlAttr($backgroundColour) ?>"
     <?php endif; ?>>
-    <div class="category-banner__wrapper">
+    <div class="category-banner__frame">
+        <?php if ($hasImage): ?>
+            <div class="category-banner__media">
+                <?= $block->getChildHtml('banner_image') ?>
+            </div>
+        <?php endif; ?>
+
         <div class="category-banner__content">
             <?= $block->getChildHtml('breadcrumbs') ?>
 
@@ -47,11 +53,5 @@ $sectionClass = $hasImage
                 </div>
             <?php endif; ?>
         </div>
-
-        <?php if ($hasImage): ?>
-            <div class="category-banner__image">
-                <?= $block->getChildHtml('banner_image') ?>
-            </div>
-        <?php endif; ?>
     </div>
 </section>

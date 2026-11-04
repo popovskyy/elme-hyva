@@ -55,8 +55,6 @@ no numbered steps that are not a sequence, no extra marketing.
 Open the page in the browser and check phone and wide frames before handing it
 over. Say the file path and that you are waiting for a number.
 
-Worked example: `docs/design/category-tiles-options.html` (category tiles, FE-15).
-
 ## 3. After they choose
 
 Change only the look of the existing block. Keep its fields, links, and
@@ -64,4 +62,4 @@ behaviour (swipe, arrows, empty state). Use tokens, not new hex values in the
 template. If a utility is not enough, add a partial under `web/tailwind/elme/`
 and rebuild Tailwind (`hyva-compile-tailwind-css`), then flush the Magento cache.
 
-The HTML chooser stays in `docs/design/`. Do not wire it into a layout.
+Delete the HTML chooser and its photos once the look is in the theme. Do not wire it into a layout.

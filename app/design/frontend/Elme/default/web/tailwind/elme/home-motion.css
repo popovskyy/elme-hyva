@@ -1,25 +1,9 @@
 /*
- * Home page scroll motion (Magento_Theme::html/home-motion.phtml marks the elements and adds
- * html.elme-motion; without the script nothing here hides anything). Sections rise 16px and fade in
- * once as they scroll into view; items inside (tiles, catalogue rows, facts, contact cells) follow
- * 60ms apart. Anything already on screen when the script starts stays put. Reduced motion: fade only.
- *
- * The usp_strip collage (content-type/usp-strip.phtml): three photos fall into place when the section
- * comes in.
+ * Become a Stockist collage on the home page (Magento_Theme::html/home-motion.phtml adds
+ * html.elme-motion and .is-in on .elme-collage). The three photos fall into place once.
+ * Without the script nothing here hides anything. Reduced motion: fade only, no travel.
  */
 @layer components {
-    .elme-motion [data-reveal] {
-        transition:
-            opacity 400ms var(--ease-out-quint),
-            transform 400ms var(--ease-out-quint);
-        transition-delay: calc(var(--i, 0) * 60ms);
-    }
-
-    .elme-motion [data-reveal]:not(.is-in) {
-        opacity: 0;
-        transform: translateY(calc(var(--spacing) * 4));
-    }
-
     .elme-collage {
         position: relative;
         aspect-ratio: 6 / 5;
@@ -93,12 +77,10 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .elme-motion [data-reveal],
         .elme-collage__card {
             transition: opacity var(--transition-duration-slow) ease;
         }
 
-        .elme-motion [data-reveal]:not(.is-in),
         .elme-motion .elme-collage:not(.is-in) .elme-collage__card {
             transform: none;
         }

@@ -1,5 +1,5 @@
 /*
- * FE-35 login, "Split screen" (docs/design/login-options.html, 1). Layout: Magento_Customer/layout/
+ * FE-35 login, "Split screen". Layout: Magento_Customer/layout/
  * customer_account_login.xml; photo: login/media.phtml; form: form/login.phtml; apply block: newcustomer.phtml.
  * Phones and tablets: a photo band above the form. From lg: the photo fills the space from the header to the
  * footer, the form sits centred in a fixed-width column on the right. The photo drifts very slowly (off on reduced motion).

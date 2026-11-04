@@ -1,5 +1,5 @@
 /*
- * FE-14 hero (Elme_Theme content-type/hero.phtml), "Cinema" from docs/design/hero-wow-options.html.
+ * FE-14 hero (Elme_Theme content-type/hero.phtml), "Cinema".
  *
  * On the home page the hero is the top banner and sits right under the header, as on production.
  * Banner-breadcrumbs pages get the same from their breadcrumbs. Unlayered, like the .page-main margin in
@@ -317,6 +317,12 @@
 @keyframes elme-fade {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+/* Scroll anchoring was shoving this track sideways as photos loaded, so the
+   first slide (the LCP image) painted off-screen. */
+.elme-hero__track {
+    overflow-anchor: none;
 }
 
 /*

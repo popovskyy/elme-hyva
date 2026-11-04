@@ -28,6 +28,7 @@
             </block>
         </referenceContainer>
 
+        <referenceBlock name="catalog.compare.sidebar" remove="true"/>
         <referenceBlock name="category.image" remove="true"/>
         <referenceBlock name="category.description" remove="true"/>
         <referenceBlock name="page.main.title" remove="true"/>
