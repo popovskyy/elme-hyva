@@ -34,5 +34,10 @@
         <referenceBlock name="page.main.title" remove="true"/>
 
         <move element="breadcrumbs" destination="category.banner" before="-"/>
+
+        <!-- FE-20: hide list/grid mode switcher (Elme is grid-only); pager jump for first/last/ellipsis. -->
+        <referenceBlock name="product_list_toolbar">
+            <action method="disableViewSwitcher"/>
+        </referenceBlock>
     </body>
 </page>

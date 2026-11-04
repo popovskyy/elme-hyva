@@ -1,0 +1,48 @@
+<?php
+/**
+ * FE-20: Per-page limiter (12 / 24 / 36 / 48 from catalog/frontend/grid_per_page_values).
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\LocaleFormatter;
+use Magento\Catalog\Block\Product\ProductList\Toolbar;
+use Magento\Framework\Escaper;
+
+/** @var Toolbar $block */
+/** @var Escaper $escaper */
+/** @var LocaleFormatter $localeFormatter */
+
+$availableLimitOptions = $block->getAvailableLimit();
+$limiterId = 'limiter-' . uniqid();
+?>
+<?php if (count($availableLimitOptions) > 1): ?>
+    <div class="field limiter flex items-center order-3 sm:order-2 md:order-3 lg:order-2 col-span-2 justify-end">
+        <div class="control">
+            <label class="inline-flex items-center gap-2 text-sm text-ink label" for="<?= $escaper->escapeHtmlAttr($limiterId) ?>">
+                <span class="whitespace-nowrap">
+                    <?= $escaper->escapeHtml((string) __('Show')) ?>
+                </span>
+                <select
+                    id="<?= $escaper->escapeHtmlAttr($limiterId) ?>"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Show items per page')) ?>"
+                    class="form-select limiter-options"
+                    @change="onLimitChange"
+                >
+                <?php foreach ($availableLimitOptions as $key => $limit): ?>
+                    <option value="<?= $escaper->escapeHtmlAttr((string) $key) ?>"
+                        <?php if ($block->isLimitCurrent($key)): ?>
+                            selected="selected"
+                        <?php endif ?>>
+                        <?= $escaper->escapeHtml(
+                            is_numeric($limit) ? $localeFormatter->formatNumber((int) $limit) : (string) $limit
+                        ) ?>
+                    </option>
+                <?php endforeach; ?>
+                </select>
+            </label>
+        </div>
+    </div>
+<?php else: ?>
+    <div class="field limiter flex order-3 sm:order-2 md:order-3 lg:order-2 col-span-2 justify-end"></div>
+<?php endif; ?>

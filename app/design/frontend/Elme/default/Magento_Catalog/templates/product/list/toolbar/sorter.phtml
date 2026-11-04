@@ -1,0 +1,60 @@
+<?php
+/**
+ * FE-20: Sort select. Price low–high / high–low only when logged in (LoginOnly strips price for guests).
+ * No direction toggle — those are separate options. Labels are not headings.
+ */
+
+declare(strict_types=1);
+
+use Elme\LoginOnly\ViewModel\LoginOnly;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Catalog\Block\Product\ProductList\Toolbar;
+use Magento\Framework\Escaper;
+
+/** @var Toolbar $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+
+$currentOrder = $block->getCurrentOrder();
+$currentDir = strtolower((string) $block->getCurrentDirection());
+$isPriceAsc = $currentOrder === 'price' && $currentDir === 'asc';
+$isPriceDesc = $currentOrder === 'price' && $currentDir === 'desc';
+$sorterId = 'sorter-' . uniqid();
+?>
+<div class="toolbar-sorter sorter flex items-center order-1 col-span-4 sm:col-span-5
+        md:col-span-2 lg:col-span-5 justify-end gap-2">
+    <label class="inline-flex items-center gap-2 text-sm text-ink" for="<?= $escaper->escapeHtmlAttr($sorterId) ?>">
+        <span class="whitespace-nowrap"><?= $escaper->escapeHtml(__('Sort by')) ?></span>
+        <select id="<?= $escaper->escapeHtmlAttr($sorterId) ?>"
+                data-role="sorter"
+                name="sorter"
+                class="form-select sorter-options"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Sort By')) ?>"
+                @change="onSortChange">
+            <?php foreach ($block->getAvailableOrders() as $orderCode => $orderLabel): ?>
+                <?php if ($orderCode === 'price'): ?>
+                    <?php if ($loginOnly->isLoggedIn()): ?>
+                        <option value="price_asc"
+                            <?php if ($isPriceAsc): ?>selected="selected"<?php endif; ?>>
+                            <?= $escaper->escapeHtml(__('Price low–high')) ?>
+                        </option>
+                        <option value="price_desc"
+                            <?php if ($isPriceDesc): ?>selected="selected"<?php endif; ?>>
+                            <?= $escaper->escapeHtml(__('Price high–low')) ?>
+                        </option>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <option value="<?= $escaper->escapeHtmlAttr($orderCode) ?>"
+                        <?php if ($block->isOrderCurrent($orderCode) && $orderCode !== 'price'): ?>
+                            selected="selected"
+                        <?php endif; ?>>
+                        <?= $escaper->escapeHtml(__($orderLabel)) ?>
+                    </option>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </select>
+    </label>
+</div>
