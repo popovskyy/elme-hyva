@@ -176,12 +176,17 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
             <?= /* @noEscape */ $productListItemViewModel->getProductPriceHtml($product) ?>
         </div>
 
-        <?php if ($stockLevel): ?>
-            <p class="elme-card__stock elme-card__stock--<?= /* @noEscape */ $stockLevel ?> flex items-center gap-1.5 text-note">
+        <?php /* Always render the stock row so tiles in a row stay the same height when one has no label. */ ?>
+        <p class="elme-card__stock<?= $stockLevel ? ' elme-card__stock--' . $stockLevel : '' ?> flex items-center gap-1.5 text-note"
+           <?php if (!$stockLevel): ?>aria-hidden="true"<?php endif; ?>
+        >
+            <?php if ($stockLevel): ?>
                 <span class="size-1.5 shrink-0 rounded-full bg-current" aria-hidden="true"></span>
                 <?= $escaper->escapeHtml($stockLevel === ProductTile::STOCK_IN ? __('In Stock') : __('Low Stock')) ?>
-            </p>
-        <?php endif; ?>
+            <?php else: ?>
+                <span class="invisible select-none">&nbsp;</span>
+            <?php endif; ?>
+        </p>
 
         <?php if ($product->isAvailable() && !$hideDetails): ?>
             <?= $block->getProductDetailsHtml($product) ?>
@@ -198,7 +203,11 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
                 </a>
             <?php else: ?>
                 <?php if ($showStepper): ?>
-                    <?php $min = $qtyRulesViewModel->formatQty($qtyRules['min']); $step = $qtyRulesViewModel->formatQty($qtyRules['step']); ?>
+                    <?php
+                    $min = $qtyRulesViewModel->formatQty($qtyRules['min']);
+                    $step = $qtyRulesViewModel->formatQty($qtyRules['step']);
+                    $hasMoq = (float) $qtyRules['step'] > 1;
+                    ?>
                     <div class="elme-qty"
                          x-data="initElmeQtyStepper"
                          data-min="<?= $escaper->escapeHtmlAttr($min) ?>"
@@ -222,7 +231,7 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
                                x-ref="input"
                                @change="normalize"
                                aria-label="<?= $escaper->escapeHtmlAttr(__('Quantity of %1', $productName)) ?>"
-                               <?php if ((float) $step > 1): ?>
+                               <?php if ($hasMoq): ?>
                                aria-describedby="elme-moq-<?= $productId ?>"
                                <?php endif; ?>
                         >
@@ -246,9 +255,17 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
                 </button>
             <?php endif; ?>
         </div>
-        <?php if ($qtyRules && (float) $qtyRules['step'] > 1): ?>
-            <p id="elme-moq-<?= $productId ?>" class="text-note text-ink-muted">
-                <?= $escaper->escapeHtml(__('Sold in multiples of %1', $qtyRulesViewModel->formatQty($qtyRules['step']))) ?>
+        <?php if ($showStepper): ?>
+            <?php /* Same slot on every stepper tile so a MOQ note does not stretch one card in the row. */ ?>
+            <p id="elme-moq-<?= $productId ?>"
+               class="elme-card__moq text-note text-ink-muted<?= $hasMoq ? '' : ' invisible' ?>"
+               <?php if (!$hasMoq): ?>aria-hidden="true"<?php endif; ?>
+            >
+                <?php if ($hasMoq): ?>
+                    <?= $escaper->escapeHtml(__('Sold in multiples of %1', $qtyRulesViewModel->formatQty($qtyRules['step']))) ?>
+                <?php else: ?>
+                    &nbsp;
+                <?php endif; ?>
             </p>
         <?php endif; ?>
         <?php endif; ?>
