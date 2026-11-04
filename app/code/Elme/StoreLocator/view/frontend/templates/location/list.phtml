@@ -1,0 +1,454 @@
+<?php
+/**
+ * FE-51 Showroom locator list: suburb/postcode search, geolocation, state filters, cards + deferred map.
+ * All locations render in initial HTML for crawlers; Alpine filters visibility. CSP-safe Alpine.
+ *
+ * @var \Elme\StoreLocator\Block\ListPage $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ * @var \Hyva\Theme\ViewModel\HyvaCsp $hyvaCsp
+ */
+
+declare(strict_types=1);
+
+use Elme\StoreLocator\ViewModel\LocatorPage;
+use Hyva\Theme\ViewModel\LucideIcons;
+
+$locator = $block->getLocatorPage();
+$cards = $locator->getCards();
+$states = $locator->getStates();
+
+/** @var LucideIcons $lucide */
+$lucide = $viewModels->require(LucideIcons::class);
+$iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
+?>
+<section class="elme-locator container py-6 lg:py-10"
+         x-data="initElmeStoreLocator"
+         data-locations="<?= $escaper->escapeHtmlAttr($locator->getCardsJson()) ?>"
+         aria-labelledby="elme-locator-heading">
+    <header class="elme-locator__intro mb-6 max-w-3xl lg:mb-8">
+        <h1 id="elme-locator-heading" class="mb-3 text-title-page lg:text-title-page-desktop">
+            <?= $escaper->escapeHtml($locator->getPageTitle()) ?>
+        </h1>
+        <p class="m-0 text-copy text-ink-muted text-pretty lg:text-copy-desktop">
+            <?= $escaper->escapeHtml($locator->getIntro()) ?>
+        </p>
+    </header>
+
+    <form class="elme-locator__search mb-4 flex flex-col gap-3 md:flex-row md:items-end"
+          @submit.prevent="search">
+        <div class="min-w-0 flex-1">
+            <label for="elme-locator-query" class="mb-1.5 block text-sm font-medium text-ink">
+                <?= $escaper->escapeHtml(__('Suburb or postcode')) ?>
+            </label>
+            <input id="elme-locator-query"
+                   type="search"
+                   name="q"
+                   inputmode="search"
+                   autocomplete="postal-code"
+                   :value="query"
+                   @input="setQuery"
+                   class="form-input w-full"
+                   placeholder="<?= $escaper->escapeHtmlAttr(__('e.g. Blackburn or 3130')) ?>">
+        </div>
+        <button type="submit" class="btn btn-primary shrink-0">
+            <?= $escaper->escapeHtml(__('Find a location')) ?>
+        </button>
+    </form>
+
+    <p class="mb-5">
+        <button type="button"
+                class="inline-flex items-center gap-2 text-copy text-ink underline underline-offset-4 hover:text-link-hover lg:text-copy-desktop"
+                @click="useCurrentLocation">
+            <?= $lucide->navigationHtml('shrink-0 text-olive', 18, 18, $iconAttrs) ?>
+            <span><?= $escaper->escapeHtml(__('Use current location')) ?></span>
+        </button>
+    </p>
+
+    <p class="mb-4 text-copy text-ink-muted lg:text-copy-desktop"
+       x-cloak
+       x-show="hasMessage"
+       x-text="message"
+       role="status"
+       aria-live="polite"></p>
+
+    <div class="elme-locator__filters mb-6">
+        <span class="mb-2 block text-sm font-medium text-ink" id="elme-locator-state-label">
+            <?= $escaper->escapeHtml(__('Filter by state:')) ?>
+        </span>
+        <ul class="m-0 flex list-none flex-wrap gap-2 p-0"
+            role="group"
+            aria-labelledby="elme-locator-state-label">
+            <?php foreach ($states as $state): ?>
+                <li>
+                    <button type="button"
+                            class="rounded border border-border bg-surface px-3 py-2 text-sm text-ink transition hover:border-ink"
+                            :class="stateFilterClass"
+                            data-state="<?= $escaper->escapeHtmlAttr($state) ?>"
+                            @click="setStateFilter"
+                            :aria-pressed="isStatePressed">
+                        <?= $escaper->escapeHtml($state) ?>
+                    </button>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+
+    <div class="elme-locator__layout grid gap-8 lg:grid-cols-12 lg:gap-10">
+        <div class="lg:col-span-5 xl:col-span-4">
+            <ul class="elme-locator__list m-0 flex list-none flex-col gap-4 p-0"
+                role="list">
+                <?php foreach ($cards as $card): ?>
+                    <li class="elme-locator__card border border-border bg-surface p-4 md:p-5"
+                        data-url-key="<?= $escaper->escapeHtmlAttr($card['url_key']) ?>"
+                        x-show="isCardVisible"
+                        :class="cardHighlightClass"
+                        @click="selectCard">
+                        <p class="mb-1 text-xs font-medium uppercase tracking-wide text-olive">
+                            <?= $escaper->escapeHtml($card['type_label']) ?>
+                            <?php if (!empty($card['is_trade_only'])): ?>
+                                <span class="ml-1 text-ink-muted"><?= $escaper->escapeHtml(__('· TRADE ONLY')) ?></span>
+                            <?php endif; ?>
+                        </p>
+                        <h2 class="mb-2 font-heading text-h4 text-ink lg:text-h4-desktop">
+                            <a href="<?= $escaper->escapeUrl($card['url']) ?>"
+                               class="text-ink no-underline hover:underline hover:text-link-hover">
+                                <?= $escaper->escapeHtml($card['name']) ?>
+                            </a>
+                        </h2>
+                        <address class="mb-2 text-copy not-italic text-ink-muted lg:text-copy-desktop">
+                            <?= $escaper->escapeHtml($card['address_line']) ?>
+                        </address>
+                        <?php if ($card['description'] !== ''): ?>
+                            <p class="mb-2 text-sm text-ink-muted text-pretty">
+                                <?= $escaper->escapeHtml($card['description']) ?>
+                            </p>
+                        <?php endif; ?>
+                        <dl class="mb-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm text-ink">
+                            <dt class="text-ink-muted"><?= $escaper->escapeHtml(__('Today')) ?></dt>
+                            <dd class="m-0"><?= $escaper->escapeHtml($card['today_hours']) ?></dd>
+                            <?php if ($card['phone'] !== ''): ?>
+                                <dt class="text-ink-muted"><?= $escaper->escapeHtml(__('Phone')) ?></dt>
+                                <dd class="m-0">
+                                    <a href="<?= $escaper->escapeUrl($card['phone_tel']) ?>"
+                                       class="underline underline-offset-2 hover:text-link-hover">
+                                        <?= $escaper->escapeHtml($card['phone']) ?>
+                                    </a>
+                                </dd>
+                            <?php endif; ?>
+                            <dt class="text-ink-muted" x-show="hasDistance" data-url-key="<?= $escaper->escapeHtmlAttr($card['url_key']) ?>">
+                                <?= $escaper->escapeHtml(__('Distance')) ?>
+                            </dt>
+                            <dd class="m-0" x-show="hasDistance" x-text="cardDistanceLabel" data-url-key="<?= $escaper->escapeHtmlAttr($card['url_key']) ?>"></dd>
+                        </dl>
+                        <p class="m-0">
+                            <a href="<?= $escaper->escapeUrl($card['url']) ?>"
+                               class="btn btn-secondary">
+                                <?= $escaper->escapeHtml(__('See location')) ?>
+                            </a>
+                        </p>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+
+            <p class="mt-4 text-copy text-ink-muted lg:text-copy-desktop"
+               x-show="isEmpty"
+               x-cloak>
+                <?= $escaper->escapeHtml(__('No locations match your search. Try a different suburb or postcode, or clear the state filter.')) ?>
+            </p>
+
+            <?php /* Crawlable fallback: same links always in HTML even if Alpine hides cards. */ ?>
+            <nav class="sr-only" aria-label="<?= $escaper->escapeHtmlAttr(__('All showroom and pick-up locations')) ?>">
+                <ul>
+                    <?php foreach ($cards as $card): ?>
+                        <li>
+                            <a href="<?= $escaper->escapeUrl($card['url']) ?>">
+                                <?= $escaper->escapeHtml($card['name']) ?>
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </nav>
+        </div>
+
+        <div class="elme-locator__map-col lg:col-span-7 xl:col-span-8">
+            <div class="elme-locator__map relative min-h-80 overflow-hidden border border-border bg-cool-light lg:sticky lg:top-24 lg:min-h-96"
+                 x-data="initElmeDeferredMap"
+                 @elme-locator-map.window="onMapEvent">
+                <template x-if="isNotLoaded">
+                    <button type="button"
+                            class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-cool-light text-ink"
+                            @click="loadMap">
+                        <?= $lucide->mapPinHtml('text-olive', 28, 28, $iconAttrs) ?>
+                        <span class="text-copy font-medium lg:text-copy-desktop">
+                            <?= $escaper->escapeHtml(__('Show map')) ?>
+                        </span>
+                    </button>
+                </template>
+                <template x-if="isLoaded">
+                    <iframe class="absolute inset-0 h-full w-full border-0"
+                            title="<?= $escaper->escapeHtmlAttr(__('Showroom and pick-up locations map')) ?>"
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"
+                            :src="mapSrc"></iframe>
+                </template>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    function initElmeStoreLocator() {
+        return {
+            locations: [],
+            visibleKeys: [],
+            query: '',
+            state: '',
+            message: '',
+            origin: null,
+            selectedKey: '',
+
+            init() {
+                try {
+                    this.locations = JSON.parse(this.$root.dataset.locations || '[]');
+                } catch (e) {
+                    this.locations = [];
+                }
+                this.visibleKeys = this.locations.map(function (loc) { return loc.url_key; });
+                this.selectedKey = this.visibleKeys[0] || '';
+                this.$watch('selectedKey', () => this.syncMap());
+                this.syncMap();
+            },
+
+            hasMessage() {
+                return this.message !== '';
+            },
+
+            isEmpty() {
+                return this.visibleKeys.length === 0;
+            },
+
+            setQuery() {
+                this.query = this.$event.target.value;
+            },
+
+            setStateFilter() {
+                const next = this.$el.dataset.state || '';
+                this.state = this.state === next ? '' : next;
+                this.applyFilters();
+            },
+
+            isStatePressed() {
+                return this.state === (this.$el.dataset.state || '');
+            },
+
+            stateFilterClass() {
+                return {
+                    'border-ink bg-sand-light font-medium': this.isStatePressed()
+                };
+            },
+
+            isCardVisible() {
+                const key = this.$el.dataset.urlKey;
+                return this.visibleKeys.indexOf(key) !== -1;
+            },
+
+            cardHighlightClass() {
+                return {
+                    'ring-1 ring-ink': this.selectedKey === this.$el.dataset.urlKey
+                };
+            },
+
+            selectCard() {
+                const key = this.$el.dataset.urlKey;
+                if (key) {
+                    this.selectedKey = key;
+                }
+            },
+
+            hasDistance() {
+                const key = this.$el.dataset.urlKey;
+                const loc = this.findByKey(key);
+                return !!(loc && loc.distance_km !== null && loc.distance_km !== undefined);
+            },
+
+            cardDistanceLabel() {
+                const loc = this.findByKey(this.$el.dataset.urlKey);
+                if (!loc || loc.distance_km === null || loc.distance_km === undefined) {
+                    return '';
+                }
+                const km = loc.distance_km;
+                if (km < 1) {
+                    return Math.round(km * 1000) + ' m';
+                }
+                return (Math.round(km * 10) / 10) + ' km';
+            },
+
+            findByKey(key) {
+                return this.locations.find(function (loc) { return loc.url_key === key; }) || null;
+            },
+
+            search() {
+                this.message = '';
+                const q = (this.query || '').trim();
+                if (q === '') {
+                    this.clearDistances();
+                    this.applyFilters();
+                    return;
+                }
+
+                const postcode = q.match(/^\d{4}$/);
+                let originLoc = null;
+
+                if (postcode) {
+                    originLoc = this.locations.find(function (loc) { return loc.postcode === q; }) || null;
+                }
+                if (!originLoc) {
+                    const needle = q.toLowerCase();
+                    originLoc = this.locations.find(function (loc) {
+                        return (loc.city || '').toLowerCase().indexOf(needle) !== -1
+                            || (loc.name || '').toLowerCase().indexOf(needle) !== -1
+                            || (loc.postcode || '') === q;
+                    }) || null;
+                }
+
+                if (!originLoc || originLoc.lat === null || originLoc.lng === null) {
+                    this.message = <?= /* @noEscape */ json_encode((string) __('No location matches that suburb or postcode. Try 3130, Blackburn, Tarneit, St Marys or Richlands.')) ?>;
+                    this.clearDistances();
+                    this.applyFilters();
+                    return;
+                }
+
+                this.origin = { lat: originLoc.lat, lng: originLoc.lng };
+                this.sortByDistance();
+                this.applyFilters();
+                if (this.visibleKeys.length) {
+                    this.selectedKey = this.visibleKeys[0];
+                }
+            },
+
+            useCurrentLocation() {
+                this.message = '';
+                if (!navigator.geolocation) {
+                    this.message = <?= /* @noEscape */ json_encode((string) __('Your browser does not support location services. Search by suburb or postcode instead.')) ?>;
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        this.origin = {
+                            lat: pos.coords.latitude,
+                            lng: pos.coords.longitude
+                        };
+                        this.sortByDistance();
+                        this.applyFilters();
+                        if (this.visibleKeys.length) {
+                            this.selectedKey = this.visibleKeys[0];
+                        }
+                    },
+                    () => {
+                        this.message = <?= /* @noEscape */ json_encode((string) __('Location access was denied. Search by suburb or postcode, or filter by state.')) ?>;
+                    },
+                    { enableHighAccuracy: false, timeout: 10000 }
+                );
+            },
+
+            clearDistances() {
+                this.origin = null;
+                this.locations.forEach(function (loc) { loc.distance_km = null; });
+            },
+
+            sortByDistance() {
+                if (!this.origin) {
+                    return;
+                }
+                const origin = this.origin;
+                this.locations.forEach((loc) => {
+                    if (loc.lat === null || loc.lng === null) {
+                        loc.distance_km = null;
+                        return;
+                    }
+                    loc.distance_km = this.haversine(origin.lat, origin.lng, loc.lat, loc.lng);
+                });
+                this.locations.sort(function (a, b) {
+                    const da = a.distance_km === null ? Number.MAX_VALUE : a.distance_km;
+                    const db = b.distance_km === null ? Number.MAX_VALUE : b.distance_km;
+                    return da - db;
+                });
+            },
+
+            applyFilters() {
+                const state = this.state;
+                this.visibleKeys = this.locations
+                    .filter(function (loc) { return !state || loc.state === state; })
+                    .map(function (loc) { return loc.url_key; });
+
+                // Re-order DOM list to match distance sort when searching.
+                const list = this.$root.querySelector('.elme-locator__list');
+                if (list) {
+                    this.locations.forEach((loc) => {
+                        const el = list.querySelector('[data-url-key="' + loc.url_key + '"]');
+                        if (el) {
+                            list.appendChild(el);
+                        }
+                    });
+                }
+
+                if (this.visibleKeys.indexOf(this.selectedKey) === -1) {
+                    this.selectedKey = this.visibleKeys[0] || '';
+                }
+                this.syncMap();
+            },
+
+            syncMap() {
+                const loc = this.findByKey(this.selectedKey) || this.locations[0];
+                if (!loc) {
+                    return;
+                }
+                this.$dispatch('elme-locator-map', { src: loc.map_embed_url });
+            },
+
+            haversine(lat1, lng1, lat2, lng2) {
+                const toRad = Math.PI / 180;
+                const dLat = (lat2 - lat1) * toRad;
+                const dLng = (lng2 - lng1) * toRad;
+                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                    + Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad)
+                    * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+                return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            }
+        };
+    }
+
+    function initElmeDeferredMap() {
+        return {
+            loaded: false,
+            mapSrc: '',
+
+            onMapEvent() {
+                const detail = this.$event.detail || {};
+                if (detail.src) {
+                    this.mapSrc = detail.src;
+                }
+            },
+
+            isLoaded() {
+                return this.loaded && this.mapSrc !== '';
+            },
+
+            isNotLoaded() {
+                return !this.loaded;
+            },
+
+            loadMap() {
+                this.loaded = true;
+            }
+        };
+    }
+
+    window.addEventListener('alpine:init', () => {
+        Alpine.data('initElmeStoreLocator', initElmeStoreLocator);
+        Alpine.data('initElmeDeferredMap', initElmeDeferredMap);
+    }, { once: true });
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

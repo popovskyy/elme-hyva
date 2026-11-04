@@ -1,0 +1,17 @@
+<?php
+/**
+ * FE-51 list JSON-LD (CollectionPage + ItemList + BreadcrumbList). FE-55 owns #organization / #website.
+ */
+
+declare(strict_types=1);
+
+use Elme\StoreLocator\ViewModel\LocatorPage;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+
+$locator = $viewModels->require(LocatorPage::class);
+?>
+<script type="application/ld+json"><?= /* @noEscape */ $locator->getJsonLdScript() ?></script>
