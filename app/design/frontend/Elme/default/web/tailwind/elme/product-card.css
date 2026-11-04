@@ -47,12 +47,21 @@
         background: var(--color-olive);
     }
 
+    /* One line reserved even when out of stock (no label), so a row of tiles stays level. */
+    .elme-card__stock {
+        min-height: var(--text-note--line-height);
+    }
+
     .elme-card__stock--in {
         color: var(--color-olive);
     }
 
     .elme-card__stock--low {
         color: var(--color-toast-warning-mark);
+    }
+
+    .elme-card__moq {
+        min-height: var(--text-note--line-height);
     }
 
     /* Qty stepper: − [qty] +, as tall as the button next to it. */
