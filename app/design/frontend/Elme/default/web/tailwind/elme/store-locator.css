@@ -1,9 +1,20 @@
 /**
  * FE-51 Showroom locator — map chrome and hours highlight.
+ * Map uses aspect-ratio from width only; min-height + aspect-ratio together
+ * forced a ~427px min width (320 * 4/3) and overflowed 390px viewports.
  */
 @layer components {
+    .elme-locator__map-col,
+    .elme-location__map-col {
+        min-width: 0;
+        max-width: 100%;
+    }
+
     .elme-locator__map,
     .elme-location__map {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
         aspect-ratio: 4 / 3;
     }
 
