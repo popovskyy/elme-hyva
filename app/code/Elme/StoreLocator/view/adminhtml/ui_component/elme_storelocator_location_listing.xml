@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">elme_storelocator_location_listing.elme_storelocator_location_listing_data_source</item>
+        </item>
+    </argument>
+    <settings>
+        <buttons>
+            <button name="add">
+                <url path="*/*/new"/>
+                <class>primary</class>
+                <label translate="true">Add New Location</label>
+            </button>
+        </buttons>
+        <spinner>elme_storelocator_location_columns</spinner>
+        <deps>
+            <dep>elme_storelocator_location_listing.elme_storelocator_location_listing_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="elme_storelocator_location_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig>
+                <param name="indexField" xsi:type="string">location_id</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Elme_StoreLocator::location</aclResource>
+        <dataProvider class="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider"
+                      name="elme_storelocator_location_listing_data_source">
+            <settings>
+                <requestFieldName>location_id</requestFieldName>
+                <primaryFieldName>location_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <listingToolbar name="listing_top">
+        <settings>
+            <sticky>true</sticky>
+        </settings>
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <filterSearch name="fulltext"/>
+        <filters name="listing_filters"/>
+        <massaction name="listing_massaction">
+            <action name="delete">
+                <settings>
+                    <confirm>
+                        <message translate="true">Are you sure you want to delete the selected locations?</message>
+                        <title translate="true">Delete locations</title>
+                    </confirm>
+                    <url path="elme_storelocator/location/massDelete"/>
+                    <type>delete</type>
+                    <label translate="true">Delete</label>
+                </settings>
+            </action>
+        </massaction>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+    <columns name="elme_storelocator_location_columns">
+        <selectionsColumn name="ids" sortOrder="10">
+            <settings>
+                <indexField>location_id</indexField>
+            </settings>
+        </selectionsColumn>
+        <column name="location_id" sortOrder="20">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">ID</label>
+                <sorting>asc</sorting>
+            </settings>
+        </column>
+        <column name="name" sortOrder="30">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Name</label>
+            </settings>
+        </column>
+        <column name="type" component="Magento_Ui/js/grid/columns/select" sortOrder="40">
+            <settings>
+                <options class="Elme\StoreLocator\Model\Config\Source\Type"/>
+                <filter>select</filter>
+                <dataType>select</dataType>
+                <label translate="true">Type</label>
+            </settings>
+        </column>
+        <column name="city" sortOrder="50">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">City</label>
+            </settings>
+        </column>
+        <column name="state" component="Magento_Ui/js/grid/columns/select" sortOrder="60">
+            <settings>
+                <options class="Elme\StoreLocator\Model\Config\Source\State"/>
+                <filter>select</filter>
+                <dataType>select</dataType>
+                <label translate="true">State</label>
+            </settings>
+        </column>
+        <column name="postcode" sortOrder="70">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Postcode</label>
+            </settings>
+        </column>
+        <column name="url_key" sortOrder="80">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">URL Key</label>
+            </settings>
+        </column>
+        <column name="is_active" component="Magento_Ui/js/grid/columns/select" sortOrder="90">
+            <settings>
+                <options class="Elme\StoreLocator\Model\Config\Source\IsActive"/>
+                <filter>select</filter>
+                <dataType>select</dataType>
+                <label translate="true">Status</label>
+            </settings>
+        </column>
+        <actionsColumn name="actions" class="Elme\StoreLocator\Ui\Component\Listing\Column\LocationActions"
+                       sortOrder="200">
+            <settings>
+                <indexField>location_id</indexField>
+            </settings>
+        </actionsColumn>
+    </columns>
+</listing>

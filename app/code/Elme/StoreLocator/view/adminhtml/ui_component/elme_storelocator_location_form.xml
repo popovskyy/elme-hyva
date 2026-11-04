@@ -1,0 +1,197 @@
+<?xml version="1.0"?>
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">elme_storelocator_location_form.elme_storelocator_location_form_data_source</item>
+        </item>
+        <item name="label" xsi:type="string" translate="true">Location</item>
+        <item name="template" xsi:type="string">templates/form/collapsible</item>
+    </argument>
+    <settings>
+        <buttons>
+            <button name="back" class="Elme\StoreLocator\Block\Adminhtml\Location\Edit\BackButton"/>
+            <button name="delete" class="Elme\StoreLocator\Block\Adminhtml\Location\Edit\DeleteButton"/>
+            <button name="save" class="Elme\StoreLocator\Block\Adminhtml\Location\Edit\SaveButton"/>
+            <button name="save_and_continue" class="Elme\StoreLocator\Block\Adminhtml\Location\Edit\SaveAndContinueButton"/>
+        </buttons>
+        <namespace>elme_storelocator_location_form</namespace>
+        <dataScope>data</dataScope>
+        <deps>
+            <dep>elme_storelocator_location_form.elme_storelocator_location_form_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="elme_storelocator_location_form_data_source">
+        <argument name="data" xsi:type="array">
+            <item name="js_config" xsi:type="array">
+                <item name="component" xsi:type="string">Magento_Ui/js/form/provider</item>
+            </item>
+        </argument>
+        <settings>
+            <submitUrl path="elme_storelocator/location/save"/>
+        </settings>
+        <dataProvider class="Elme\StoreLocator\Model\Location\DataProvider"
+                      name="elme_storelocator_location_form_data_source">
+            <settings>
+                <requestFieldName>location_id</requestFieldName>
+                <primaryFieldName>location_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <fieldset name="general">
+        <settings>
+            <label translate="true">General</label>
+        </settings>
+        <field name="location_id" formElement="input">
+            <settings>
+                <dataType>text</dataType>
+                <visible>false</visible>
+                <dataScope>location_id</dataScope>
+            </settings>
+        </field>
+        <field name="name" sortOrder="10" formElement="input">
+            <settings>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <dataType>text</dataType>
+                <label translate="true">Name</label>
+                <dataScope>name</dataScope>
+            </settings>
+        </field>
+        <field name="type" sortOrder="20" formElement="select">
+            <settings>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <dataType>text</dataType>
+                <label translate="true">Type</label>
+                <dataScope>type</dataScope>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="Elme\StoreLocator\Model\Config\Source\Type"/>
+                    </settings>
+                </select>
+            </formElements>
+        </field>
+        <field name="is_active" sortOrder="30" formElement="checkbox">
+            <settings>
+                <dataType>boolean</dataType>
+                <label translate="true">Active</label>
+                <dataScope>is_active</dataScope>
+            </settings>
+            <formElements>
+                <checkbox>
+                    <settings>
+                        <valueMap>
+                            <map name="false" xsi:type="number">0</map>
+                            <map name="true" xsi:type="number">1</map>
+                        </valueMap>
+                        <prefer>toggle</prefer>
+                    </settings>
+                </checkbox>
+            </formElements>
+        </field>
+        <field name="url_key" sortOrder="40" formElement="input">
+            <settings>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <dataType>text</dataType>
+                <label translate="true">URL Key</label>
+                <dataScope>url_key</dataScope>
+            </settings>
+        </field>
+        <field name="sort_order" sortOrder="50" formElement="input">
+            <settings>
+                <dataType>number</dataType>
+                <label translate="true">Sort Order</label>
+                <dataScope>sort_order</dataScope>
+            </settings>
+        </field>
+        <field name="description" sortOrder="60" formElement="textarea">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Description</label>
+                <dataScope>description</dataScope>
+            </settings>
+        </field>
+    </fieldset>
+    <fieldset name="address">
+        <settings>
+            <label translate="true">Address</label>
+        </settings>
+        <field name="street" sortOrder="10" formElement="input">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Street</label>
+                <dataScope>street</dataScope>
+            </settings>
+        </field>
+        <field name="city" sortOrder="20" formElement="input">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">City</label>
+                <dataScope>city</dataScope>
+            </settings>
+        </field>
+        <field name="state" sortOrder="30" formElement="select">
+            <settings>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <dataType>text</dataType>
+                <label translate="true">State</label>
+                <dataScope>state</dataScope>
+            </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="Elme\StoreLocator\Model\Config\Source\State"/>
+                    </settings>
+                </select>
+            </formElements>
+        </field>
+        <field name="postcode" sortOrder="40" formElement="input">
+            <settings>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+                <dataType>text</dataType>
+                <label translate="true">Postcode</label>
+                <dataScope>postcode</dataScope>
+            </settings>
+        </field>
+        <field name="latitude" sortOrder="50" formElement="input">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Latitude</label>
+                <dataScope>latitude</dataScope>
+            </settings>
+        </field>
+        <field name="longitude" sortOrder="60" formElement="input">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Longitude</label>
+                <dataScope>longitude</dataScope>
+            </settings>
+        </field>
+        <field name="phone" sortOrder="70" formElement="input">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Phone</label>
+                <dataScope>phone</dataScope>
+            </settings>
+        </field>
+        <field name="opening_hours" sortOrder="80" formElement="textarea">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Opening Hours (JSON)</label>
+                <dataScope>opening_hours</dataScope>
+                <notice translate="true">Day keys monday…sunday with from/to (HH:MM). Empty from/to means closed.</notice>
+            </settings>
+        </field>
+    </fieldset>
+</form>
