@@ -1,0 +1,21 @@
+<?php
+/**
+ * FE-51 location JSON-LD (WebPage + place entity + BreadcrumbList).
+ */
+
+declare(strict_types=1);
+
+use Elme\StoreLocator\ViewModel\LocationPage;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+
+$page = $viewModels->require(LocationPage::class);
+$location = $page->getLocation();
+if (!$location) {
+    return;
+}
+?>
+<script type="application/ld+json"><?= /* @noEscape */ $page->getJsonLdScript($location) ?></script>

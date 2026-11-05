@@ -190,7 +190,29 @@
                 <dataType>text</dataType>
                 <label translate="true">Opening Hours (JSON)</label>
                 <dataScope>opening_hours</dataScope>
-                <notice translate="true">Day keys monday…sunday with from/to (HH:MM). Empty from/to means closed.</notice>
+                <notice translate="true">Day keys monday to sunday with from/to (HH:MM, 24h). Empty from/to means closed. Example: {"monday": {"from": "09:00", "to": "17:00"}, "saturday": {"from": "", "to": ""}}</notice>
+            </settings>
+        </field>
+    </fieldset>
+    <fieldset name="visit">
+        <settings>
+            <label translate="true">Holidays and Visit Info</label>
+            <collapsible>true</collapsible>
+        </settings>
+        <field name="holiday_hours" sortOrder="10" formElement="textarea">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Holiday Hours (JSON)</label>
+                <dataScope>holiday_hours</dataScope>
+                <notice translate="true">List of dates that replace the weekday hours. Empty from/to means closed; name and label are optional and show under the day. Example: [{"date": "2026-12-25", "from": "", "to": "", "name": "Christmas Day"}, {"date": "2026-12-24", "from": "09:00", "to": "12:00", "label": "Closing early"}]</notice>
+            </settings>
+        </field>
+        <field name="parking_instructions" sortOrder="20" formElement="textarea">
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Parking Instructions</label>
+                <dataScope>parking_instructions</dataScope>
+                <notice translate="true">Shown on the location page under the hours. Leave empty to hide.</notice>
             </settings>
         </field>
     </fieldset>

@@ -18,6 +18,9 @@
         "src": "app/code/Elme/Theme"
       },
       {
+        "src": "app/code/Elme/StoreLocator"
+      },
+      {
         "src": "app/code/Bart/ContentStudio/view/frontend"
       },
       {

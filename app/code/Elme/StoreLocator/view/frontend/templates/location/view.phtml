@@ -1,0 +1,402 @@
+<?php
+/**
+ * FE-51 location page: type-specific CTAs, 5-week hours with holiday overrides, parking, deferred map, trade gate.
+ * The page sits in full-page cache, so "today" is re-checked in the browser in the store timezone.
+ *
+ * @var \Elme\StoreLocator\Block\LocationView $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ * @var \Hyva\Theme\ViewModel\HyvaCsp $hyvaCsp
+ */
+
+declare(strict_types=1);
+
+use Elme\LoginOnly\ViewModel\LoginOnly;
+use Hyva\Theme\ViewModel\LucideIcons;
+
+$page = $block->getLocationPage();
+$location = $block->getLocation();
+if (!$location) {
+    return;
+}
+
+$presenter = $page->getPresenter();
+$hours = $page->getHours();
+$scheduleWeeks = $hours->scheduleWeeks($location->getOpeningHours(), $location->getHolidayHours());
+$parking = (string) $location->getParkingInstructions();
+$isShowroom = $presenter->isShowroom($location);
+$isTradeOnly = $presenter->isTradeOnly($location);
+$typeLabel = $presenter->getTypeLabel($location);
+$phone = (string) $location->getPhone();
+$phoneTel = $presenter->getTelHref($phone);
+$description = (string) $location->getDescription();
+$directionsUrl = $presenter->getDirectionsUrl($location);
+$googleMapsUrl = $presenter->getGoogleMapsUrl($location);
+$appleMapsUrl = $presenter->getAppleMapsUrl($location);
+$mapEmbedUrl = $presenter->getMapEmbedUrl($location);
+
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+/** @var LucideIcons $lucide */
+$lucide = $viewModels->require(LucideIcons::class);
+$iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
+$loggedIn = $loginOnly->isLoggedIn();
+?>
+<article class="elme-location container py-6 lg:py-10"
+         aria-labelledby="elme-location-heading">
+    <header class="elme-location__header mb-6 max-w-3xl lg:mb-8">
+        <p class="mb-2 text-xs font-medium uppercase tracking-wide text-olive">
+            <?= $escaper->escapeHtml($typeLabel) ?>
+            <?php if ($isTradeOnly): ?>
+                <span class="ml-1 text-ink-muted"><span aria-hidden="true">&middot;</span> <?= $escaper->escapeHtml(__('TRADE ONLY')) ?></span>
+            <?php endif; ?>
+        </p>
+        <h1 id="elme-location-heading" class="mb-3 text-title-page lg:text-title-page-desktop">
+            <?= $escaper->escapeHtml($location->getName()) ?>
+        </h1>
+
+        <?php if ($isTradeOnly): ?>
+            <p class="elme-location__trade-gate mb-4 border border-border bg-sand-faint px-4 py-3 text-copy text-pretty lg:text-copy-desktop">
+                <?= $escaper->escapeHtml(__(
+                    'This showroom is for registered trade customers.'
+                )) ?>
+                <?php if (!$loggedIn): ?>
+                    <a href="<?= $escaper->escapeUrl($loginOnly->getLoginUrl()) ?>"
+                       class="underline underline-offset-2 hover:text-link-hover"><?= $escaper->escapeHtml(__('Log in')) ?></a>
+                    <?= $escaper->escapeHtml(__('or')) ?>
+                    <a href="<?= $escaper->escapeUrl($presenter->getApplyUrl()) ?>"
+                       class="underline underline-offset-2 hover:text-link-hover"><?= $escaper->escapeHtml(__('Apply for a trade account')) ?></a>.
+                <?php endif; ?>
+            </p>
+        <?php endif; ?>
+
+        <?php if ($description !== ''): ?>
+            <p class="m-0 text-copy text-ink-muted text-pretty lg:text-copy-desktop">
+                <?= $escaper->escapeHtml($description) ?>
+            </p>
+        <?php endif; ?>
+    </header>
+
+    <div class="elme-location__cta mb-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <?php if ($isShowroom): ?>
+            <a href="<?= $escaper->escapeUrl($presenter->getAppointmentUrl()) ?>"
+               class="btn btn-primary">
+                <?= $escaper->escapeHtml(__('Book an appointment')) ?>
+            </a>
+            <?php if ($phone !== ''): ?>
+                <a href="<?= $escaper->escapeUrl($phoneTel) ?>" class="btn btn-secondary">
+                    <?= $escaper->escapeHtml(__('Call %1', $phone)) ?>
+                </a>
+            <?php endif; ?>
+        <?php else: ?>
+            <a href="<?= $escaper->escapeUrl($directionsUrl) ?>"
+               class="btn btn-primary"
+               target="_blank"
+               rel="noopener">
+                <?= $escaper->escapeHtml(__('Get directions')) ?>
+                <span class="sr-only"><?= $escaper->escapeHtml(__('(opens Google Maps)')) ?></span>
+            </a>
+            <?php if ($phone !== ''): ?>
+                <a href="<?= $escaper->escapeUrl($phoneTel) ?>" class="btn btn-secondary">
+                    <?= $escaper->escapeHtml(__('Call %1', $phone)) ?>
+                </a>
+            <?php endif; ?>
+        <?php endif; ?>
+    </div>
+
+    <div class="elme-location__grid grid gap-10 lg:grid-cols-12 lg:gap-12">
+        <div class="lg:col-span-5 xl:col-span-4">
+            <section class="mb-8" aria-labelledby="elme-location-details">
+                <h2 id="elme-location-details" class="mb-4 text-title-section lg:text-title-section-desktop">
+                    <?= $escaper->escapeHtml(__('Store details')) ?>
+                </h2>
+                <div class="flex gap-3">
+                    <?= $lucide->mapPinHtml('mt-0.5 shrink-0 text-olive', 20, 20, $iconAttrs) ?>
+                    <div>
+                        <address class="mb-3 text-copy not-italic lg:text-copy-desktop">
+                            <?= $escaper->escapeHtml((string) $location->getStreet()) ?><br>
+                            <?= $escaper->escapeHtml(trim(sprintf(
+                                '%s %s %s',
+                                (string) $location->getCity(),
+                                $location->getState(),
+                                $location->getPostcode()
+                            ))) ?>
+                        </address>
+                        <p class="m-0 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+                            <a href="<?= $escaper->escapeUrl($googleMapsUrl) ?>"
+                               class="underline underline-offset-2 hover:text-link-hover"
+                               target="_blank"
+                               rel="noopener">
+                                <?= $escaper->escapeHtml(__('Open in Google Maps')) ?>
+                            </a>
+                            <a href="<?= $escaper->escapeUrl($appleMapsUrl) ?>"
+                               class="underline underline-offset-2 hover:text-link-hover"
+                               target="_blank"
+                               rel="noopener">
+                                <?= $escaper->escapeHtml(__('Open in Apple Maps')) ?>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+
+                <?php if ($phone !== ''): ?>
+                    <div class="mt-5 flex gap-3">
+                        <?= $lucide->phoneHtml('mt-0.5 shrink-0 text-olive', 20, 20, $iconAttrs) ?>
+                        <div>
+                            <p class="mb-1 text-sm text-ink-muted"><?= $escaper->escapeHtml(__('Phone')) ?></p>
+                            <a href="<?= $escaper->escapeUrl($phoneTel) ?>"
+                               class="text-copy underline underline-offset-2 hover:text-link-hover lg:text-copy-desktop">
+                                <?= $escaper->escapeHtml($phone) ?>
+                            </a>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </section>
+
+            <?php if ($scheduleWeeks): ?>
+                <section class="mb-8"
+                         aria-labelledby="elme-location-hours"
+                         x-data="initElmeLocationSchedule"
+                         data-timezone="<?= $escaper->escapeHtmlAttr($hours->getTimezoneCode()) ?>"
+                         data-labels="<?= $escaper->escapeHtmlAttr((string) json_encode(array_column($scheduleWeeks, 'label'))) ?>">
+                    <h2 id="elme-location-hours" class="mb-4 text-title-section lg:text-title-section-desktop">
+                        <?= $escaper->escapeHtml($isShowroom ? __('Opening hours') : __('Pick-up hours')) ?>
+                    </h2>
+                    <div class="flex gap-3">
+                        <?= $lucide->clockHtml('mt-0.5 shrink-0 text-olive', 20, 20, $iconAttrs) ?>
+                        <div class="min-w-0 flex-1">
+                            <?php foreach ($scheduleWeeks as $index => $week): ?>
+                                <table class="elme-location__hours w-full border-collapse text-copy lg:text-copy-desktop"
+                                       data-week="<?= (int) $index ?>"
+                                       x-show="isWeekShown"
+                                       <?= $index === 0 ? '' : 'x-cloak' ?>>
+                                    <caption class="sr-only">
+                                        <?= $escaper->escapeHtml(__('Opening hours, %1', $week['label'])) ?>
+                                    </caption>
+                                    <tbody>
+                                    <?php foreach ($week['days'] as $day): ?>
+                                        <?php
+                                        $holidayNote = $day['holiday'] === null ? '' : trim(implode(' ', array_filter([
+                                            $day['holiday']['name'],
+                                            $day['holiday']['label'],
+                                        ])));
+                                        $todayClass = $day['is_today'] ? ' bg-sand-light font-semibold' : '';
+                                        ?>
+                                        <tr class="<?= $holidayNote !== '' ? 'elme-location__hours-day--note' : '' ?><?= $todayClass ?>"
+                                            data-iso="<?= $escaper->escapeHtmlAttr($day['iso']) ?>"
+                                            :class="dayClass"
+                                            <?= $day['is_today'] ? 'aria-current="date"' : '' ?>
+                                            :aria-current="ariaCurrent">
+                                            <th scope="row" class="py-1.5 pl-2 pr-3 text-left [font-weight:inherit]">
+                                                <?= $escaper->escapeHtml($day['day']) ?>
+                                            </th>
+                                            <td class="py-1.5 pr-3 tabular-nums text-ink-muted">
+                                                <?= $escaper->escapeHtml($day['date']) ?>
+                                            </td>
+                                            <td class="py-1.5 pr-2 text-right tabular-nums<?= $day['is_closed'] ? ' text-ink-muted' : '' ?>">
+                                                <?= $escaper->escapeHtml($day['hours']) ?>
+                                            </td>
+                                        </tr>
+                                        <?php if ($holidayNote !== ''): ?>
+                                            <tr class="elme-location__hours-note">
+                                                <td colspan="3" class="pb-1.5 pl-2 pr-2 text-sm text-olive">
+                                                    <?= $escaper->escapeHtml($holidayNote) ?>
+                                                </td>
+                                            </tr>
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            <?php endforeach; ?>
+
+                            <?php if (count($scheduleWeeks) > 1): ?>
+                                <div class="mt-3 flex items-center justify-between gap-3">
+                                    <p class="m-0 text-sm font-medium tabular-nums" aria-live="polite" x-text="weekLabel">
+                                        <?= $escaper->escapeHtml($scheduleWeeks[0]['label']) ?>
+                                    </p>
+                                    <div class="flex gap-2">
+                                        <button type="button"
+                                                class="elme-location__week-btn"
+                                                aria-label="<?= $escaper->escapeHtmlAttr(__('Previous week')) ?>"
+                                                :disabled="isFirstWeek"
+                                                @click="prevWeek"
+                                                disabled>
+                                            <?= $lucide->chevronLeftHtml('', 18, 18, $iconAttrs) ?>
+                                        </button>
+                                        <button type="button"
+                                                class="elme-location__week-btn"
+                                                aria-label="<?= $escaper->escapeHtmlAttr(__('Next week')) ?>"
+                                                :disabled="isLastWeek"
+                                                @click="nextWeek">
+                                            <?= $lucide->chevronRightHtml('', 18, 18, $iconAttrs) ?>
+                                        </button>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </section>
+            <?php endif; ?>
+
+            <?php if ($parking !== ''): ?>
+                <section aria-labelledby="elme-location-parking">
+                    <h2 id="elme-location-parking" class="mb-4 text-title-section lg:text-title-section-desktop">
+                        <?= $escaper->escapeHtml(__('Parking')) ?>
+                    </h2>
+                    <div class="flex gap-3">
+                        <?= $lucide->squareParkingHtml('mt-0.5 shrink-0 text-olive', 20, 20, $iconAttrs) ?>
+                        <p class="m-0 text-copy text-pretty lg:text-copy-desktop">
+                            <?= /* @noEscape */ nl2br($escaper->escapeHtml($parking)) ?>
+                        </p>
+                    </div>
+                </section>
+            <?php endif; ?>
+        </div>
+
+        <div class="elme-location__map-col min-w-0 lg:col-span-7 xl:col-span-8"
+             x-data="initElmeLocationMap"
+             data-map-src="<?= $escaper->escapeHtmlAttr($mapEmbedUrl) ?>">
+            <div class="elme-location__map relative overflow-hidden border border-border bg-cool-light">
+                <template x-if="isNotLoaded">
+                    <button type="button"
+                            class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-cool-light text-ink"
+                            @click="loadMap">
+                        <?= $lucide->mapPinHtml('text-olive', 28, 28, $iconAttrs) ?>
+                        <span class="text-copy font-medium lg:text-copy-desktop">
+                            <?= $escaper->escapeHtml(__('Show map')) ?>
+                        </span>
+                    </button>
+                </template>
+                <template x-if="isLoaded">
+                    <iframe class="absolute inset-0 h-full w-full border-0"
+                            title="<?= $escaper->escapeHtmlAttr(__('Map of %1', $location->getName())) ?>"
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"
+                            :src="mapSrc"></iframe>
+                </template>
+            </div>
+            <?php if (!$isShowroom): ?>
+                <p class="mt-3">
+                    <a href="<?= $escaper->escapeUrl($directionsUrl) ?>"
+                       class="inline-flex items-center gap-1 text-copy underline underline-offset-2 hover:text-link-hover lg:text-copy-desktop"
+                       target="_blank"
+                       rel="noopener">
+                        <?= $escaper->escapeHtml(__('Get directions')) ?>
+                        <?= $lucide->arrowUpRightHtml('shrink-0', 16, 16, $iconAttrs) ?>
+                    </a>
+                </p>
+            <?php endif; ?>
+        </div>
+    </div>
+</article>
+
+<script>
+    function initElmeLocationMap() {
+        return {
+            loaded: false,
+            mapSrc: '',
+
+            init() {
+                this.mapSrc = this.$root.dataset.mapSrc || '';
+            },
+
+            isLoaded() {
+                return this.loaded && this.mapSrc !== '';
+            },
+
+            isNotLoaded() {
+                return !this.loaded;
+            },
+
+            loadMap() {
+                this.loaded = true;
+            }
+        };
+    }
+    function initElmeLocationSchedule() {
+        return {
+            week: 0,
+            labels: [],
+            todayIso: '',
+
+            init() {
+                try {
+                    this.labels = JSON.parse(this.$root.dataset.labels || '[]');
+                } catch (e) {
+                    this.labels = [];
+                }
+                this.todayIso = this.storeToday(this.$root.dataset.timezone || '');
+                // A cached page can be a few days old: open the week that holds today.
+                const row = this.todayIso
+                    ? this.$root.querySelector('[data-iso="' + this.todayIso + '"]')
+                    : null;
+                const table = row ? row.closest('[data-week]') : null;
+                if (table) {
+                    this.week = parseInt(table.dataset.week, 10) || 0;
+                }
+            },
+
+            storeToday(timeZone) {
+                try {
+                    const parts = new Intl.DateTimeFormat('en-CA', {
+                        timeZone: timeZone || undefined,
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit'
+                    }).formatToParts(new Date());
+                    const part = (type) => (parts.find((p) => p.type === type) || {}).value || '';
+                    return part('year') + '-' + part('month') + '-' + part('day');
+                } catch (e) {
+                    return '';
+                }
+            },
+
+            isToday() {
+                return this.todayIso !== '' && this.$el.dataset.iso === this.todayIso;
+            },
+
+            dayClass() {
+                const today = this.isToday();
+                return { 'bg-sand-light': today, 'font-semibold': today };
+            },
+
+            ariaCurrent() {
+                return this.isToday() ? 'date' : false;
+            },
+
+            isWeekShown() {
+                return parseInt(this.$el.dataset.week, 10) === this.week;
+            },
+
+            weekLabel() {
+                return this.labels[this.week] || '';
+            },
+
+            isFirstWeek() {
+                return this.week === 0;
+            },
+
+            isLastWeek() {
+                return this.week >= this.labels.length - 1;
+            },
+
+            prevWeek() {
+                if (this.week > 0) {
+                    this.week--;
+                }
+            },
+
+            nextWeek() {
+                if (this.week < this.labels.length - 1) {
+                    this.week++;
+                }
+            }
+        };
+    }
+
+    window.addEventListener('alpine:init', () => {
+        Alpine.data('initElmeLocationMap', initElmeLocationMap);
+        Alpine.data('initElmeLocationSchedule', initElmeLocationSchedule);
+    }, { once: true });
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

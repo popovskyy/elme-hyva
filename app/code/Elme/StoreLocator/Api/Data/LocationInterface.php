@@ -17,8 +17,10 @@ interface LocationInterface
     public const LONGITUDE = 'longitude';
     public const PHONE = 'phone';
     public const OPENING_HOURS = 'opening_hours';
+    public const HOLIDAY_HOURS = 'holiday_hours';
     public const URL_KEY = 'url_key';
     public const DESCRIPTION = 'description';
+    public const PARKING_INSTRUCTIONS = 'parking_instructions';
     public const IS_ACTIVE = 'is_active';
     public const SORT_ORDER = 'sort_order';
 
@@ -70,6 +72,10 @@ interface LocationInterface
 
     public function setOpeningHours(?string $openingHours): self;
 
+    public function getHolidayHours(): ?string;
+
+    public function setHolidayHours(?string $holidayHours): self;
+
     public function getUrlKey(): string;
 
     public function setUrlKey(string $urlKey): self;
@@ -77,6 +83,10 @@ interface LocationInterface
     public function getDescription(): ?string;
 
     public function setDescription(?string $description): self;
+
+    public function getParkingInstructions(): ?string;
+
+    public function setParkingInstructions(?string $parkingInstructions): self;
 
     public function getIsActive(): bool;
 

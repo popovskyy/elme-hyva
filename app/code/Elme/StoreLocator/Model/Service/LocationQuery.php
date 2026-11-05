@@ -20,7 +20,7 @@ class LocationQuery
     }
 
     /**
-     * Active locations, optionally limited to one state code (VIC, NSW, …).
+     * Active locations, optionally limited to one state code (VIC, NSW, ...).
      *
      * @return LocationInterface[]
      */
@@ -31,7 +31,7 @@ class LocationQuery
 
     /**
      * Active locations sorted nearest-first to a postcode.
-     * Origin is the first active location that shares the postcode (so 3130 → Blackburn),
+     * Origin is the first active location that shares the postcode (so 3130 gives Blackburn),
      * otherwise any active location whose postcode equals the query still wins by distance 0
      * when present; if no location has that postcode, throws.
      *

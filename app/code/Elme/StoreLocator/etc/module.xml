@@ -5,6 +5,10 @@
         <sequence>
             <module name="Magento_Backend"/>
             <module name="Magento_Ui"/>
+            <module name="Magento_Theme"/>
+            <module name="Magento_Customer"/>
+            <module name="Elme_LoginOnly"/>
+            <module name="Hyva_Theme"/>
         </sequence>
     </module>
 </config>
