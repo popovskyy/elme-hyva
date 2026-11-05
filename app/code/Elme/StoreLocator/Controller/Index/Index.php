@@ -13,7 +13,7 @@ class Index implements HttpGetActionInterface
 {
     /**
      * `$view` is unused on purpose. Constructing App\View early pins the shared
-     * Page\Config builder so Hyvä head.additional scripts (hyva.js / variables)
+     * Page\Config builder so Hyva head.additional scripts (hyva.js / variables)
      * are not dropped when layout generation later resolves ViewInterface.
      *
      * @param PageFactory $resultPageFactory

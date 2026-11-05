@@ -7,6 +7,7 @@ namespace Elme\StoreLocator\Controller\Adminhtml\Location;
 use Elme\StoreLocator\Api\Data\LocationInterfaceFactory;
 use Elme\StoreLocator\Api\LocationRepositoryInterface;
 use Elme\StoreLocator\Controller\Adminhtml\Location;
+use Elme\StoreLocator\ViewModel\Hours;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\Request\DataPersistorInterface;
@@ -20,7 +21,8 @@ class Save extends Location implements HttpPostActionInterface
         Registry $coreRegistry,
         private readonly LocationRepositoryInterface $locationRepository,
         private readonly LocationInterfaceFactory $locationFactory,
-        private readonly DataPersistorInterface $dataPersistor
+        private readonly DataPersistorInterface $dataPersistor,
+        private readonly Hours $hours
     ) {
         parent::__construct($context, $coreRegistry);
     }
@@ -46,11 +48,16 @@ class Save extends Location implements HttpPostActionInterface
             $location->setState(strtoupper((string) ($data['state'] ?? '')));
             $location->setPostcode((string) ($data['postcode'] ?? ''));
             $location->setPhone(isset($data['phone']) && $data['phone'] !== '' ? (string) $data['phone'] : null);
-            $location->setOpeningHours(
-                isset($data['opening_hours']) && $data['opening_hours'] !== ''
-                    ? (string) $data['opening_hours']
-                    : null
-            );
+            $openingHours = $this->optional($data, 'opening_hours');
+            $holidayHours = $this->optional($data, 'holiday_hours');
+            $error = $this->hours->validateOpeningHours($openingHours)
+                ?? $this->hours->validateHolidayHours($holidayHours);
+            if ($error !== null) {
+                throw new LocalizedException(__('%1', $error));
+            }
+            $location->setOpeningHours($openingHours);
+            $location->setHolidayHours($holidayHours);
+            $location->setParkingInstructions($this->optional($data, 'parking_instructions'));
             $location->setUrlKey((string) ($data['url_key'] ?? ''));
             $location->setDescription(
                 isset($data['description']) && $data['description'] !== ''
@@ -84,5 +91,15 @@ class Save extends Location implements HttpPostActionInterface
         $this->dataPersistor->set('elme_store_locator_location', $data);
 
         return $resultRedirect->setPath('*/*/edit', ['location_id' => $locationId ?: null]);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function optional(array $data, string $key): ?string
+    {
+        $value = trim((string) ($data[$key] ?? ''));
+
+        return $value !== '' ? $value : null;
     }
 }

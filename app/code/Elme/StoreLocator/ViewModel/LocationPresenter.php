@@ -6,6 +6,7 @@ namespace Elme\StoreLocator\ViewModel;
 
 use Elme\StoreLocator\Api\Data\LocationInterface;
 use Elme\StoreLocator\Controller\Router;
+use Elme\StoreLocator\Model\Config;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -22,7 +23,8 @@ class LocationPresenter implements ArgumentInterface
     public function __construct(
         private readonly StoreManagerInterface $storeManager,
         private readonly UrlInterface $urlBuilder,
-        private readonly Hours $hours
+        private readonly Hours $hours,
+        private readonly Config $config
     ) {
     }
 
@@ -152,14 +154,18 @@ class LocationPresenter implements ArgumentInterface
     {
         $lat = $location->getLatitude();
         $lng = $location->getLongitude();
-        if ($lat !== null && $lng !== null) {
-            return 'https://maps.google.com/maps?q=' . rawurlencode(sprintf('%s,%s', $lat, $lng))
-                . '&z=15&output=embed';
+        $query = ($lat !== null && $lng !== null)
+            ? sprintf('%s,%s', $lat, $lng)
+            : $this->getAddressLine($location) . ', Australia';
+
+        $apiKey = $this->config->getMapsApiKey();
+        if ($apiKey !== '') {
+            return 'https://www.google.com/maps/embed/v1/place?key=' . rawurlencode($apiKey)
+                . '&q=' . rawurlencode($query)
+                . '&zoom=15';
         }
 
-        return 'https://maps.google.com/maps?q='
-            . rawurlencode($this->getAddressLine($location) . ', Australia')
-            . '&z=15&output=embed';
+        return 'https://maps.google.com/maps?q=' . rawurlencode($query) . '&z=15&output=embed';
     }
 
     public function getAppointmentUrl(): string
@@ -198,9 +204,14 @@ class LocationPresenter implements ArgumentInterface
             'url_key' => $location->getUrlKey(),
             'lat' => $location->getLatitude(),
             'lng' => $location->getLongitude(),
-            'today_hours' => $this->hours->todayLabel($location->getOpeningHours()),
+            'today_hours' => $this->hours->todayLabel(
+                $location->getOpeningHours(),
+                $location->getHolidayHours()
+            ),
             'directions_url' => $this->getDirectionsUrl($location),
             'map_embed_url' => $this->getMapEmbedUrl($location),
+            'hours_by_day' => $this->hours->dayLabels($location->getOpeningHours()),
+            'hours_by_date' => $this->hours->holidayLabels($location->getHolidayHours()),
             'distance_km' => null,
         ];
     }
@@ -269,6 +280,24 @@ class LocationPresenter implements ArgumentInterface
         }
         if ($specs) {
             $node['openingHoursSpecification'] = $specs;
+        }
+
+        $special = [];
+        foreach ($this->hours->specialOpeningHoursSpecification($location->getHolidayHours()) as $spec) {
+            $entry = [
+                '@type' => 'OpeningHoursSpecification',
+                'validFrom' => $spec['date'],
+                'validThrough' => $spec['date'],
+                'opens' => $spec['opens'],
+                'closes' => $spec['closes'],
+            ];
+            if ($spec['name'] !== '') {
+                $entry['name'] = $spec['name'];
+            }
+            $special[] = $entry;
+        }
+        if ($special) {
+            $node['specialOpeningHoursSpecification'] = $special;
         }
 
         $node['hasMap'] = $this->getDirectionsUrl($location);

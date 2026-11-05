@@ -72,7 +72,7 @@ class LocationPage implements ArgumentInterface
         );
         $job = $this->presenter->isShowroom($location)
             ? 'Book an appointment to view wholesale artificial flora, homewares and furniture.'
-            : 'Pick-up hours Mon–Fri; this location is not a showroom.';
+            : 'Pick-up hours Mon-Fri; this location is not a showroom.';
 
         return sprintf('%s at %s. %s', $type, $address, $job);
     }

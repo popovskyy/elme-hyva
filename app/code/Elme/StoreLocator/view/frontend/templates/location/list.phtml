@@ -25,6 +25,7 @@ $iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
 <section class="elme-locator container py-6 lg:py-10"
          x-data="initElmeStoreLocator"
          data-locations="<?= $escaper->escapeHtmlAttr($locator->getCardsJson()) ?>"
+         data-timezone="<?= $escaper->escapeHtmlAttr($locator->getPresenter()->getHours()->getTimezoneCode()) ?>"
          aria-labelledby="elme-locator-heading">
     <header class="elme-locator__intro mb-6 max-w-3xl lg:mb-8">
         <h1 id="elme-locator-heading" class="mb-3 text-title-page lg:text-title-page-desktop">
@@ -107,7 +108,7 @@ $iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
                         <p class="mb-1 text-xs font-medium uppercase tracking-wide text-olive">
                             <?= $escaper->escapeHtml($card['type_label']) ?>
                             <?php if (!empty($card['is_trade_only'])): ?>
-                                <span class="ml-1 text-ink-muted"><?= $escaper->escapeHtml(__('· TRADE ONLY')) ?></span>
+                                <span class="ml-1 text-ink-muted"><span aria-hidden="true">&middot;</span> <?= $escaper->escapeHtml(__('TRADE ONLY')) ?></span>
                             <?php endif; ?>
                         </p>
                         <h2 class="mb-2 font-heading text-h4 text-ink lg:text-h4-desktop">
@@ -126,7 +127,9 @@ $iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
                         <?php endif; ?>
                         <dl class="mb-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm text-ink">
                             <dt class="text-ink-muted"><?= $escaper->escapeHtml(__('Today')) ?></dt>
-                            <dd class="m-0"><?= $escaper->escapeHtml($card['today_hours']) ?></dd>
+                            <dd class="m-0"
+                                data-url-key="<?= $escaper->escapeHtmlAttr($card['url_key']) ?>"
+                                x-text="cardTodayLabel"><?= $escaper->escapeHtml($card['today_hours']) ?></dd>
                             <?php if ($card['phone'] !== ''): ?>
                                 <dt class="text-ink-muted"><?= $escaper->escapeHtml(__('Phone')) ?></dt>
                                 <dd class="m-0">
@@ -207,8 +210,10 @@ $iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
             message: '',
             origin: null,
             selectedKey: '',
+            today: { iso: '', day: '' },
 
             init() {
+                this.today = this.storeToday(this.$root.dataset.timezone || '');
                 try {
                     this.locations = JSON.parse(this.$root.dataset.locations || '[]');
                 } catch (e) {
@@ -282,6 +287,36 @@ $iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
                     return Math.round(km * 1000) + ' m';
                 }
                 return (Math.round(km * 10) / 10) + ' km';
+            },
+
+            storeToday(timeZone) {
+                try {
+                    const parts = new Intl.DateTimeFormat('en-CA', {
+                        timeZone: timeZone || undefined,
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        weekday: 'long'
+                    }).formatToParts(new Date());
+                    const part = (type) => (parts.find((p) => p.type === type) || {}).value || '';
+                    return {
+                        iso: part('year') + '-' + part('month') + '-' + part('day'),
+                        day: part('weekday').toLowerCase()
+                    };
+                } catch (e) {
+                    return { iso: '', day: '' };
+                }
+            },
+
+            // The list sits in full-page cache: work out today's hours in the browser.
+            cardTodayLabel() {
+                const loc = this.findByKey(this.$el.dataset.urlKey);
+                if (!loc) {
+                    return '';
+                }
+                const byDate = loc.hours_by_date || {};
+                const byDay = loc.hours_by_day || {};
+                return byDate[this.today.iso] || byDay[this.today.day] || loc.today_hours;
             },
 
             findByKey(key) {

@@ -15,8 +15,11 @@
         <column xsi:type="decimal" name="longitude" scale="6" precision="10" nullable="true" comment="Longitude"/>
         <column xsi:type="varchar" name="phone" nullable="true" length="64" comment="Phone"/>
         <column xsi:type="text" name="opening_hours" nullable="true" comment="Opening hours JSON"/>
+        <column xsi:type="text" name="holiday_hours" nullable="true"
+                comment="Holiday opening hours JSON overriding weekday defaults"/>
         <column xsi:type="varchar" name="url_key" nullable="false" length="255" comment="URL key"/>
         <column xsi:type="text" name="description" nullable="true" comment="Description"/>
+        <column xsi:type="text" name="parking_instructions" nullable="true" comment="Parking instructions"/>
         <column xsi:type="smallint" name="is_active" unsigned="true" nullable="false" default="1"
                 comment="Is active"/>
         <column xsi:type="int" name="sort_order" unsigned="true" nullable="false" default="0"

@@ -74,7 +74,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-48 | Content pages: About, Careers, Outlet, Style Sourcebook, Meet the Team, Fairs & Events (split into FE-61...FE-67) | 9 CMS | FE-04, FE-57 | Split |
 | FE-49 | Shop the Looks / lookbook with product hotspots | 9 CMS | FE-19, FE-57 | To do |
 | FE-50 | Virtual Catalogues (login only) (Shoppable Instagram in FE-68) | 9 CMS | FE-53 | Done |
-| FE-51 | Showroom locator (list + location page) | 9 CMS | FE-04 | To do |
+| FE-51 | Showroom locator (list + location page) | 9 CMS | FE-04 | In review |
 | FE-52 | 404 page | 9 CMS | FE-04 | Done |
 | FE-53 | Login-only rules: price hiding, guest redirects, per-customer data | 10 Cross-cutting | — | In review |
 | FE-54 | Third-party scripts: Zendesk chat, Klaviyo, GTM/GA4, Triple Whale | 10 Cross-cutting | FE-01 | Done |

@@ -137,6 +137,17 @@ class Location extends AbstractModel implements LocationInterface
         return $this->setData(self::OPENING_HOURS, $openingHours);
     }
 
+    public function getHolidayHours(): ?string
+    {
+        $value = $this->getData(self::HOLIDAY_HOURS);
+        return $value !== null && $value !== '' ? (string) $value : null;
+    }
+
+    public function setHolidayHours(?string $holidayHours): LocationInterface
+    {
+        return $this->setData(self::HOLIDAY_HOURS, $holidayHours);
+    }
+
     public function getUrlKey(): string
     {
         return (string) $this->getData(self::URL_KEY);
@@ -156,6 +167,17 @@ class Location extends AbstractModel implements LocationInterface
     public function setDescription(?string $description): LocationInterface
     {
         return $this->setData(self::DESCRIPTION, $description);
+    }
+
+    public function getParkingInstructions(): ?string
+    {
+        $value = $this->getData(self::PARKING_INSTRUCTIONS);
+        return $value !== null && $value !== '' ? (string) $value : null;
+    }
+
+    public function setParkingInstructions(?string $parkingInstructions): LocationInterface
+    {
+        return $this->setData(self::PARKING_INSTRUCTIONS, $parkingInstructions);
     }
 
     public function getIsActive(): bool

@@ -15,7 +15,8 @@ use Magento\Framework\File\Csv;
  * Upsert locations from a CSV whose header names the columns.
  *
  * Required columns: name, type, state, postcode, url_key
- * Optional: street, city, latitude, longitude, phone, opening_hours, description, is_active, sort_order
+ * Optional: street, city, latitude, longitude, phone, opening_hours, holiday_hours, description,
+ * parking_instructions, is_active, sort_order
  *
  * Rows are matched on url_key (update existing, otherwise insert).
  */
@@ -100,19 +101,23 @@ class CsvImporter
      */
     private function hydrate(LocationInterface $location, array $data): void
     {
+        $optional = static fn (string $column): ?string => ($data[$column] ?? '') !== '' ? $data[$column] : null;
+
         $location->setName($data['name']);
         $location->setType($data['type']);
         $location->setState(strtoupper($data['state']));
         $location->setPostcode($data['postcode']);
         $location->setUrlKey($data['url_key']);
-        $location->setStreet($data['street'] !== '' ? $data['street'] : null);
-        $location->setCity($data['city'] !== '' ? $data['city'] : null);
-        $location->setPhone($data['phone'] !== '' ? $data['phone'] : null);
-        $location->setOpeningHours($data['opening_hours'] !== '' ? $data['opening_hours'] : null);
-        $location->setDescription($data['description'] !== '' ? $data['description'] : null);
-        $location->setLatitude($data['latitude'] !== '' ? (float) $data['latitude'] : null);
-        $location->setLongitude($data['longitude'] !== '' ? (float) $data['longitude'] : null);
-        $location->setIsActive(($data['is_active'] ?? '1') === '' || (int) ($data['is_active'] ?? '1') === 1);
+        $location->setStreet($optional('street'));
+        $location->setCity($optional('city'));
+        $location->setPhone($optional('phone'));
+        $location->setOpeningHours($optional('opening_hours'));
+        $location->setHolidayHours($optional('holiday_hours'));
+        $location->setDescription($optional('description'));
+        $location->setParkingInstructions($optional('parking_instructions'));
+        $location->setLatitude($optional('latitude') !== null ? (float) $data['latitude'] : null);
+        $location->setLongitude($optional('longitude') !== null ? (float) $data['longitude'] : null);
+        $location->setIsActive(($data['is_active'] ?? '') === '' || (int) $data['is_active'] === 1);
         $location->setSortOrder((int) ($data['sort_order'] ?? 0));
     }
 

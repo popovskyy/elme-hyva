@@ -17,7 +17,7 @@ class HaversineTest extends TestCase
 
     public function testBlackburnToTarneitIsRoughlyThirtyKm(): void
     {
-        // Blackburn showroom → Tarneit DC
+        // Blackburn showroom to Tarneit DC
         $km = (new Haversine())->kilometres(-37.819597, 145.162612, -37.806501, 144.703700);
         self::assertGreaterThan(35.0, $km);
         self::assertLessThan(50.0, $km);
