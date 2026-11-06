@@ -6,10 +6,13 @@
 
 declare(strict_types=1);
 
+use Elme\LoginOnly\ViewModel\LoginOnly;
 use Elme\Styleguide\ViewModel\Styleguide;
+use Elme\Theme\ViewModel\ProductTile;
 use Hyva\Theme\Model\ViewModelRegistry;
 use Hyva\Theme\ViewModel\HyvaCsp;
 use Hyva\Theme\ViewModel\LucideIcons;
+use Hyva\Theme\ViewModel\ProductPage;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 
@@ -23,7 +26,15 @@ $styleguide = $viewModels->require(Styleguide::class);
 $hyvaCsp = $viewModels->require(HyvaCsp::class);
 /** @var LucideIcons $lucideIcons */
 $lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+/** @var ProductPage $productPage */
+$productPage = $viewModels->require(ProductPage::class);
+/** @var ProductTile $productTile */
+$productTile = $viewModels->require(ProductTile::class);
 $layout = $block->getLayout();
+// FE-70 live demo: a real add for logged-in customers only (guests never get an Add to Cart button)
+$atcDemoProduct = $loginOnly->isLoggedIn() ? $styleguide->getAddToCartDemoProduct() : null;
 $doneIcon = $lucideIcons->checkHtml('', 18, 18, ['aria-hidden' => 'true']);
 
 $buttons = [
@@ -87,17 +98,56 @@ for ($i = 1; $i <= 40; $i++) {
                     </div>
                 </div>
             <?php endforeach; ?>
-            <div x-data="initElmeStyleguideAddDemo">
+            <div>
                 <p class="<?= /* @noEscape */ $captionClass ?>">
-                    <?= $escaper->escapeHtml(__('Add to cart, live: loading, then "Added" for 1.5s')) ?>
+                    <?= $escaper->escapeHtml(__('Add to Cart, live (.btn-atc): sending until the server answers, then "Added" for 1.5s')) ?>
                 </p>
-                <button type="button" class="btn btn-primary" :class="buttonClasses" :aria-busy="isLoading" @click="add">
-                    <span class="btn-swap">
-                        <span><?= $escaper->escapeHtml(__('Add to cart')) ?></span>
-                        <span class="btn-swap-done"><?= /* @noEscape */ $doneIcon ?><?= $escaper->escapeHtml(__('Added')) ?></span>
-                    </span>
-                </button>
-                <span class="sr-only" role="status" x-text="announcement"></span>
+                <?php if ($atcDemoProduct): ?>
+                    <p class="max-w-2xl mb-4 text-ink-subtle">
+                        <?= $escaper->escapeHtml(__(
+                            'The first two really add %1 to your cart (full and icon-only button). '
+                            . 'The third posts a product that does not exist, so the server refuses it: no "Added", an error toast.',
+                            $atcDemoProduct->getName()
+                        )) ?>
+                    </p>
+                    <div class="flex flex-wrap items-center gap-4">
+                        <?php foreach (['full' => true, 'icon' => false] as $atcWithLabel): ?>
+                            <form method="post"
+                                  action="<?= $escaper->escapeUrl($productPage->getAddToCartUrl($atcDemoProduct, ['useUencPlaceholder' => true])) ?>"
+                            >
+                                <?= /* @noEscape */ $block->getBlockHtml('formkey') ?>
+                                <input type="hidden" name="product" value="<?= (int) $atcDemoProduct->getId() ?>">
+                                <input type="hidden" name="qty" value="<?= (float) $productTile->getQtyRules($atcDemoProduct)['min'] ?>">
+                                <button type="submit"
+                                        class="btn btn-primary btn-atc"
+                                        aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Cart') . ' ' . $atcDemoProduct->getName()) ?>"
+                                        data-addto="cart"
+                                >
+                                    <?= $lucideIcons->shoppingCartHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                                    <?php if ($atcWithLabel): ?>
+                                        <span><?= $escaper->escapeHtml(__('Add to Cart')) ?></span>
+                                    <?php endif; ?>
+                                </button>
+                            </form>
+                        <?php endforeach; ?>
+                        <form method="post" action="<?= $escaper->escapeUrl($block->getUrl('checkout/cart/add')) ?>">
+                            <?= /* @noEscape */ $block->getBlockHtml('formkey') ?>
+                            <input type="hidden" name="product" value="0">
+                            <button type="submit"
+                                    class="btn btn-primary btn-atc"
+                                    aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Cart') . ' ' . __('a product that does not exist')) ?>"
+                                    data-addto="cart"
+                            >
+                                <?= $lucideIcons->shoppingCartHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                                <span><?= $escaper->escapeHtml(__('Add to Cart')) ?></span>
+                            </button>
+                        </form>
+                    </div>
+                <?php else: ?>
+                    <p class="max-w-2xl text-ink-subtle">
+                        <?= $escaper->escapeHtml(__('Sign in as a customer to try it: guests get no Add to Cart button.')) ?>
+                    </p>
+                <?php endif; ?>
             </div>
             <div>
                 <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Full width (mobile forms)')) ?></p>
@@ -538,38 +588,6 @@ for ($i = 1; $i <= 40; $i++) {
     </section>
 </div>
 <script>
-    // Demo only: fakes an 800ms add-to-cart request, then shows "Added" for 1.5s
-    function initElmeStyleguideAddDemo() {
-        return {
-            state: 'idle',
-            announcement: '',
-            timer: null,
-
-            add() {
-                clearTimeout(this.timer);
-                this.state = 'loading';
-                this.announcement = '';
-                this.timer = setTimeout(() => this.done(), 800);
-            },
-
-            done() {
-                this.state = 'done';
-                this.announcement = '<?= $escaper->escapeJs(__('Added to cart')) ?>';
-                this.timer = setTimeout(() => {
-                    this.state = 'idle';
-                }, 1500);
-            },
-
-            isLoading() {
-                return this.state === 'loading';
-            },
-
-            buttonClasses() {
-                return {'is-done': this.state === 'done'};
-            }
-        }
-    }
-
     function initElmeStyleguideFeedback() {
         return {
             toastSuccess() {
@@ -614,7 +632,6 @@ for ($i = 1; $i <= 40; $i++) {
     }
 
     window.addEventListener('alpine:init', () => {
-        Alpine.data('initElmeStyleguideAddDemo', initElmeStyleguideAddDemo);
         Alpine.data('initElmeStyleguideFeedback', initElmeStyleguideFeedback);
         Alpine.data('initElmeStyleguideLoader', initElmeStyleguideLoader);
     }, {once: true});

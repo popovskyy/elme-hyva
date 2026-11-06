@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Elme\Styleguide\ViewModel;
 
+use Magento\Catalog\Model\Product;
+use Magento\Catalog\Model\Product\Attribute\Source\Status;
+use Magento\Catalog\Model\Product\Type;
+use Magento\Catalog\Model\Product\Visibility;
+use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
 use Magento\Framework\Data\CollectionFactory;
 use Magento\Framework\DataObject;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
@@ -15,8 +20,34 @@ use Magento\Theme\Block\Html\Pager;
 class Styleguide implements ArgumentInterface
 {
     public function __construct(
-        private readonly CollectionFactory $collectionFactory
+        private readonly CollectionFactory $collectionFactory,
+        private readonly ProductCollectionFactory $productCollectionFactory,
+        private readonly Visibility $visibility
     ) {
+    }
+
+    /**
+     * A salable simple product without required options for the live Add to Cart demo (FE-70)
+     */
+    public function getAddToCartDemoProduct(): ?Product
+    {
+        $collection = $this->productCollectionFactory->create()
+            ->addAttributeToSelect('name')
+            ->addAttributeToFilter('type_id', Type::TYPE_SIMPLE)
+            ->addAttributeToFilter('status', Status::STATUS_ENABLED)
+            ->addAttributeToFilter('required_options', ['neq' => 1])
+            ->setVisibility($this->visibility->getVisibleInSiteIds())
+            ->addStoreFilter()
+            ->setPageSize(20);
+
+        foreach ($collection as $product) {
+            /** @var Product $product */
+            if ($product->isSaleable()) {
+                return $product;
+            }
+        }
+
+        return null;
     }
 
     /**

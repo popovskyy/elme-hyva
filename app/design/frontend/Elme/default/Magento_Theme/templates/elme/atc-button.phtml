@@ -6,16 +6,19 @@
  * #product_addtocart_form via form="…"). One delegated submit listener, no Alpine, no per-button
  * handlers (CSP-safe, same pattern as btn-ripple.phtml).
  *
- * Flow: submit -> button goes to "sending" at once (cart slides to the centre, a dot drops into it
- * until the server answers) -> POST with X-Requested-With, so Magento's cart/add answers JSON ->
- * read the "messages" section (that is where cart/add puts its errors) -> reload section data for
- * the mini-cart -> "success" (cart leaves right, check + "Added" comes in from the left, 2.2s)
- * only when the server confirmed it; otherwise back to idle and the error goes to the toast stack.
+ * Flow: submit -> button goes to "sending" at once (aria-busy; cart slides to the centre, a dot drops
+ * into it until the server answers, at least one full drop) -> POST with X-Requested-With, so
+ * Magento's cart/add answers JSON -> read the "messages" section (cart/add puts its result there)
+ * -> "success" (cart leaves right, check + "Added" comes in from the left, 2.2s) only when the
+ * server confirmed it with its success message; otherwise back to idle and the error goes to the
+ * toast stack.
  *
  * Requests run one after another, so quick clicks on many tiles never race on the quote and every
  * result belongs to the right button. Clicks are never blocked: the button just shows its place in
  * the queue. A second click on a button that is still sending is ignored (accidental double add).
- * No fetch/FormData, or a button without the class: the form posts the old way.
+ * Section data (mini-cart) reloads once the queue is empty, so that reload never takes the messages
+ * of an add that is still running. No fetch/FormData, or a button without the class: the form posts
+ * the old way.
  */
 
 declare(strict_types=1);
@@ -48,6 +51,8 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
     (function () {
         const SELECTOR = '.btn-atc';
         const HOLD_MS = 2200;
+        // at least --atc-slide + --atc-drop (elme/add-to-cart.css): a fast answer still shows the
+        // cart slide in and one dot drop before "Added"
         const MIN_SENDING_MS = 1650;
         const TEXT = {
             added: '<?= $escaper->escapeJs(__('Added to cart')) ?>',
@@ -99,11 +104,21 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
         function setState(btn, state) {
             if (state === 'sending') {
                 ensureStage(btn);
+                // pressed again during "Added": the cart is out on the right, put it back on the idle
+                // icon without a slide, so it comes in from the left again
+                if (btn.dataset.atcState === 'success') {
+                    btn.dataset.atcState = 'idle';
+                }
                 measure(btn);
                 // apply the start position before the state switch so the slide animates
                 void btn.offsetWidth;
             }
             btn.dataset.atcState = state;
+            if (state === 'sending') {
+                btn.setAttribute('aria-busy', 'true');
+            } else {
+                btn.removeAttribute('aria-busy');
+            }
         }
 
         function announce(text) {
@@ -167,13 +182,16 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
             }
 
             const messages = await takeMessages();
-            window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
 
             const problems = messages.filter((m) => m && m.type !== 'success' && plainText(m.text));
             const backUrl = json && json.backUrl;
+            // cart/add answers {} also when it did not add anything (product gone): only its success
+            // message, or the redirect to the cart (admin "redirect to cart" = Yes), confirms the add
+            const confirmed = messages.some((m) => m && m.type === 'success')
+                || Boolean(backUrl && isCartUrl(backUrl));
             const ok = json !== null
-                && !problems.some((m) => m.type === 'error')
-                && (!backUrl || isCartUrl(backUrl));
+                && confirmed
+                && !problems.some((m) => m.type === 'error');
 
             problems.forEach((m) => toast(m.type === 'error' || !ok ? 'error' : m.type, plainText(m.text)));
             if (!ok && !problems.length) {
@@ -214,6 +232,7 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
                 finish(job, await send(job));
             }
             running = false;
+            window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
         }
 
         document.addEventListener('submit', (event) => {

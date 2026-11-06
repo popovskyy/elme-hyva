@@ -67,8 +67,9 @@
     }
 
     /* Elme: loading keeps the button's size, hides the label and spins a 20px ring in the label colour
-       (fading tail + round cap, same ring as .elme-spinner in feedback.css) */
-    &:is(.is-loading, [aria-busy="true"]) {
+       (fading tail + round cap, same ring as .elme-spinner in feedback.css).
+       Not on .btn-atc: its busy state is the cart animation (elme/add-to-cart.css). */
+    &:is(.is-loading, [aria-busy="true"]):not(.btn-atc) {
         position: relative;
         color: transparent;
         pointer-events: none;

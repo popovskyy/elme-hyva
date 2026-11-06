@@ -1,7 +1,8 @@
 /*
  * FE-70: animated Add to Cart button (behaviour in Magento_Theme/templates/elme/atc-button.phtml).
  * <button class="btn btn-primary btn-atc" data-addto="cart">[cart svg]<span>Add to Cart</span></button>
- * The script appends .btn-atc__stage and sets data-atc-state = idle | sending | success.
+ * The script appends .btn-atc__stage and sets data-atc-state = idle | sending | success (aria-busy
+ * while sending; components/button.css leaves its spinner off .btn-atc).
  * The idle icon + label stay in the flow (only faded), so the button never changes size;
  * the stage is an overlay on top of them.
  * Timings are longer than the UI tokens on purpose: this is the one moment of feedback, it should read as
@@ -149,7 +150,7 @@
     }
 
     [data-atc-state="sending"] .btn-atc__cart {
-        animation: atc-pulse 900ms ease-in-out infinite alternate;
+        animation: atc-pulse var(--atc-drop) var(--ease-in-out-cubic) infinite alternate;
     }
 
     [data-atc-state="sending"] .btn-atc__dot {
