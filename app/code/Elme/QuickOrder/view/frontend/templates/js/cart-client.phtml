@@ -156,17 +156,25 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             return cart;
         }
 
-        // Leaving the page with an edit still waiting: send it anyway
+        // Leaving the page with an edit still waiting: send it anyway. A keepalive fetch, not sendBeacon: a beacon
+        // cannot send X-Requested-With, so Magento's CSRF check takes it for a form post and redirects it.
         window.addEventListener('pagehide', () => {
-            if (!timer || !navigator.sendBeacon) {
+            if (!timer) {
                 return;
             }
             clearTimeout(timer);
             timer = null;
-            navigator.sendBeacon(SAVE_URL, new Blob(
-                [JSON.stringify({ form_key: hyva.getFormKey(), mode: 'replace', items: rows() })],
-                { type: 'application/json' }
-            ));
+            fetch(SAVE_URL, {
+                method: 'POST',
+                keepalive: true,
+                credentials: 'same-origin',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ form_key: hyva.getFormKey(), mode: 'replace', items: rows() })
+            }).catch(() => {});
         });
 
         window.elmeQuickOrderCart = {

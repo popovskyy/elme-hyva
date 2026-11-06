@@ -118,6 +118,26 @@ test('five quick qty changes are one save after the debounce, and a reload shows
     expect((await section(page, 'quick_order')).summary_count).toBe(6);
 });
 
+test('a qty edit still waiting for the debounce is saved when the page is reloaded or left', async ({ page }) => {
+    await saveCart(page, [{ sku: 'E2E-NO-MOQ', qty: 1 }]);
+    await page.goto('/quick-order/cart');
+    const qty = page.getByRole('spinbutton', { name: 'Qty' });
+    const plus = page.getByRole('button', { name: 'Increase quantity' });
+    await expect(qty).toHaveValue('1');
+
+    for (let i = 0; i < 5; i++) {
+        await plus.click();
+    }
+    await page.reload();
+    await expect(qty).toHaveValue('6');
+    expect(rows(await getCart(page))).toEqual([{ sku: 'E2E-NO-MOQ', qty: 6 }]);
+
+    await plus.click();
+    await plus.click();
+    await page.goto('/');
+    await expect.poll(async () => rows(await getCart(page))).toEqual([{ sku: 'E2E-NO-MOQ', qty: 8 }]);
+});
+
 test('the cart answer has live line data and the totals with GST from the server', async ({ page }) => {
     await saveCart(page, [{ sku: 'E2E-MOQ6', qty: 6 }, { sku: 'E2E-NO-MOQ', qty: 1 }]);
     const cart = await getCart(page);
