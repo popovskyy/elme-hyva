@@ -92,7 +92,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-68 | Shoppable Instagram page (split from FE-50) | 9 CMS | FE-12, D10 | To do |
 | FE-69 | Address book, same form as checkout (split from FE-38) | 7 Account | FE-37, BE-02 | To do |
 | FE-60 | Mobile header hides on scroll down, shows on scroll up (+ button ripple) | 1 Header & nav | FE-07 | Done |
-| FE-70 | Animated Add to Cart button (AJAX add, sending / Added states) | 0 Foundation | FE-02, FE-03 | In review |
+| FE-70 | Animated Add to Cart button (AJAX add, sending / Added states) | 0 Foundation | FE-02, FE-03 | Done |
 | UX-01 | No empty or broken blocks | 11 UX | FE-12, FE-16, FE-17 | To do |
 | UX-02 | Guest path to a trade account | 11 UX | FE-06, FE-07, FE-19, FE-26 | To do |
 | UX-03 | Products above the fold on mobile PLP | 11 UX | FE-18, FE-19, FE-20 | To do |
@@ -239,7 +239,7 @@ Everything else builds on these four. Ship them first, so other tickets reuse th
 
 ### FE-70 Animated Add to Cart button
 
-**Scope:** one add to cart button for PLP tiles and the PDP. Click: the normal button feedback (ripple, press) at once. Sending: the label fades, the cart slides to the centre and a dot keeps dropping into it until the server answers. Success, only after the server confirmed it: the cart leaves to the right, a check with "Added" comes in from the left, holds 1.5 s, then the button is back to "Add to Cart". Error: the button goes straight back and the message shows in the toast stack (FE-03). Square button in site colours (no pill). The button never changes size; icon-only buttons show only the check. Nothing is blocked: add many items in a row, requests run one after another so they never race on the quote; a second click on a button that is still sending is ignored. Reduced motion: no movement, the cart pulses. Out of scope: Quick Order, product image flying to the header cart.
+**Scope:** one add to cart button for PLP tiles and the PDP. Click: the normal button feedback (ripple, press) at once. Sending: the label fades, the cart slides to the centre and a dot keeps dropping into it until the server answers. Success, only after the server confirmed it: the cart leaves to the right, a check with "Added" comes in from the left, holds 2.2 s, then the button is back to "Add to Cart". Error: the button goes straight back and the message shows in the toast stack (FE-03). Square button in site colours (no pill). The button never changes size; icon-only buttons show only the check. Nothing is blocked: add many items in a row, requests run one after another so they never race on the quote; a second click on a button that is still sending is ignored. Reduced motion: no movement, the cart pulses. Out of scope: Quick Order, product image flying to the header cart.
 
 **How:** add the class `btn-atc` to the submit button of an add to cart form. `Magento_Theme::elme/atc-button.phtml` (one delegated listener, CSP-safe) posts the form with `X-Requested-With`, so `checkout/cart/add` answers JSON, reads the `messages` section for errors (so the page message bar does not repeat "You added …"), reloads section data for the mini-cart. CSS: `web/tailwind/elme/add-to-cart.css`. Wired on the PLP tile (`product/list/item.phtml`) and the PDP button (`product/view/addtocart.phtml`; "Update item" on cart configure keeps the normal post). FE-19 and FE-27 must keep `btn-atc` on their buttons. "Redirect to cart after adding" = Yes in admin still redirects after the success state.
 
@@ -250,7 +250,7 @@ Everything else builds on these four. Ship them first, so other tickets reuse th
 **QA:**
 
 - [ ] Sequence checked against the reference GIF/frames from the product owner
-- [ ] Logged in, PLP: Add to Cart shows sending, then "Added" for about 1.5 s, then back; mini-cart count goes up without a page reload
+- [ ] Logged in, PLP: Add to Cart shows sending, then "Added" for about 2.2 s, then back; mini-cart count goes up without a page reload
 - [ ] PDP (simple and configurable with options chosen): same, qty from the qty field is added
 - [ ] Configurable on PLP without a swatch chosen / qty above stock: button goes back, error toast with Magento's message, no "Added"
 - [ ] Expired form key (other tab logged out): button goes back, error toast, no "Added"
