@@ -10,24 +10,24 @@ declare(strict_types=1);
 /**
  * Elme FE-19: the shared product card (PLP, search, carousels, wishlist), built on Hyvä 1.5.3's tile.
  *
- * White image tile with one badge (Sale / New) and the wishlist heart, name (2 lines), SKU, price, stock
+ * White image tile with one badge (Sale / New), name (2 lines), SKU, price, stock
  * label. Logged in, when "Quick order on PLP" is on (Stores > Configuration > Elme > Catalog),
  * a qty stepper in MOQ multiples and Add to Cart. With that switch off, neither is on the tile.
  *
  * FE-53: guests get "Sign in to see pricing" (Elme\LoginOnly\Plugin\PriceRenderPlugin) and no form; logged-in
  * customers get a price placeholder that loads their own price after render. FE-70: the Add to Cart button
  * keeps btn-atc (AJAX + animation, Magento_Theme::elme/atc-button.phtml). Look: web/tailwind/elme/product-card.css.
- * Compare and the review summary are left out: Elme uses neither.
+ * No core wishlist heart, compare or review summary. Those get custom Elme features later.
  */
 
 use Elme\LoginOnly\ViewModel\LoginOnly;
+use Elme\QtyRules\Model\QtyRules;
 use Elme\Theme\ViewModel\ProductTile;
 use Hyva\Theme\Model\ViewModelRegistry;
 use Hyva\Theme\ViewModel\BlockJsDependencies;
 use Hyva\Theme\ViewModel\LucideIcons;
 use Hyva\Theme\ViewModel\ProductListItem;
 use Hyva\Theme\ViewModel\ProductPage;
-use Hyva\Theme\ViewModel\Wishlist;
 use Magento\Catalog\Block\Product\View;
 use Magento\Catalog\Helper\Output as CatalogOutputHelper;
 use Magento\Catalog\ViewModel\Product\OptionsData as ProductOptionsData;
@@ -47,8 +47,6 @@ $productViewModel = $viewModels->require(ProductPage::class);
 $productListItemViewModel = $viewModels->require(ProductListItem::class);
 /** @var CatalogOutputHelper $catalogOutputHelper */
 $catalogOutputHelper = $this->helper(CatalogOutputHelper::class);
-/** @var Wishlist $wishlistViewModel */
-$wishlistViewModel = $viewModels->require(Wishlist::class);
 /** @var LucideIcons $lucideIcons */
 $lucideIcons = $viewModels->require(LucideIcons::class);
 /** @var ProductOptionsData $productOptionsViewmodel */
@@ -57,6 +55,8 @@ $productOptionsViewmodel = $viewModels->require(ProductOptionsData::class);
 $loginOnly = $viewModels->require(LoginOnly::class);
 /** @var ProductTile $tile */
 $tile = $viewModels->require(ProductTile::class);
+/** @var QtyRules $qtyRulesViewModel */
+$qtyRulesViewModel = $viewModels->require(QtyRules::class);
 
 /** @var Magento\Catalog\Model\Product $product */
 if (! ($product = $block->getData('product'))) {
@@ -83,9 +83,7 @@ $stockLevel = $tile->getStockLevel($product);
 $showStepper = $canAddToCart && !$isProductGroupedOrBundle && $tile->isQuickOrderEnabled();
 // Quick order off: no stepper and no Add to Cart (ticket FE-19). Configure stays for grouped/bundle.
 $showForm = $canAddToCart && ($showStepper || $isProductGroupedOrBundle);
-$qtyRules = $canAddToCart && !$isProductGroupedOrBundle ? $tile->getQtyRules($product) : null;
-// MOQ 6 is shown as "6", not "6.0000"
-$formatQty = static fn (float $qty): string => rtrim(rtrim(number_format($qty, 4, '.', ''), '0'), '.');
+$qtyRules = $canAddToCart && !$isProductGroupedOrBundle ? $qtyRulesViewModel->getMinAndStep($product) : null;
 
 $jsDependencies = $viewModels->require(BlockJsDependencies::class);
 $jsDependencies->setBlockTemplateDependency($block, 'Magento_Catalog::product/list/js/price-box.phtml');
@@ -144,12 +142,6 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
                 <?= $escaper->escapeHtml($badge === ProductTile::BADGE_SALE ? __('Sale') : __('New')) ?>
             </span>
         <?php endif; ?>
-
-        <?php if ($wishlistViewModel->isEnabled() && $blockWishlist = $block->getChildBlock('wishlist')): ?>
-            <div class="elme-card__wishlist absolute top-1 right-1 lg:top-2 lg:right-2">
-                <?= $blockWishlist->setData('product', $product)->toHtml() ?>
-            </div>
-        <?php endif; ?>
     </div>
 
     <div class="product-info flex grow flex-col gap-1 px-3 pt-3 pb-4 lg:px-4 lg:pb-5 <?= $viewIsGrid ? '' : 'md:w-4/6' ?>">
@@ -184,12 +176,17 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
             <?= /* @noEscape */ $productListItemViewModel->getProductPriceHtml($product) ?>
         </div>
 
-        <?php if ($stockLevel): ?>
-            <p class="elme-card__stock elme-card__stock--<?= /* @noEscape */ $stockLevel ?> flex items-center gap-1.5 text-note">
+        <?php /* Always render the stock row so tiles in a row stay the same height when one has no label. */ ?>
+        <p class="elme-card__stock<?= $stockLevel ? ' elme-card__stock--' . $stockLevel : '' ?> flex items-center gap-1.5 text-note"
+           <?php if (!$stockLevel): ?>aria-hidden="true"<?php endif; ?>
+        >
+            <?php if ($stockLevel): ?>
                 <span class="size-1.5 shrink-0 rounded-full bg-current" aria-hidden="true"></span>
                 <?= $escaper->escapeHtml($stockLevel === ProductTile::STOCK_IN ? __('In Stock') : __('Low Stock')) ?>
-            </p>
-        <?php endif; ?>
+            <?php else: ?>
+                <span class="invisible select-none">&nbsp;</span>
+            <?php endif; ?>
+        </p>
 
         <?php if ($product->isAvailable() && !$hideDetails): ?>
             <?= $block->getProductDetailsHtml($product) ?>
@@ -206,7 +203,11 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
                 </a>
             <?php else: ?>
                 <?php if ($showStepper): ?>
-                    <?php $min = $formatQty($qtyRules['min']); $step = $formatQty($qtyRules['step']); ?>
+                    <?php
+                    $min = $qtyRulesViewModel->formatQty($qtyRules['min']);
+                    $step = $qtyRulesViewModel->formatQty($qtyRules['step']);
+                    $hasMoq = (float) $qtyRules['step'] > 1;
+                    ?>
                     <div class="elme-qty"
                          x-data="initElmeQtyStepper"
                          data-min="<?= $escaper->escapeHtmlAttr($min) ?>"
@@ -230,7 +231,7 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
                                x-ref="input"
                                @change="normalize"
                                aria-label="<?= $escaper->escapeHtmlAttr(__('Quantity of %1', $productName)) ?>"
-                               <?php if ((float) $step > 1): ?>
+                               <?php if ($hasMoq): ?>
                                aria-describedby="elme-moq-<?= $productId ?>"
                                <?php endif; ?>
                         >
@@ -254,9 +255,17 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
                 </button>
             <?php endif; ?>
         </div>
-        <?php if ($qtyRules && (float) $qtyRules['step'] > 1): ?>
-            <p id="elme-moq-<?= $productId ?>" class="text-note text-ink-muted">
-                <?= $escaper->escapeHtml(__('Sold in multiples of %1', $formatQty($qtyRules['step']))) ?>
+        <?php if ($showStepper): ?>
+            <?php /* Same slot on every stepper tile so a MOQ note does not stretch one card in the row. */ ?>
+            <p id="elme-moq-<?= $productId ?>"
+               class="elme-card__moq text-note text-ink-muted<?= $hasMoq ? '' : ' invisible' ?>"
+               <?php if (!$hasMoq): ?>aria-hidden="true"<?php endif; ?>
+            >
+                <?php if ($hasMoq): ?>
+                    <?= $escaper->escapeHtml(__('Sold in multiples of %1', $qtyRulesViewModel->formatQty($qtyRules['step']))) ?>
+                <?php else: ?>
+                    &nbsp;
+                <?php endif; ?>
             </p>
         <?php endif; ?>
         <?php endif; ?>

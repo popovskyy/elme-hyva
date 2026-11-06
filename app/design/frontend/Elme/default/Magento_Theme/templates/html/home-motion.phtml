@@ -1,8 +1,9 @@
 <?php
 /**
- * Home page scroll motion (styles in web/tailwind/elme/home-motion.css). Marks the homepage sections
- * and the items inside them, shows what is already on screen, and reveals the rest once as it
- * scrolls in. Without this script, or without IntersectionObserver, nothing is hidden.
+ * Become a Stockist collage on the home page (styles in web/tailwind/elme/home-motion.css).
+ * The three photos fall into place once when the collage scrolls in. If it is already on screen,
+ * it stays put. Without this script, or without IntersectionObserver, nothing is hidden.
+ * Hero motion is separate (web/tailwind/elme/hero.css) and does not use this script.
  *
  * @var \Magento\Framework\View\Element\Template $block
  * @var \Magento\Framework\Escaper $escaper
@@ -18,51 +19,29 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
 ?>
 <script>
     (() => {
-        const main = document.querySelector('#maincontent');
+        const collage = document.querySelector('#maincontent .elme-collage');
 
-        if (!main || !('IntersectionObserver' in window)) {
+        if (!collage || !('IntersectionObserver' in window)) {
             return;
         }
 
-        const sections = main.querySelectorAll(
-            '.elme-category-tiles, .elme-welcome-cta, .elme-welcome-intro, .elme-promo-split,'
-            + ' .elme-catalogue-covers, .elme-showroom-cards, .elme-usp-strip, .elme-instagram-slider,'
-            + ' .elme-our-difference, .elme-need-assistance, .elme-collage'
-        );
-        // items that come in one after another inside their section (Calm gallery: facts, category grid, cards)
-        const groups = '.elme-catalogue-covers li, .elme-usp-strip__items li, .elme-need-assistance__cell,'
-            + ' .elme-welcome-intro__fact, .elme-category-tiles--grid .elme-category-tiles__item,'
-            + ' .elme-showroom-cards__list > li';
-        const targets = [];
+        const markIn = () => collage.classList.add('is-in');
 
-        sections.forEach((section) => {
-            if (!section.classList.contains('elme-collage')) {
-                section.setAttribute('data-reveal', '');
-            }
-            targets.push(section);
-        });
-        main.querySelectorAll(groups).forEach((item) => {
-            item.setAttribute('data-reveal', '');
-            item.style.setProperty('--i', String(Array.prototype.indexOf.call(item.parentElement.children, item)));
-            targets.push(item);
-        });
+        if (collage.getBoundingClientRect().top < window.innerHeight) {
+            markIn();
+        } else {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        markIn();
+                        observer.disconnect();
+                    }
+                });
+            }, {rootMargin: '0px 0px -8% 0px', threshold: 0.12});
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('is-in');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, {rootMargin: '0px 0px -8% 0px', threshold: 0.12});
+            observer.observe(collage);
+        }
 
-        targets.forEach((target) => {
-            if (target.getBoundingClientRect().top < window.innerHeight) {
-                target.classList.add('is-in');
-            } else {
-                observer.observe(target);
-            }
-        });
         document.documentElement.classList.add('elme-motion');
     })();
 </script>

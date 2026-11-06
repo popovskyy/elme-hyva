@@ -1,0 +1,5 @@
+discount_type,sku,item_group,pronto_customer_id,marketing_flag,discount,price
+A1,FE53-LAMP,,C100,,,380
+20,FE53-VASE-SAGE,,,MKA,,99
+20,FE53-LAMP,,,MKB,10,
+25,,SOFAS,,MKB,20,

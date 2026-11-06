@@ -107,15 +107,15 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             </button>
         <?php endif; ?>
 
-        <ul id="<?= $escaper->escapeHtmlAttr($trackId) ?>"
-            class="elme-instagram-slider__track elme-snap-carousel__track m-0 flex list-none
-                   snap-x snap-mandatory items-stretch overflow-x-auto overscroll-x-contain p-0
-                   [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            <?php if ($isCarousel): ?>
-            x-ref="track"
-            data-item-selector=".elme-instagram-slider__item"
-            @scroll.passive="onScroll"
-            <?php endif; ?>
+        <div id="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+             class="elme-instagram-slider__track elme-snap-carousel__track m-0 flex
+                    snap-x snap-mandatory items-stretch overflow-x-auto overscroll-x-contain p-0
+                    [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+             <?php if ($isCarousel): ?>
+             x-ref="track"
+             data-item-selector=".elme-instagram-slider__item"
+             @scroll.passive="onScroll"
+             <?php endif; ?>
         >
             <?php foreach ($posts as $index => $post): ?>
                 <?php
@@ -127,18 +127,17 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                 }
                 $creditLine = implode(' · ', $creditParts);
                 ?>
-                <li class="elme-instagram-slider__item elme-snap-carousel__item shrink-0 snap-start"
-                    role="group"
-                    aria-roledescription="slide"
-                    aria-label="<?= $escaper->escapeHtmlAttr(__('%1 of %2', $number, $count)) ?>">
+                <div class="elme-instagram-slider__item elme-snap-carousel__item shrink-0 snap-start"
+                     role="group"
+                     aria-roledescription="slide"
+                     aria-label="<?= $escaper->escapeHtmlAttr(__('%1 of %2', $number, $count)) ?>">
                     <a href="<?= $escaper->escapeUrl($post['href']) ?>"
                        class="elme-instagram-slider__link group flex h-full flex-col text-ink no-underline
                               focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
                        <?php if ($post['external']): ?>
                        target="_blank"
                        rel="noopener noreferrer"
-                       <?php endif; ?>
-                       aria-label="<?= $escaper->escapeHtmlAttr($post['accessible_name']) ?>">
+                       <?php endif; ?>>
                         <span class="elme-instagram-slider__media relative block aspect-square overflow-hidden bg-sand-light">
                             <img src="<?= $escaper->escapeUrl($image['src']) ?>"
                                  alt="<?= $escaper->escapeHtmlAttr($post['image_alt']) ?>"
@@ -170,9 +169,9 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                             </span>
                         </span>
                     </a>
-                </li>
+                </div>
             <?php endforeach; ?>
-        </ul>
+        </div>
     </div>
 
     <?php if ($isCarousel): ?>

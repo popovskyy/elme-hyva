@@ -1,0 +1,387 @@
+<?php
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+?>
+<section class="elme-checkout-section scroll-mt-4"
+         data-checkout-section="address"
+         x-data="elmeCheckoutAddress"
+         :class="busyClass"
+         :aria-busy="ariaBusy">
+    <div class="elme-checkout-section__loader" x-show="isBusy" x-cloak aria-hidden="true">
+        <span class="elme-spinner"></span>
+    </div>
+
+    <div class="elme-checkout-section__head">
+        <span class="elme-checkout-section__step" :class="stepClass" aria-hidden="true">
+            <span class="elme-checkout-section__step-number"><?= (int) $block->getData('number') ?></span>
+            <?= $heroicons->checkHtml('elme-checkout-section__step-check', 14, 14, ['aria-hidden' => 'true']) ?>
+        </span>
+        <h2 class="elme-checkout-section__title"><?= $escaper->escapeHtml(__('Delivery details')) ?></h2>
+    </div>
+
+    <p class="elme-checkout-section__error" role="alert" x-show="sectionErrorText" x-cloak x-text="sectionErrorText"></p>
+
+    <div class="elme-checkout-section__body">
+        <div class="elme-checkout-line">
+            <p class="min-w-0">
+                <span class="elme-checkout-line__label"><?= $escaper->escapeHtml(__('Deliver to:')) ?></span>
+                <span class="elme-checkout-line__value" x-show="isShippingSet" x-cloak x-text="shippingLine"></span>
+            </p>
+            <button type="button"
+                    class="elme-checkout-link"
+                    x-ref="changeShipping"
+                    aria-haspopup="dialog"
+                    :aria-label="shippingActionLabel"
+                    @click="openShipping">
+                <span x-show="isShippingSet"><?= $escaper->escapeHtml(__('Change')) ?></span>
+                <span x-show="isShippingUnset" x-cloak><?= $escaper->escapeHtml(__('Choose an address')) ?></span>
+            </button>
+        </div>
+    </div>
+
+    <div class="elme-checkout-section__divider">
+        <div class="elme-checkout-line">
+            <p class="min-w-0">
+                <span class="elme-checkout-line__label"><?= $escaper->escapeHtml(__('Invoice to:')) ?></span>
+                <span class="elme-checkout-line__value" x-text="billingLine"></span>
+            </p>
+            <button type="button"
+                    class="elme-checkout-link"
+                    x-ref="changeBilling"
+                    aria-haspopup="dialog"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Change billing address')) ?>"
+                    x-show="canChangeBilling"
+                    @click="openBilling">
+                <?= $escaper->escapeHtml(__('Change')) ?>
+            </button>
+        </div>
+    </div>
+
+    <dialog class="elme-checkout-dialog"
+            x-ref="dialog"
+            aria-labelledby="elme-checkout-address-dialog-title"
+            @close="dialogClosed"
+            @click="closeOnBackdrop">
+        <div class="elme-checkout-dialog__panel">
+            <div class="elme-checkout-dialog__head">
+                <button type="button"
+                        class="elme-checkout-dialog__icon"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Back to saved addresses')) ?>"
+                        x-show="canGoBack"
+                        @click="showList">
+                    <?= $heroicons->chevronLeftHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+                </button>
+                <h2 id="elme-checkout-address-dialog-title"
+                    class="elme-checkout-dialog__title"
+                    x-text="dialogTitle"></h2>
+                <button type="button"
+                        class="elme-checkout-dialog__icon"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Close')) ?>"
+                        @click="closeDialog">
+                    <?= $heroicons->xHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+                </button>
+            </div>
+
+            <div class="elme-checkout-dialog__body">
+                <p class="elme-checkout-section__error mt-0 mb-4" role="alert" x-show="dialogError" x-text="dialogError"></p>
+                <div x-show="isShippingList" x-ref="shippingList">
+                    <?= $block->getChildHtml('shipping_cards') ?>
+                </div>
+                <div x-show="isBillingList" x-ref="billingList">
+                    <?= $block->getChildHtml('billing_cards') ?>
+                </div>
+                <div x-show="isFormView">
+                    <?= $block->getChildHtml('form') ?>
+                </div>
+            </div>
+
+            <div class="elme-checkout-dialog__foot" x-show="isListView">
+                <button type="button" class="btn btn-primary" @click="closeDialog">
+                    <?= $escaper->escapeHtml(__('Done')) ?>
+                </button>
+            </div>
+            <div class="elme-checkout-dialog__foot" x-show="isFormView">
+                <button type="button" class="elme-checkout-link" @click="cancelForm">
+                    <?= $escaper->escapeHtml(__('Cancel')) ?>
+                </button>
+                <button type="submit"
+                        form="elme-checkout-address-form"
+                        class="btn btn-primary"
+                        :disabled="isBusy"
+                        :aria-busy="ariaBusy">
+                    <?= $escaper->escapeHtml(__('Use this address')) ?>
+                </button>
+            </div>
+        </div>
+    </dialog>
+</section>
+<script>
+    /**
+     * "Change" opens the address book in a modal dialog. Picking a card saves it straight away, and the list stays open:
+     * arrow keys walk through the radios, and each step is a pick. While one save runs only the latest pick is kept, so
+     * the last one always wins. "Done" (or Esc, or a click on the backdrop) closes the dialog.
+     */
+    function elmeCheckoutAddress() {
+        const TITLES = {
+            shipping: '<?= $escaper->escapeJs(__('Delivery address')) ?>',
+            billing: '<?= $escaper->escapeJs(__('Billing address')) ?>',
+            form: '<?= $escaper->escapeJs(__('New address')) ?>'
+        };
+
+        return {
+            dialogGroup: '',
+            formOpen: false,
+            picks: {shipping: null, billing: null},
+            saving: {shipping: false, billing: false},
+
+            store() {
+                return Alpine.store('elmeCheckout');
+            },
+            data() {
+                return this.store().section('address') || {};
+            },
+            addresses() {
+                return this.data().addresses || [];
+            },
+            shipping() {
+                return this.data().shipping || {};
+            },
+            billing() {
+                return this.data().billing || {};
+            },
+            error() {
+                return this.store().sectionError('address');
+            },
+            sectionErrorText() {
+                return this.dialogGroup ? '' : this.error();
+            },
+            dialogError() {
+                return this.dialogGroup ? this.error() : '';
+            },
+            isBusy() {
+                return this.store().isLoading('address');
+            },
+            ariaBusy() {
+                return this.isBusy() ? 'true' : 'false';
+            },
+            busyClass() {
+                return {'is-busy': this.isBusy()};
+            },
+            stepClass() {
+                return {'is-done': Boolean(this.shipping().is_set)};
+            },
+
+            isShippingSet() {
+                return Boolean(this.shipping().is_set);
+            },
+            isShippingUnset() {
+                return !this.shipping().is_set;
+            },
+            shippingLine() {
+                return (this.shipping().address || {}).line || '';
+            },
+            shippingActionLabel() {
+                return this.shipping().is_set
+                    ? '<?= $escaper->escapeJs(__('Change delivery address')) ?>'
+                    : '<?= $escaper->escapeJs(__('Choose a delivery address')) ?>';
+            },
+            billingLine() {
+                if (this.billing().same_as_delivery || !this.billing().is_set) {
+                    return '<?= $escaper->escapeJs(__('Same as delivery address')) ?>';
+                }
+                return (this.billing().address || {}).line || '';
+            },
+            canChangeBilling() {
+                return this.addresses().length > 0;
+            },
+
+            /* --- dialog ------------------------------------------------------------------------------------------ */
+
+            isShippingList() {
+                return this.dialogGroup === 'shipping' && !this.formOpen;
+            },
+            isBillingList() {
+                return this.dialogGroup === 'billing';
+            },
+            isListView() {
+                return this.isShippingList() || this.isBillingList();
+            },
+            isFormView() {
+                return this.formOpen;
+            },
+            canGoBack() {
+                return this.formOpen && this.addresses().length > 0;
+            },
+            dialogTitle() {
+                return this.formOpen ? TITLES.form : (TITLES[this.dialogGroup] || '');
+            },
+            openShipping() {
+                this.dialogGroup = 'shipping';
+                this.$refs.dialog.showModal();
+                if (this.addresses().length === 0) {
+                    this.openForm();
+                    return;
+                }
+                this.focusCheckedRadio('shippingList');
+            },
+            openBilling() {
+                this.dialogGroup = 'billing';
+                this.$refs.dialog.showModal();
+                this.focusCheckedRadio('billingList');
+            },
+            closeDialog() {
+                this.$refs.dialog.close();
+            },
+            closeOnBackdrop() {
+                // The panel fills the dialog, so a click on the dialog itself is a click on the backdrop
+                if (this.$event.target === this.$el) {
+                    this.closeDialog();
+                }
+            },
+            dialogClosed() {
+                const opener = this.dialogGroup === 'billing' ? 'changeBilling' : 'changeShipping';
+                if (this.formOpen) {
+                    this.closeForm();
+                }
+                this.dialogGroup = '';
+                this.focusWhenShown(() => this.$refs[opener]);
+            },
+            showList() {
+                this.closeForm();
+                this.focusCheckedRadio('shippingList');
+            },
+            cancelForm() {
+                if (this.canGoBack()) {
+                    this.showList();
+                    return;
+                }
+                this.closeDialog();
+            },
+
+            /* --- address cards ----------------------------------------------------------------------------------- */
+
+            /**
+             * The address book; an address that is on the quote but not in the book stays selectable as its own card.
+             */
+            cards() {
+                const selected = this[this.$el.dataset.group]();
+                if (selected.is_set && !selected.address_id && !selected.same_as_delivery) {
+                    return [...this.addresses(), {...selected.address, id: 0}];
+                }
+                return this.addresses();
+            },
+            checkedId(group) {
+                return this.picks[group] !== null ? this.picks[group] : this[group]().address_id;
+            },
+            isChecked() {
+                const group = this.$el.dataset.group;
+                return this[group]().is_set && !this.isFollowingDelivery(group)
+                    && this.address.id === this.checkedId(group);
+            },
+            isFollowingDelivery(group) {
+                return group === 'billing' && this.billing().same_as_delivery;
+            },
+            pick() {
+                const group = this.$el.dataset.group;
+                this.picks[group] = Number(this.$el.value);
+                // The own card has nothing to save: it is what the quote holds until another card is picked
+                if (this.picks[group] === 0) {
+                    this.picks[group] = null;
+                    return;
+                }
+                this.savePick(group);
+            },
+            async savePick(group) {
+                if (this.saving[group]) {
+                    return;
+                }
+                this.saving[group] = true;
+
+                const action = group === 'shipping' ? 'shippingaddress' : 'billingaddress';
+                let addressId;
+                let saved;
+                do {
+                    addressId = this.picks[group];
+                    saved = await this.store().call(action, {address_id: addressId}, 'address');
+                } while (saved && this.picks[group] !== addressId);
+
+                this.picks[group] = null;
+                this.saving[group] = false;
+            },
+            focusCheckedRadio(listRef) {
+                this.focusWhenShown(() => {
+                    const list = this.$refs[listRef];
+                    return list.querySelector('input[type="radio"]:checked') || list.querySelector('input[type="radio"]');
+                });
+            },
+            /**
+             * x-show reveals an element in a timeout of its own, which $nextTick does not wait for, and a hidden
+             * element takes no focus: look again each frame until it is there.
+             */
+            focusWhenShown(element, framesLeft = 20) {
+                requestAnimationFrame(() => {
+                    const target = element();
+                    if (target?.getClientRects().length) {
+                        target.focus();
+                    } else if (framesLeft > 0) {
+                        this.focusWhenShown(element, framesLeft - 1);
+                    }
+                });
+            },
+
+            /* --- new address form -------------------------------------------------------------------------------- */
+
+            openForm() {
+                this.formOpen = true;
+                this.focusWhenShown(() => this.$refs.addressForm.querySelector('input'));
+            },
+            closeForm() {
+                this.formOpen = false;
+                this.$refs.addressForm.reset();
+                Object.keys(this.store().fieldErrors).forEach((field) => this.store().clearFieldError(field));
+            },
+            fieldError() {
+                return this.store().fieldError(this.$el.dataset.field);
+            },
+            fieldInvalid() {
+                return this.store().fieldError(this.$el.dataset.field) ? 'true' : 'false';
+            },
+            clearFieldError() {
+                this.store().clearFieldError(this.$el.dataset.field);
+            },
+            async submitNew() {
+                const form = this.$refs.addressForm;
+                // The form is read when sent, not bound field by field: browser autofill just works
+                const data = new FormData(form);
+                const saveToBook = data.has('save_to_book');
+                data.delete('save_to_book');
+
+                const saved = await this.store().call(
+                    'shippingaddress',
+                    {address: Object.fromEntries(data), save_to_book: saveToBook},
+                    'address'
+                );
+                if (saved) {
+                    this.closeDialog();
+                    return;
+                }
+                this.focusWhenShown(() => form.querySelector('[aria-invalid="true"]'));
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('elmeCheckoutAddress', elmeCheckoutAddress), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

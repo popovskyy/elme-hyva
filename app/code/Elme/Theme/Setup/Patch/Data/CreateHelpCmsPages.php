@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace Elme\Theme\Setup\Patch\Data;
 
+use Bart\ContentStudio\Api\EntryRepositoryInterface;
+use Bart\ContentStudio\Model\EntryFactory;
 use Magento\Cms\Api\Data\PageInterface;
 use Magento\Cms\Api\Data\PageInterfaceFactory;
 use Magento\Cms\Api\GetPageByIdentifierInterface;
 use Magento\Cms\Api\PageRepositoryInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
+use Magento\Framework\UrlInterface;
 use Magento\Store\Model\Store;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * FE-45: seed the six help CMS pages (layout, meta, body) for the help shell.
@@ -57,7 +61,8 @@ class CreateHelpCmsPages implements DataPatchInterface
             'title' => 'Become a Stockist',
             'content_heading' => 'Become a Stockist',
             'meta_title' => 'Become a Stockist | Elme Living - Wholesale Decor Partner',
-            'meta_description' => 'Become an Elme Living stockist and access exclusive decor, premium support, and thousands of products to boost your business. Join us today!',
+            'meta_description' => 'Apply for an Elme Living trade account with your ABN.'
+                . ' Wholesale artificial flora and homewares for Australian retailers — prices after approval.',
             'file' => 'become-a-stockist.html',
         ],
         [
@@ -81,17 +86,75 @@ class CreateHelpCmsPages implements DataPatchInterface
     public function __construct(
         private readonly PageInterfaceFactory $pageFactory,
         private readonly PageRepositoryInterface $pageRepository,
-        private readonly GetPageByIdentifierInterface $getPageByIdentifier
+        private readonly GetPageByIdentifierInterface $getPageByIdentifier,
+        private readonly EntryFactory $entryFactory,
+        private readonly EntryRepositoryInterface $entryRepository,
+        private readonly StoreManagerInterface $storeManager
     ) {
     }
 
     public function apply(): self
     {
+        $this->ensureStockistBenefits();
+
         foreach (self::PAGES as $definition) {
             $this->upsertPage($definition);
         }
 
         return $this;
+    }
+
+    /**
+     * Benefits on /become-a-stockist. No button: the page layout owns the primary CTA.
+     */
+    private function ensureStockistBenefits(): void
+    {
+        $media = rtrim(
+            $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA),
+            '/'
+        ) . '/bart_content_studio/fe16/';
+
+        try {
+            $this->entryRepository->getByIdentifier('become-a-stockist-usp', Store::DEFAULT_STORE_ID);
+            return;
+        } catch (NoSuchEntityException) {
+            // create below
+        }
+
+        $entry = $this->entryFactory->create();
+        $entry->setIdentifier('become-a-stockist-usp')
+            ->setType('usp_strip')
+            ->setTitle('Become a Stockist: benefits')
+            ->setIsActive(true)
+            ->setStoreIds([Store::DEFAULT_STORE_ID])
+            ->setEntryData([
+                'heading' => 'Why stock with Elme Living',
+                'intro' => 'Apply with your ABN for a wholesale trade account. Once approved, you shop'
+                    . ' your own trade prices online, built for Australian retailers.',
+                'image' => $media . 'become-stockist.jpg',
+                'image_alt' => 'Styled Elme Living homewares and artificial flora display',
+                'image_2' => $media . 'collage-vases.jpg',
+                'image_3' => $media . 'collage-arrangements.jpg',
+                'items' => [
+                    [
+                        'title' => 'ABN trade account',
+                        'text' => 'Register with a valid Australian Business Number. We review applications'
+                            . ' and open wholesale access for approved retailers.',
+                    ],
+                    [
+                        'title' => 'Prices ex GST',
+                        'text' => 'After login you see your own trade prices ex GST, not a public retail list.',
+                    ],
+                    [
+                        'title' => 'Australia-wide delivery',
+                        'text' => 'Order online for delivery across Australia. Some lines have a'
+                            . ' minimum order quantity.',
+                    ],
+                ],
+                'button_label' => '',
+                'button_link' => '',
+            ]);
+        $this->entryRepository->save($entry);
     }
 
     /**
@@ -141,7 +204,10 @@ class CreateHelpCmsPages implements DataPatchInterface
 
     public static function getDependencies(): array
     {
-        return [CreateSharedCmsBlocks::class];
+        return [
+            CreateSharedCmsBlocks::class,
+            SeedHomepageContentSections::class,
+        ];
     }
 
     public function getAliases(): array

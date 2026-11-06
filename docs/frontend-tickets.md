@@ -55,8 +55,8 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-29 | PDP details accordion + CMS blocks + FAQ modal | 5 PDP | FE-25 | To do |
 | FE-30 | PDP recommendations (frequently bought together, related) + recently viewed | 5 PDP | FE-17, FE-24 | To do |
 | FE-31 | PDP stock and delivery info (stock number, dock date, delivery estimate) | 5 PDP | FE-27, D6 | To do |
-| FE-32 | Mini-cart drawer | 6 Cart & checkout | FE-06, FE-03 | To do |
-| FE-33 | Cart page | 6 Cart & checkout | FE-02, FE-32 | To do |
+| FE-32 | Header cart panel (Quick Order cart, replaces the default mini-cart) | 6 Cart & checkout | FE-06, FE-03, BE-16 | To do |
+| FE-33 | Cart page (/quick-order/cart) | 6 Cart & checkout | FE-02, FE-32, BE-16 | To do |
 | FE-34 | Checkout look pass + order success page | 6 Cart & checkout | BE-04, BE-05 | To do |
 | FE-35 | Login, forgot password, reset password | 7 Account | FE-02 | In review |
 | FE-36 | Registration: "Apply for an account" (B2B, ABN) | 7 Account | FE-02 | In review |
@@ -64,7 +64,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-38 | Account info, password, newsletter (address book in FE-69) | 7 Account | FE-37 | To do |
 | FE-39 | Orders: history, order view, invoices/shipments, print (reorder + CSV in BE-14) | 7 Account | FE-37 | To do |
 | FE-40 | Quick Order page | 8 B2B | FE-02, FE-03, FE-53 | To do |
-| FE-41 | Quick Order mini-cart, "saved" toast, "Add to list" modal | 8 B2B | FE-40, FE-06 | To do |
+| FE-41 | "Saved" toast + "Add to list" modal | 8 B2B | FE-40, FE-06, FE-32 | To do |
 | FE-42 | Order templates (saved lists) | 8 B2B | FE-40 | To do |
 | FE-43 | Recently ordered page | 8 B2B | FE-37, FE-19 | To do |
 | FE-44 | Wishlist (ajax add + wishlist page) | 8 B2B | FE-19, FE-37 | To do |
@@ -74,7 +74,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-48 | Content pages: About, Careers, Outlet, Style Sourcebook, Meet the Team, Fairs & Events (split into FE-61...FE-67) | 9 CMS | FE-04, FE-57 | Split |
 | FE-49 | Shop the Looks / lookbook with product hotspots | 9 CMS | FE-19, FE-57 | To do |
 | FE-50 | Virtual Catalogues (login only) (Shoppable Instagram in FE-68) | 9 CMS | FE-53 | Done |
-| FE-51 | Showroom locator (list + location page) | 9 CMS | FE-04 | To do |
+| FE-51 | Showroom locator (list + location page) | 9 CMS | FE-04 | In review |
 | FE-52 | 404 page | 9 CMS | FE-04 | Done |
 | FE-53 | Login-only rules: price hiding, guest redirects, per-customer data | 10 Cross-cutting | — | In review |
 | FE-54 | Third-party scripts: Zendesk chat, Klaviyo, GTM/GA4, Triple Whale | 10 Cross-cutting | FE-01 | Done |
@@ -98,10 +98,10 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | UX-03 | Products above the fold on mobile PLP | 11 UX | FE-18, FE-19, FE-20 | To do |
 | UX-04 | Filters quality | 11 UX | FE-21 | To do |
 | UX-05 | Search relevance | 11 UX | FE-22, FE-23, D1 | To do |
-| UX-06 | Chat button placement | 11 UX | FE-54 | To do |
+| UX-06 | Chat button placement | 11 UX | FE-54, FE-21, FE-27, FE-32 | To do |
 | UX-07 | Forms that autofill | 11 UX | FE-35, FE-36, FE-46 | To do |
-| UX-08 | Accessibility baseline | 11 UX | FE-02, FE-03, FE-56 | To do |
-| UX-09 | Performance budget | 11 UX | FE-08, FE-54, FE-56 | To do |
+| UX-08 | Accessibility baseline | 11 UX | FE-02, FE-03 | To do |
+| UX-09 | Performance budget | 11 UX | FE-08, FE-54 | To do |
 | UX-10 | Readable text | 11 UX | FE-10, FE-13, FE-15 | To do |
 | UX-11 | PDP essentials first | 11 UX | FE-25, FE-29 | To do |
 | UX-12 | Faster reordering for trade customers | 11 UX | FE-19, FE-32, FE-37, FE-40 | To do |
@@ -117,11 +117,12 @@ Most B2B pages need backend work the old site did in `ElmeLiving_*` modules. Eac
 | BE-08 | Minimum order value per customer (attribute, service, checkout validator) | FE-33, FE-40, UX-12 | BE-04 |
 | BE-09 | B2B account application backend: attributes, ABN check, emails, approval | FE-35, FE-36 | FE-53 |
 | BE-10 | Account credit: outstanding balance + "on account" payment method | FE-37 (balance widget) | BE-04 |
-| BE-11 | Quick Order backend: SKU search, availability, batch add to cart | FE-40 | BE-06, BE-07 |
-| BE-12 | Saved order lists (order templates) backend | FE-41, FE-42, FE-44 | BE-11 |
+| BE-11 | Quick Order backend: SKU search, availability, batch add to cart | FE-40 | BE-06, BE-07, BE-16 |
+| BE-12 | Saved order lists (order templates) backend | FE-41, FE-42, FE-44 | BE-11, BE-16 |
 | BE-13 | Recently ordered backend | FE-40, FE-43 | BE-06 |
 | BE-14 | Reorder (MOQ aware) and order CSV export | FE-39 buttons | BE-06, FE-39 |
 | BE-15 | Showroom locations data: module, admin, import | FE-51 | FE-04 |
+| BE-16 | Quick Order cart as the only cart (replaces default mini-cart and cart page) | FE-32, FE-33, FE-40, BE-11, BE-12 | BE-06, FE-53 |
 
 Data feeds from Pronto (prices, stock, balances, customers) are integration tickets that come later.
 
@@ -242,7 +243,7 @@ Everything else builds on these four. Ship them first, so other tickets reuse th
 
 **How:** add the class `btn-atc` to the submit button of an add to cart form. `Magento_Theme::elme/atc-button.phtml` (one delegated listener, CSP-safe) posts the form with `X-Requested-With`, so `checkout/cart/add` answers JSON, reads the `messages` section for errors (so the page message bar does not repeat "You added …"), reloads section data for the mini-cart. CSS: `web/tailwind/elme/add-to-cart.css`. Wired on the PLP tile (`product/list/item.phtml`) and the PDP button (`product/view/addtocart.phtml`; "Update item" on cart configure keeps the normal post). FE-19 and FE-27 must keep `btn-atc` on their buttons. "Redirect to cart after adding" = Yes in admin still redirects after the success state.
 
-**Look:** variant 1 "Cart and dot" picked on 31 Oct 2026 from `docs/design/add-to-cart-options.html` (2 olive fill and 3 rolling label + count were rejected).
+**Look:** variant 1 "Cart and dot" picked on 31 Oct 2026 (2 olive fill and 3 rolling label + count were rejected).
 
 **Ref:** Dribbble shot the ticket was made from (not checked: Dribbble showed a bot check); compare the sequence with the reference GIF/frames before QA sign-off.
 
@@ -424,7 +425,7 @@ Production category page: banner with title and breadcrumbs, a Filters button th
 
 ### FE-18 Category page header
 
-**Scope:** category banner (title + breadcrumbs left, image right on desktop; image on top on mobile), category description, layout without banner when the category has no image.
+**Scope:** category banner: a short photo band (lifestyle image, cropped, copy overlaid at the bottom left: breadcrumbs, the H1 and the description). A compact text header when the category has no image.
 
 **Ref:** `Bart/el/Overdose_CategoryBanner/templates/category/banner.phtml`, `banner_wrapper.phtml`
 
@@ -605,7 +606,9 @@ Cart and checkout are login-only. Checkout is our own module `Elme_Checkout` on 
 
 Checkout features (delivery date calendar, account credit payment, Elme freight, minimum order value) come later as their own backend tickets on top of this module.
 
-### FE-32 Mini-cart drawer
+### FE-32 Header cart panel (Quick Order cart)
+
+**D14:** the cart is the Quick Order cart (BE-16), there is no default Magento mini-cart or cart page.
 
 **Scope:** drawer from the header cart icon: items (image, name, SKU, price ex. GST, qty stepper in MOQ multiples, remove), subtotal, "View cart" and "Checkout" buttons, empty state.
 
@@ -617,7 +620,9 @@ Checkout features (delivery date calendar, account credit payment, Elme freight,
 - [ ] Changing qty updates subtotal and header count; qty below MOQ is refused with a message
 - [ ] Remove asks no browser confirm dialog and updates totals
 
-### FE-33 Cart page
+### FE-33 Cart page (/quick-order/cart)
+
+**D14:** the cart is the Quick Order cart (BE-16), there is no default Magento mini-cart or cart page.
 
 **Scope:** item table (image, name, SKU, options, unit price, qty, row total, remove), update qty, MOQ messages, minimum order value notice ("Add $X more to place your order"), coupon code, totals (subtotal ex. GST, freight, GST, total), Proceed to checkout, empty cart page with a link back to shopping. No gift cards (Adobe Commerce only).
 
@@ -735,9 +740,9 @@ Quick Order is the core page for trade customers: they reorder by SKU. On the ol
 - [ ] Minimum order value remainder updates as rows change
 - [ ] 50 rows stay responsive (no lag typing qty)
 
-### FE-41 Quick Order mini-cart, saved toast, Add to list
+### FE-41 Saved toast, Add to list
 
-**Scope:** Quick Order cart icon + panel in the header; "Saved" toast after saving a list; "Add to list" modal from PDP and wishlist (pick an existing list or create one).
+**Scope:** "Saved" toast after saving a list; "Add to list" modal from PDP and wishlist (pick an existing list or create one).
 
 **Ref:** `Bart/el/ElmeLiving_QuickOrder/templates/minicart/qo-minicart.phtml`, `script/qo-saved-toast-js.phtml`, `add-to-list/modal.phtml`, `page/quick-order-cart.phtml`
 
@@ -1179,6 +1184,8 @@ These decisions change the scope of the tickets named in **Affects**. Make them 
 | D10 | Instagram feed | Overdose InstaFeed | Instagram API module · static images in CMS | FE-12, FE-50 |
 | D11 | CMS content | Adobe Page Builder + LESS classes | **Decided:** new content, no migration; Page Builder for plain text pages, own copy of Content Studio (Open Source + Hyva) for structured blocks, placed with its Page Builder content type or widget; no CMS Tailwind JIT | FE-14...16, FE-47...49, FE-57 |
 | D12 | Checkout | Luma checkout (Adobe Commerce) with Elme Knockout mixins | **Decided:** own module `Elme_Checkout` on Elme/default (one page, server-side state, CSP Alpine). Luma fallback checkout removed; no Hyva Checkout (paid licence per installation) | FE-34, BE-01...BE-05 |
-| D13 | Home page layout | Hero, statement, dark Outlet band, catalogues, collage, Our Difference, dark Need assistance band | **Decided (31 Oct 2026):** "Calm gallery" from `docs/design/homepage-review-options.html`: shorter hero with the H1, intro with three trade facts, all categories in a grid, Outlet + Lookbook + Virtual Catalogues as three photo cards, Become a Stockist collage with button, Instagram; Our Difference only on About us, Need assistance? in the footer; motion only in the hero (patch `HomeCalmGallery`) | FE-14...16, FE-12, FE-13 |
+| D13 | Home page layout | Hero, statement, dark Outlet band, catalogues, collage, Our Difference, dark Need assistance band | **Decided (31 Oct 2026):** "Calm gallery": hero with the H1 (made taller on 2 Nov 2026: 4:5 on phones, at least 680px or 32vw on desktop, at most 75svh, so the photos show), intro with three trade facts, all categories in a grid, Outlet + Lookbook + Virtual Catalogues as three photo cards, Become a Stockist collage with button, Instagram; Our Difference only on About us, Need assistance? in the footer; motion only in the hero and the Become a Stockist collage (4 Nov 2026: scroll reveals removed from the other home sections; seeded by `SeedHomepageContentSections`) | FE-14...16, FE-12, FE-13 |
+| D14 | Cart | Custom Quick Order cart on a per-customer list, default mini-cart and cart page removed | **Decided (2 Nov 2026, chief engineer):** port it. The working cart is the list `cart_list` (sku + qty), edits save without touching the quote, and the quote is rebuilt from it when /checkout opens. Open: migration of saved lists, place of the coupon field | BE-16, FE-32, FE-33, FE-40...FE-44 |
+| D15 | Public APIs | Core anonymous REST and GraphQL open | **Decided (2 Nov 2026):** closed for guests, because they gave prices and placed guest orders on the login-only site. `Elme_LoginOnly` refuses anonymous REST and SOAP routes (only `/V1/integration/admin/token` stays open) and all guest GraphQL. `Elme_Checkout` refuses API orders from customers and guests, so the place-order validators cannot be skipped; admin and integration tokens stay allowed. A feature that needs a public route adds it to `allowedPaths` in `Elme_LoginOnly/etc/webapi_rest/di.xml` | FE-53, BE-08, payment webhooks |
 
 Out of scope for this list: transactional email templates, checkout features (delivery date calendar, account credit, freight) that come with their backend tickets, and writing the new CMS content.

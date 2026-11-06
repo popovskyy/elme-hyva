@@ -47,6 +47,11 @@
         background: var(--color-olive);
     }
 
+    /* One line reserved even when out of stock (no label), so a row of tiles stays level. */
+    .elme-card__stock {
+        min-height: var(--text-note--line-height);
+    }
+
     .elme-card__stock--in {
         color: var(--color-olive);
     }
@@ -55,32 +60,8 @@
         color: var(--color-toast-warning-mark);
     }
 
-    /* Hyvä's wishlist button (Magento_Catalog::product/list/wishlist/button.phtml) as a heart on the photo. */
-    .elme-card__wishlist .btn {
-        display: grid;
-        place-items: center;
-        width: --spacing(10);
-        height: --spacing(10);
-        padding: 0;
-        border: 0;
-        border-radius: 50%;
-        background: color-mix(in oklab, var(--color-surface) 85%, transparent);
-        color: var(--color-ink);
-        box-shadow: none;
-        transition: color var(--transition-duration-fast) ease, scale var(--transition-duration-fast) var(--ease-out-quart);
-
-        &:hover {
-            color: var(--color-promo);
-        }
-
-        &:active {
-            scale: 0.92;
-        }
-
-        &:focus-visible {
-            outline: --spacing(0.5) solid var(--color-ink);
-            outline-offset: --spacing(0.5);
-        }
+    .elme-card__moq {
+        min-height: var(--text-note--line-height);
     }
 
     /* Qty stepper: − [qty] +, as tall as the button next to it. */

@@ -1,0 +1,57 @@
+<?php
+/**
+ * FE-18: category PLP header. With an image the photo fills a short band and the
+ * breadcrumbs, H1 and description sit on it. Without an image: a compact text header.
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\CategoryBanner;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+/** @var CategoryBanner $banner */
+$banner = $block->getData('view_model');
+if (!$banner instanceof CategoryBanner || !$banner->getCategory()) {
+    return;
+}
+
+$name = $banner->getName();
+$headingId = $banner->getHeadingId();
+$hasImage = $banner->hasImage();
+$descriptionHtml = $banner->getDescriptionHtml();
+$backgroundColour = $banner->getBackgroundColour();
+$sectionClass = $hasImage
+    ? 'category-banner category-banner--has-image'
+    : 'category-banner category-banner--no-image';
+?>
+<section class="<?= $escaper->escapeHtmlAttr($sectionClass) ?>"
+         aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+    <?php if (!$hasImage && $backgroundColour !== ''): ?>
+         style="--category-banner-bg: <?= $escaper->escapeHtmlAttr($backgroundColour) ?>"
+    <?php endif; ?>>
+    <div class="category-banner__frame">
+        <?php if ($hasImage): ?>
+            <div class="category-banner__media">
+                <?= $block->getChildHtml('banner_image') ?>
+            </div>
+        <?php endif; ?>
+
+        <div class="category-banner__content">
+            <?= $block->getChildHtml('breadcrumbs') ?>
+
+            <div class="category-banner__title">
+                <h1 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"><?= $escaper->escapeHtml($name) ?></h1>
+            </div>
+
+            <?php if ($descriptionHtml !== ''): ?>
+                <div class="category-banner__description prose">
+                    <?= /* @noEscape */ $descriptionHtml ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</section>

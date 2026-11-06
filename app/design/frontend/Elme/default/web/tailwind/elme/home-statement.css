@@ -1,5 +1,5 @@
 /*
- * Home "Statement" run (docs/design/home-middle-options.html, 1): welcome_cta as a large statement,
+ * Home "Statement" run: welcome_cta as a large statement,
  * promo_split as a dark band with a big line and a ticker, catalogue_covers as books on a sand band.
  * Layout lives in the templates; this file holds sizes, the ticker loop and the book hover.
  */

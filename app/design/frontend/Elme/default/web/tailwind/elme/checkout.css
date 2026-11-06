@@ -1,0 +1,1156 @@
+/*
+ * Checkout look ported from the old Elme checkout (FE-72, Bart/el Magento_Checkout/web/css/source/module/checkout):
+ * white form column with flat steps, underlined fields and bordered option rows, a full-height sand summary column
+ * on desktop, a quiet header with "Need assistance?" and a sand footer with the help links.
+ * Behaviour from FE-71 stays: section loaders, enter motion, the address dialog, the phone place-order bar.
+ * Scoped to the checkout layout / #elme-checkout. Tokens only (hyva.config.json).
+ */
+
+.checkout-index-index {
+    background-color: var(--color-surface);
+}
+
+/* The summary column runs from the header to the footer */
+.checkout-index-index .page-main {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    margin-block: 0;
+    padding-block: 0;
+
+    > .columns,
+    .column.main {
+        display: flex;
+        flex: 1 0 auto;
+        flex-direction: column;
+        padding-block: 0;
+    }
+}
+
+@layer components {
+    /* --- chrome ------------------------------------------------------------- */
+
+    .elme-checkout-header {
+        border-block-end: 1px solid var(--color-cool-light);
+        background-color: var(--color-surface);
+    }
+
+    .elme-checkout-header__logo {
+        width: --spacing(31);
+        height: auto;
+    }
+
+    .elme-checkout-header__help {
+        display: flex;
+        align-items: center;
+        gap: --spacing(1.5);
+        margin: 0;
+        color: var(--color-ink);
+        font-size: var(--text-breadcrumbs);
+        line-height: 1.2;
+    }
+
+    .elme-checkout-header__help-link {
+        display: inline-flex;
+        flex-direction: row-reverse;
+        align-items: center;
+        gap: --spacing(1.5);
+        color: var(--color-ink);
+        text-underline-offset: 0.2em;
+
+        @media (hover: hover) and (pointer: fine) {
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    .elme-checkout-footer {
+        margin-block-start: auto;
+        border-block-start: 1px solid var(--color-border-light);
+        background-color: var(--color-page);
+    }
+
+    .elme-checkout-footer__inner {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(3);
+        padding-block: --spacing(3.5) --spacing(4);
+        color: var(--color-ink-muted);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+
+        @variant md {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            padding-block: --spacing(5) --spacing(4);
+        }
+    }
+
+    .elme-checkout-footer__help {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: --spacing(2) --spacing(5);
+    }
+
+    .elme-checkout-footer__help-title {
+        margin: 0;
+        color: var(--color-ink);
+        font-weight: 600;
+    }
+
+    .elme-checkout-footer__help-link {
+        display: inline-flex;
+        align-items: center;
+        gap: --spacing(2);
+        color: var(--color-ink);
+        text-underline-offset: 0.2em;
+
+        @media (hover: hover) and (pointer: fine) {
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    .elme-checkout-footer__legal {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: --spacing(2) --spacing(6);
+
+        p {
+            margin: 0;
+        }
+
+        .elme-checkout-link {
+            font-size: var(--text-note);
+            line-height: var(--text-note--line-height);
+            font-weight: 400;
+            letter-spacing: 0;
+        }
+    }
+
+    /* --- layout: white steps on the left, sand summary on the right ---------- */
+
+    .elme-checkout {
+        display: flex;
+        flex: 1 0 auto;
+        flex-direction: column;
+    }
+
+    .elme-checkout__message {
+        margin-block: --spacing(4) 0;
+        padding: --spacing(4);
+        border: 1px solid var(--color-error-strong);
+        background-color: color-mix(in srgb, var(--color-error-light) 55%, var(--color-surface));
+        color: var(--color-error-strong);
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        scroll-margin-block-start: --spacing(4);
+        animation: elme-checkout-error-in var(--transition-duration-fast) var(--ease-out-quint) both;
+    }
+
+    .elme-checkout__grid {
+        display: flex;
+        flex: 1 0 auto;
+        flex-direction: column;
+
+        @variant lg {
+            display: grid;
+            grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+            align-items: stretch;
+        }
+    }
+
+    .elme-checkout__sections {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(8);
+        min-width: 0;
+        padding-block: --spacing(8) --spacing(6);
+
+        @variant lg {
+            order: 1;
+            justify-self: end;
+            width: 100%;
+            max-width: --spacing(165);
+            gap: --spacing(10);
+            padding-block: --spacing(18) --spacing(14);
+            padding-inline-end: --spacing(12);
+        }
+
+        @variant xl {
+            padding-inline-end: --spacing(25);
+        }
+    }
+
+    /* Sand band: full width under the header on phones, a column that bleeds to the right edge on desktop */
+    .elme-checkout__summary-col {
+        min-width: 0;
+        margin-inline: calc(var(--container-gutter) * -1);
+        background-color: var(--color-sand-faint);
+
+        @variant md {
+            margin-inline: calc(var(--container-gutter-desktop) * -1);
+        }
+
+        @variant lg {
+            order: 2;
+            margin-inline: 0;
+            padding-block: --spacing(18) --spacing(14);
+            padding-inline-start: --spacing(10);
+            box-shadow: 0 0 0 100vmax var(--color-sand-faint);
+            clip-path: inset(0 -100vmax 0 0);
+        }
+
+        @variant xl {
+            padding-inline-start: --spacing(20);
+        }
+
+        @variant 2xl {
+            padding-inline-start: --spacing(35);
+        }
+    }
+
+    /* --- steps: flat on white, a number and a plain title -------------------- */
+
+    .elme-checkout-section {
+        position: relative;
+        scroll-margin-block-start: --spacing(4);
+
+        &.is-busy {
+            pointer-events: none;
+        }
+    }
+
+    .elme-checkout-section__head {
+        display: flex;
+        align-items: baseline;
+        gap: --spacing(2);
+    }
+
+    /* Step number as on the old progress bar ("1."); an olive check once the step is done */
+    .elme-checkout-section__step {
+        display: inline-flex;
+        flex: none;
+        align-self: center;
+        align-items: center;
+        color: var(--color-ink);
+        font-size: var(--text-h3);
+        line-height: var(--text-h3--line-height);
+        font-variant-numeric: tabular-nums;
+
+        @variant lg {
+            font-size: var(--text-h3-desktop);
+        }
+
+        &.is-done {
+            color: var(--color-olive);
+        }
+    }
+
+    .elme-checkout-section__step-number::after {
+        content: ".";
+    }
+
+    .elme-checkout-section__step-check {
+        display: none;
+        width: --spacing(5);
+        height: --spacing(5);
+        stroke-width: 2.25;
+
+        .is-done > & {
+            display: block;
+        }
+    }
+
+    .is-done > .elme-checkout-section__step-number {
+        display: none;
+    }
+
+    .elme-checkout-section__title {
+        margin: 0;
+        font-family: var(--font-sans);
+        font-size: var(--text-h3);
+        line-height: var(--text-h3--line-height);
+        font-weight: 400;
+        color: var(--color-ink);
+
+        @variant lg {
+            font-size: var(--text-h3-desktop);
+            line-height: 1.15;
+        }
+    }
+
+    .elme-checkout-section__title .elme-checkout-section__optional {
+        margin-inline-start: --spacing(1);
+        font-size: var(--text-copy);
+        color: var(--color-ink-subtle);
+    }
+
+    .elme-checkout-section__error {
+        margin-block-start: --spacing(4);
+        color: var(--color-error-strong);
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        animation: elme-checkout-error-in var(--transition-duration-fast) var(--ease-out-quint) both;
+    }
+
+    .elme-checkout-section__hint {
+        margin-block-start: --spacing(4);
+        color: var(--color-ink-muted);
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+    }
+
+    .elme-checkout-section__body {
+        margin-block-start: --spacing(6);
+
+        @variant lg {
+            margin-block-start: --spacing(4.5);
+        }
+    }
+
+    .elme-checkout-section__divider {
+        margin-block-start: --spacing(4);
+        padding-block-start: --spacing(4);
+        border-block-start: 1px solid var(--color-border);
+    }
+
+    /* Veil + brand spinner while a step saves */
+    .elme-checkout-section__loader {
+        position: absolute;
+        inset: calc(--spacing(2) * -1);
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: color-mix(in srgb, var(--color-surface) 72%, transparent);
+        animation: elme-checkout-fade-in var(--transition-duration-micro) var(--ease-out-quad) both;
+    }
+
+    /* --- option rows (address book / delivery / payment) --------------------- */
+
+    .elme-checkout-options {
+        display: grid;
+        gap: --spacing(3);
+    }
+
+    .elme-checkout-options--addresses {
+        @variant md {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    .elme-checkout-option {
+        display: flex;
+        align-items: center;
+        gap: --spacing(4);
+        padding: --spacing(5) --spacing(4);
+        border: 1px solid var(--color-border-light);
+        border-radius: var(--form-radius);
+        background-color: var(--color-surface);
+        color: var(--color-ink);
+        cursor: pointer;
+        transition: border-color var(--transition-duration-fast) var(--ease-out-quad);
+
+        @media (hover: hover) and (pointer: fine) {
+            &:hover {
+                border-color: var(--color-ink-subtle);
+            }
+        }
+
+        &:has(:focus-visible) {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
+        }
+
+        &:has(:checked) {
+            border-color: var(--color-primary);
+        }
+    }
+
+    .elme-checkout-options--addresses .elme-checkout-option:not(.elme-checkout-option--add) {
+        align-items: flex-start;
+    }
+
+    /* "Add a new address": the last card of the address book */
+    .elme-checkout-option--add {
+        align-items: center;
+        justify-content: center;
+        gap: --spacing(2);
+        border-style: dashed;
+        border-color: var(--color-border);
+        font-size: var(--text-copy);
+        font-weight: 600;
+        line-height: var(--text-copy--line-height);
+        letter-spacing: 0.4px;
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
+        }
+
+        @variant md {
+            flex-direction: column;
+            min-height: --spacing(33);
+        }
+    }
+
+    /* The old 25px radio: a thin ring, a small charcoal dot when picked */
+    .elme-checkout-option__control {
+        flex: none;
+        width: --spacing(6);
+        height: --spacing(6);
+        margin: 0;
+        border: 1px solid var(--color-border);
+        border-radius: 9999px;
+        background-color: var(--color-surface);
+        appearance: none;
+        cursor: pointer;
+        transition: box-shadow var(--transition-duration-fast) var(--ease-out-quad);
+
+        &:checked {
+            border-color: var(--color-border);
+            background-color: var(--color-primary);
+            background-image: none;
+            box-shadow: inset 0 0 0 --spacing(1.5) var(--color-surface);
+        }
+
+        &:focus,
+        &:focus-visible {
+            outline: none;
+            box-shadow: none;
+        }
+
+        &:checked:focus,
+        &:checked:focus-visible {
+            box-shadow: inset 0 0 0 --spacing(1.5) var(--color-surface);
+        }
+    }
+
+    .elme-checkout-options--addresses .elme-checkout-option__control {
+        margin-block-start: --spacing(0.5);
+    }
+
+    .elme-checkout-option__body {
+        flex: 1;
+        min-width: 0;
+        color: var(--color-ink-muted);
+        font-size: var(--text-copy-desktop);
+        line-height: var(--text-copy-desktop--line-height);
+    }
+
+    .elme-checkout-option__title {
+        display: block;
+        margin-block-end: --spacing(1);
+        color: var(--color-ink);
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
+    }
+
+    .elme-checkout-option__meta {
+        display: block;
+        color: var(--color-ink-subtle);
+    }
+
+    .elme-checkout-option__price {
+        flex: none;
+        text-align: right;
+        color: var(--color-ink);
+        font-size: var(--text-copy-desktop);
+        line-height: var(--text-copy-desktop--line-height);
+    }
+
+    .elme-checkout-option__price-value {
+        display: block;
+        font-weight: 700;
+    }
+
+    .elme-checkout-option__price-note {
+        display: block;
+        color: var(--color-ink-subtle);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+    }
+
+    /* --- chosen addresses / action links ------------------------------------- */
+
+    .elme-checkout-line {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: --spacing(4);
+    }
+
+    .elme-checkout-line__label {
+        display: block;
+        margin-block-end: --spacing(1);
+        color: var(--color-ink);
+        font-size: var(--text-copy-desktop);
+        line-height: var(--text-copy-desktop--line-height);
+    }
+
+    .elme-checkout-line__value {
+        display: block;
+        color: var(--color-ink-subtle);
+        font-size: var(--text-copy);
+        line-height: var(--text-copy-desktop--line-height);
+    }
+
+    /* Old action links: small, semi-bold, underline on hover */
+    .elme-checkout-link {
+        flex: none;
+        color: var(--color-ink);
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        text-decoration: none;
+        text-underline-offset: 0.2em;
+        cursor: pointer;
+
+        @media (hover: hover) and (pointer: fine) {
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+
+        &:focus-visible {
+            text-decoration: underline;
+        }
+    }
+
+    /* Inside a sentence a link keeps its underline */
+    p.elme-checkout-section__body .elme-checkout-link {
+        text-decoration: underline;
+    }
+
+    /* --- address form: underlined fields with the label inside, as on the old checkout --- */
+
+    .elme-checkout-form .field:not(.choice) {
+        position: relative;
+        margin: 0;
+    }
+
+    .elme-checkout-form .field:not(.choice) > .label {
+        position: absolute;
+        top: --spacing(1.5);
+        left: 0;
+        z-index: 1;
+        margin: 0;
+        padding: 0;
+        color: var(--color-ink-subtle);
+        font-size: var(--text-label);
+        line-height: 1;
+        font-weight: 600;
+        pointer-events: none;
+    }
+
+    .elme-checkout-form :is(.form-input, .form-select) {
+        height: --spacing(13.5);
+        padding: --spacing(5.25) 0 0;
+        border-width: 0 0 1px;
+        border-color: var(--color-border);
+        border-radius: 0;
+        background-color: transparent;
+        color: var(--color-ink);
+        box-shadow: none;
+
+        &:focus {
+            border-color: var(--color-primary);
+            outline: none;
+            box-shadow: none;
+        }
+
+        &:focus-visible {
+            box-shadow: 0 1px 0 0 var(--color-primary);
+        }
+
+        /* An invalid underlined field only turns its underline red (Hyva base draws a box outline), focused or not */
+        &:is(:user-invalid, [aria-invalid="true"]) {
+            border-color: var(--color-error);
+            outline: 0;
+
+            &:focus-visible {
+                box-shadow: 0 1px 0 0 var(--color-error);
+            }
+        }
+    }
+
+    .elme-checkout-form .form-select {
+        padding-inline-end: --spacing(10);
+        background-position: right --spacing(1) bottom --spacing(2);
+    }
+
+    .elme-checkout .field-error-message {
+        animation: elme-checkout-error-in var(--transition-duration-fast) var(--ease-out-quint) both;
+    }
+
+    .elme-checkout :is(.form-input, .form-textarea, .form-select)[aria-invalid="true"] {
+        border-color: var(--color-error);
+    }
+
+    .elme-checkout :is(.form-checkbox, .form-radio, input[type="checkbox"], input[type="radio"])[aria-invalid="true"] {
+        outline: 2px solid var(--color-error);
+        outline-offset: 2px;
+    }
+
+    /* --- address dialog: a sheet from the bottom on phones, centred from md --- */
+
+    .elme-checkout-dialog {
+        width: 100%;
+        max-width: 100%;
+        max-height: 92dvh;
+        margin: auto 0 0;
+        padding: 0;
+        border: 0;
+        background-color: var(--color-surface);
+        color: var(--color-ink);
+        box-shadow: 0 --spacing(6) --spacing(15) color-mix(in srgb, var(--color-ink) 22%, transparent);
+        overscroll-behavior: contain;
+
+        &[open] {
+            display: flex;
+            flex-direction: column;
+            animation: elme-checkout-sheet-in var(--transition-duration-slow) var(--ease-out-quint) both;
+        }
+
+        &::backdrop {
+            background-color: color-mix(in srgb, var(--color-ink) 50%, transparent);
+            animation: elme-checkout-fade-in var(--transition-duration-base) var(--ease-out-quad) both;
+        }
+
+        @variant md {
+            max-width: --spacing(150);
+            max-height: min(--spacing(195), 90dvh);
+            margin: auto;
+
+            &[open] {
+                animation-name: elme-checkout-dialog-in;
+                animation-duration: var(--transition-duration-base);
+            }
+        }
+    }
+
+    .elme-checkout-dialog__panel {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .elme-checkout-dialog__head {
+        display: flex;
+        flex: none;
+        align-items: center;
+        gap: --spacing(3);
+        padding: --spacing(4) --spacing(5);
+        border-block-end: 1px solid var(--color-divider);
+
+        @variant md {
+            padding: --spacing(5) --spacing(6);
+        }
+    }
+
+    .elme-checkout-dialog__title {
+        flex: 1;
+        min-width: 0;
+        margin: 0;
+        font-family: var(--font-sans);
+        font-size: var(--text-h3);
+        line-height: 1.2;
+        font-weight: 400;
+
+        @variant md {
+            font-size: var(--text-h3-desktop);
+        }
+    }
+
+    .elme-checkout-dialog__icon {
+        display: grid;
+        flex: none;
+        place-items: center;
+        width: --spacing(11);
+        height: --spacing(11);
+        margin: calc(--spacing(2.5) * -1) calc(--spacing(3) * -1);
+        color: var(--color-ink);
+        transition: color var(--transition-duration-fast) var(--ease-out-quad);
+
+        @media (hover: hover) and (pointer: fine) {
+            &:hover {
+                color: var(--color-link-hover);
+            }
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: -4px;
+        }
+    }
+
+    .elme-checkout-dialog__body {
+        flex: 1;
+        min-height: 0;
+        padding: --spacing(5);
+        overflow-y: auto;
+
+        @variant md {
+            padding: --spacing(6);
+        }
+    }
+
+    .elme-checkout-dialog__foot {
+        display: flex;
+        flex: none;
+        align-items: center;
+        justify-content: flex-end;
+        gap: --spacing(5);
+        padding: --spacing(4) --spacing(5) max(--spacing(5), env(safe-area-inset-bottom));
+        border-block-start: 1px solid var(--color-divider);
+
+        @variant md {
+            padding: --spacing(4) --spacing(6);
+        }
+
+        .btn {
+            flex: 1;
+
+            @variant md {
+                flex: none;
+            }
+        }
+    }
+
+    /* --- delivery instructions ---------------------------------------------- */
+
+    .elme-checkout [data-checkout-section="details"] .form-textarea {
+        display: block;
+        min-height: --spacing(47);
+        padding: --spacing(3.75);
+        border: 1px solid var(--color-border);
+        border-radius: var(--form-radius);
+        resize: vertical;
+    }
+
+    .elme-checkout-details__saving {
+        margin-block-start: --spacing(1);
+        color: var(--color-olive);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        animation: elme-checkout-fade-in var(--transition-duration-fast) var(--ease-out-quad) both;
+    }
+
+    .elme-checkout-details__counter {
+        margin-block-start: --spacing(1.5);
+        text-align: right;
+        color: var(--color-ink-subtle);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+    }
+
+    /* --- summary: on the sand column, white item rows ------------------------ */
+
+    .elme-checkout-summary {
+        @variant lg {
+            position: sticky;
+            top: --spacing(6);
+            max-width: --spacing(88);
+        }
+    }
+
+    .elme-checkout-summary__head {
+        display: none;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: --spacing(4);
+        padding-block-end: --spacing(3);
+        border-block-end: 1px solid var(--color-border);
+
+        @variant lg {
+            display: flex;
+        }
+    }
+
+    .elme-checkout-summary__title {
+        margin: 0;
+        font-family: var(--font-heading);
+        font-size: var(--text-h3);
+        line-height: var(--text-h3--line-height);
+        font-weight: 400;
+        color: var(--color-ink);
+    }
+
+    /* Phones and tablets: one line with the total, opens in place */
+    .elme-checkout-summary__toggle {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        gap: --spacing(3);
+        padding: --spacing(4) var(--container-gutter);
+        text-align: left;
+        color: var(--color-ink);
+
+        @variant md {
+            padding-inline: var(--container-gutter-desktop);
+        }
+
+        @variant lg {
+            display: none;
+        }
+    }
+
+    .elme-checkout-summary__toggle-label {
+        font-family: var(--font-heading);
+        font-size: var(--text-h3);
+        line-height: var(--text-h3--line-height);
+        font-weight: 400;
+    }
+
+    .elme-checkout-summary__toggle-total {
+        margin-inline-start: auto;
+        font-size: var(--text-base);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .elme-checkout-summary__chevron {
+        flex: none;
+        transition: transform var(--transition-duration-fast) var(--ease-out-quint);
+
+        &.is-open {
+            transform: rotate(180deg);
+        }
+    }
+
+    .elme-checkout-summary__panel {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows var(--transition-duration-base) var(--ease-in-out-quart);
+
+        @variant lg {
+            display: block;
+        }
+
+        &.is-open {
+            grid-template-rows: 1fr;
+        }
+    }
+
+    .elme-checkout-summary__panel-inner {
+        overflow: hidden;
+        padding-inline: var(--container-gutter);
+
+        @variant md {
+            padding-inline: var(--container-gutter-desktop);
+        }
+
+        @variant lg {
+            overflow: visible;
+            padding-inline: 0;
+        }
+    }
+
+    .elme-checkout-summary__items {
+        display: grid;
+        gap: --spacing(2.5);
+        margin: 0;
+        padding: --spacing(2.5) 0;
+        list-style: none;
+
+        @variant lg {
+            max-height: --spacing(109);
+            overflow-y: auto;
+        }
+    }
+
+    .elme-checkout-summary__item {
+        display: flex;
+        gap: --spacing(4);
+        padding: --spacing(2.5);
+        background-color: var(--color-surface);
+        color: var(--color-ink-muted);
+        font-size: var(--text-label);
+        line-height: var(--text-label--line-height);
+
+        p {
+            margin: 0;
+        }
+
+        .text-note {
+            margin-block-start: --spacing(1);
+            font-size: var(--text-label);
+            line-height: var(--text-label--line-height);
+        }
+    }
+
+    .elme-checkout-summary__thumb {
+        flex: none;
+        width: --spacing(20);
+        height: --spacing(20);
+        object-fit: contain;
+        background-color: var(--color-surface);
+    }
+
+    .elme-checkout-summary__thumb--empty {
+        display: grid;
+        place-items: center;
+        background-color: var(--color-sand-light);
+        color: var(--color-ink);
+
+        svg {
+            opacity: 0.55;
+        }
+    }
+
+    .elme-checkout-summary__name {
+        margin-block-end: --spacing(2);
+        color: var(--color-ink);
+        font-size: var(--text-base);
+        line-height: var(--text-h5--line-height);
+    }
+
+    .elme-checkout-summary__price {
+        flex: none;
+        color: var(--color-ink);
+        font-size: var(--text-copy-desktop);
+        line-height: var(--text-base--line-height);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .elme-checkout-summary__edit {
+        margin: 0;
+        padding-block: --spacing(1) --spacing(2);
+
+        @variant lg {
+            display: none;
+        }
+    }
+
+    /* Totals: plain lines, then a rule and the order total in bold */
+    .elme-checkout-summary__totals {
+        padding-block: --spacing(3) --spacing(5);
+        border-block-start: 1px solid var(--color-border);
+    }
+
+    .elme-checkout-summary__row {
+        display: flex;
+        justify-content: space-between;
+        gap: --spacing(4);
+        margin: 0;
+        padding-block: --spacing(1.5);
+        color: var(--color-ink);
+        font-size: var(--text-copy-desktop);
+        line-height: var(--text-copy-desktop--line-height);
+
+        dd {
+            margin: 0;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+    }
+
+    .elme-checkout-summary__grand {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: --spacing(4);
+        margin: --spacing(3) 0 0;
+        padding-block-start: --spacing(3.5);
+        border-block-start: 1px solid var(--color-border);
+        color: var(--color-ink);
+        font-size: var(--text-h3);
+        line-height: var(--text-h3--line-height);
+        font-weight: 700;
+
+        dd {
+            margin: 0;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+    }
+
+    /* --- mobile place-order bar --------------------------------------------- */
+
+    .elme-checkout-bar {
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: --spacing(4);
+        margin-inline: calc(var(--container-gutter) * -1);
+        padding-inline: var(--container-gutter);
+        padding-block: --spacing(3);
+        padding-block-end: max(--spacing(3), env(safe-area-inset-bottom));
+        border-block-start: 1px solid var(--color-border-light);
+        background-color: color-mix(in srgb, var(--color-surface) 94%, transparent);
+        backdrop-filter: blur(8px);
+        animation: elme-checkout-bar-in var(--transition-duration-base) var(--ease-out-quint) both;
+
+        @variant md {
+            margin-inline: calc(var(--container-gutter-desktop) * -1);
+            padding-inline: var(--container-gutter-desktop);
+        }
+
+        @variant lg {
+            display: none;
+        }
+    }
+
+    .elme-checkout-bar__total-label {
+        display: block;
+        color: var(--color-ink-subtle);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+    }
+
+    .elme-checkout-bar__total-value {
+        display: block;
+        color: var(--color-ink);
+        font-size: var(--text-h3);
+        line-height: var(--text-h3--line-height);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* --- agreements / place order ------------------------------------------- */
+
+    .elme-checkout-agreements {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(4);
+        scroll-margin-block-start: --spacing(4);
+    }
+
+    .elme-checkout-agreements__box {
+        padding: --spacing(4);
+        border: 1px solid var(--color-border-light);
+        border-radius: var(--form-radius);
+    }
+
+    /* Desktop: "Return to cart" on the left, Place order on the right, as on the old shipping step */
+    .elme-checkout-place {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: --spacing(6);
+
+        @variant lg {
+            display: flex;
+        }
+    }
+
+    .elme-checkout-place [data-place-order],
+    .elme-checkout-bar [data-place-order] {
+        gap: --spacing(2);
+        min-inline-size: --spacing(44);
+    }
+
+    .elme-checkout-place [data-place-order] {
+        width: 100%;
+        max-width: --spacing(80);
+    }
+
+    .elme-checkout-bar .elme-checkout-place__icon {
+        display: none;
+    }
+
+    /* --- enter motion (steps + summary) ------------------------------------- */
+
+    @media (prefers-reduced-motion: no-preference) {
+        .elme-checkout__sections > [data-checkout-section],
+        .elme-checkout__summary-col > .elme-checkout-summary {
+            animation: elme-checkout-rise var(--transition-duration-base) var(--ease-out-quint) both;
+        }
+
+        .elme-checkout__sections > [data-checkout-section]:nth-child(1) { animation-delay: 0ms; }
+        .elme-checkout__sections > [data-checkout-section]:nth-child(2) { animation-delay: 40ms; }
+        .elme-checkout__sections > [data-checkout-section]:nth-child(3) { animation-delay: 80ms; }
+        .elme-checkout__sections > [data-checkout-section]:nth-child(4) { animation-delay: 120ms; }
+        .elme-checkout__sections > [data-checkout-section]:nth-child(5) { animation-delay: 160ms; }
+        .elme-checkout__summary-col > .elme-checkout-summary { animation-delay: 60ms; }
+    }
+}
+
+@keyframes elme-checkout-rise {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes elme-checkout-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes elme-checkout-error-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* The page under an open address dialog does not scroll */
+html:has(.elme-checkout-dialog[open]) {
+    overflow: hidden;
+}
+
+@keyframes elme-checkout-sheet-in {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+@keyframes elme-checkout-dialog-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes elme-checkout-bar-in {
+    from {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .elme-checkout__message,
+    .elme-checkout-section__error,
+    .elme-checkout .field-error-message,
+    .elme-checkout-section__loader,
+    .elme-checkout-details__saving,
+    .elme-checkout-bar,
+    .elme-checkout-dialog[open],
+    .elme-checkout-dialog::backdrop {
+        animation: none;
+    }
+
+    .elme-checkout-summary__panel {
+        transition: none;
+    }
+}

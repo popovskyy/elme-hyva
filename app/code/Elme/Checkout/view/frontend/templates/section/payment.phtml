@@ -1,0 +1,123 @@
+<?php
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\StoreContact;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$contact = $viewModels->require(StoreContact::class);
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+$layout = $block->getLayout();
+$renderers = [];
+foreach ($block->getChildNames() as $childName) {
+    $renderers[$layout->getElementAlias($childName)] = $childName;
+}
+?>
+<section class="elme-checkout-section scroll-mt-4"
+         data-checkout-section="payment"
+         x-data="elmeCheckoutPayment"
+         data-renderers="<?= $escaper->escapeHtmlAttr(implode(' ', array_keys($renderers))) ?>"
+         :class="busyClass"
+         :aria-busy="ariaBusy">
+    <div class="elme-checkout-section__loader" x-show="isBusy" x-cloak aria-hidden="true">
+        <span class="elme-spinner"></span>
+    </div>
+
+    <div class="elme-checkout-section__head">
+        <span class="elme-checkout-section__step" :class="stepClass" aria-hidden="true">
+            <span class="elme-checkout-section__step-number"><?= (int) $block->getData('number') ?></span>
+            <?= $heroicons->checkHtml('elme-checkout-section__step-check', 14, 14, ['aria-hidden' => 'true']) ?>
+        </span>
+        <h2 class="elme-checkout-section__title"><?= $escaper->escapeHtml(__('Payment method')) ?></h2>
+    </div>
+
+    <p class="elme-checkout-section__error" role="alert" x-show="error" x-cloak x-text="error"></p>
+    <p class="elme-checkout-section__hint" x-show="locked" x-cloak x-text="locked"></p>
+
+    <p class="elme-checkout-section__body text-copy text-ink" x-show="hasNoMethods" x-cloak>
+        <?= $escaper->escapeHtml(__("We can't take payment for this order online, please call us")) ?>:
+        <a class="elme-checkout-link" href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>">
+            <?= $escaper->escapeHtml($contact->getPhoneDisplay()) ?>
+        </a>
+    </p>
+
+    <fieldset class="elme-checkout-section__body" x-show="hasMethods" x-cloak>
+        <legend class="sr-only"><?= $escaper->escapeHtml(__('Payment method')) ?></legend>
+        <div class="elme-checkout-options">
+            <template x-for="method in methods" :key="method.code">
+                <div>
+                    <?php foreach ($renderers as $alias => $childName): ?>
+                        <template x-if="isRenderer" data-renderer="<?= $escaper->escapeHtmlAttr($alias) ?>">
+                            <?= $layout->renderElement($childName) ?>
+                        </template>
+                    <?php endforeach; ?>
+                </div>
+            </template>
+        </div>
+    </fieldset>
+</section>
+<script>
+    function elmeCheckoutPayment() {
+        return {
+            renderers: [],
+
+            init() {
+                this.renderers = this.$el.dataset.renderers.split(' ');
+            },
+            store() {
+                return Alpine.store('elmeCheckout');
+            },
+            data() {
+                return this.store().section('payment') || {};
+            },
+            methods() {
+                return this.data().methods || [];
+            },
+            error() {
+                return this.store().sectionError('payment');
+            },
+            locked() {
+                return this.data().locked || '';
+            },
+            isBusy() {
+                return this.store().isLoading('payment');
+            },
+            ariaBusy() {
+                return this.isBusy() ? 'true' : 'false';
+            },
+            stepClass() {
+                return {'is-done': Boolean(this.data().selected)};
+            },
+            busyClass() {
+                return {'is-busy': this.isBusy()};
+            },
+            hasMethods() {
+                return this.methods().length > 0;
+            },
+            hasNoMethods() {
+                return Boolean(this.store().section('payment')) && !this.locked() && !this.hasMethods();
+            },
+            isRenderer() {
+                const renderer = this.renderers.includes(this.method.code) ? this.method.code : 'default';
+                return this.$el.dataset.renderer === renderer;
+            },
+            isChecked() {
+                return this.method.code === (this.store().pickedCode('payment') ?? this.data().selected);
+            },
+            pick() {
+                this.store().pick('paymentmethod', this.method.code, {method: this.method.code}, 'payment');
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('elmeCheckoutPayment', elmeCheckoutPayment), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

@@ -96,5 +96,17 @@
         <referenceBlock name="footer-static-links" remove="true"/>
         <referenceBlock name="footer-cms-content" remove="true"/>
         <referenceBlock name="footer-copyright" remove="true"/>
+
+        <!-- Core wishlist, compare and product reviews. Custom replacements come later. -->
+        <referenceBlock name="catalog.compare.sidebar" remove="true"/>
+        <referenceBlock name="wishlist_sidebar" remove="true"/>
+        <referenceBlock name="customer-account-navigation-wish-list-link" remove="true"/>
+        <referenceBlock name="customer-account-navigation-product-reviews-link" remove="true"/>
+        <referenceBlock name="customer_account_dashboard_info1" remove="true"/>
+        <!-- No downloadable goods. Saved cards stay out until card payments (FE-38).
+             The core reorder box is not the B2B recently-ordered page (FE-43). -->
+        <referenceBlock name="customer-account-navigation-downloadable-products-link" remove="true"/>
+        <referenceBlock name="customer-account-navigation-my-credit-cards-link" remove="true"/>
+        <referenceBlock name="sale.reorder.sidebar" remove="true"/>
     </body>
 </page>

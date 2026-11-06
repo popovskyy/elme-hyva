@@ -1,12 +1,17 @@
 <?xml version="1.0"?>
-<!-- Home page, "Calm gallery" (docs/design/homepage-review-options.html, picked 31 Oct 2026):
+<!-- Home page, "Calm gallery" (picked 31 Oct 2026):
      CMS content (hero, welcome intro, category grid, From the showroom, Become a Stockist), then the
      FE-12 Instagram slider. Our Difference lives on About us; Need assistance? is in the footer
-     (Magento_Theme::html/footer.phtml) for every page. Sections fade and rise in as they scroll into view
+     (Magento_Theme::html/footer.phtml) for every page. Motion on this page is the hero
+     (web/tailwind/elme/hero.css) and the Become a Stockist collage
      (Magento_Theme::html/home-motion.phtml, home-motion.css). -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
+        <referenceContainer name="head.additional">
+            <block name="elme.home.hero.preload"
+                   template="Elme_Theme::hero-preload.phtml"/>
+        </referenceContainer>
         <referenceContainer name="content">
             <block class="Bart\ContentStudio\Block\Entry"
                    name="elme.instagram.slider"

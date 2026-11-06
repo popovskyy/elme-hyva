@@ -3,6 +3,18 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
+        <!-- Core wishlist, compare and reviews. Elme ships its own later. -->
+        <referenceBlock name="product.info.review" remove="true"/>
+        <referenceBlock name="product.info.addtowishlist" remove="true"/>
+        <referenceBlock name="product.info.addtocompare" remove="true"/>
+        <referenceBlock name="reviews.tab" remove="true"/>
+        <referenceBlock name="review_list" remove="true"/>
+        <referenceBlock name="product.review.form" remove="true"/>
+        <referenceBlock name="recently_viewed_products.default_widget_pdp">
+            <arguments>
+                <argument name="show_buttons" xsi:type="string">add_to_cart</argument>
+            </arguments>
+        </referenceBlock>
         <referenceContainer name="content">
             <block class="Bart\ContentStudio\Block\Entry"
                    name="elme.instagram.slider"

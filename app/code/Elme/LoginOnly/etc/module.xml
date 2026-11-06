@@ -8,7 +8,9 @@
             <module name="Magento_Cms"/>
             <module name="Magento_ConfigurableProduct"/>
             <module name="Magento_Customer"/>
+            <module name="Magento_GraphQl"/>
             <module name="Magento_Swatches"/>
+            <module name="Magento_Webapi"/>
             <module name="Magento_Wishlist"/>
             <module name="Hyva_Theme"/>
         </sequence>

@@ -371,52 +371,32 @@
         }
     }
 
-    /* --- Need assistance? as a charcoal card ------------------------------------------------- */
+    /* --- Need assistance? as a charcoal card. Same letterhead, light type on ink. ----------- */
     .help-page .elme-help__assistance .elme-need-assistance {
         margin-bottom: 0;
-        padding: --spacing(6) --spacing(5) --spacing(3);
+        padding: --spacing(6) --spacing(5);
         background-color: var(--color-ink);
         color: var(--color-on-primary);
     }
 
     @variant md {
         .help-page .elme-help__assistance .elme-need-assistance {
-            padding: --spacing(6) --spacing(6) --spacing(2);
+            padding: --spacing(6);
         }
     }
 
     .help-page .elme-help__assistance .elme-need-assistance__inner {
-        gap: --spacing(3);
+        gap: --spacing(4);
     }
 
     .help-page .elme-help__assistance .elme-need-assistance__title {
-        font-family: var(--font-heading);
         font-size: var(--text-h3-desktop);
         line-height: 1.2;
-        font-weight: 400;
-        letter-spacing: 0;
-        text-transform: none;
         color: var(--color-on-primary);
     }
 
-    .help-page .elme-help__assistance .elme-need-assistance__cells {
-        gap: 0;
-        background: none;
-        border: 0;
-    }
-
-    .help-page .elme-help__assistance .elme-need-assistance__cell {
-        gap: --spacing(3.5);
-        padding: --spacing(4) 0;
-        background: none;
-        border-top: 1px solid color-mix(in oklab, var(--color-on-primary) 16%, transparent);
-    }
-
-    .help-page .elme-help__assistance .elme-need-assistance__icon {
-        width: --spacing(10);
-        height: --spacing(10);
-        background: color-mix(in oklab, var(--color-on-primary) 12%, transparent);
-        color: var(--color-on-primary);
+    .help-page .elme-help__assistance .elme-need-assistance__cells > li {
+        border-color: color-mix(in oklab, var(--color-on-primary) 22%, transparent);
     }
 
     .help-page .elme-help__assistance .elme-need-assistance__label {
@@ -424,24 +404,15 @@
     }
 
     .help-page .elme-help__assistance .elme-need-assistance__value {
-        font-weight: 500;
         color: var(--color-on-primary);
     }
 
-    /* phones and tablets where the card is wide: the three contacts side by side */
-    @container (min-width: 40rem) {
-        .help-page .elme-help__assistance .elme-need-assistance__cells {
-            gap: --spacing(6);
-        }
+    .help-page .elme-help__assistance .elme-need-assistance__cell:is(:hover, :focus-visible) .elme-need-assistance__value {
+        color: var(--color-secondary);
+    }
 
-        .help-page .elme-help__assistance .elme-need-assistance__cell {
-            padding: --spacing(5) 0;
-        }
-
-        .help-page .elme-help__assistance .elme-need-assistance__icon {
-            width: --spacing(10);
-            height: --spacing(10);
-        }
+    .help-page .elme-help__assistance .elme-need-assistance__cell:focus-visible {
+        outline-color: var(--color-on-primary);
     }
 
     /* --- On this page (Terms, Privacy) ------------------------------------------------------- */

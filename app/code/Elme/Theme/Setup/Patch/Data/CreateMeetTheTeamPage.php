@@ -161,7 +161,7 @@ class CreateMeetTheTeamPage implements DataPatchInterface
 
     private function copyImages(): void
     {
-        $fromDir = BP . '/app/design/frontend/Elme/default/web/images/fe65';
+        $fromDir = BP . '/app/design/frontend/Elme/default/web/images/sample-images';
         $targetDir = BP . '/pub/media/' . self::MEDIA_DIR;
 
         if (!is_dir($fromDir) || (!is_dir($targetDir) && !mkdir($targetDir, 0775, true) && !is_dir($targetDir))) {

@@ -7,10 +7,11 @@
  * handlers (CSP-safe, same pattern as btn-ripple.phtml).
  *
  * Flow: submit -> button goes to "sending" at once (aria-busy; cart slides to the centre, a dot drops
- * into it until the server answers) -> POST with X-Requested-With, so Magento's cart/add answers JSON
- * -> read the "messages" section (cart/add puts its result there) -> "success" (cart leaves right,
- * check + "Added" comes in from the left, 1.5s) only when the server confirmed it with its success
- * message; otherwise back to idle and the error goes to the toast stack.
+ * into it until the server answers, at least one full drop) -> POST with X-Requested-With, so
+ * Magento's cart/add answers JSON -> read the "messages" section (cart/add puts its result there)
+ * -> "success" (cart leaves right, check + "Added" comes in from the left, 2.2s) only when the
+ * server confirmed it with its success message; otherwise back to idle and the error goes to the
+ * toast stack.
  *
  * Requests run one after another, so quick clicks on many tiles never race on the quote and every
  * result belongs to the right button. Clicks are never blocked: the button just shows its place in
@@ -49,7 +50,10 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
 <script>
     (function () {
         const SELECTOR = '.btn-atc';
-        const HOLD_MS = 1500;
+        const HOLD_MS = 2200;
+        // at least --atc-slide + --atc-drop (elme/add-to-cart.css): a fast answer still shows the
+        // cart slide in and one dot drop before "Added"
+        const MIN_SENDING_MS = 1650;
         const TEXT = {
             added: '<?= $escaper->escapeJs(__('Added to cart')) ?>',
             failed: '<?= $escaper->escapeJs(__('We couldn\'t add this item to your cart. Please try again.')) ?>'
@@ -95,12 +99,6 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
             btn.style.setProperty('--atc-from-x', Math.round(fromX) + 'px');
             btn.style.setProperty('--atc-exit-x', Math.round(rect.width / 2 + 24) + 'px');
             btn.toggleAttribute('data-atc-compact', !label || label.getClientRects().length === 0);
-        }
-
-        // The cart slides in from the idle icon in this time (--transition-duration-slow); a faster
-        // answer waits for the slide only, so the cart never turns back half way.
-        function slideMs(btn) {
-            return parseFloat(getComputedStyle(btn).getPropertyValue('--transition-duration-slow')) || 0;
         }
 
         function setState(btn, state) {
@@ -205,7 +203,7 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
 
         function finish(job, result) {
             const btn = job.btn;
-            const wait = Math.max(0, slideMs(btn) - (Date.now() - job.startedAt));
+            const wait = Math.max(0, MIN_SENDING_MS - (Date.now() - job.startedAt));
             setTimeout(() => {
                 btn.atcPending = false;
                 if (!result.ok) {

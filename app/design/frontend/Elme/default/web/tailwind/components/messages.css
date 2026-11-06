@@ -4,7 +4,8 @@
  * Two leaf layers sit behind the text: soft silhouettes (::before) and line
  * art (::after). They are masks, so each type colours them from its own tint
  * and --leaf-x / --leaf-y / --leaf-flip give each type a different scatter.
- * Page messages fill the content column. Toasts sit under the header.
+ * Page messages and toasts are the same compact card (--message-max-width), centred.
+ * Page messages stay in the flow, toasts sit fixed under the header.
  */
 
 @layer components {
@@ -160,6 +161,7 @@
 
     /* Ephemeral toast: fixed under the header band, not over it */
     .elme-toast-stack {
+        --message-max-width: --spacing(150);
         position: fixed;
         z-index: 40;
         inset-inline: 0;
@@ -173,7 +175,7 @@
     }
 
     .elme-toast-stack .message {
-        width: min(100%, --spacing(115));
+        width: min(100%, var(--message-max-width));
         margin-block-end: 0;
         pointer-events: auto;
 
@@ -222,8 +224,9 @@
     }
 }
 
-/* Keep messages in the content column under the header (no sticky overlay) */
+/* Keep messages in the page flow under the header (no sticky overlay), compact and centred */
 .page.messages {
+    --message-max-width: --spacing(150);
     position: relative;
     z-index: 10;
 
@@ -232,5 +235,10 @@
         @apply container;
         margin-inline: auto;
         padding-block: --spacing(3);
+
+        > div {
+            width: min(100%, var(--message-max-width));
+            margin-inline: auto;
+        }
     }
 }

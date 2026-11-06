@@ -1,0 +1,152 @@
+<?php
+
+declare(strict_types=1);
+
+use Elme\Checkout\Api\OrderDetailsInterface;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+
+$instructionsField = OrderDetailsInterface::DELIVERY_INSTRUCTIONS;
+?>
+<section class="elme-checkout-section scroll-mt-4"
+         data-checkout-section="details"
+         x-data="elmeCheckoutDetails">
+    <div class="elme-checkout-section__head">
+        <span class="elme-checkout-section__step" aria-hidden="true">
+            <span class="elme-checkout-section__step-number"><?= (int) $block->getData('number') ?></span>
+        </span>
+        <h2 class="elme-checkout-section__title">
+            <label for="elme-checkout-instructions">
+                <?= $escaper->escapeHtml(__('Delivery instructions')) ?>
+                <span class="elme-checkout-section__optional"><?= $escaper->escapeHtml(__('(optional)')) ?></span>
+            </label>
+        </h2>
+    </div>
+
+    <p class="elme-checkout-section__error" role="alert" x-show="error" x-cloak x-text="error"></p>
+
+    <div class="elme-checkout-section__body">
+        <div class="field">
+            <textarea id="elme-checkout-instructions"
+                      class="form-textarea w-full"
+                      name="<?= /* @noEscape */ $instructionsField ?>"
+                      rows="4"
+                      maxlength="<?= (int) OrderDetailsInterface::DELIVERY_INSTRUCTIONS_MAX_LENGTH ?>"
+                      placeholder="<?= $escaper->escapeHtmlAttr(__('e.g. Please place package at front door.')) ?>"
+                      aria-describedby="elme-checkout-instructions-error elme-checkout-instructions-counter elme-checkout-instructions-saving"
+                      data-field="<?= /* @noEscape */ $instructionsField ?>"
+                      :value="value"
+                      :aria-invalid="fieldInvalid"
+                      @input="change"
+                      @blur="leave"></textarea>
+            <p id="elme-checkout-instructions-error"
+               class="field-error-message"
+               data-field="<?= /* @noEscape */ $instructionsField ?>"
+               x-show="fieldError"
+               x-cloak
+               x-text="fieldError"></p>
+            <p id="elme-checkout-instructions-saving"
+               class="elme-checkout-details__saving"
+               x-show="isBusy"
+               x-cloak>
+                <?= $escaper->escapeHtml(__('Saving…')) ?>
+            </p>
+            <p id="elme-checkout-instructions-counter"
+               class="elme-checkout-details__counter"
+               data-field="<?= /* @noEscape */ $instructionsField ?>"
+               data-max="<?= (int) OrderDetailsInterface::DELIVERY_INSTRUCTIONS_MAX_LENGTH ?>"
+               x-text="counter"></p>
+        </div>
+    </div>
+</section>
+<script>
+    function elmeCheckoutDetails() {
+        const SAVE_AFTER_MS = 800;
+
+        return {
+            values: {},
+            saveTimer: null,
+
+            init() {
+                this.values = {...this.saved()};
+                // Place order goes first through here: the last change may be waiting for its timer, and iOS keeps the
+                // focus in the field when a button is tapped, so there may be no blur
+                this.store().onBeforePlaceOrder(() => this.save('enqueue'));
+            },
+            store() {
+                return Alpine.store('elmeCheckout');
+            },
+            saved() {
+                return this.store().section('details') || {};
+            },
+            field() {
+                return this.$el.dataset.field;
+            },
+            value() {
+                return this.values[this.field()] || '';
+            },
+            error() {
+                const hasFieldError = Object.keys(this.values).some((field) => this.store().fieldError(field));
+                return hasFieldError ? '' : this.store().sectionError('details');
+            },
+            fieldError() {
+                return this.store().fieldError(this.field());
+            },
+            fieldInvalid() {
+                return this.fieldError() ? 'true' : 'false';
+            },
+            isBusy() {
+                return this.store().isLoading('details');
+            },
+            counter() {
+                return `${this.value().length} / ${this.$el.dataset.max}`;
+            },
+            change() {
+                this.values[this.field()] = this.$el.value;
+                this.store().clearFieldError(this.field());
+                clearTimeout(this.saveTimer);
+                this.saveTimer = setTimeout(() => this.save(), SAVE_AFTER_MS);
+            },
+            leave() {
+                this.save();
+            },
+
+            /**
+             * @param {string} send "call" is refused once the order is being placed, "enqueue" goes before the order
+             * @returns {Promise<boolean>} true when the server has what the fields say
+             */
+            async save(send = 'call') {
+                clearTimeout(this.saveTimer);
+
+                const sent = {...this.values};
+                const saved = this.saved();
+                const isChanged = Object.keys(sent).some((field) => sent[field].trim() !== saved[field]);
+                if (isChanged && !(await this.store()[send]('details', sent, 'details'))) {
+                    return false;
+                }
+
+                this.tidy(sent);
+                return true;
+            },
+
+            /**
+             * Shows what was saved (trimmed), except in the field being typed in or changed in the meantime.
+             */
+            tidy(sent) {
+                const saved = this.saved();
+                Object.keys(sent).forEach((field) => {
+                    if (document.activeElement?.dataset.field !== field && this.values[field] === sent[field]) {
+                        this.values[field] = saved[field];
+                    }
+                });
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('elmeCheckoutDetails', elmeCheckoutDetails), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

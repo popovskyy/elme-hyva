@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <!-- Elme sells in Australia only; the checkout has no country field -->
+        <general>
+            <country>
+                <allow>AU</allow>
+                <default>AU</default>
+            </country>
+        </general>
+        <customer>
+            <address>
+                <street_lines>2</street_lines>
+            </address>
+        </customer>
+        <tax>
+            <!-- Catalog prices are entered ex GST; everything is shown ex GST with GST as its own line -->
+            <calculation>
+                <price_includes_tax>0</price_includes_tax>
+                <shipping_includes_tax>0</shipping_includes_tax>
+            </calculation>
+            <defaults>
+                <country>AU</country>
+                <region>0</region>
+                <postcode>*</postcode>
+            </defaults>
+            <display>
+                <type>1</type>
+                <shipping>1</shipping>
+            </display>
+            <cart_display>
+                <price>1</price>
+                <subtotal>1</subtotal>
+                <shipping>1</shipping>
+                <grandtotal>1</grandtotal>
+                <full_summary>0</full_summary>
+                <zero_tax>0</zero_tax>
+            </cart_display>
+            <sales_display>
+                <price>1</price>
+                <subtotal>1</subtotal>
+                <shipping>1</shipping>
+                <grandtotal>1</grandtotal>
+                <full_summary>0</full_summary>
+                <zero_tax>0</zero_tax>
+            </sales_display>
+        </tax>
+        <payment>
+            <!-- The one way to pay until account credit and card methods arrive -->
+            <checkmo>
+                <active>1</active>
+            </checkmo>
+        </payment>
+    </default>
+</config>

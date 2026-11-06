@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 /**
- * FE-35 login, "Split screen" (docs/design/login-options.html, 1): a tall flower photo with a line about the
+ * FE-35 login, "Split screen": a tall flower photo with a line about the
  * trade site on one half, the sign-in form and the "New to Elme Living?" apply block on the other. On phones
  * the photo is a band above the form. The H1 is the form title, so the page title block is removed.
  */

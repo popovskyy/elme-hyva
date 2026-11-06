@@ -16,12 +16,14 @@
 @import "./elme/product-card.css";
 @import "./elme/hero.css";
 @import "./elme/category-tiles.css";
+@import "./elme/category-banner.css";
 @import "./elme/snap-carousel.css";
 @import "./elme/instagram-slider.css";
 @import "./elme/home-motion.css";
 @import "./elme/home-statement.css";
 @import "./elme/home-calm.css";
 @import "./elme/login.css";
+@import "./elme/checkout.css";
 @import "./elme/third-party.css";
 @import "./elme/noroute.css";
 @import "./elme/help.css";
@@ -30,3 +32,4 @@
 @import "./elme/contact.css";
 @import "./elme/content-page.css";
 @import "./elme/style-sourcebook.css";
+@import "./elme/store-locator.css";

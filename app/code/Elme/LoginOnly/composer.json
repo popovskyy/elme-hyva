@@ -6,12 +6,15 @@
         "php": "~8.3.0||~8.4.0",
         "hyva-themes/magento2-theme-module": "*",
         "magento/framework": "*",
+        "magento/module-authorization": "*",
         "magento/module-catalog": "*",
         "magento/module-checkout": "*",
         "magento/module-cms": "*",
         "magento/module-configurable-product": "*",
         "magento/module-customer": "*",
+        "magento/module-graph-ql": "*",
         "magento/module-swatches": "*",
+        "magento/module-webapi": "*",
         "magento/module-wishlist": "*"
     },
     "autoload": {

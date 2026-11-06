@@ -5,19 +5,25 @@
  * while sending; components/button.css leaves its spinner off .btn-atc).
  * The idle icon + label stay in the flow (only faded), so the button never changes size;
  * the stage is an overlay on top of them.
+ * Timings are longer than the UI tokens on purpose: this is the one moment of feedback, it should read as
+ * calm. MIN_SENDING_MS in atc-button.phtml must stay at least --atc-slide + --atc-drop.
  */
 .btn-atc {
+    --atc-slide: 520ms;
+    --atc-drop: 1100ms;
+    --atc-exit: 460ms;
+    --atc-fade: 300ms;
     position: relative;
     overflow: hidden;
 
     /* idle content: icon + label */
     & > :not(.btn-atc__stage, .btn-ripple) {
-        transition: opacity var(--transition-duration-fast) var(--ease-out-quad);
+        transition: opacity var(--atc-fade) var(--ease-out-quad);
     }
 
     &:is([data-atc-state="sending"], [data-atc-state="success"]) > :not(.btn-atc__stage, .btn-ripple) {
         opacity: 0;
-        transition-duration: var(--transition-duration-micro);
+        transition-duration: var(--transition-duration-fast);
     }
 
     /* the stage cart takes over the idle icon in the same spot, so the icon goes at once */
@@ -48,16 +54,16 @@
     [data-atc-state="sending"] & {
         opacity: 1;
         translate: 0 0;
-        transition: translate var(--transition-duration-slow) var(--ease-out-quart);
-        animation: atc-cart-catch var(--transition-duration-loop) var(--ease-out-quad) var(--transition-duration-slow) infinite;
+        transition: translate var(--atc-slide) var(--ease-out-quart);
+        animation: atc-cart-catch var(--atc-drop) var(--ease-out-quad) var(--atc-slide) infinite;
     }
 
     [data-atc-state="success"] & {
         opacity: 0;
         translate: var(--atc-exit-x, 150%) 0;
         transition:
-            translate var(--transition-duration-slow) var(--ease-in-quart),
-            opacity var(--transition-duration-slow) var(--ease-in-quart);
+            translate var(--atc-exit) var(--ease-in-quart),
+            opacity var(--atc-exit) var(--ease-in-quart);
     }
 }
 
@@ -71,7 +77,7 @@
     opacity: 0;
 
     [data-atc-state="sending"] & {
-        animation: atc-dot-drop var(--transition-duration-loop) var(--ease-in-quart) var(--transition-duration-slow) infinite;
+        animation: atc-dot-drop var(--atc-drop) var(--ease-in-quart) var(--atc-slide) infinite;
     }
 }
 
@@ -85,15 +91,15 @@
     translate: calc(var(--atc-exit-x, 150%) * -1) 0;
     /* leaving success: fade out where it is, jump back to the left once invisible */
     transition:
-        opacity var(--transition-duration-fast) var(--ease-out-quad),
-        translate 0s linear var(--transition-duration-fast);
+        opacity var(--atc-fade) var(--ease-out-quad),
+        translate 0s linear var(--atc-fade);
 
     [data-atc-state="success"] & {
         opacity: 1;
         translate: 0 0;
         transition:
-            translate var(--transition-duration-slow) var(--ease-out-quart) var(--transition-duration-micro),
-            opacity var(--transition-duration-fast) var(--ease-out-quad) var(--transition-duration-micro);
+            translate var(--atc-slide) var(--ease-out-quart) 160ms,
+            opacity var(--atc-fade) var(--ease-out-quad) 160ms;
     }
 
     [data-atc-compact] & .btn-atc__done-label {
@@ -144,7 +150,7 @@
     }
 
     [data-atc-state="sending"] .btn-atc__cart {
-        animation: atc-pulse var(--transition-duration-loop) var(--ease-in-out-cubic) infinite alternate;
+        animation: atc-pulse var(--atc-drop) var(--ease-in-out-cubic) infinite alternate;
     }
 
     [data-atc-state="sending"] .btn-atc__dot {

@@ -13,7 +13,8 @@ use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Default customer prices: Magento's own price for the customer's group (special price, catalog rules,
- * configurable = cheapest child), ex GST. Stands in until the Pronto per-customer prices are connected.
+ * configurable = cheapest child), ex GST. Elme_CustomerPricing replaces it and falls back to it for SKUs without
+ * a Pronto price list row.
  */
 class GroupPriceProvider implements CustomerPriceProviderInterface
 {

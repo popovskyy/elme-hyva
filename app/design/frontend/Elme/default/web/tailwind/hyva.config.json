@@ -12,7 +12,13 @@
         "src": "app/code/Elme/LoginOnly"
       },
       {
+        "src": "app/code/Elme/Checkout"
+      },
+      {
         "src": "app/code/Elme/Theme"
+      },
+      {
+        "src": "app/code/Elme/StoreLocator"
       },
       {
         "src": "app/code/Bart/ContentStudio/view/frontend"
@@ -46,6 +52,7 @@
         "surface": "#FFFFFF",
         "surface-muted": "#F8F8F8",
         "sand-light": "#E1DBD1",
+        "sand-faint": "#FAF9F4",
         "cool-light": "#ECEFF1",
         "border": "#CAC9C9",
         "border-light": "#D3D6D9",
@@ -53,7 +60,7 @@
         "placeholder": "#ADB2B8",
         "success": "#00BC37",
         "success-light": "#C5EAD6",
-        "olive": "#677858",
+        "olive": "#647455",
         "warning": "#F2B20C",
         "warning-light": "#FDDCC7",
         "error": "#FF5942",
@@ -61,7 +68,7 @@
         "error-light": "#FFC3B8",
         "promo": "#CB4867",
         "toast-success": "#E2E8DB",
-        "toast-success-mark": "#677858",
+        "toast-success-mark": "#647455",
         "toast-error": "#F1DDD5",
         "toast-error-mark": "#A8483C",
         "toast-warning": "#EEE6D6",
@@ -105,7 +112,17 @@
         "noroute-lead": "26px",
         "noroute-lead--line-height": "30px",
         "noroute-lead-desktop": "35px",
-        "noroute-lead-desktop--line-height": "40px"
+        "noroute-lead-desktop--line-height": "40px",
+        "banner-title": "27px",
+        "banner-title--line-height": "35px",
+        "banner-title-desktop": "42px",
+        "banner-title-desktop--line-height": "48px"
+      },
+      "category-banner": {
+        "content-max": "36rem",
+        "height": "15rem",
+        "height-desktop": "28rem",
+        "radius": "1rem"
       },
       "breakpoint": {
         "sm": "480px",
@@ -175,8 +192,7 @@
         "micro": "120ms",
         "fast": "180ms",
         "base": "240ms",
-        "slow": "300ms",
-        "loop": "700ms"
+        "slow": "300ms"
       }
     }
   },

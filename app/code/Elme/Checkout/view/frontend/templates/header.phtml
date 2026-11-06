@@ -1,0 +1,38 @@
+<?php
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\StoreContact;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$contact = $viewModels->require(StoreContact::class);
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+?>
+<header class="elme-checkout-header">
+    <div class="container flex items-center justify-between gap-6 py-4 lg:py-5">
+        <a href="<?= $escaper->escapeUrl($block->getBaseUrl()) ?>"
+           aria-label="<?= $escaper->escapeHtmlAttr(__('Elme Living home page')) ?>">
+            <img src="<?= $escaper->escapeUrl($block->getViewFileUrl('images/logo.svg')) ?>"
+                 alt="<?= $escaper->escapeHtmlAttr(__('Elme Living')) ?>"
+                 width="180"
+                 height="38"
+                 class="elme-checkout-header__logo">
+        </a>
+        <p class="elme-checkout-header__help">
+            <span class="hidden md:inline"><?= $escaper->escapeHtml(__('Need assistance?')) ?></span>
+            <a class="elme-checkout-header__help-link"
+               href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>"
+               aria-label="<?= $escaper->escapeHtmlAttr(__('Need assistance? Call %1', $contact->getPhoneDisplay())) ?>">
+                <?= $heroicons->questionMarkCircleHtml('shrink-0', 20, 20, ['aria-hidden' => 'true']) ?>
+                <span><?= $escaper->escapeHtml($contact->getPhoneDisplay()) ?></span>
+            </a>
+        </p>
+    </div>
+</header>

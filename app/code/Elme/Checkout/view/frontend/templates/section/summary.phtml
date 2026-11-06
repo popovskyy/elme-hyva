@@ -1,0 +1,151 @@
+<?php
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+?>
+<?php $cartUrl = $block->getUrl('checkout/cart'); ?>
+<section class="elme-checkout-summary" x-data="elmeCheckoutSummary">
+    <div class="elme-checkout-summary__head">
+        <h2 class="elme-checkout-summary__title">
+            <?= $escaper->escapeHtml(__('Order summary')) ?>
+        </h2>
+        <a class="elme-checkout-link" href="<?= $escaper->escapeUrl($cartUrl) ?>">
+            <?= $escaper->escapeHtml(__('Edit cart')) ?>
+        </a>
+    </div>
+
+    <h2 class="lg:hidden">
+        <button type="button"
+                class="elme-checkout-summary__toggle"
+                aria-controls="elme-checkout-summary-panel"
+                :aria-expanded="ariaExpanded"
+                @click="toggle">
+            <span class="elme-checkout-summary__toggle-label"><?= $escaper->escapeHtml(__('Order summary')) ?></span>
+            <span class="elme-checkout-summary__toggle-total" x-text="grandTotal"></span>
+            <span class="elme-checkout-summary__chevron"
+                  :class="chevronClasses"
+                  aria-hidden="true">
+                <?= $heroicons->chevronDownHtml('', 20, 20) ?>
+            </span>
+        </button>
+    </h2>
+
+    <div id="elme-checkout-summary-panel"
+         class="elme-checkout-summary__panel"
+         :class="panelClasses">
+        <div class="elme-checkout-summary__panel-inner">
+            <p class="elme-checkout-section__error" role="alert" x-show="error" x-text="error"></p>
+
+            <ul class="elme-checkout-summary__items">
+                <template x-for="item in items" :key="item.id">
+                    <li class="elme-checkout-summary__item">
+                        <template x-if="hasImage">
+                            <img class="elme-checkout-summary__thumb"
+                                 :src="item.image.src"
+                                 :alt="item.image.alt"
+                                 width="64"
+                                 height="64"
+                                 loading="lazy">
+                        </template>
+                        <template x-if="hasNoImage">
+                            <span class="elme-checkout-summary__thumb elme-checkout-summary__thumb--empty" aria-hidden="true">
+                                <?= $heroicons->photographHtml('', 26, 26, ['aria-hidden' => 'true']) ?>
+                            </span>
+                        </template>
+                        <div class="min-w-0 flex-1 text-copy">
+                            <p class="elme-checkout-summary__name" x-text="item.name"></p>
+                            <p class="text-note text-ink-muted" x-text="item.sku"></p>
+                            <template x-for="option in item.options" :key="option.label">
+                                <p class="text-note text-ink-muted">
+                                    <span x-text="option.label"></span>:
+                                    <span x-text="option.value"></span>
+                                </p>
+                            </template>
+                            <p class="text-note text-ink-muted">
+                                <?= $escaper->escapeHtml(__('Qty')) ?>:
+                                <span x-text="item.qty"></span>
+                            </p>
+                        </div>
+                        <p class="elme-checkout-summary__price" x-text="item.row_total_formatted"></p>
+                    </li>
+                </template>
+            </ul>
+
+            <p class="elme-checkout-summary__edit">
+                <a class="elme-checkout-link" href="<?= $escaper->escapeUrl($cartUrl) ?>">
+                    <?= $escaper->escapeHtml(__('Edit cart')) ?>
+                </a>
+            </p>
+
+            <div class="elme-checkout-summary__totals">
+                <template x-for="segment in totals" :key="segment.code">
+                    <div>
+                        <?php foreach ($block->getChildNames() as $childName): ?>
+                            <template x-if="isRow" data-row="<?= $escaper->escapeHtmlAttr($block->getLayout()->getElementAlias($childName)) ?>">
+                                <?= $block->getLayout()->renderElement($childName) ?>
+                            </template>
+                        <?php endforeach; ?>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+    function elmeCheckoutSummary() {
+        return {
+            open: false,
+            summary() {
+                return Alpine.store('elmeCheckout').section('summary') || {};
+            },
+            items() {
+                return this.summary().items || [];
+            },
+            totals() {
+                return this.summary().totals || [];
+            },
+            grandTotal() {
+                return this.summary().grand_total_formatted || '';
+            },
+            error() {
+                return Alpine.store('elmeCheckout').sectionError('summary');
+            },
+            isRow() {
+                return this.segment.row === this.$el.dataset.row;
+            },
+            // Magento's own placeholder (a product without a photo) gets the Elme tile instead
+            hasImage() {
+                return Boolean(this.item.image) && !String(this.item.image.src).includes('/placeholder/');
+            },
+            hasNoImage() {
+                return !this.hasImage();
+            },
+            toggle() {
+                this.open = !this.open;
+            },
+            ariaExpanded() {
+                return this.open ? 'true' : 'false';
+            },
+            chevronClasses() {
+                return {'is-open': this.open};
+            },
+            panelClasses() {
+                return {'is-open': this.open};
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('elmeCheckoutSummary', elmeCheckoutSummary), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

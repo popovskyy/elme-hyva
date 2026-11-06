@@ -1,0 +1,116 @@
+<?php
+
+declare(strict_types=1);
+
+use Elme\Checkout\ViewModel\Agreements;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$agreementsViewModel = $viewModels->require(Agreements::class);
+$agreements = $agreementsViewModel->getAgreements();
+?>
+<div class="elme-checkout-agreements" data-checkout-section="agreements" x-data="elmeCheckoutAgreements">
+    <?php if ($agreements): ?>
+        <fieldset class="elme-checkout-agreements__box">
+            <legend class="sr-only"><?= $escaper->escapeHtml(__('Terms and conditions')) ?></legend>
+            <p class="elme-checkout-section__error mb-3" role="alert" x-show="error" x-cloak x-text="error"></p>
+            <div class="grid gap-3">
+                <?php foreach ($agreements as $agreement): ?>
+                    <?php $agreementId = (int) $agreement['agreementId']; ?>
+                    <div class="flex items-start gap-3 text-copy text-ink">
+                        <?php if ($agreementsViewModel->needsCheckbox($agreement)): ?>
+                            <input type="checkbox"
+                                   class="mt-1 shrink-0"
+                                   id="elme-agreement-<?= $agreementId ?>"
+                                   data-agreement-id="<?= $agreementId ?>"
+                                   data-field="agreement_<?= $agreementId ?>"
+                                   required
+                                   :checked="isAccepted"
+                                   :aria-invalid="isInvalid"
+                                   @change="toggle">
+                            <label class="min-w-0 flex-1" for="elme-agreement-<?= $agreementId ?>">
+                                <?= /* @noEscape */ $agreement['checkboxText'] ?>
+                            </label>
+                        <?php else: ?>
+                            <span class="min-w-0 flex-1"><?= /* @noEscape */ $agreement['checkboxText'] ?></span>
+                        <?php endif; ?>
+                        <button type="button"
+                                class="elme-checkout-link shrink-0"
+                                data-dialog="elme-agreement-dialog-<?= $agreementId ?>"
+                                aria-haspopup="dialog"
+                                @click="openDialog">
+                            <?= $escaper->escapeHtml(__('Read')) ?>
+                        </button>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </fieldset>
+        <?php foreach ($agreements as $agreement): ?>
+            <?php $agreementId = (int) $agreement['agreementId']; ?>
+            <dialog class="m-auto w-full max-w-2xl bg-surface p-0 text-ink backdrop:bg-ink/50"
+                    id="elme-agreement-dialog-<?= $agreementId ?>"
+                    aria-labelledby="elme-agreement-title-<?= $agreementId ?>"
+                    @click="closeOnBackdrop">
+                <div class="flex max-h-[85vh] flex-col gap-4 p-4 lg:p-6">
+                    <h2 class="elme-checkout-section__title" id="elme-agreement-title-<?= $agreementId ?>">
+                        <?= $escaper->escapeHtml(__('Terms and conditions')) ?>
+                    </h2>
+                    <div class="prose min-h-0 flex-1 overflow-y-auto text-copy">
+                        <?= /* @noEscape */ $agreement['content'] ?>
+                    </div>
+                    <form method="dialog" class="flex justify-end">
+                        <button type="submit" class="btn btn-primary"><?= $escaper->escapeHtml(__('Close')) ?></button>
+                    </form>
+                </div>
+            </dialog>
+        <?php endforeach; ?>
+    <?php endif; ?>
+
+    <div class="elme-checkout-place">
+        <a class="elme-checkout-link" href="<?= $escaper->escapeUrl($block->getUrl('checkout/cart')) ?>">
+            <?= $escaper->escapeHtml(__('Return to cart')) ?>
+        </a>
+        <?= $block->getChildHtml('button') ?>
+    </div>
+</div>
+<script>
+    function elmeCheckoutAgreements() {
+        return {
+            store() {
+                return Alpine.store('elmeCheckout');
+            },
+            error() {
+                return this.store().sectionError('agreements');
+            },
+            isAccepted() {
+                return this.store().isAgreementAccepted(this.$el.dataset.agreementId);
+            },
+            isInvalid() {
+                return this.store().fieldError(this.$el.dataset.field) ? 'true' : 'false';
+            },
+            toggle() {
+                this.store().setAgreementAccepted(this.$el.dataset.agreementId, this.$el.checked);
+                this.store().clearFieldError(this.$el.dataset.field);
+                this.store().clearSectionError('agreements');
+            },
+            openDialog() {
+                document.getElementById(this.$el.dataset.dialog).showModal();
+            },
+            closeOnBackdrop() {
+                // The content fills the dialog, so a click on the dialog itself is a click on the backdrop
+                if (this.$event.target === this.$el) {
+                    this.$el.close();
+                }
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('elmeCheckoutAgreements', elmeCheckoutAgreements), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
