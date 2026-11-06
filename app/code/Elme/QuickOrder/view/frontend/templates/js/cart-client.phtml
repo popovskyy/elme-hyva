@@ -1,0 +1,183 @@
+<?php
+/**
+ * BE-16: the browser side of the Quick Order cart, for the header panel (FE-32) and the cart page (FE-33).
+ *
+ * window.elmeQuickOrderCart holds the cart the server sent and changes it at once in the page. Qty edits are saved
+ * 1 s after the last one, as one JSON request with the whole cart (mode replace), so five quick clicks are one save.
+ * The answer is the truth: a refused row comes back with its old qty and a message, and the totals (GST included)
+ * are always the server's. Each change dispatches `elme-qo-cart` {cart, errors, saving} and `elme-qo-count`
+ * {count} on window (the header badge listens).
+ *
+ *   load()            GET the cart (once; load(true) asks again)
+ *   setQty(sku, qty)  change a row now, save after the debounce; 0 removes the row
+ *   remove(sku)       remove a row, saved at once
+ *   flush()           save a pending edit now; resolves when the cart is saved (call before going to checkout)
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<script>
+    (function () {
+        const GET_URL = '<?= $escaper->escapeJs($block->getUrl('quick_order/cart/get')) ?>';
+        const SAVE_URL = '<?= $escaper->escapeJs($block->getUrl('quick_order/cart/save')) ?>';
+        const DEBOUNCE_MS = 1000;
+        const FAILED = '<?= $escaper->escapeJs(__('Your cart could not be saved. Please try again.')) ?>';
+
+        let cart = null;
+        let errors = {};
+        let loading = null;
+        let timer = null;
+        let inFlight = null;
+        let dirty = false;
+        let editsSinceSend = 0;
+
+        function emit() {
+            const count = cart ? cart.items.reduce((sum, item) => sum + item.qty, 0) : 0;
+            // a copy: listeners keep it in their own (reactive) state, the client keeps changing its own
+            window.dispatchEvent(new CustomEvent('elme-qo-cart', {
+                detail: {
+                    cart: cart ? JSON.parse(JSON.stringify(cart)) : null,
+                    errors: Object.assign({}, errors),
+                    saving: Boolean(timer || inFlight)
+                }
+            }));
+            window.dispatchEvent(new CustomEvent('elme-qo-count', { detail: { count: count } }));
+        }
+
+        function rows() {
+            return (cart ? cart.items : []).map((item) => ({ sku: item.sku, qty: item.qty }));
+        }
+
+        async function request(url, options) {
+            const response = await fetch(url, Object.assign({
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+            }, options));
+            const data = await response.json().catch(() => null);
+            if (!response.ok || !data || !data.success) {
+                throw new Error((data && data.message) || FAILED);
+            }
+            return data;
+        }
+
+        function load(force) {
+            if (loading && !force) {
+                return loading;
+            }
+            loading = request(GET_URL).then((data) => {
+                cart = data.cart;
+                errors = {};
+                emit();
+                return cart;
+            });
+            return loading;
+        }
+
+        function send() {
+            clearTimeout(timer);
+            timer = null;
+            if (inFlight) {
+                dirty = true;
+                return inFlight;
+            }
+            const sentEdits = editsSinceSend;
+            inFlight = request(SAVE_URL, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ form_key: hyva.getFormKey(), mode: 'replace', items: rows() })
+            }).then((data) => {
+                // edits made while this save was on its way win; the next save sends them
+                if (editsSinceSend === sentEdits) {
+                    cart = data.cart;
+                }
+                errors = data.errors || {};
+            }).catch((error) => {
+                errors = { '': error.message };
+                window.dispatchEvent(new CustomEvent('elme-toast', { detail: { type: 'error', text: error.message } }));
+            }).finally(() => {
+                inFlight = null;
+                if (dirty) {
+                    dirty = false;
+                    send();
+                }
+                emit();
+            });
+            emit();
+            return inFlight;
+        }
+
+        function change(sku, qty) {
+            if (!cart) {
+                return;
+            }
+            editsSinceSend++;
+            cart.items = cart.items
+                .map((item) => item.sku === sku ? Object.assign({}, item, { qty: qty, message: null }) : item)
+                .filter((item) => item.qty > 0);
+            delete errors[sku];
+        }
+
+        function setQty(sku, qty) {
+            change(sku, Math.max(0, Number(qty) || 0));
+            clearTimeout(timer);
+            timer = setTimeout(send, DEBOUNCE_MS);
+            emit();
+        }
+
+        function remove(sku) {
+            change(sku, 0);
+            return send();
+        }
+
+        async function flush() {
+            if (timer) {
+                send();
+            }
+            while (inFlight) {
+                await inFlight;
+            }
+            return cart;
+        }
+
+        // Leaving the page with an edit still waiting: send it anyway
+        window.addEventListener('pagehide', () => {
+            if (!timer || !navigator.sendBeacon) {
+                return;
+            }
+            clearTimeout(timer);
+            timer = null;
+            navigator.sendBeacon(SAVE_URL, new Blob(
+                [JSON.stringify({ form_key: hyva.getFormKey(), mode: 'replace', items: rows() })],
+                { type: 'application/json' }
+            ));
+        });
+
+        window.elmeQuickOrderCart = {
+            load: load,
+            setQty: setQty,
+            remove: remove,
+            flush: flush,
+            get cart() {
+                return cart;
+            }
+        };
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

@@ -1,0 +1,168 @@
+<?php
+/**
+ * BE-16: plain cart page on window.elmeQuickOrderCart, so the cart works end to end. FE-33 replaces this markup
+ * with the designed page; the data and the save rules stay in the client and the server.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<section class="pb-6 lg:pb-10" x-data="initElmeQuickOrderCartPage" @elme-qo-cart.window="onCart">
+    <p class="text-ink-muted" x-show="isLoading"><?= $escaper->escapeHtml(__('Loading your cart...')) ?></p>
+    <p class="text-error" role="alert" x-show="hasLoadError" x-text="loadError" x-cloak></p>
+
+    <div x-show="isEmpty" x-cloak>
+        <p class="text-copy text-ink mb-4"><?= $escaper->escapeHtml(__('Your cart is empty.')) ?></p>
+        <a class="btn btn-primary" href="<?= $escaper->escapeUrl($block->getBaseUrl()) ?>">
+            <?= $escaper->escapeHtml(__('Continue shopping')) ?>
+        </a>
+    </div>
+
+    <div class="grid gap-8 lg:grid-cols-[1fr_20rem]" x-show="hasItems" x-cloak>
+        <ul class="divide-y divide-divider border-y border-divider">
+            <template x-for="item in items" :key="item.sku">
+                <li class="flex gap-4 py-4">
+                    <img class="size-20 shrink-0 object-contain bg-surface"
+                         :src="item.image" :alt="item.name" width="80" height="80" loading="lazy">
+                    <div class="flex grow flex-col gap-1 min-w-0">
+                        <a class="text-ink font-bold hover:underline" :href="item.url" x-text="item.name"></a>
+                        <p class="text-note text-ink-muted" x-text="item.sku"></p>
+                        <p class="text-note text-ink-muted" x-show="hasStockLabel" x-text="stockLabel"></p>
+                        <p class="text-note text-ink" x-show="item.price" x-text="unitPrice"></p>
+                        <p class="text-note text-error" role="alert" x-show="item.message" x-text="item.message"></p>
+                        <div class="mt-2 flex flex-wrap items-center gap-3">
+                            <div class="flex items-center">
+                                <button type="button" class="btn px-3" @click="decrement" :disabled="isAtMin"
+                                        aria-label="<?= $escaper->escapeHtmlAttr(__('Decrease quantity')) ?>">-</button>
+                                <label class="sr-only" :for="qtyId"><?= $escaper->escapeHtml(__('Qty')) ?></label>
+                                <input type="number" class="form-input w-20 text-center" inputmode="numeric"
+                                       :id="qtyId" :value="item.qty" :min="item.min" :step="item.step"
+                                       @change="onQtyChange">
+                                <button type="button" class="btn px-3" @click="increment"
+                                        aria-label="<?= $escaper->escapeHtmlAttr(__('Increase quantity')) ?>">+</button>
+                            </div>
+                            <button type="button" class="text-note text-ink-muted underline" @click="removeItem">
+                                <?= $escaper->escapeHtml(__('Remove')) ?>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="shrink-0 text-ink font-bold" x-text="rowTotal"></p>
+                </li>
+            </template>
+        </ul>
+
+        <aside class="flex flex-col gap-3">
+            <dl class="grid grid-cols-[1fr_auto] gap-y-2 text-ink">
+                <dt><?= $escaper->escapeHtml(__('Subtotal (ex GST)')) ?></dt>
+                <dd class="text-end" x-text="totals.subtotal_formatted"></dd>
+                <dt><?= $escaper->escapeHtml(__('GST')) ?></dt>
+                <dd class="text-end" x-text="totals.gst_formatted"></dd>
+                <dt class="font-bold"><?= $escaper->escapeHtml(__('Total (inc GST)')) ?></dt>
+                <dd class="text-end font-bold" x-text="totals.total_formatted"></dd>
+            </dl>
+            <p class="text-note text-ink-muted" aria-live="polite" x-text="savingLabel"></p>
+            <button type="button" class="btn btn-primary w-full justify-center" @click="goToCheckout"
+                    :disabled="cannotCheckout">
+                <?= $escaper->escapeHtml(__('Proceed to checkout')) ?>
+            </button>
+        </aside>
+    </div>
+</section>
+<script>
+    function initElmeQuickOrderCartPage() {
+        return {
+            cart: null,
+            totals: {},
+            saving: false,
+            loadError: '',
+
+            init() {
+                window.elmeQuickOrderCart.load().catch((error) => {
+                    this.loadError = error.message;
+                });
+            },
+
+            onCart() {
+                this.cart = this.$event.detail.cart;
+                this.totals = (this.cart && this.cart.totals) || {};
+                this.saving = this.$event.detail.saving;
+            },
+
+            items() {
+                return this.cart ? this.cart.items : [];
+            },
+            isLoading() {
+                return !this.cart && !this.loadError;
+            },
+            hasLoadError() {
+                return Boolean(this.loadError);
+            },
+            isEmpty() {
+                return Boolean(this.cart) && !this.cart.items.length;
+            },
+            hasItems() {
+                return Boolean(this.cart) && this.cart.items.length > 0;
+            },
+            cannotCheckout() {
+                return this.saving || !this.cart || !this.cart.can_checkout;
+            },
+            savingLabel() {
+                return this.saving ? '<?= $escaper->escapeJs(__('Saving...')) ?>' : '';
+            },
+
+            qtyId() {
+                return 'qo-qty-' + this.item.sku;
+            },
+            hasStockLabel() {
+                return Boolean(this.item.stock && this.item.stock.qty_formatted);
+            },
+            stockLabel() {
+                return hyva.str('<?= $escaper->escapeJs(__('%1 in stock')) ?>', this.item.stock.qty_formatted);
+            },
+            unitPrice() {
+                return this.item.price
+                    ? hyva.str('<?= $escaper->escapeJs(__('%1 each, ex GST')) ?>', this.item.price.final_formatted)
+                    : '';
+            },
+            // until the save answers, the row total follows the qty in the page
+            rowTotal() {
+                return this.item.price ? hyva.formatPrice(this.item.price.final * this.item.qty) : '';
+            },
+            isAtMin() {
+                return this.item.qty <= this.item.min;
+            },
+
+            increment() {
+                window.elmeQuickOrderCart.setQty(this.item.sku, this.item.qty + this.item.step);
+            },
+            decrement() {
+                window.elmeQuickOrderCart.setQty(this.item.sku, Math.max(this.item.min, this.item.qty - this.item.step));
+            },
+            onQtyChange() {
+                window.elmeQuickOrderCart.setQty(this.item.sku, hyva.safeParseNumber(this.$event.target.value));
+            },
+            removeItem() {
+                window.elmeQuickOrderCart.remove(this.item.sku);
+            },
+            async goToCheckout() {
+                const cart = await window.elmeQuickOrderCart.flush();
+                if (cart && cart.can_checkout) {
+                    window.location.assign('<?= $escaper->escapeJs($block->getUrl('checkout')) ?>');
+                }
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeQuickOrderCartPage', initElmeQuickOrderCartPage), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

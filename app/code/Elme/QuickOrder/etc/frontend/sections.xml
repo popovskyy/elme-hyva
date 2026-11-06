@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Customer:etc/sections.xsd">
+    <action name="checkout/cart/add">
+        <section name="quick_order"/>
+    </action>
+    <action name="quick_order/cart/save">
+        <section name="quick_order"/>
+    </action>
+    <action name="elme_checkout/action/placeorder">
+        <section name="quick_order"/>
+    </action>
+</config>

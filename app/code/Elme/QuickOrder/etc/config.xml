@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <checkout>
+            <!-- No Magento mini-cart: the header cart opens the Quick Order cart (FE-32 adds its panel) -->
+            <sidebar>
+                <display>0</display>
+            </sidebar>
+        </checkout>
+    </default>
+</config>

@@ -1,0 +1,17 @@
+{
+    "quick_order_list": {
+        "column": {
+            "id": true,
+            "customer_id": true,
+            "name": true,
+            "items": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "QUICK_ORDER_LIST_CUSTOMER_ID_NAME": true,
+            "QUICK_ORDER_LIST_CUSTOMER_ID_CUSTOMER_ENTITY_ENTITY_ID": true
+        }
+    }
+}
