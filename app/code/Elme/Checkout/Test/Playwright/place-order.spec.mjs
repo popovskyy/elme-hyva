@@ -50,6 +50,8 @@ test('login, add a product, saved address, place order, success page', async ({ 
     await expect(page).toHaveURL(/checkout\/onepage\/success/, { timeout: 60_000 });
     const number = orderNumber(await page.locator('#maincontent').innerText());
     expect(number).toBeTruthy();
+    // BE-16: the placed order empties the Quick Order cart
+    expect((await (await page.request.get('/quick-order/cart/get')).json()).cart.items).toEqual([]);
 
     await page.goto('/sales/order/history');
     await expect(page.locator('#maincontent')).toContainText(number);
