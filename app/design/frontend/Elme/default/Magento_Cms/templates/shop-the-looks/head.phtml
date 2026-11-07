@@ -25,6 +25,7 @@ $url = $lookbook->getCanonicalUrl();
 $image = $lookbook->getOgImageUrl();
 $twitterCard = $image !== '' ? 'summary_large_image' : 'summary';
 ?>
+<link rel="canonical" href="<?= $escaper->escapeUrl($url) ?>"/>
 <meta property="og:type" content="<?= $escaper->escapeHtmlAttr($lookbook->getOgType()) ?>"/>
 <meta property="og:locale" content="<?= $escaper->escapeHtmlAttr($lookbook->getOgLocale()) ?>"/>
 <meta property="og:url" content="<?= $escaper->escapeUrl($url) ?>"/>
