@@ -18,6 +18,9 @@
         "src": "app/code/Elme/Theme"
       },
       {
+        "src": "app/code/Elme/QuickOrder"
+      },
+      {
         "src": "app/code/Elme/StoreLocator"
       },
       {

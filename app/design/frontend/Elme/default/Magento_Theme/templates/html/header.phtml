@@ -33,14 +33,14 @@ $showMiniCart = (bool) $storeConfig->getStoreConfig(SidebarCart::XML_PATH_CHECKO
 $loginOnly = $viewModels->require(LoginOnly::class);
 $isLoggedIn = $loginOnly->isLoggedIn();
 
-$cartUrl = $block->getUrl('checkout/cart');
+// BE-16: the Quick Order cart is the only cart; there is no Magento cart page or mini-cart
 $qoCartUrl = $block->getUrl('quick_order/cart');
+$cartUrl = $qoCartUrl;
 ?>
 <script>
     function initHeader() {
         return {
             searchOpen: false,
-            cart: {},
             cartLoaded: false,
             cartBumped: false,
             qoCount: 0,
@@ -193,41 +193,41 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
                 }
             },
 
+            // BE-16: the cart is the Quick Order cart (section quick_order); the quote's "cart" section is not
             getData() {
                 const data = this.$event.detail.data || {};
-                const previous = this.summaryCount();
-                this.cart = data.cart || {};
-                const bumped = this.cartLoaded && this.summaryCount() > previous;
-                // Added to cart while the row is hidden: bring it back, then bump the count once it is in view
-                if (this.cartLoaded && this.summaryCount() !== previous && this.headerHidden) {
-                    this.setHidden(false);
-                    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 200;
-                    setTimeout(() => {
-                        this.cartBumped = bumped;
-                    }, delay);
-                } else {
-                    this.cartBumped = bumped;
-                }
-                this.cartLoaded = true;
-                // FE-41: Quick Order cart count, if it ships as a customer-data section
                 if (data.quick_order) {
                     this.applyQoCount(data.quick_order.summary_count);
                 }
             },
 
-            // FE-41: or the Quick Order mini-cart dispatches `elme-qo-count` with {count}
+            // The Quick Order cart client dispatches `elme-qo-count` with {count} after each change
             setQoCount() {
                 this.applyQoCount((this.$event.detail || {}).count);
             },
 
             applyQoCount(value) {
                 const count = parseInt(value, 10) || 0;
-                this.qoBumped = count > this.qoCount;
+                const previous = this.qoCount;
+                const bumped = this.cartLoaded && count > previous;
                 this.qoCount = count;
+                // Added to cart while the row is hidden: bring it back, then bump the count once it is in view
+                if (this.cartLoaded && count !== previous && this.headerHidden) {
+                    this.setHidden(false);
+                    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 200;
+                    setTimeout(() => {
+                        this.cartBumped = bumped;
+                        this.qoBumped = bumped;
+                    }, delay);
+                } else {
+                    this.cartBumped = bumped;
+                    this.qoBumped = bumped;
+                }
+                this.cartLoaded = true;
             },
 
             summaryCount() {
-                return this.cart.summary_count || 0;
+                return this.qoCount;
             },
 
             hasSummaryCount() {

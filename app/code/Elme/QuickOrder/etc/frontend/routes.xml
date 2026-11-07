@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
+    <router id="standard">
+        <!-- quick_order / quick-order as on the old site; Elme_LoginOnly gates the route id -->
+        <route id="quick_order" frontName="quick-order">
+            <module name="Elme_QuickOrder"/>
+        </route>
+    </router>
+</config>

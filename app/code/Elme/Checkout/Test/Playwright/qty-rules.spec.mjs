@@ -36,7 +36,24 @@ const postAndReadMessages = async (page, url, form) => {
 
 const addToCart = (page, id, qty) => postAndReadMessages(page, '/checkout/cart/add', { product: id, qty: String(qty) });
 
-// [{sku, qty, item_id}] straight from the server
+// BE-16: add to cart fills the Quick Order cart (cart_list), [{sku, qty}]
+const cartRows = async (page) => (await (await page.request.get('/quick-order/cart/get')).json())
+    .cart.items.map(({ sku, qty }) => ({ sku, qty }));
+
+const saveCartRows = async (page, items) => page.request.post('/quick-order/cart/save', {
+    data: { form_key: await formKey(page), mode: 'replace', items },
+    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+});
+
+// The quote is built from cart_list when checkout opens; the quote paths below (cart update, mini cart, reorder)
+// are still reachable and still have to refuse
+async function fillQuote(page, items) {
+    await saveCartRows(page, items);
+    await page.goto('/checkout');
+    await expect(page.locator('[data-checkout-section="address"]')).toContainText('Deliver to:');
+}
+
+// Quote lines [{sku, qty, item_id}] straight from the server
 const cartItems = async (page) => {
     const answer = await page.request.get('/customer/section/load?sections=cart&force_new_section_timestamp=true');
     return (await answer.json()).cart.items.map(({ product_sku: sku, qty, item_id: itemId }) => ({ sku, qty: Number(qty), itemId }));
@@ -51,6 +68,7 @@ const emptyCart = async (page) => {
 test.beforeEach(async ({ page }) => {
     await login(page);
     await emptyCart(page);
+    await saveCartRows(page, []);
     setMoq('E2E-MOQ-LATER', 1);
 });
 
@@ -59,34 +77,34 @@ test('cart/add: 4 and 7 are refused with the multiples message, 12 is accepted',
 
     for (const qty of [4, 7]) {
         expect(await addToCart(page, id, qty)).toEqual([MOQ_MESSAGE]);
-        expect(await cartItems(page)).toEqual([]);
+        expect(await cartRows(page)).toEqual([]);
     }
 
     await addToCart(page, id, 12);
-    expect(await cartItems(page)).toMatchObject([{ sku: 'E2E-MOQ6', qty: 12 }]);
+    expect(await cartRows(page)).toEqual([{ sku: 'E2E-MOQ6', qty: 12 }]);
 });
 
 test('cart/add: no qty adds the MOQ, and a second add may not break the multiple', async ({ page }) => {
     const id = await productId(page, 'E2E-MOQ6');
 
     await postAndReadMessages(page, '/checkout/cart/add', { product: id });
-    expect(await cartItems(page)).toMatchObject([{ qty: 6 }]);
+    expect(await cartRows(page)).toMatchObject([{ qty: 6 }]);
 
     expect(await addToCart(page, id, 7)).toEqual([MOQ_MESSAGE]);
-    expect(await cartItems(page)).toMatchObject([{ qty: 6 }]);
+    expect(await cartRows(page)).toMatchObject([{ qty: 6 }]);
 
     await addToCart(page, id, 6);
-    expect(await cartItems(page)).toMatchObject([{ qty: 12 }]);
+    expect(await cartRows(page)).toMatchObject([{ qty: 12 }]);
 });
 
 test('a product without MOQ takes any whole qty', async ({ page }) => {
     await addToCart(page, await productId(page, 'E2E-NO-MOQ'), 7);
 
-    expect(await cartItems(page)).toMatchObject([{ sku: 'E2E-NO-MOQ', qty: 7 }]);
+    expect(await cartRows(page)).toEqual([{ sku: 'E2E-NO-MOQ', qty: 7 }]);
 });
 
 test('cart page update: refused with the same message, qty not recalculated', async ({ page }) => {
-    await addToCart(page, await productId(page, 'E2E-MOQ6'), 12);
+    await fillQuote(page, [{ sku: 'E2E-MOQ6', qty: 12 }]);
     const [{ itemId }] = await cartItems(page);
 
     for (const qty of [4, 7]) {
@@ -106,7 +124,7 @@ test('cart page update: refused with the same message, qty not recalculated', as
 });
 
 test('ajax cart update and mini cart update: refused with the same message', async ({ page }) => {
-    await addToCart(page, await productId(page, 'E2E-MOQ6'), 12);
+    await fillQuote(page, [{ sku: 'E2E-MOQ6', qty: 12 }]);
     const [{ itemId }] = await cartItems(page);
     const form_key = await formKey(page);
 
@@ -192,7 +210,7 @@ test('reorder: a refused line leaves the same product already in the cart alone'
     await addToCart(page, later, 7);
     await placeOrder(page);
     setMoq('E2E-MOQ-LATER', 6);
-    await addToCart(page, later, 6);
+    await fillQuote(page, [{ sku: 'E2E-MOQ-LATER', qty: 6 }]);
 
     await page.goto('/sales/order/history');
     const orderId = (await page.locator('a[href*="/sales/order/view/order_id/"]').first().getAttribute('href')).match(/order_id\/(\d+)/)[1];
@@ -207,14 +225,10 @@ test('a cart line that became invalid blocks checkout until it is corrected', as
     setMoq('E2E-MOQ-LATER', 6);
 
     await page.goto('/checkout');
-    await expect(page).toHaveURL(/checkout\/cart/);
+    await expect(page).toHaveURL(/quick-order\/cart/);
     await expect(page.locator('#maincontent')).toContainText(MOQ_MESSAGE);
 
-    const [{ itemId }] = await cartItems(page);
-    await postAndReadMessages(page, '/checkout/cart/updatePost', {
-        update_cart_action: 'update_qty',
-        [`cart[${itemId}][qty]`]: '12',
-    });
+    await saveCartRows(page, [{ sku: 'E2E-MOQ-LATER', qty: 12 }]);
     await page.goto('/checkout');
     await expect(page.locator('[data-checkout-section="address"]')).toContainText('Deliver to:');
 });

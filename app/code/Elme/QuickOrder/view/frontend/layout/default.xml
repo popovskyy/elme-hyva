@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!-- The Quick Order cart is the only cart: no Magento mini-cart (FE-32 builds the header panel) -->
+        <referenceBlock name="cart-drawer" remove="true"/>
+    </body>
+</page>
