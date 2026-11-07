@@ -184,12 +184,11 @@
     }
 
     /*
-     * Signed in, the row has two more actions (Quick Order, Cart). Below 2xl they do not all fit with labels, so
-     * every action is icon only and its label is a tooltip under the icon: the icons share one line instead of
-     * some sitting higher above a label. Labels come back for all of them from 2xl.
+     * Signed in, the row also has Shopping list and Cart. Their labels ("Shopping list") are wider than the
+     * icon, so below 3xl every action is icon only and the label is a tooltip. Otherwise the menu is clipped.
      */
     @variant lg {
-        @variant max-2xl {
+        @variant max-3xl {
             .elme-header--signed-in .elme-header__label {
                 position: absolute;
                 top: calc(100% + --spacing(1));

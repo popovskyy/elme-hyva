@@ -39,6 +39,18 @@ $ariaLabel = $isCartConfigure || !$product
     : $buttonLabel . ' ' . $product->getName();
 ?>
 
+<?php if (!$isCartConfigure && $product): ?>
+<button type="button"
+        class="elme-save"
+        form="product_addtocart_form"
+        data-elme-qo-add-to-list
+        data-sku="<?= $escaper->escapeHtmlAttr($product->getSku()) ?>"
+        data-product-name="<?= $escaper->escapeHtmlAttr($product->getName()) ?>"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('Add to shopping list') . ' ' . $product->getName()) ?>"
+>
+    <?= $lucideIcons->heartHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+</button>
+<?php endif; ?>
 <button
     type="submit"
     form="product_addtocart_form"

@@ -17,7 +17,7 @@ declare(strict_types=1);
  * FE-53: guests get "Sign in to see pricing" (Elme\LoginOnly\Plugin\PriceRenderPlugin) and no form; logged-in
  * customers get a price placeholder that loads their own price after render. FE-70: the Add to Cart button
  * keeps btn-atc (AJAX + animation, Magento_Theme::elme/atc-button.phtml). Look: web/tailwind/elme/product-card.css.
- * No core wishlist heart, compare or review summary. Those get custom Elme features later.
+ * FE-73: the heart on the photo opens Add to Shopping List (no core Magento wishlist).
  */
 
 use Elme\LoginOnly\ViewModel\LoginOnly;
@@ -142,6 +142,15 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
                 <?= $escaper->escapeHtml($badge === ProductTile::BADGE_SALE ? __('Sale') : __('New')) ?>
             </span>
         <?php endif; ?>
+        <button type="button"
+                class="elme-card__heart"
+                data-elme-qo-add-to-list
+                data-sku="<?= $escaper->escapeHtmlAttr($product->getSku()) ?>"
+                data-product-name="<?= $escaper->escapeHtmlAttr($product->getName()) ?>"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Add to shopping list') . ' ' . $product->getName()) ?>"
+        >
+            <?= $lucideIcons->heartHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+        </button>
     </div>
 
     <div class="product-info flex grow flex-col gap-1 px-3 pt-3 pb-4 lg:px-4 lg:pb-5 <?= $viewIsGrid ? '' : 'md:w-4/6' ?>">
