@@ -1,0 +1,492 @@
+<?php
+/**
+ * /quick-order/?list=Name — open a shopping list. Create (no ?list=) stores an empty list and returns here.
+ * Qty edits save the named list. Add to cart merges the rows into the Quick Order cart.
+ */
+
+declare(strict_types=1);
+
+use Elme\QuickOrder\Model\CartList;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+$listName = trim((string) $block->getRequest()->getParam('list'));
+if ($listName === CartList::NAME) {
+    $listName = '';
+}
+$listsUrl = $block->getUrl('quick_order/template');
+?>
+<section class="elme-cart"
+         x-data="initElmeShoppingList"
+         :class="savingClass">
+    <a class="elme-cart__back" href="<?= $escaper->escapeUrl($listsUrl) ?>">
+        <?= $escaper->escapeHtml(__('My Shopping List')) ?>
+    </a>
+    <h1 class="elme-cart__title"><?= $escaper->escapeHtml($listName !== '' ? $listName : (string) __('New list')) ?></h1>
+
+    <?php if ($listName === ''): ?>
+        <form class="elme-cart__create" @submit="createList">
+            <label class="elme-cart__create-name">
+                <span class="sr-only"><?= $escaper->escapeHtml(__('List name')) ?></span>
+                <input type="text"
+                       class="form-input w-full"
+                       maxlength="255"
+                       required
+                       :value="newName"
+                       @input="setNewName"
+                       placeholder="<?= $escaper->escapeHtmlAttr(__('List name')) ?>">
+            </label>
+            <button type="submit" class="btn btn-primary" :disabled="saving">
+                <?= $escaper->escapeHtml(__('Create')) ?>
+            </button>
+        </form>
+    <?php else: ?>
+        <div class="elme-cart__loading" x-show="isLoading" aria-busy="true">
+            <p class="sr-only"><?= $escaper->escapeHtml(__('Loading your list...')) ?></p>
+            <div class="elme-cart__bone" aria-hidden="true">
+                <span class="elme-cart__bone-photo"></span>
+                <span class="elme-cart__bone-copy">
+                    <span class="elme-cart__bone-line"></span>
+                    <span class="elme-cart__bone-line"></span>
+                </span>
+            </div>
+        </div>
+        <p class="elme-cart__error" role="alert" x-show="hasLoadError" x-text="loadError" x-cloak></p>
+        <div class="elme-cart__empty" x-show="isMissing" x-cloak>
+            <p><?= $escaper->escapeHtml(__('This list was not found.')) ?></p>
+            <a class="btn btn-primary" href="<?= $escaper->escapeUrl($listsUrl) ?>">
+                <?= $escaper->escapeHtml(__('My Shopping List')) ?>
+            </a>
+        </div>
+
+        <div x-show="isReady" x-cloak>
+            <form class="elme-cart__add" @submit="addSku">
+                <label class="elme-cart__add-sku">
+                    <span class="sr-only"><?= $escaper->escapeHtml(__('SKU')) ?></span>
+                    <input type="text"
+                           class="form-input w-full"
+                           :value="skuQuery"
+                           @input="setSkuQuery"
+                           placeholder="<?= $escaper->escapeHtmlAttr(__('Add a SKU')) ?>"
+                           autocomplete="off">
+                </label>
+                <label class="elme-cart__add-qty">
+                    <span class="sr-only"><?= $escaper->escapeHtml(__('Qty')) ?></span>
+                    <input type="number"
+                           class="form-input w-full text-center"
+                           inputmode="numeric"
+                           min="1"
+                           :value="addQty"
+                           @input="setAddQty">
+                </label>
+                <button type="submit" class="btn btn-secondary" :disabled="saving">
+                    <?= $escaper->escapeHtml(__('Add')) ?>
+                </button>
+            </form>
+
+            <div class="elme-cart__empty" x-show="isEmpty" x-cloak>
+                <p><?= $escaper->escapeHtml(__('This list has no products yet. Add a SKU above, or use the heart on a product.')) ?></p>
+            </div>
+
+            <div class="elme-cart__layout" x-show="hasItems">
+                <div>
+                    <div class="elme-cart__head">
+                        <span class="elme-cart__head-product"><?= $escaper->escapeHtml(__('Product')) ?></span>
+                        <span class="elme-cart__head-qty"><?= $escaper->escapeHtml(__('Qty')) ?></span>
+                        <span class="elme-cart__head-total"><?= $escaper->escapeHtml(__('Total')) ?></span>
+                    </div>
+                    <ul>
+                        <template x-for="item in items" :key="item.sku">
+                            <li class="elme-cart__line">
+                                <a class="elme-cart__photo" :href="item.url" x-show="hasUrl" tabindex="-1" aria-hidden="true">
+                                    <img :src="item.image" :alt="item.name" width="96" height="96" loading="lazy">
+                                </a>
+                                <div class="elme-cart__photo" x-show="hasNoUrl" aria-hidden="true">
+                                    <img :src="item.image" alt="" width="96" height="96" loading="lazy">
+                                </div>
+                                <div class="elme-cart__info">
+                                    <a class="elme-cart__name" :href="item.url" x-show="hasUrl" x-text="item.name"></a>
+                                    <p class="elme-cart__name" x-show="hasNoUrl" x-text="item.name"></p>
+                                    <p class="elme-cart__sku" x-text="item.sku"></p>
+                                    <p class="elme-cart__stock" :class="stockClass" x-show="hasStockLabel">
+                                        <span class="elme-cart__dot" aria-hidden="true"></span>
+                                        <span x-text="stockLabel"></span>
+                                    </p>
+                                    <p class="elme-cart__unit" x-show="hasPrice">
+                                        <span x-text="unitPrice"></span>
+                                    </p>
+                                    <p class="elme-cart__message" role="alert" x-show="hasMessage" x-text="item.message"></p>
+                                    <div class="elme-cart__actions">
+                                        <button type="button" class="elme-cart__textbtn" @click="removeItem">
+                                            <?= $escaper->escapeHtml(__('Remove')) ?>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="elme-cart__qty">
+                                    <div class="elme-qty">
+                                        <button type="button"
+                                                class="elme-qty__btn"
+                                                @click="decrement"
+                                                :disabled="isAtMin"
+                                                aria-label="<?= $escaper->escapeHtmlAttr(__('Decrease quantity')) ?>">
+                                            <?= $lucideIcons->minusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                                        </button>
+                                        <label class="sr-only" :for="qtyId"><?= $escaper->escapeHtml(__('Qty')) ?></label>
+                                        <input type="number"
+                                               class="elme-qty__input"
+                                               inputmode="numeric"
+                                               :id="qtyId"
+                                               :value="item.qty"
+                                               :min="item.min"
+                                               :step="item.step"
+                                               @change="onQtyChange">
+                                        <button type="button"
+                                                class="elme-qty__btn"
+                                                @click="increment"
+                                                aria-label="<?= $escaper->escapeHtmlAttr(__('Increase quantity')) ?>">
+                                            <?= $lucideIcons->plusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="elme-cart__row-total" x-text="rowTotal"></p>
+                            </li>
+                        </template>
+                    </ul>
+                </div>
+                <aside class="elme-cart__summary">
+                    <h2 class="elme-cart__summary-title"><?= $escaper->escapeHtml(__('List')) ?></h2>
+                    <p class="elme-cart__summary-count" x-text="lineCountLabel"></p>
+                    <dl class="elme-cart__money">
+                        <div>
+                            <dt><?= $escaper->escapeHtml(__('Subtotal (ex GST)')) ?></dt>
+                            <dd x-text="totals.subtotal_formatted"></dd>
+                        </div>
+                        <div>
+                            <dt><?= $escaper->escapeHtml(__('GST')) ?></dt>
+                            <dd x-text="totals.gst_formatted"></dd>
+                        </div>
+                        <div class="elme-cart__money-total">
+                            <dt><?= $escaper->escapeHtml(__('Total (inc GST)')) ?></dt>
+                            <dd x-text="totals.total_formatted"></dd>
+                        </div>
+                    </dl>
+                    <p class="elme-cart__saving" aria-live="polite" x-show="saving" x-text="savingLabel" x-cloak></p>
+                    <button type="button"
+                            class="btn btn-primary w-full justify-center"
+                            @click="addAll"
+                            :disabled="cannotAdd">
+                        <?= $escaper->escapeHtml(__('Add to cart')) ?>
+                    </button>
+                    <a class="elme-cart__continue" href="<?= $escaper->escapeUrl($block->getUrl('quick_order/cart')) ?>">
+                        <?= $escaper->escapeHtml(__('View cart')) ?>
+                    </a>
+                </aside>
+            </div>
+        </div>
+    <?php endif; ?>
+</section>
+<script>
+    function initElmeShoppingList() {
+        const listName = '<?= $escaper->escapeJs($listName) ?>';
+        const getUrl = '<?= $escaper->escapeJs($block->getUrl('quick_order/list/get')) ?>';
+        const saveUrl = '<?= $escaper->escapeJs($block->getUrl('quick_order/list/save')) ?>';
+        const cartSaveUrl = '<?= $escaper->escapeJs($block->getUrl('quick_order/cart/save')) ?>';
+        const here = '<?= $escaper->escapeJs($block->getUrl('quick_order')) ?>';
+        const failed = '<?= $escaper->escapeJs(__('Could not save the list.')) ?>';
+        const added = '<?= $escaper->escapeJs(__('Added to your cart.')) ?>';
+        const nameRequired = '<?= $escaper->escapeJs(__('List name is required.')) ?>';
+
+        return {
+            listName: listName,
+            isNew: listName === '',
+            newName: '',
+            skuQuery: '',
+            addQty: '1',
+            list: null,
+            totals: {},
+            found: null,
+            saving: false,
+            loadError: '',
+            timer: null,
+
+            init() {
+                if (!this.isNew) {
+                    this.load();
+                }
+            },
+
+            async load() {
+                try {
+                    const url = new URL(getUrl, window.location.origin);
+                    url.searchParams.set('name', this.listName);
+                    const response = await fetch(url.toString(), {
+                        cache: 'no-store',
+                        headers: {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'}
+                    });
+                    const data = await response.json();
+                    if (!data.success) {
+                        throw new Error(data.message || failed);
+                    }
+                    this.found = !!data.found;
+                    this.list = data.list || {items: [], totals: {}};
+                    this.totals = this.list.totals || {};
+                    this.loadError = '';
+                } catch (error) {
+                    this.loadError = error.message;
+                    this.found = null;
+                }
+            },
+
+            items() {
+                return this.list && this.list.items ? this.list.items : [];
+            },
+            isLoading() {
+                return !this.isNew && this.found === null && !this.loadError;
+            },
+            hasLoadError() {
+                return Boolean(this.loadError);
+            },
+            isMissing() {
+                return this.found === false;
+            },
+            isReady() {
+                return this.found === true;
+            },
+            isEmpty() {
+                return this.isReady() && this.items().length === 0;
+            },
+            hasItems() {
+                return this.items().length > 0;
+            },
+            cannotAdd() {
+                return this.saving || !this.items().some((item) => item.available);
+            },
+            savingClass() {
+                return this.saving ? 'is-saving' : '';
+            },
+            savingLabel() {
+                return this.saving ? '<?= $escaper->escapeJs(__('Saving...')) ?>' : '';
+            },
+            lineCountLabel() {
+                const count = this.items().length;
+                return count === 1
+                    ? '<?= $escaper->escapeJs(__('1 line')) ?>'
+                    : hyva.str('<?= $escaper->escapeJs(__('%1 lines')) ?>', count);
+            },
+
+            setNewName() {
+                this.newName = this.$event.target.value || '';
+            },
+            setSkuQuery() {
+                this.skuQuery = this.$event.target.value || '';
+            },
+            setAddQty() {
+                this.addQty = this.$event.target.value || '';
+            },
+
+            qtyId() {
+                return 'qo-list-qty-' + this.item.sku;
+            },
+            hasUrl() {
+                return Boolean(this.item.url);
+            },
+            hasNoUrl() {
+                return !this.item.url;
+            },
+            hasStockLabel() {
+                return Boolean(this.item.stock && this.item.stock.qty_formatted);
+            },
+            stockClass() {
+                const level = this.item.stock && this.item.stock.level;
+                return level ? 'is-' + level : '';
+            },
+            stockLabel() {
+                return hyva.str('<?= $escaper->escapeJs(__('%1 in stock')) ?>', this.item.stock.qty_formatted);
+            },
+            hasPrice() {
+                return Boolean(this.item.price);
+            },
+            unitPrice() {
+                return this.item.price
+                    ? hyva.str('<?= $escaper->escapeJs(__('%1 each, ex GST')) ?>', this.item.price.final_formatted)
+                    : '';
+            },
+            hasMessage() {
+                return Boolean(this.item.message);
+            },
+            rowTotal() {
+                return this.item.price ? hyva.formatPrice(this.item.price.final * this.item.qty) : '';
+            },
+            isAtMin() {
+                return this.item.qty <= this.item.min;
+            },
+
+            increment() {
+                this.item.qty = this.item.qty + this.item.step;
+                this.queueSave();
+            },
+            decrement() {
+                this.item.qty = Math.max(this.item.min, this.item.qty - this.item.step);
+                this.queueSave();
+            },
+            onQtyChange() {
+                this.item.qty = hyva.safeParseNumber(this.$event.target.value);
+                this.queueSave();
+            },
+            removeItem() {
+                const sku = this.item.sku;
+                this.list.items = this.items().filter((item) => item.sku !== sku);
+                this.saveNow();
+            },
+
+            addSku(event) {
+                event.preventDefault();
+                const sku = this.skuQuery.trim();
+                const qty = hyva.safeParseNumber(this.addQty);
+                if (!sku || qty <= 0 || this.saving) {
+                    return;
+                }
+                const rows = this.items()
+                    .filter((item) => item.qty > 0)
+                    .map((item) => ({sku: item.sku, qty: item.qty}));
+                const existing = rows.find((item) => item.sku === sku);
+                if (existing) {
+                    existing.qty += qty;
+                } else {
+                    rows.push({sku: sku, qty: qty});
+                }
+                this.skuQuery = '';
+                this.addQty = '1';
+                this.saveRows(rows);
+            },
+
+            queueSave() {
+                clearTimeout(this.timer);
+                this.timer = setTimeout(() => this.saveNow(), 600);
+            },
+
+            async saveNow() {
+                const items = this.items()
+                    .filter((item) => item.qty > 0)
+                    .map((item) => ({sku: item.sku, qty: item.qty}));
+                await this.saveRows(items);
+            },
+
+            async saveRows(items) {
+                clearTimeout(this.timer);
+                this.timer = null;
+                this.saving = true;
+                try {
+                    const data = await this.post(saveUrl, {
+                        form_key: hyva.getFormKey(),
+                        name: this.listName,
+                        mode: 'replace',
+                        items: items
+                    });
+                    if (!data.success) {
+                        throw new Error(data.message || failed);
+                    }
+                    await this.load();
+                } catch (error) {
+                    this.toast('error', error.message || failed);
+                    await this.load();
+                } finally {
+                    this.saving = false;
+                }
+            },
+
+            async addAll() {
+                const items = this.items()
+                    .filter((item) => item.available && item.qty > 0)
+                    .map((item) => ({sku: item.sku, qty: item.qty}));
+                if (!items.length || this.saving) {
+                    return;
+                }
+                this.saving = true;
+                try {
+                    const data = await this.post(cartSaveUrl, {
+                        form_key: hyva.getFormKey(),
+                        mode: 'merge',
+                        items: items
+                    });
+                    if (!data.success) {
+                        throw new Error(data.message || failed);
+                    }
+                    const errors = data.errors || {};
+                    const first = Object.keys(errors)[0];
+                    this.toast(first ? 'error' : 'success', first ? errors[first] : added);
+                    if (window.elmeQuickOrderCart) {
+                        window.elmeQuickOrderCart.load(true);
+                    }
+                } catch (error) {
+                    this.toast('error', error.message || failed);
+                } finally {
+                    this.saving = false;
+                }
+            },
+
+            async createList(event) {
+                event.preventDefault();
+                const name = this.newName.trim();
+                if (!name || name === 'cart_list') {
+                    this.toast('error', nameRequired);
+                    return;
+                }
+                this.saving = true;
+                try {
+                    const data = await this.post(saveUrl, {
+                        form_key: hyva.getFormKey(),
+                        name: name,
+                        mode: 'replace',
+                        items: []
+                    });
+                    if (!data.success) {
+                        throw new Error(data.message || failed);
+                    }
+                    const url = new URL(here, window.location.origin);
+                    url.searchParams.set('list', name);
+                    window.location.assign(url.toString());
+                } catch (error) {
+                    this.toast('error', error.message || failed);
+                    this.saving = false;
+                }
+            },
+
+            async post(url, body) {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    cache: 'no-store',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json().catch(() => null);
+                if (!data) {
+                    throw new Error(failed);
+                }
+                return data;
+            },
+
+            toast(type, text) {
+                window.dispatchEvent(new CustomEvent('elme-toast', {detail: {type: type, text: text}}));
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeShoppingList', initElmeShoppingList), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

@@ -408,6 +408,41 @@
     .elme-cart__bone-line:last-child {
         width: 36%;
     }
+
+    .elme-cart__title {
+        margin: 0 0 --spacing(2);
+    }
+
+    .elme-cart__back {
+        margin: 0 0 --spacing(6);
+        color: var(--color-ink-muted);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        text-underline-offset: 3px;
+
+        &:hover {
+            color: var(--color-ink);
+        }
+    }
+
+    .elme-cart__add,
+    .elme-cart__create {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: stretch;
+        gap: --spacing(2);
+        margin-block-end: --spacing(6);
+    }
+
+    .elme-cart__add-sku,
+    .elme-cart__create-name {
+        flex: 1 1 --spacing(48);
+        min-width: 0;
+    }
+
+    .elme-cart__add-qty {
+        width: --spacing(20);
+    }
 }
 
 @keyframes elme-cart-in {

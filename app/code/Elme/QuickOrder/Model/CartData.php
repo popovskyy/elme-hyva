@@ -36,7 +36,19 @@ class CartData
      */
     public function get(int $customerId, int $customerGroupId, array $errors = []): array
     {
-        $lines = $this->cartLines->getLines($this->cartList->get($customerId), $customerId, $customerGroupId);
+        return $this->present($this->cartList->get($customerId), $customerId, $customerGroupId, $errors);
+    }
+
+    /**
+     * The same row payload as the cart, for any sku => qty map (a named shopping list).
+     *
+     * @param array<string, float> $rows
+     * @param array<string, string> $errors
+     * @return array<string, mixed>
+     */
+    public function present(array $rows, int $customerId, int $customerGroupId, array $errors = []): array
+    {
+        $lines = $this->cartLines->getLines($rows, $customerId, $customerGroupId);
 
         $items = [];
         $subtotal = 0.0;

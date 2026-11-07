@@ -30,6 +30,23 @@ class QuickOrderList extends AbstractDb
     }
 
     /**
+     * Whether this customer has a row with this name, including an empty list.
+     */
+    public function exists(int $customerId, string $name): bool
+    {
+        $connection = $this->getConnection();
+        $id = $connection->fetchOne(
+            $connection->select()
+                ->from($this->getMainTable(), ['id'])
+                ->where('customer_id = ?', $customerId)
+                ->where('name = ?', $name)
+                ->limit(1)
+        );
+
+        return $id !== false;
+    }
+
+    /**
      * @return array<int, array{sku: string, qty: float}> In the order they were added; empty when there is no list
      */
     public function loadItems(int $customerId, string $name): array

@@ -69,9 +69,7 @@ class Save extends AbstractJson implements HttpPostActionInterface
                 $qty = (float) ($item['qty'] ?? 1);
                 $rows[$sku] = ($rows[$sku] ?? 0.0) + ($qty > 0 ? $qty : 1.0);
             }
-            if ($name === '' || count($rows) > self::MAX_ROWS) {
-                throw new LocalizedException(__('Invalid data.'));
-            }
+            $this->assertName($name, $rows, $replace);
 
             return [$name, $rows, $replace];
         }
@@ -79,10 +77,22 @@ class Save extends AbstractJson implements HttpPostActionInterface
         $name = trim((string) ($payload['name'] ?? ''));
         $replace = ($payload['mode'] ?? '') === 'replace';
         $rows = $this->getRows(self::MAX_ROWS);
-        if ($name === '' || $rows === []) {
-            throw new LocalizedException(__('Invalid data.'));
-        }
+        $this->assertName($name, $rows, $replace);
 
         return [$name, $rows, $replace];
+    }
+
+    /**
+     * A replace with no rows clears the list (the editor removed the last product, or a new list has none yet).
+     * A merge still needs rows.
+     *
+     * @param array<string, float> $rows
+     * @throws LocalizedException
+     */
+    private function assertName(string $name, array $rows, bool $replace): void
+    {
+        if ($name === '' || mb_strlen($name) > 255 || count($rows) > self::MAX_ROWS || ($rows === [] && !$replace)) {
+            throw new LocalizedException(__('Invalid data.'));
+        }
     }
 }
