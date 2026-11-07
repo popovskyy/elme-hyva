@@ -122,6 +122,7 @@ $quickOrderUrl = $block->getUrl('quick_order');
              x-transition:leave-end="opacity-0"
              @click="closeDeleteModal"></div>
         <div class="relative w-full max-w-md bg-surface border border-divider shadow-lg p-6"
+             x-ref="deleteDialog"
              x-show="showDeleteModal"
              x-transition:enter="transition ease-out-quart duration-200"
              x-transition:enter-start="opacity-0 scale-97 motion-reduce:scale-100"
@@ -245,7 +246,11 @@ $quickOrderUrl = $block->getUrl('quick_order');
                 this.deleteName = btn.getAttribute('data-list-name') || '';
                 this.showDeleteModal = !!this.deleteId;
                 if (this.showDeleteModal) {
-                    this.$nextTick(() => this.$refs.cancelDelete.focus());
+                    // Tab and Shift+Tab stay between Cancel and Delete while the dialog is open
+                    this.$nextTick(() => {
+                        hyva.trapFocus(this.$refs.deleteDialog);
+                        this.$refs.cancelDelete.focus();
+                    });
                 }
             },
 
@@ -253,6 +258,7 @@ $quickOrderUrl = $block->getUrl('quick_order');
                 if (this.isDeleting) {
                     return;
                 }
+                hyva.releaseFocus(this.$refs.deleteDialog);
                 this.showDeleteModal = false;
                 this.deleteId = null;
                 this.deleteName = '';
@@ -268,6 +274,7 @@ $quickOrderUrl = $block->getUrl('quick_order');
                 }
                 const id = this.deleteId;
                 this.isDeleting = true;
+                hyva.releaseFocus(this.$refs.deleteDialog);
                 this.showDeleteModal = false;
                 trigger = null;
                 this.leavingId = id;

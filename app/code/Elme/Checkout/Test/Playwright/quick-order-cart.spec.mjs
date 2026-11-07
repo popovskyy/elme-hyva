@@ -51,6 +51,29 @@ const saveCart = async (page, items, mode = 'replace') => (await page.request.po
 
 const rows = (cart) => cart.items.map(({ sku, qty }) => ({ sku, qty }));
 
+// Tab through the page and return the first focused element the sticky bottom bar (below lg) hides, or null
+async function focusHiddenByBar(page, presses) {
+    for (let i = 0; i < presses; i++) {
+        await page.keyboard.press('Tab');
+        const hidden = await page.evaluate(() => {
+            const bar = [...document.querySelectorAll('.elme-cart__bar')].find((el) => el.offsetParent !== null);
+            const active = document.activeElement;
+            if (!bar || !active || active === document.body || bar.contains(active)) {
+                return null;
+            }
+            const a = active.getBoundingClientRect();
+            const b = bar.getBoundingClientRect();
+            return a.height && a.bottom > b.top && a.top < b.bottom
+                ? `${active.tagName} "${active.textContent.trim().slice(0, 40)}"`
+                : null;
+        });
+        if (hidden) {
+            return hidden;
+        }
+    }
+    return null;
+}
+
 const section = async (page, name) => (
     await (await page.request.get(`/customer/section/load/?sections=${name}&force_new_section_timestamp=true`)).json()
 )[name];
@@ -213,4 +236,12 @@ test('a save without the form key is refused', async ({ page }) => {
     });
     expect(answer.status()).toBe(400);
     expect(rows(await getCart(page))).toEqual([]);
+});
+
+test('on a phone the sticky bar of the cart never covers the focused element', async ({ page }) => {
+    await saveCart(page, [{ sku: 'E2E-NO-MOQ', qty: 1 }, { sku: 'E2E-MOQ6', qty: 6 }]);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/quick-order/cart');
+    await expect(page.locator('.elme-cart__bar')).toBeVisible();
+    expect(await focusHiddenByBar(page, 60)).toBeNull();
 });

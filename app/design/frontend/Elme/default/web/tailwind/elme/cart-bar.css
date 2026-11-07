@@ -4,6 +4,15 @@
  */
 
 @layer components {
+    /* keyboard focus scrolls the focused element clear of the bar (the bar is about 80px high) */
+    html:has(.elme-cart__bar) {
+        scroll-padding-bottom: calc(--spacing(24) + env(safe-area-inset-bottom));
+
+        @variant lg {
+            scroll-padding-bottom: 0;
+        }
+    }
+
     .elme-cart__bar {
         position: sticky;
         bottom: 0;
