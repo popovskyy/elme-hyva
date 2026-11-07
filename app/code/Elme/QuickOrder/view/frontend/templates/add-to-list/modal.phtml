@@ -1,0 +1,333 @@
+<?php
+/**
+ * FE-73: site-wide Add to Shopping List modal (Bart remake).
+ * Open: window.dispatchEvent(new CustomEvent('elme:open-add-to-list-modal', {detail: {sku, qty?, productName?}}))
+ * Or click [data-elme-qo-add-to-list][data-sku].
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Elme\LoginOnly\ViewModel\LoginOnly;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+
+$getAllUrl = $block->getUrl('quick_order/list/getall');
+$saveUrl = $block->getUrl('quick_order/list/save');
+$loginUrl = $block->getUrl('customer/account/login');
+$loggedIn = $loginOnly->isLoggedIn();
+?>
+<div id="elme-qo-add-to-list-modal"
+     class="fixed inset-0 z-50 flex items-center justify-center p-4"
+     x-data="initElmeAddToListModal"
+     x-show="open"
+     x-cloak
+     x-bind="eventListeners"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="elme-qo-list-modal-title"
+     data-get-lists-url="<?= $escaper->escapeUrl($getAllUrl) ?>"
+     data-save-url="<?= $escaper->escapeUrl($saveUrl) ?>">
+    <div class="absolute inset-0 bg-ink/40" @click="close"></div>
+    <div class="relative w-full max-w-md bg-surface border border-divider shadow-lg p-6 rounded-sm"
+         @click.stop>
+        <button type="button"
+                class="absolute top-3 end-3 text-ink-muted hover:text-ink"
+                @click="close"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Close')) ?>">
+            <span aria-hidden="true">&times;</span>
+        </button>
+
+        <div x-show="isLoading" class="py-10 text-center text-ink-muted" aria-busy="true">
+            <?= $escaper->escapeHtml(__('Loading…')) ?>
+        </div>
+
+        <?php if (!$loggedIn): ?>
+            <div x-show="showGuest">
+                <h2 id="elme-qo-list-modal-title" class="font-heading text-h4 text-ink mb-3">
+                    <?= $escaper->escapeHtml(__('Add To Shopping List')) ?>
+                </h2>
+                <p class="text-body text-ink-muted mb-6">
+                    <?= $escaper->escapeHtml(__('Please log in to manage your shopping lists.')) ?>
+                </p>
+                <a href="<?= $escaper->escapeUrl($loginUrl) ?>" class="btn btn-primary">
+                    <?= $escaper->escapeHtml(__('Login')) ?>
+                </a>
+            </div>
+        <?php else: ?>
+            <div x-show="showPick" x-cloak>
+                <h2 id="elme-qo-list-modal-title" class="font-heading text-h4 text-ink mb-2">
+                    <?= $escaper->escapeHtml(__('Add To Shopping List')) ?>
+                </h2>
+                <p class="text-note text-ink-muted mb-4">
+                    <?= $escaper->escapeHtml(__('SKU:')) ?>
+                    <strong class="text-ink" x-text="sku"></strong>
+                </p>
+                <label class="block mb-4">
+                    <span class="sr-only"><?= $escaper->escapeHtml(__('Select shopping list')) ?></span>
+                    <select class="form-select w-full"
+                            :value="selectedListName"
+                            @change="setSelectedList">
+                        <option value=""><?= $escaper->escapeHtml(__('Select shopping list...')) ?></option>
+                        <template x-for="list in lists" :key="list.id">
+                            <option :value="list.name" x-text="list.name"></option>
+                        </template>
+                    </select>
+                </label>
+                <div class="flex flex-wrap gap-3">
+                    <button type="button" class="btn btn-primary" @click="continuePick">
+                        <?= $escaper->escapeHtml(__('Continue')) ?>
+                    </button>
+                    <button type="button" class="btn btn-secondary" @click="showCreate">
+                        <?= $escaper->escapeHtml(__('Create new list')) ?>
+                    </button>
+                </div>
+            </div>
+
+            <div x-show="showCreatePanel" x-cloak>
+                <h2 class="font-heading text-h4 text-ink mb-4">
+                    <?= $escaper->escapeHtml(__('Create new list')) ?>
+                </h2>
+                <label class="block mb-4">
+                    <span class="text-note text-ink-muted mb-1 block">
+                        <?= $escaper->escapeHtml(__('List name')) ?>
+                    </span>
+                    <input type="text"
+                           class="form-input w-full"
+                           :value="newListName"
+                           @input="setNewListName"
+                           maxlength="255"/>
+                </label>
+                <div class="flex flex-wrap gap-3">
+                    <button type="button" class="btn btn-secondary" @click="backToPick">
+                        <?= $escaper->escapeHtml(__('Back')) ?>
+                    </button>
+                    <button type="button" class="btn btn-primary" @click="createAndConfirm">
+                        <?= $escaper->escapeHtml(__('Continue')) ?>
+                    </button>
+                </div>
+            </div>
+
+            <div x-show="showConfirm" x-cloak>
+                <h2 class="font-heading text-h4 text-ink mb-3">
+                    <?= $escaper->escapeHtml(__('Add To Shopping List')) ?>
+                </h2>
+                <p class="text-body text-ink-muted mb-6">
+                    <?= $escaper->escapeHtml(__('Add this product to')) ?>
+                    <strong class="text-ink" x-text="pendingListName"></strong>?
+                </p>
+                <div class="flex flex-wrap gap-3 justify-end">
+                    <button type="button" class="btn btn-secondary" @click="backToPick">
+                        <?= $escaper->escapeHtml(__('Cancel')) ?>
+                    </button>
+                    <button type="button" class="btn btn-primary" @click="confirmSave" :disabled="isLoading">
+                        <?= $escaper->escapeHtml(__('Confirm')) ?>
+                    </button>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script>
+    function initElmeAddToListModal() {
+        const getAllUrl = '<?= $escaper->escapeJs($getAllUrl) ?>';
+        const saveUrl = '<?= $escaper->escapeJs($saveUrl) ?>';
+        const loggedIn = <?= $loggedIn ? 'true' : 'false' ?>;
+        const cartListName = 'cart_list';
+        const saveFailed = '<?= $escaper->escapeJs(__('Could not save the list.')) ?>';
+        const pickListFirst = '<?= $escaper->escapeJs(__('Please select a shopping list.')) ?>';
+        const nameRequired = '<?= $escaper->escapeJs(__('List name is required.')) ?>';
+
+        return {
+            open: false,
+            isLoading: false,
+            step: 'pick',
+            lists: [],
+            sku: '',
+            qty: 1,
+            productName: '',
+            selectedListName: '',
+            newListName: '',
+            pendingListName: '',
+
+            showGuest() {
+                return this.open && !loggedIn;
+            },
+            showPick() {
+                return this.open && loggedIn && !this.isLoading && this.step === 'pick';
+            },
+            showCreatePanel() {
+                return this.open && loggedIn && !this.isLoading && this.step === 'create';
+            },
+            showConfirm() {
+                return this.open && loggedIn && !this.isLoading && this.step === 'confirm';
+            },
+
+            setSelectedList() {
+                this.selectedListName = this.$event.target.value || '';
+            },
+            setNewListName() {
+                this.newListName = this.$event.target.value || '';
+            },
+            showCreate() {
+                this.step = 'create';
+                this.newListName = '';
+            },
+            backToPick() {
+                this.step = 'pick';
+                this.pendingListName = '';
+            },
+            continuePick() {
+                if (!this.selectedListName) {
+                    window.dispatchEvent(new CustomEvent('elme-toast', {
+                        detail: {type: 'error', text: pickListFirst}
+                    }));
+                    return;
+                }
+                this.pendingListName = this.selectedListName;
+                this.step = 'confirm';
+            },
+            createAndConfirm() {
+                const name = (this.newListName || '').trim();
+                if (!name) {
+                    window.dispatchEvent(new CustomEvent('elme-toast', {
+                        detail: {type: 'error', text: nameRequired}
+                    }));
+                    return;
+                }
+                this.pendingListName = name;
+                this.step = 'confirm';
+            },
+
+            close() {
+                this.open = false;
+                this.isLoading = false;
+                this.step = 'pick';
+                this.sku = '';
+                this.qty = 1;
+                this.productName = '';
+                this.selectedListName = '';
+                this.newListName = '';
+                this.pendingListName = '';
+            },
+
+            async openWith(detail) {
+                const data = detail || {};
+                const sku = String(data.sku || '').trim();
+                if (!sku && !loggedIn) {
+                    this.open = true;
+                    return;
+                }
+                if (!sku) {
+                    return;
+                }
+                this.sku = sku;
+                this.qty = parseFloat(data.qty) > 0 ? parseFloat(data.qty) : 1;
+                this.productName = data.productName || '';
+                this.step = 'pick';
+                this.open = true;
+                if (!loggedIn) {
+                    return;
+                }
+                this.isLoading = true;
+                try {
+                    const response = await fetch(getAllUrl, {
+                        method: 'GET',
+                        cache: 'no-store',
+                        headers: {'X-Requested-With': 'XMLHttpRequest'}
+                    });
+                    const json = await response.json();
+                    this.lists = (json.success && Array.isArray(json.lists))
+                        ? json.lists.filter((list) => list.name !== cartListName)
+                        : [];
+                } catch (e) {
+                    console.error(e);
+                    this.lists = [];
+                } finally {
+                    this.isLoading = false;
+                }
+            },
+
+            async confirmSave() {
+                if (!this.pendingListName || !this.sku || this.isLoading) {
+                    return;
+                }
+                this.isLoading = true;
+                try {
+                    const response = await fetch(saveUrl, {
+                        method: 'POST',
+                        cache: 'no-store',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            form_key: hyva.getFormKey(),
+                            name: this.pendingListName,
+                            mode: 'merge',
+                            items: [{sku: this.sku, qty: this.qty}]
+                        })
+                    });
+                    const data = await response.json();
+                    if (!data.success) {
+                        throw new Error(data.message || saveFailed);
+                    }
+                    window.dispatchEvent(new CustomEvent('elme:saved-list-item-added', {
+                        detail: {
+                            listName: this.pendingListName,
+                            sku: this.sku,
+                            productName: this.productName
+                        }
+                    }));
+                    window.dispatchEvent(new CustomEvent('elme:saved-lists-changed'));
+                    document.body.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+                    window.dispatchEvent(new CustomEvent('elme-toast', {
+                        detail: {
+                            type: 'success',
+                            text: '<?= $escaper->escapeJs(__('Saved to your shopping list.')) ?>'
+                        }
+                    }));
+                    this.close();
+                } catch (e) {
+                    window.dispatchEvent(new CustomEvent('elme-toast', {
+                        detail: {type: 'error', text: e.message || saveFailed}
+                    }));
+                    this.isLoading = false;
+                }
+            },
+
+            eventListeners: {
+                ['@elme:open-add-to-list-modal.window']() {
+                    this.openWith(this.$event.detail || {});
+                },
+                ['@click.document'](event) {
+                    const btn = event.target.closest && event.target.closest('[data-elme-qo-add-to-list]');
+                    if (!btn) {
+                        return;
+                    }
+                    event.preventDefault();
+                    this.openWith({
+                        sku: btn.getAttribute('data-sku') || '',
+                        qty: btn.getAttribute('data-qty') || 1,
+                        productName: btn.getAttribute('data-product-name') || ''
+                    });
+                },
+                ['@keydown.escape.window']() {
+                    if (this.open) {
+                        this.close();
+                    }
+                }
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeAddToListModal', initElmeAddToListModal), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

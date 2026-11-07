@@ -1,0 +1,266 @@
+<?php
+/**
+ * FE-73: My Shopping List — named Quick Order lists (Bart wishlist remake).
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+
+$getAllUrl = $block->getUrl('quick_order/list/getall');
+$deleteUrl = $block->getUrl('quick_order/list/delete');
+$quickOrderUrl = $block->getUrl('quick_order');
+?>
+<div class="elme-shopping-lists"
+     x-data="initElmeShoppingLists"
+     x-bind="eventListeners">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-8">
+        <h1 class="font-heading text-h2 text-ink m-0">
+            <?= $escaper->escapeHtml(__('My Shopping List')) ?>
+        </h1>
+        <a href="<?= $escaper->escapeUrl($quickOrderUrl) ?>"
+           class="btn btn-secondary self-start sm:self-auto">
+            <?= $escaper->escapeHtml(__('Create new list')) ?>
+        </a>
+    </div>
+
+    <div x-show="isLoading" class="space-y-3" aria-busy="true" aria-live="polite">
+        <div class="h-16 rounded-sm bg-surface-muted animate-pulse"></div>
+        <div class="h-16 rounded-sm bg-surface-muted animate-pulse"></div>
+        <div class="h-16 rounded-sm bg-surface-muted animate-pulse"></div>
+    </div>
+
+    <p x-show="showEmpty"
+       class="text-ink-muted text-body py-10 text-center border border-dashed border-divider rounded-sm"
+       x-cloak>
+        <?= $escaper->escapeHtml(__('No saved lists found')) ?>
+    </p>
+
+    <div x-show="showTable" class="overflow-x-auto" x-cloak>
+        <table class="w-full text-start border-collapse">
+            <thead>
+            <tr class="border-b border-divider text-note uppercase tracking-wide text-ink-muted">
+                <th class="py-3 pe-4 font-medium"><?= $escaper->escapeHtml(__('List name')) ?></th>
+                <th class="py-3 pe-4 font-medium"><?= $escaper->escapeHtml(__('Products')) ?></th>
+                <th class="py-3 font-medium text-end"><?= $escaper->escapeHtml(__('Actions')) ?></th>
+            </tr>
+            </thead>
+            <tbody>
+            <template x-for="list in lists" :key="list.id">
+                <tr class="border-b border-divider align-middle hover:bg-surface-muted/60 cursor-pointer"
+                    :data-list-name="list.name"
+                    @click="openList">
+                    <td class="py-4 pe-4 font-medium text-ink" x-text="list.name"></td>
+                    <td class="py-4 pe-4">
+                        <div class="flex items-center gap-3">
+                            <div class="flex -space-x-2" x-show="list.has_preview">
+                                <template x-for="item in list.preview" :key="list.id + '-' + item.sku">
+                                    <span class="inline-flex size-12 rounded-sm border border-divider bg-surface overflow-hidden shrink-0"
+                                          :title="item.name">
+                                        <img class="size-full object-contain"
+                                             x-show="item.thumbnail_url"
+                                             :src="item.thumbnail_url"
+                                             :alt="item.name"
+                                             width="48"
+                                             height="48"
+                                             loading="lazy"/>
+                                    </span>
+                                </template>
+                            </div>
+                            <span class="text-note text-ink-muted" x-text="list.products_label"></span>
+                        </div>
+                    </td>
+                    <td class="py-4 text-end whitespace-nowrap">
+                        <a class="btn btn-secondary btn-sm me-2"
+                           :href="list.edit_url"
+                           @click.stop>
+                            <?= $escaper->escapeHtml(__('Edit')) ?>
+                        </a>
+                        <button type="button"
+                                class="btn btn-secondary btn-sm"
+                                :data-list-id="list.id"
+                                :data-list-name="list.name"
+                                @click.stop="confirmDelete">
+                            <?= $escaper->escapeHtml(__('Delete')) ?>
+                        </button>
+                    </td>
+                </tr>
+            </template>
+            </tbody>
+        </table>
+    </div>
+
+    <div x-show="showDeleteModal"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="elme-sl-delete-title"
+         x-cloak>
+        <div class="absolute inset-0 bg-ink/40" @click="closeDeleteModal"></div>
+        <div class="relative w-full max-w-md bg-surface border border-divider shadow-lg p-6 rounded-sm">
+            <h2 id="elme-sl-delete-title" class="font-heading text-h4 text-ink mb-3">
+                <?= $escaper->escapeHtml(__('Delete list?')) ?>
+            </h2>
+            <p class="text-body text-ink-muted mb-6">
+                <?= $escaper->escapeHtml(__('This cannot be undone.')) ?>
+                <span class="block mt-1 font-medium text-ink" x-text="deleteName"></span>
+            </p>
+            <div class="flex flex-wrap gap-3 justify-end">
+                <button type="button" class="btn btn-secondary" @click="closeDeleteModal">
+                    <?= $escaper->escapeHtml(__('Cancel')) ?>
+                </button>
+                <button type="button" class="btn btn-primary" @click="deleteList"
+                        :disabled="isDeleting">
+                    <?= $escaper->escapeHtml(__('Delete')) ?>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function initElmeShoppingLists() {
+        const getAllUrl = '<?= $escaper->escapeJs($getAllUrl) ?>';
+        const deleteUrl = '<?= $escaper->escapeJs($deleteUrl) ?>';
+        const quickOrderUrl = '<?= $escaper->escapeJs($quickOrderUrl) ?>';
+        const labelOne = '<?= $escaper->escapeJs(__('1 product')) ?>';
+        const labelMany = '<?= $escaper->escapeJs(__('%1 products')) ?>';
+        const deleteFailed = '<?= $escaper->escapeJs(__('Could not delete the list.')) ?>';
+
+        return {
+            lists: [],
+            isLoading: true,
+            showDeleteModal: false,
+            isDeleting: false,
+            deleteId: null,
+            deleteName: '',
+
+            init() {
+                this.fetchLists();
+            },
+
+            showEmpty() {
+                return !this.isLoading && this.lists.length === 0;
+            },
+
+            showTable() {
+                return !this.isLoading && this.lists.length > 0;
+            },
+
+            editUrl(name) {
+                const sep = quickOrderUrl.indexOf('?') >= 0 ? '&' : '?';
+                return quickOrderUrl + sep + 'list=' + encodeURIComponent(name);
+            },
+
+            mapList(list) {
+                const count = list.item_count || 0;
+                const preview = Array.isArray(list.preview) ? list.preview : [];
+                return Object.assign({}, list, {
+                    preview: preview,
+                    has_preview: preview.length > 0,
+                    products_label: count === 1 ? labelOne : hyva.str(labelMany, count),
+                    edit_url: this.editUrl(list.name)
+                });
+            },
+
+            async fetchLists() {
+                this.isLoading = true;
+                try {
+                    const response = await fetch(getAllUrl, {
+                        method: 'GET',
+                        cache: 'no-store',
+                        headers: {'X-Requested-With': 'XMLHttpRequest'}
+                    });
+                    const data = await response.json();
+                    const raw = (data.success && Array.isArray(data.lists)) ? data.lists : [];
+                    this.lists = raw.map((list) => this.mapList(list));
+                } catch (e) {
+                    console.error(e);
+                    this.lists = [];
+                } finally {
+                    this.isLoading = false;
+                }
+            },
+
+            openList() {
+                const name = this.$event.currentTarget.getAttribute('data-list-name');
+                if (name) {
+                    window.location = this.editUrl(name);
+                }
+            },
+
+            confirmDelete() {
+                const btn = this.$event.currentTarget;
+                this.deleteId = parseInt(btn.getAttribute('data-list-id'), 10) || null;
+                this.deleteName = btn.getAttribute('data-list-name') || '';
+                this.showDeleteModal = !!this.deleteId;
+            },
+
+            closeDeleteModal() {
+                if (this.isDeleting) {
+                    return;
+                }
+                this.showDeleteModal = false;
+                this.deleteId = null;
+                this.deleteName = '';
+            },
+
+            async deleteList() {
+                if (!this.deleteId || this.isDeleting) {
+                    return;
+                }
+                const id = this.deleteId;
+                this.isDeleting = true;
+                this.showDeleteModal = false;
+                this.lists = this.lists.filter((list) => String(list.id) !== String(id));
+
+                try {
+                    const response = await fetch(deleteUrl, {
+                        method: 'POST',
+                        cache: 'no-store',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({form_key: hyva.getFormKey(), id: id})
+                    });
+                    const data = await response.json();
+                    if (!data.success) {
+                        throw new Error(data.message || deleteFailed);
+                    }
+                    window.dispatchEvent(new CustomEvent('elme:saved-lists-changed'));
+                    document.body.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+                } catch (e) {
+                    window.dispatchEvent(new CustomEvent('elme-toast', {
+                        detail: {type: 'error', text: e.message || deleteFailed}
+                    }));
+                    await this.fetchLists();
+                } finally {
+                    this.isDeleting = false;
+                    this.deleteId = null;
+                    this.deleteName = '';
+                }
+            },
+
+            eventListeners: {
+                ['@elme:saved-lists-changed.window']() {
+                    this.fetchLists();
+                },
+                ['@keydown.escape.window']() {
+                    if (this.showDeleteModal) {
+                        this.closeDeleteModal();
+                    }
+                }
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeShoppingLists', initElmeShoppingLists), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

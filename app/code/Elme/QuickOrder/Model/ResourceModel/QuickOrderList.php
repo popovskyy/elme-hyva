@@ -67,4 +67,56 @@ class QuickOrderList extends AbstractDb
             ['items']
         );
     }
+
+    /**
+     * Named shopping lists for a customer (not cart_list). Used by My Shopping List and Add to list.
+     *
+     * @return list<array{id: int, name: string, items: array<int, array{sku: string, qty: float}>}>
+     */
+    public function loadNamedLists(int $customerId, string $excludeName): array
+    {
+        $connection = $this->getConnection();
+        $rows = $connection->fetchAll(
+            $connection->select()
+                ->from($this->getMainTable(), ['id', 'name', 'items'])
+                ->where('customer_id = ?', $customerId)
+                ->where('name <> ?', $excludeName)
+                ->order(['updated_at DESC', 'id DESC'])
+        );
+
+        $lists = [];
+        foreach ($rows as $row) {
+            $items = [];
+            $raw = $row['items'] ?? '';
+            if (is_string($raw) && $raw !== '') {
+                try {
+                    $decoded = $this->json->unserialize($raw);
+                    $items = is_array($decoded) ? $decoded : [];
+                } catch (\InvalidArgumentException) {
+                    $items = [];
+                }
+            }
+            $lists[] = [
+                'id' => (int) $row['id'],
+                'name' => (string) $row['name'],
+                'items' => $items,
+            ];
+        }
+
+        return $lists;
+    }
+
+    /**
+     * Deletes a list only when it belongs to this customer. Returns false when missing or not owned.
+     */
+    public function deleteOwned(int $listId, int $customerId): bool
+    {
+        $connection = $this->getConnection();
+        $deleted = $connection->delete(
+            $this->getMainTable(),
+            ['id = ?' => $listId, 'customer_id = ?' => $customerId]
+        );
+
+        return $deleted > 0;
+    }
 }

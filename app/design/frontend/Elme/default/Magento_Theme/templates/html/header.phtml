@@ -36,6 +36,8 @@ $isLoggedIn = $loginOnly->isLoggedIn();
 // BE-16: the Quick Order cart is the only cart; there is no Magento cart page or mini-cart
 $qoCartUrl = $block->getUrl('quick_order/cart');
 $cartUrl = $qoCartUrl;
+// FE-73: Magento wishlist is off; Shopping list = named QO lists (Bart remake)
+$shoppingListUrl = $block->getUrl('quick_order/template');
 ?>
 <script>
     function initHeader() {
@@ -45,6 +47,7 @@ $cartUrl = $qoCartUrl;
             cartBumped: false,
             qoCount: 0,
             qoBumped: false,
+            listsCount: 0,
             isCartOpen: false,
             pageHeader: null,
             promo: null,
@@ -198,6 +201,7 @@ $cartUrl = $qoCartUrl;
                 const data = this.$event.detail.data || {};
                 if (data.quick_order) {
                     this.applyQoCount(data.quick_order.summary_count);
+                    this.listsCount = parseInt(data.quick_order.lists_item_count, 10) || 0;
                 }
             },
 
@@ -270,6 +274,14 @@ $cartUrl = $qoCartUrl;
 
             qoAriaLabel() {
                 return '<?= $escaper->escapeJs(__('Quick Order')) ?>, ' + this.countLabel(this.qoCount);
+            },
+
+            hasListsCount() {
+                return !!this.listsCount;
+            },
+
+            listsAriaLabel() {
+                return '<?= $escaper->escapeJs(__('Shopping list')) ?>, ' + this.countLabel(this.listsCount);
             },
 
             toggleCart() {
@@ -407,6 +419,24 @@ $cartUrl = $qoCartUrl;
 
 
             <?php if ($isLoggedIn): ?>
+                <!-- FE-73: Shopping list (named QO lists; Magento wishlist removed) -->
+                <a
+                    href="<?= $escaper->escapeUrl($shoppingListUrl) ?>"
+                    class="elme-header__action elme-header__lists-btn hidden lg:inline-flex"
+                    :aria-label="listsAriaLabel"
+                >
+                    <span class="elme-header__icon" aria-hidden="true">
+                        <?= $lucideIcons->heartHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+                        <span
+                            class="elme-header__badge"
+                            x-text="listsCount"
+                            x-show="hasListsCount"
+                            x-cloak
+                        ></span>
+                    </span>
+                    <span class="elme-header__label"><?= $escaper->escapeHtml(__('Shopping list')) ?></span>
+                </a>
+
                 <!-- Quick Order cart (desktop; FE-41 adds the panel). Named apart from the mini-cart. -->
                 <a
                     href="<?= $escaper->escapeUrl($qoCartUrl) ?>"
