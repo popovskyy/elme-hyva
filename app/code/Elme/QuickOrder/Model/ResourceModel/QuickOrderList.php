@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Elme\QuickOrder\Model\ResourceModel;
 
+use Magento\Framework\DB\Adapter\DuplicateException;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 use Magento\Framework\Model\ResourceModel\Db\Context;
 use Magento\Framework\Serialize\Serializer\Json;
@@ -34,6 +35,14 @@ class QuickOrderList extends AbstractDb
      */
     public function exists(int $customerId, string $name): bool
     {
+        return $this->getId($customerId, $name) !== null;
+    }
+
+    /**
+     * Id of this customer's list with this name. The column collation ignores case, as the unique key does.
+     */
+    public function getId(int $customerId, string $name): ?int
+    {
         $connection = $this->getConnection();
         $id = $connection->fetchOne(
             $connection->select()
@@ -43,7 +52,34 @@ class QuickOrderList extends AbstractDb
                 ->limit(1)
         );
 
-        return $id !== false;
+        return $id !== false ? (int) $id : null;
+    }
+
+    /**
+     * A new empty list. Never touches an existing one: the unique key turns a taken name into DuplicateException.
+     *
+     * @throws DuplicateException
+     */
+    public function insertEmpty(int $customerId, string $name): void
+    {
+        $this->getConnection()->insert(
+            $this->getMainTable(),
+            ['customer_id' => $customerId, 'name' => $name, 'items' => $this->json->serialize([])]
+        );
+    }
+
+    /**
+     * Renames a list only when it belongs to this customer. A taken name is DuplicateException (unique key).
+     *
+     * @throws DuplicateException
+     */
+    public function renameOwned(int $listId, int $customerId, string $name): void
+    {
+        $this->getConnection()->update(
+            $this->getMainTable(),
+            ['name' => $name],
+            ['id = ?' => $listId, 'customer_id = ?' => $customerId]
+        );
     }
 
     /**

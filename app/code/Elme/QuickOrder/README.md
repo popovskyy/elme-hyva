@@ -58,10 +58,14 @@ shopping lists.
 
 | Piece | Does |
 | --- | --- |
-| `Model\SavedLists` | List / delete / merge named lists; preview thumbnails for My Shopping List |
+| `Model\SavedLists` | List / create / rename / delete / merge named lists; preview thumbnails for My Shopping List |
 | `GET /quick-order/list/getall` | `{success, lists, saved_skus, total_item_count}` |
-| `POST /quick-order/list/save` | JSON `{form_key, name, mode, items}` or legacy `list[name]` form body |
+| `POST /quick-order/list/save` | JSON `{form_key, name, mode, items}` or legacy `list[name]` form body. `mode`: `merge` (default), `replace` (whole list), `add` (existing list, SKUs checked: "SKU not found."), `create` (empty list, a taken name is refused) |
+| `POST /quick-order/list/rename` | JSON `{form_key, name, new_name}`, same duplicate rule as `create` |
 | `POST /quick-order/list/delete` | JSON `{form_key, id}` |
+
+List names are unique per customer with case ignored (unique key on `customer_id, name`); `create` and `rename`
+never touch another list.
 | `/quick-order/template` | My Shopping List page (account + header) |
 | Add to list modal | `elme:open-add-to-list-modal` or `[data-elme-qo-add-to-list][data-sku]` |
 | `/wishlist/*` | Redirects to `/quick-order/template` |
