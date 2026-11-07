@@ -1,6 +1,7 @@
 /*
- * Quick Order cart page (/quick-order/cart). An order sheet: photo tile, name, the same qty
- * stepper as the product card, and a flat summary panel. Tokens only.
+ * Quick Order cart page (/quick-order/cart) and list editor (/quick-order/?list=). An order sheet: photo tile,
+ * name, the same qty stepper as the product card, and a flat summary panel (FE-76 look 1). The sticky bar, save
+ * status and number tick are in cart-bar.css. Tokens only.
  */
 
 @layer components {
@@ -26,8 +27,8 @@
     .elme-cart__head,
     .elme-cart__line {
         display: grid;
-        grid-template-columns: --spacing(22) minmax(0, 1fr);
-        column-gap: --spacing(4);
+        grid-template-columns: --spacing(18) minmax(0, 1fr) auto;
+        column-gap: --spacing(3.5);
         row-gap: --spacing(3);
     }
 
@@ -65,7 +66,7 @@
     }
 
     .elme-cart__line {
-        padding-block: --spacing(5);
+        padding-block: --spacing(4);
         border-block-end: 1px solid var(--color-divider);
         animation: elme-cart-in var(--transition-duration-base) var(--ease-out-quart) both;
 
@@ -96,6 +97,11 @@
             width: --spacing(24);
         }
 
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+
         img {
             width: 100%;
             height: 100%;
@@ -114,11 +120,6 @@
         grid-column: 2;
         grid-row: 1;
         min-width: 0;
-        padding-inline-end: --spacing(20);
-
-        @variant lg {
-            padding-inline-end: 0;
-        }
     }
 
     .elme-cart__name {
@@ -127,6 +128,7 @@
         line-height: var(--text-copy--line-height);
         font-weight: 500;
         text-decoration: none;
+        transition: color var(--transition-duration-fast) var(--ease-out-quad);
 
         @variant lg {
             font-size: var(--text-copy-desktop);
@@ -134,7 +136,12 @@
         }
 
         &:hover {
-            text-decoration: underline;
+            color: var(--color-olive);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
         }
     }
 
@@ -191,7 +198,20 @@
         display: flex;
         flex-wrap: wrap;
         gap: --spacing(1) --spacing(4);
-        margin-block-start: --spacing(3);
+        margin-block-start: --spacing(2);
+
+        @variant lg {
+            margin-block-start: --spacing(3);
+        }
+    }
+
+    /* Remove is the trash button in the row controls below lg, a text action under the name on desktop */
+    .elme-cart__remove-text {
+        display: none;
+
+        @variant lg {
+            display: inline;
+        }
     }
 
     .elme-cart__textbtn {
@@ -204,22 +224,39 @@
         text-decoration: underline;
         text-underline-offset: 3px;
         cursor: pointer;
+        transition: color var(--transition-duration-fast) var(--ease-out-quad);
 
         &:hover {
             color: var(--color-ink);
         }
 
         &:focus-visible {
-            outline: 2px solid var(--color-ink);
+            outline: 2px solid var(--color-primary);
             outline-offset: 2px;
         }
     }
 
-    .elme-cart__qty {
-        grid-column: 2;
+    /* stepper and trash on one line under the name; on desktop the stepper takes its own column */
+    .elme-cart__ctrl {
+        grid-column: 2 / 4;
         grid-row: 2;
-        justify-self: start;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: --spacing(3);
 
+        @variant lg {
+            display: contents;
+        }
+    }
+
+    .elme-cart__trash {
+        @variant lg {
+            display: none;
+        }
+    }
+
+    .elme-cart__qty {
         @variant lg {
             grid-column: 3;
             grid-row: 1;
@@ -232,7 +269,7 @@
     }
 
     .elme-cart__row-total {
-        grid-column: 2;
+        grid-column: 3;
         grid-row: 1;
         justify-self: end;
         margin: 0;
@@ -251,8 +288,9 @@
         }
     }
 
-    .elme-cart.is-saving .elme-cart__row-total,
-    .elme-cart.is-saving .elme-cart__money dd {
+    /* totals wait for the server while a save is out: dimmed, never hidden, so nothing moves */
+    .elme-cart.is-saving .elme-cart__money dd,
+    .elme-cart.is-saving .elme-cart__bar-amount {
         opacity: 0.45;
     }
 
@@ -313,7 +351,7 @@
         font-size: var(--text-copy);
         line-height: var(--text-copy--line-height);
         font-variant-numeric: tabular-nums;
-        transition: opacity var(--transition-duration-fast) ease;
+        transition: opacity var(--transition-duration-fast) var(--ease-out-quad);
     }
 
     .elme-cart__money-total dt,
@@ -324,19 +362,13 @@
         font-weight: 600;
     }
 
-    .elme-cart__saving {
-        margin: 0;
-        color: var(--color-ink-muted);
-        font-size: var(--text-note);
-        line-height: var(--text-note--line-height);
-    }
-
     .elme-cart__continue {
         align-self: center;
         color: var(--color-ink-muted);
         font-size: var(--text-note);
         line-height: var(--text-note--line-height);
         text-underline-offset: 3px;
+        transition: color var(--transition-duration-fast) var(--ease-out-quad);
 
         &:hover {
             color: var(--color-ink);
@@ -344,13 +376,24 @@
     }
 
     .elme-cart__empty {
-        max-width: --spacing(112);
-        padding-block: --spacing(6) --spacing(16);
+        padding: --spacing(10) --spacing(6);
+        border: 1px solid var(--color-divider);
+        background: var(--color-surface);
+        text-align: center;
+
+        > svg {
+            display: block;
+            width: --spacing(10);
+            height: --spacing(10);
+            margin: 0 auto --spacing(3.5);
+            color: var(--color-secondary);
+        }
     }
 
     .elme-cart__empty p {
-        margin: 0 0 --spacing(6);
-        color: var(--color-ink);
+        max-width: 34ch;
+        margin: 0 auto --spacing(5);
+        color: var(--color-ink-muted);
         font-size: var(--text-copy);
         line-height: var(--text-copy--line-height);
     }
@@ -415,36 +458,15 @@
 
     .elme-cart__title-row {
         display: flex;
-        align-items: baseline;
-        gap: --spacing(2);
+        align-items: center;
+        gap: --spacing(1);
         min-width: 0;
+        margin-block-end: --spacing(2);
 
         & .elme-cart__title {
             min-width: 0;
+            margin: 0;
             overflow-wrap: anywhere;
-        }
-    }
-
-    .elme-cart__rename-btn {
-        display: inline-grid;
-        flex: none;
-        place-items: center;
-        width: --spacing(11);
-        height: --spacing(11);
-        color: var(--color-ink-muted);
-        transition: color var(--transition-duration-fast) ease;
-
-        &:hover {
-            color: var(--color-ink);
-        }
-
-        &:focus-visible {
-            outline: 2px solid var(--color-ink);
-            outline-offset: 2px;
-        }
-
-        &:disabled {
-            opacity: 0.5;
         }
     }
 
@@ -461,18 +483,82 @@
     }
 
     .elme-cart__back {
-        margin: 0 0 --spacing(6);
+        display: inline-flex;
+        align-items: center;
+        gap: --spacing(1);
+        margin: 0 0 --spacing(3) calc(var(--spacing) * -1.5);
+        padding: --spacing(1.5);
         color: var(--color-ink-muted);
         font-size: var(--text-note);
         line-height: var(--text-note--line-height);
-        text-underline-offset: 3px;
+        text-decoration: none;
+        transition: color var(--transition-duration-fast) var(--ease-out-quad);
+
+        svg {
+            width: --spacing(4);
+            height: --spacing(4);
+            transition: translate var(--transition-duration-fast) var(--ease-out-quad);
+        }
 
         &:hover {
             color: var(--color-ink);
         }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+
+        @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+            &:hover svg {
+                translate: calc(var(--spacing) * -0.5) 0;
+            }
+        }
     }
 
-    .elme-cart__add,
+    /* SKU, qty, Add on one line; the hint and the error run under all three */
+    .elme-cart__add {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) --spacing(19) auto;
+        gap: --spacing(2);
+        margin-block: --spacing(4) --spacing(2);
+
+        @variant lg {
+            grid-template-columns: minmax(0, 1fr) --spacing(22) auto;
+            max-width: --spacing(160);
+            margin-block-end: --spacing(8);
+        }
+
+        /* flex labels: the inputs fill the row, so the inputs and the Add button are the same height */
+        > label {
+            display: flex;
+            min-width: 0;
+            margin: 0;
+        }
+
+        .elme-cart__field-error,
+        .elme-cart__hint {
+            grid-column: 1 / -1;
+        }
+    }
+
+    .elme-cart__hint {
+        display: flex;
+        align-items: flex-start;
+        gap: --spacing(1.5);
+        margin: 0;
+        color: var(--color-ink-muted);
+        font-size: var(--text-note);
+        line-height: var(--text-copy--line-height);
+
+        svg {
+            width: --spacing(4);
+            height: --spacing(4);
+            flex: none;
+            margin-block-start: 1px;
+        }
+    }
+
     .elme-cart__create,
     .elme-cart__rename {
         display: flex;
@@ -482,14 +568,9 @@
         margin-block-end: --spacing(6);
     }
 
-    .elme-cart__add-sku,
     .elme-cart__create-name {
         flex: 1 1 --spacing(48);
         min-width: 0;
-    }
-
-    .elme-cart__add-qty {
-        width: --spacing(20);
     }
 }
 

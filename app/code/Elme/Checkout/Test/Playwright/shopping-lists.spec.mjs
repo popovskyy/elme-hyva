@@ -33,6 +33,29 @@ const rows = (answer) => answer.list.items.map(({ sku, qty }) => ({ sku, qty }))
 
 const listUrl = (name) => `/quick-order/?list=${encodeURIComponent(name)}`;
 
+// Tab through the page and return the first focused element the sticky bottom bar (below lg) hides, or null
+async function focusHiddenByBar(page, presses) {
+    for (let i = 0; i < presses; i++) {
+        await page.keyboard.press('Tab');
+        const hidden = await page.evaluate(() => {
+            const bar = [...document.querySelectorAll('.elme-cart__bar')].find((el) => el.offsetParent !== null);
+            const active = document.activeElement;
+            if (!bar || !active || active === document.body || bar.contains(active)) {
+                return null;
+            }
+            const a = active.getBoundingClientRect();
+            const b = bar.getBoundingClientRect();
+            return a.height && a.bottom > b.top && a.top < b.bottom
+                ? `${active.tagName} "${active.textContent.trim().slice(0, 40)}"`
+                : null;
+        });
+        if (hidden) {
+            return hidden;
+        }
+    }
+    return null;
+}
+
 test.beforeEach(async ({ page }) => {
     await login(page);
     const all = await (await page.request.get('/quick-order/list/getall')).json();
@@ -169,7 +192,7 @@ test('rename: Enter saves, a taken name is refused, Esc cancels', async ({ page 
 test('deleting a list on My Shopping List does not show the loading skeleton again', async ({ page }) => {
     expect((await saveList(page, OTHER, 'create')).success).toBe(true);
     await page.goto('/quick-order/template');
-    const rowsOnPage = page.locator('.elme-shopping-lists tbody tr');
+    const rowsOnPage = page.locator('.elme-shopping-lists [data-list-row]');
     await expect(rowsOnPage).toHaveCount(2);
     const skeleton = page.locator('.elme-shopping-lists [aria-busy="true"]');
     await expect(skeleton).toBeHidden();
@@ -185,11 +208,36 @@ test('deleting a list on My Shopping List does not show the loading skeleton aga
         }).observe(el, { attributes: true, attributeFilter: ['style'] });
     });
 
-    await page.locator('tr', { hasText: OTHER }).getByRole('button', { name: 'Delete' }).click();
+    await page.locator('[data-list-row]', { hasText: OTHER }).getByRole('button', { name: 'Delete' }).click();
     const deleted = page.waitForResponse(/\/quick-order\/list\/delete/);
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
     await deleted;
     await expect(rowsOnPage).toHaveCount(1);
     await page.waitForTimeout(500);
     expect(await page.evaluate(() => window.__skeletonShown)).toBe(false);
+});
+
+test('the delete dialog keeps keyboard focus inside and gives it back to the trash button', async ({ page }) => {
+    await page.goto('/quick-order/template');
+    const trash = page.locator('[data-list-row]', { hasText: LIST }).getByRole('button', { name: 'Delete' });
+    await trash.focus();
+    await page.keyboard.press('Enter');
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeFocused();
+
+    for (const key of ['Tab', 'Tab', 'Tab', 'Shift+Tab', 'Shift+Tab', 'Shift+Tab']) {
+        await page.keyboard.press(key);
+        expect(await dialog.evaluate((el) => el.contains(document.activeElement)), key).toBe(true);
+    }
+
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(trash).toBeFocused();
+});
+
+test('on a phone the sticky bar of the list editor never covers the focused element', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(listUrl(LIST));
+    await expect(page.locator('.elme-cart__bar')).toBeVisible();
+    expect(await focusHiddenByBar(page, 60)).toBeNull();
 });

@@ -4,7 +4,10 @@
     <body>
         <referenceContainer name="content">
             <!-- Per customer, with a form key: never in the full page cache -->
-            <block name="elme.quick-order.cart" template="Elme_QuickOrder::cart/page.phtml" cacheable="false"/>
+            <block name="elme.quick-order.cart" template="Elme_QuickOrder::cart/page.phtml" cacheable="false">
+                <block name="elme.quick-order.cart.save-status" as="save-status"
+                       template="Elme_QuickOrder::cart/save-status.phtml"/>
+            </block>
         </referenceContainer>
     </body>
 </page>

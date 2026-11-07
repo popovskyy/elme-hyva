@@ -6,7 +6,10 @@
         <referenceContainer name="content">
             <block name="elme.quick-order.list"
                    template="Elme_QuickOrder::page/list.phtml"
-                   cacheable="false"/>
+                   cacheable="false">
+                <block name="elme.quick-order.list.save-status" as="save-status"
+                       template="Elme_QuickOrder::cart/save-status.phtml"/>
+            </block>
         </referenceContainer>
     </body>
 </page>

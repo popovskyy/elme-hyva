@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FE-76 Quick Order lists, list editor and cart: looks</title>
+<style>
+@font-face { font-family: Karla; font-weight: 400; src: url(../../app/design/frontend/Elme/default/web/fonts/karla/Karla-Regular.woff2) format("woff2"); }
+@font-face { font-family: Karla; font-weight: 500; src: url(../../app/design/frontend/Elme/default/web/fonts/karla/Karla-Medium.woff2) format("woff2"); }
+@font-face { font-family: Karla; font-weight: 600; src: url(../../app/design/frontend/Elme/default/web/fonts/karla/Karla-SemiBold.woff2) format("woff2"); }
+@font-face { font-family: Karla; font-weight: 700; src: url(../../app/design/frontend/Elme/default/web/fonts/karla/Karla-Bold.woff2) format("woff2"); }
+@font-face { font-family: DMSerifDisplay; font-weight: 400; src: url(../../app/design/frontend/Elme/default/web/fonts/dm-serif-display/DMSerifDisplay-Regular.woff2) format("woff2"); }
+
+/* tokens.values from hyva.config.json */
+:root {
+    --color-primary: #3A3935; --color-on-primary: #FFFFFF; --color-secondary: #ADBBA1;
+    --color-tertiary: #D4C8B3; --color-ink: #3A3935; --color-ink-muted: #676F78; --color-ink-subtle: #797D81;
+    --color-link-hover: #899991; --color-page: #F5F4EF; --color-surface: #FFFFFF; --color-surface-muted: #F8F8F8;
+    --color-sand-light: #E1DBD1; --color-sand-faint: #FAF9F4; --color-border: #CAC9C9; --color-divider: #DCDCDC;
+    --color-placeholder: #ADB2B8; --color-success: #00BC37; --color-olive: #647455; --color-error-strong: #D82C0D;
+    --color-toast-success: #E2E8DB;
+    --text-h2: 20px; --text-h2-desktop: 28px; --text-h4: 18px; --text-copy: 14px; --text-copy-desktop: 15px;
+    --text-note: 13px; --text-label: 11px; --text-nav: 15px;
+    --ease-out-quart: cubic-bezier(.165, .84, .44, 1); --ease-out-quad: cubic-bezier(.25, .46, .45, .94);
+    --dur-micro: 120ms; --dur-fast: 180ms; --dur-base: 240ms;
+    --form-height: 50px; --btn-min-height: 50px;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: #ECEBE6; color: var(--color-ink); font: 16px/22px Karla, system-ui, sans-serif; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+img { display: block; }
+
+/* chooser chrome */
+.page { padding: 32px 40px 80px; min-width: 1360px; }
+.page > h1 { font: 400 28px/34px DMSerifDisplay, serif; margin: 0 0 6px; }
+.page > p { margin: 0 0 8px; color: var(--color-ink-muted); max-width: 70ch; }
+.rm-toggle { display: inline-flex; gap: 8px; align-items: center; margin: 8px 0 0; font-size: 14px; }
+.variant { margin-top: 56px; }
+.variant > h2 { font: 400 26px/32px DMSerifDisplay, serif; margin: 0 0 4px; }
+.variant > p { margin: 0 0 20px; color: var(--color-ink-muted); max-width: 80ch; }
+.row { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 28px; }
+figure { margin: 0; }
+figcaption { font-size: 12px; color: var(--color-ink-muted); margin-bottom: 6px; }
+.phone, .wide { background: var(--color-page); overflow: auto; position: relative; box-shadow: 0 1px 3px rgb(0 0 0 / .12), 0 0 0 1px rgb(0 0 0 / .06); }
+.phone { width: 390px; height: 780px; }
+.wide { width: 1280px; height: 760px; }
+
+/* site header (context only) */
+.sh { display: flex; align-items: center; justify-content: space-between; background: var(--color-surface); border-bottom: 1px solid var(--color-divider); padding: 0 20px; height: 56px; }
+.sh__group { display: flex; gap: 14px; align-items: center; }
+.sh img { height: 22px; }
+.wide .sh { height: 68px; padding: 0 40px; justify-content: flex-start; gap: 40px; }
+.wide .sh__nav { display: flex; gap: 22px; font-size: var(--text-nav); }
+.wide .sh__group:last-child { margin-left: auto; gap: 22px; }
+.sh__cart { position: relative; }
+.sh__badge { position: absolute; top: -6px; right: -9px; background: var(--color-primary); color: var(--color-on-primary); font-size: 10px; line-height: 16px; min-width: 18px; padding: 0 4px; border-radius: 9px; text-align: center; }
+.ico { width: var(--i, 20px); height: var(--i, 20px); flex: none; }
+
+/* shared storefront pieces */
+.main { padding: 24px 20px 32px; }
+.wide .main { padding: 36px 40px 56px; }
+.h1 { font: 400 var(--text-h2)/30px DMSerifDisplay, serif; margin: 0; }
+.wide .h1 { font-size: var(--text-h2-desktop); line-height: 36px; }
+.muted { color: var(--color-ink-muted); }
+.note { font-size: var(--text-note); line-height: 15px; }
+.copy { font-size: var(--text-copy); line-height: 18px; }
+.num { font-variant-numeric: tabular-nums; }
+.link { color: var(--color-ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--color-border); transition: color var(--dur-fast) var(--ease-out-quad), text-decoration-color var(--dur-fast) var(--ease-out-quad); }
+.link:hover { color: var(--color-olive); text-decoration-color: currentColor; }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: var(--btn-min-height); padding: 0 24px; border: 1px solid var(--color-primary); background: var(--color-primary); color: var(--color-on-primary); font-size: 15px; letter-spacing: .5px; text-decoration: none; white-space: nowrap; transition: background-color var(--dur-fast) var(--ease-out-quad), border-color var(--dur-fast) var(--ease-out-quad), color var(--dur-fast) var(--ease-out-quad), transform var(--dur-micro) var(--ease-out-quad); }
+.btn:hover { background: var(--color-secondary); border-color: var(--color-secondary); }
+.btn:active { transform: scale(.97); }
+.btn--ghost { background: transparent; color: var(--color-ink); border-color: var(--color-border); }
+.btn--ghost:hover { background: var(--color-surface); border-color: var(--color-primary); color: var(--color-ink); }
+.btn--sm { min-height: 44px; padding: 0 16px; font-size: 14px; }
+.btn[disabled] { opacity: .55; pointer-events: none; }
+
+/* icon button: 44px hit area, hover and active on every one */
+.ib { display: inline-grid; place-items: center; width: 44px; height: 44px; border: 1px solid transparent; background: transparent; color: var(--color-ink); text-decoration: none; transition: background-color var(--dur-fast) var(--ease-out-quad), color var(--dur-fast) var(--ease-out-quad), border-color var(--dur-fast) var(--ease-out-quad), transform var(--dur-micro) var(--ease-out-quad); }
+.ib:hover { background: var(--color-surface-muted); }
+.ib:active { transform: scale(.94); }
+.ib--danger:hover { color: var(--color-error-strong); background: #FBEDEA; }
+.ib--line { border-color: var(--color-border); }
+.ib--line:hover { border-color: var(--color-primary); }
+
+.th { width: var(--s, 48px); height: var(--s, 48px); flex: none; background: var(--color-surface); border: 1px solid var(--color-divider); display: grid; place-items: center; overflow: hidden; color: var(--color-placeholder); }
+.th img { width: 100%; height: 100%; object-fit: contain; }
+.th--more { background: var(--color-sand-faint); color: var(--color-ink-muted); font-size: 12px; }
+
+.input { height: var(--form-height); border: 1px solid var(--color-border); border-radius: 1px; background: transparent; padding: 0 12px; width: 100%; min-width: 0; transition: border-color var(--dur-fast) var(--ease-out-quad); }
+.input:hover { border-color: var(--color-ink-subtle); }
+.input:focus { border-color: var(--color-primary); outline: none; }
+.field-hint { display: flex; gap: 6px; align-items: flex-start; margin: 8px 0 0; font-size: var(--text-note); line-height: 17px; color: var(--color-ink-muted); }
+.field-hint .ico { --i: 16px; margin-top: 1px; }
+
+/* qty stepper: press feedback 0.97 */
+.qty { display: inline-flex; align-items: stretch; height: 44px; border: 1px solid var(--color-border); background: var(--color-surface); transition: transform var(--dur-micro) var(--ease-out-quad), border-color var(--dur-fast) var(--ease-out-quad); }
+.qty:hover { border-color: var(--color-ink-subtle); }
+.qty:has(.qbtn:active) { transform: scale(.97); }
+.qbtn { width: 44px; border: 0; background: transparent; display: grid; place-items: center; transition: background-color var(--dur-fast) var(--ease-out-quad); }
+.qbtn:hover:not(:disabled) { background: var(--color-surface-muted); }
+.qbtn:active:not(:disabled) { background: var(--color-sand-faint); }
+.qbtn:disabled { color: var(--color-placeholder); cursor: default; }
+.qbtn .ico { --i: 16px; }
+.qty input { width: 48px; border: 0; text-align: center; background: transparent; font-variant-numeric: tabular-nums; -moz-appearance: textfield; }
+.qty input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+/* row total number tick */
+.tick { display: inline-block; font-variant-numeric: tabular-nums; }
+.tick.is-up { animation: tick-up var(--dur-fast) var(--ease-out-quart); }
+.tick.is-down { animation: tick-down var(--dur-fast) var(--ease-out-quart); }
+@keyframes tick-up { from { transform: translateY(6px); opacity: 0; } }
+@keyframes tick-down { from { transform: translateY(-6px); opacity: 0; } }
+
+/* saving state: one fixed slot, text cross-fades, nothing moves */
+.status { position: relative; display: inline-grid; height: 18px; min-width: 9ch; font-size: var(--text-note); line-height: 18px; color: var(--color-ink-muted); }
+.status > span { grid-area: 1 / 1; display: inline-flex; align-items: center; gap: 6px; opacity: 0; transition: opacity 60ms linear; white-space: nowrap; }
+.status .ico { --i: 14px; }
+.status__saving .ico { animation: spin 800ms linear infinite; }
+.status__saved { color: var(--color-olive); }
+[data-state="idle"] .status__idle, [data-state="saving"] .status__saving, [data-state="saved"] .status__saved { opacity: 1; transition: opacity var(--dur-fast) var(--ease-out-quad) 60ms; }
+@keyframes spin { to { transform: rotate(360deg); } }
+[data-state="saving"] [data-cta] { opacity: .55; pointer-events: none; }
+
+.stock { display: inline-flex; align-items: center; gap: 6px; color: var(--color-olive); }
+.stock::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+.back { display: inline-flex; align-items: center; gap: 4px; font-size: var(--text-note); color: var(--color-ink-muted); text-decoration: none; margin: 0 0 12px -6px; padding: 6px; transition: color var(--dur-fast) var(--ease-out-quad); }
+.back:hover { color: var(--color-ink); }
+.back .ico { --i: 16px; transition: transform var(--dur-fast) var(--ease-out-quad); }
+.back:hover .ico { transform: translateX(-2px); }
+.title-row { display: flex; align-items: center; gap: 4px; }
+
+.money { margin: 0; display: grid; gap: 10px; font-size: var(--text-copy); }
+.money div { display: flex; justify-content: space-between; }
+.money dt { color: var(--color-ink-muted); }
+.money dd { margin: 0; font-variant-numeric: tabular-nums; }
+.money .money__total { padding-top: 10px; border-top: 1px solid var(--color-divider); font-weight: 600; font-size: 15px; }
+.money .money__total dt { color: var(--color-ink); }
+
+/* list row enter / leave on delete */
+.leaving { animation: leave var(--dur-base) var(--ease-out-quart) forwards; }
+@keyframes leave { to { opacity: 0; transform: translateX(-8px); } }
+
+/* empty state */
+.empty { text-align: center; padding: 40px 24px; background: var(--color-surface); border: 1px solid var(--color-divider); }
+.empty > .ico { --i: 40px; display: block; color: var(--color-secondary); margin: 0 auto 14px; }
+.empty h2 { font: 400 var(--text-h4)/26px DMSerifDisplay, serif; margin: 0 0 6px; }
+.empty p { margin: 0 auto 20px; max-width: 34ch; color: var(--color-ink-muted); font-size: var(--text-copy); }
+.empty .btns { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+
+/* ---------- 1. Order sheet ---------- */
+.v1 .lists { display: grid; gap: 12px; margin-top: 20px; }
+.v1 .lcard { background: var(--color-surface); border: 1px solid var(--color-divider); padding: 16px; display: grid; gap: 14px; }
+.v1 .lcard__top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.v1 .lcard__name { font: 400 var(--text-h4)/24px DMSerifDisplay, serif; color: var(--color-ink); text-decoration: none; }
+.v1 .lcard__name:hover { color: var(--color-olive); }
+.v1 .thumbs { display: flex; gap: 6px; }
+.v1 .lcard__actions { display: flex; gap: 8px; }
+.v1 .lcard__actions .btn { flex: 1; }
+.wide .v1 .lists { gap: 0; border-top: 1px solid var(--color-divider); margin-top: 28px; }
+.wide .v1 .lrow { display: grid; grid-template-columns: 1fr 200px 160px 140px 44px; gap: 24px; align-items: center; padding: 18px 16px; border-bottom: 1px solid var(--color-divider); transition: background-color var(--dur-fast) var(--ease-out-quad); }
+.wide .v1 .lrow:hover { background: var(--color-sand-faint); }
+.wide .v1 .lhead { display: grid; grid-template-columns: 1fr 200px 160px 140px 44px; gap: 24px; padding: 0 16px 10px; font-size: var(--text-label); letter-spacing: .08em; text-transform: uppercase; color: var(--color-ink-muted); }
+
+.v1 .add { display: grid; grid-template-columns: 1fr 76px auto; gap: 8px; margin: 18px 0 4px; }
+.v1 .lines { list-style: none; margin: 16px 0 0; padding: 0; border-top: 1px solid var(--color-divider); }
+.v1 .line { display: grid; grid-template-columns: 72px 1fr auto; gap: 6px 14px; padding: 16px 0; border-bottom: 1px solid var(--color-divider); }
+.v1 .line .th { --s: 72px; grid-row: span 2; }
+.v1 .line__name { font-size: 15px; line-height: 20px; color: var(--color-ink); text-decoration: none; }
+.v1 .line__name:hover { color: var(--color-olive); }
+.v1 .line__meta { display: grid; gap: 2px; margin-top: 4px; }
+.v1 .line__total { text-align: right; font-size: 15px; font-weight: 600; }
+.v1 .line__ctrl { grid-column: 2 / 4; display: flex; align-items: center; justify-content: space-between; }
+.v1 .sumbox { background: var(--color-surface); border: 1px solid var(--color-divider); padding: 20px; margin-top: 24px; }
+.v1 .sumbox h2 { font: 400 var(--text-h4)/24px DMSerifDisplay, serif; margin: 0 0 14px; }
+.v1 .sumbox .btn { width: 100%; margin-top: 18px; }
+.v1 .sumbox .status { margin-top: 12px; }
+.v1 .bar { position: sticky; bottom: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); background: var(--color-surface); border-top: 1px solid var(--color-divider); box-shadow: 0 -6px 16px rgb(58 57 53 / .06); }
+.v1 .bar__total { display: grid; }
+.v1 .bar__amount { font-size: 18px; font-weight: 600; line-height: 22px; }
+.wide .v1 .bar { display: none; }
+.wide .v1 .ed { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 48px; align-items: start; }
+.wide .v1 .add { grid-template-columns: 1fr 90px auto; max-width: 640px; }
+.wide .v1 .line { grid-template-columns: 96px 1fr 150px 110px; align-items: center; row-gap: 0; padding: 20px 0; }
+.wide .v1 .line .th { --s: 96px; grid-row: auto; }
+.wide .v1 .line__ctrl { grid-column: auto; display: contents; }
+.wide .v1 .line__ctrl .qty { justify-self: center; order: 3; }
+.wide .v1 .line__total { order: 4; }
+.wide .v1 .line__remove { grid-column: 2; }
+.wide .v1 .sumbox { position: sticky; top: 24px; margin-top: 0; }
+
+/* ---------- 2. Tiles ---------- */
+.v2 .lists { display: grid; gap: 16px; margin-top: 20px; }
+.v2 .tile { background: var(--color-surface); border: 1px solid var(--color-divider); display: grid; transition: border-color var(--dur-fast) var(--ease-out-quad), box-shadow var(--dur-base) var(--ease-out-quart); }
+.v2 .tile:hover { border-color: var(--color-border); box-shadow: 0 8px 24px rgb(58 57 53 / .08); }
+.v2 .mosaic { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: var(--color-sand-faint); aspect-ratio: 3 / 1.15; }
+.v2 .mosaic .th { width: 100%; height: 100%; border: 0; background: var(--color-surface); }
+.v2 .mosaic .th--empty { background: var(--color-sand-faint); }
+.v2 .tile__body { padding: 14px 16px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.v2 .tile__name { font: 400 var(--text-h4)/24px DMSerifDisplay, serif; color: var(--color-ink); text-decoration: none; }
+.v2 .tile__name::after { content: ""; position: absolute; inset: 0; }
+.v2 .tile { position: relative; }
+.v2 .tile__name:focus-visible { outline: none; }
+.v2 .tile:has(.tile__name:focus-visible) { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.v2 .tile .ib { position: relative; z-index: 1; }
+.v2 .tile__open { display: flex; margin-top: 2px; align-items: center; gap: 4px; font-size: var(--text-note); color: var(--color-ink-muted); }
+.v2 .tile__open .ico { --i: 16px; transition: transform var(--dur-fast) var(--ease-out-quad); }
+.v2 .tile:hover .tile__open .ico { transform: translateX(3px); }
+.v2 .tile--new { border-style: dashed; border-color: var(--color-border); background: transparent; place-items: center; text-align: center; min-height: 140px; color: var(--color-ink-muted); text-decoration: none; gap: 6px; align-content: center; }
+.v2 .tile--new:hover { color: var(--color-ink); background: var(--color-surface); }
+.wide .v2 .lists { grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 28px; }
+
+.v2 .add { background: var(--color-surface); border: 1px solid var(--color-divider); padding: 14px; margin: 18px 0 0; }
+.v2 .add__row { display: grid; grid-template-columns: 1fr 76px 50px; gap: 8px; }
+.v2 .add .ib { width: 50px; height: 50px; background: var(--color-primary); color: var(--color-on-primary); }
+.v2 .add .ib:hover { background: var(--color-secondary); }
+.v2 .lines { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 10px; }
+.v2 .card { background: var(--color-surface); border: 1px solid var(--color-divider); padding: 12px; display: grid; grid-template-columns: 84px 1fr; gap: 12px; position: relative; }
+.v2 .card .th { --s: 84px; border: 0; background: var(--color-sand-faint); }
+.v2 .card__name { font-size: 15px; line-height: 20px; color: var(--color-ink); text-decoration: none; padding-right: 36px; display: block; }
+.v2 .card__name:hover { color: var(--color-olive); }
+.v2 .card__x { position: absolute; top: 4px; right: 4px; }
+.v2 .card__meta { margin-top: 4px; display: grid; gap: 2px; }
+.v2 .card__foot { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid var(--color-divider); }
+.v2 .card__total { font-size: 16px; font-weight: 600; }
+.v2 .bar { position: sticky; bottom: 0; z-index: 2; background: var(--color-primary); color: var(--color-on-primary); margin-top: 20px; }
+.v2 .bar__sheet { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--dur-base) var(--ease-out-quart); }
+.v2 .bar.is-open .bar__sheet { grid-template-rows: 1fr; }
+.v2 .bar__sheet > div { overflow: hidden; }
+.v2 .bar__sheet .money { padding: 16px 20px 4px; }
+.v2 .bar__sheet .money dt, .v2 .bar__sheet .money .money__total dt { color: rgb(255 255 255 / .75); }
+.v2 .bar__sheet .money .money__total { border-color: rgb(255 255 255 / .2); }
+.v2 .bar__main { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px 10px 8px; }
+.v2 .bar__toggle { display: flex; align-items: center; gap: 6px; border: 0; background: transparent; color: inherit; padding: 6px 8px; min-height: 44px; text-align: left; transition: background-color var(--dur-fast) var(--ease-out-quad); }
+.v2 .bar__toggle:hover { background: rgb(255 255 255 / .08); }
+.v2 .bar__toggle .ico { --i: 18px; transition: transform var(--dur-base) var(--ease-out-quart); }
+.v2 .bar.is-open .bar__toggle .ico { transform: rotate(180deg); }
+.v2 .bar__amount { font-size: 18px; font-weight: 600; line-height: 22px; display: block; }
+.v2 .bar .status { color: rgb(255 255 255 / .75); }
+.v2 .bar .status__saved { color: var(--color-secondary); }
+.v2 .bar .btn { background: var(--color-surface); color: var(--color-ink); border-color: var(--color-surface); }
+.v2 .bar .btn:hover { background: var(--color-secondary); border-color: var(--color-secondary); color: var(--color-on-primary); }
+.wide .v2 .bar { display: none; }
+.wide .v2 .ed { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 40px; align-items: start; }
+.wide .v2 .lines { grid-template-columns: 1fr 1fr; gap: 16px; }
+.wide .v2 .add__row { grid-template-columns: 1fr 90px 50px; }
+.v2 .sumpanel { display: none; }
+.wide .v2 .sumpanel { display: block; position: sticky; top: 24px; background: var(--color-sand-faint); border: 1px solid var(--color-sand-light); padding: 24px; }
+.wide .v2 .sumpanel h2 { font: 400 22px/28px DMSerifDisplay, serif; margin: 0 0 4px; }
+.wide .v2 .sumpanel .btn { width: 100%; margin-top: 20px; }
+.wide .v2 .sumpanel .status { margin-top: 12px; }
+
+/* ---------- 3. Compact sheet ---------- */
+.v3 .lists { margin-top: 16px; border-top: 1px solid var(--color-ink); }
+.v3 .lrow { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--color-divider); }
+.v3 .stack { display: flex; width: 96px; }
+.v3 .stack .th { --s: 40px; margin-left: -12px; box-shadow: 0 0 0 2px var(--color-page); }
+.v3 .stack .th:first-child { margin-left: 0; }
+.v3 .lrow__name { font-weight: 600; font-size: 15px; color: var(--color-ink); text-decoration: none; display: block; }
+.v3 .lrow__name:hover { color: var(--color-olive); text-decoration: underline; text-underline-offset: 3px; }
+.v3 .lrow__acts { display: flex; gap: 4px; }
+.v3 .lrow__acts .lbl { display: none; }
+.wide .v3 .lists { margin-top: 28px; }
+.wide .v3 .lrow { grid-template-columns: 120px 1fr 160px auto; gap: 24px; padding: 14px 8px; transition: background-color var(--dur-fast) var(--ease-out-quad); }
+.wide .v3 .lrow:hover { background: var(--color-surface); }
+.wide .v3 .lrow__count { display: block; }
+.v3 .lrow__count { display: none; }
+.wide .v3 .lrow__acts .ib { width: auto; padding: 0 14px; gap: 6px; grid-auto-flow: column; font-size: 14px; }
+.wide .v3 .lrow__acts .lbl { display: inline; }
+.wide .v3 .lrow__sub { display: none; }
+
+.v3 .add { position: sticky; top: 0; z-index: 2; background: var(--color-page); padding: 12px 0; margin: 8px 0 0; border-bottom: 1px solid var(--color-ink); }
+.v3 .add__row { display: grid; grid-template-columns: 1fr 64px auto; gap: 6px; }
+.v3 .add .input, .v3 .add .btn { height: 44px; min-height: 44px; }
+.v3 .add .btn { padding: 0 16px; }
+.v3 .lines { list-style: none; margin: 0; padding: 0; }
+.v3 .line { display: grid; grid-template-columns: 56px 1fr auto; gap: 4px 12px; padding: 12px 0; border-bottom: 1px solid var(--color-divider); }
+.v3 .line .th { --s: 56px; grid-row: span 2; }
+.v3 .line__name { font-size: 14px; line-height: 18px; font-weight: 600; color: var(--color-ink); text-decoration: none; }
+.v3 .line__name:hover { color: var(--color-olive); }
+.v3 .line__total { text-align: right; font-size: 14px; font-weight: 600; }
+.v3 .line__meta { grid-column: 2 / 4; font-size: 12px; line-height: 16px; color: var(--color-ink-muted); }
+.v3 .line__meta .stock { font-size: 12px; }
+.v3 .line__ctrl { grid-column: 2 / 4; display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+.v3 .qty { height: 40px; }
+.v3 .qbtn { width: 40px; }
+.v3 .qty input { width: 44px; }
+.v3 .bar { position: sticky; bottom: 0; z-index: 2; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 10px 20px calc(10px + env(safe-area-inset-bottom)); background: var(--color-surface); border-top: 1px solid var(--color-ink); }
+.v3 .bar__line { font-size: var(--text-note); color: var(--color-ink-muted); }
+.v3 .bar__amount { font-size: 17px; font-weight: 600; }
+.v3 .bar .btn { min-height: 46px; }
+.v3 .sumrail { display: none; }
+.wide .v3 .bar { display: none; }
+.wide .v3 .ed { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 40px; align-items: start; }
+.wide .v3 .add__row { grid-template-columns: 1fr 80px auto; max-width: 620px; }
+.wide .v3 .add { position: static; border-bottom: 0; }
+.wide .v3 .lhead { position: sticky; top: 0; z-index: 1; border-top: 1px solid var(--color-ink); background: var(--color-page); display: grid; grid-template-columns: 56px 1fr 120px 130px 100px 44px; gap: 16px; padding: 10px 0; font-size: var(--text-label); letter-spacing: .08em; text-transform: uppercase; color: var(--color-ink-muted); border-bottom: 1px solid var(--color-divider); }
+.v3 .lhead { display: none; }
+.wide .v3 .line { grid-template-columns: 56px 1fr 120px 130px 100px 44px; gap: 16px; align-items: center; }
+.wide .v3 .line .th { grid-row: auto; }
+.wide .v3 .line__meta { margin-top: 2px; }
+.wide .v3 .sumrail { display: block; position: sticky; top: 24px; border-top: 1px solid var(--color-ink); padding-top: 16px; }
+.wide .v3 .sumrail .btn { width: 100%; margin-top: 18px; }
+.wide .v3 .sumrail .status { margin-top: 10px; }
+.wide .v3 .sumrail h2 { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-ink-muted); font-weight: 500; margin: 0 0 12px; }
+
+/* reduced motion: real media query plus the preview checkbox */
+@media (prefers-reduced-motion: reduce) {
+    .phone *, .wide * { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
+    .qty:has(.qbtn:active), .btn:active, .ib:active { transform: none !important; }
+}
+.rm .phone *, .rm .wide * { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
+.rm .qty:has(.qbtn:active), .rm .btn:active, .rm .ib:active { transform: none !important; }
+</style>
+</head>
+<body>
+<div class="page">
+    <h1>FE-76: My Shopping List, list editor and cart</h1>
+    <p>Three directions for the same screens. The list editor frames also stand for the cart page: same rows and bar, the button says Proceed to checkout and the SKU field is not there. Steppers, row totals and the saving state work: press plus or minus. Trash on a list plays the leave animation.</p>
+    <p>No SKU search endpoint exists yet (BE-11), so the SKU field shows a hint instead of autocomplete in every variant.</p>
+    <label class="rm-toggle"><input type="checkbox" id="rm"> Preview with reduced motion</label>
+
+    <section class="variant">
+        <h2>1. Order sheet</h2>
+        <p>Closest to today: white cards for lists on the phone, a plain ruled table on desktop, the editor keeps its rows and gets a white sticky bar with the total and the main button.</p>
+        <div class="row">
+            <figure><figcaption>390, My Shopping List</figcaption><div class="phone" data-v="1" data-screen="lists"></div></figure>
+            <figure><figcaption>390, list editor</figcaption><div class="phone" data-v="1" data-screen="editor"></div></figure>
+            <figure><figcaption>390, no lists yet</figcaption><div class="phone" data-v="1" data-screen="empty"></div></figure>
+        </div>
+        <div class="row"><figure><figcaption>1280, My Shopping List</figcaption><div class="wide" data-v="1" data-screen="lists"></div></figure></div>
+        <div class="row"><figure><figcaption>1280, list editor (summary sticks while the rows scroll)</figcaption><div class="wide" data-v="1" data-screen="editor"></div></figure></div>
+    </section>
+
+    <section class="variant">
+        <h2>2. Tiles</h2>
+        <p>Lists become photo tiles (three thumbs as a strip, the whole tile opens the list); editor rows are cards, and the phone bar is dark and opens up to show subtotal and GST.</p>
+        <div class="row">
+            <figure><figcaption>390, My Shopping List</figcaption><div class="phone" data-v="2" data-screen="lists"></div></figure>
+            <figure><figcaption>390, list editor (tap the total)</figcaption><div class="phone" data-v="2" data-screen="editor"></div></figure>
+            <figure><figcaption>390, no lists yet</figcaption><div class="phone" data-v="2" data-screen="empty"></div></figure>
+        </div>
+        <div class="row"><figure><figcaption>1280, My Shopping List</figcaption><div class="wide" data-v="2" data-screen="lists"></div></figure></div>
+        <div class="row"><figure><figcaption>1280, list editor</figcaption><div class="wide" data-v="2" data-screen="editor"></div></figure></div>
+    </section>
+
+    <section class="variant">
+        <h2>3. Compact sheet</h2>
+        <p>Dense for repeat ordering: one line per list with icon actions, the SKU field pinned at the top while you scroll, smaller rows and a slim bar with lines and total ex GST.</p>
+        <div class="row">
+            <figure><figcaption>390, My Shopping List</figcaption><div class="phone" data-v="3" data-screen="lists"></div></figure>
+            <figure><figcaption>390, list editor</figcaption><div class="phone" data-v="3" data-screen="editor"></div></figure>
+            <figure><figcaption>390, no lists yet</figcaption><div class="phone" data-v="3" data-screen="empty"></div></figure>
+        </div>
+        <div class="row"><figure><figcaption>1280, My Shopping List</figcaption><div class="wide" data-v="3" data-screen="lists"></div></figure></div>
+        <div class="row"><figure><figcaption>1280, list editor (column header and summary stick)</figcaption><div class="wide" data-v="3" data-screen="editor"></div></figure></div>
+    </section>
+</div>
+
+<script>
+// Lucide, stroke 1.5
+const P = {
+    trash: '<path d="M10 11v6M14 11v6M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+    pencil: '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497zM15 5l4 4"/>',
+    minus: '<path d="M5 12h14"/>',
+    plus: '<path d="M5 12h14M12 5v14"/>',
+    arrow: '<path d="M5 12h14M12 5l7 7-7 7"/>',
+    back: '<path d="m15 18-6-6 6-6"/>',
+    up: '<path d="m18 15-6-6-6 6"/>',
+    list: '<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M12 11h4M12 16h4M8 11h.01M8 16h.01"/>',
+    cart: '<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>',
+    info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+    loader: '<path d="M21 12a9 9 0 1 1-6.219-8.56"/>',
+    check: '<path d="M20 6 9 17l-5-5"/>',
+    image: '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
+    user: '<circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>',
+    heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+    menu: '<path d="M4 12h16M4 6h16M4 18h16"/>',
+    search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'
+};
+const ico = (n) => `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
+
+// Real content from elme-hyva.local (cart of the e2e customer, the e2e list names)
+const IMG = { gyp: 'qo-lists/gypsophila.jpg', milk: 'qo-lists/milk-bottle.jpg' };
+const ITEMS = [
+    { sku: 'FE53-LAMP', name: 'FE53 Brass Lamp', price: 450, qty: 37, min: 1, step: 1, stock: 50 },
+    { sku: 'TEST-SOFA-1', name: 'Test Sofa', price: 1299, qty: 2, min: 1, step: 1, stock: 47 },
+    { sku: 'FS.114.WH', name: 'Gypsophila Spray White - 28 x 16 x 74cm', price: 5.7, qty: 1, min: 1, step: 1, stock: 2964, img: IMG.gyp },
+    { sku: 'FE19-MOQ6', name: 'FE19 MOQ 6', price: 10, qty: 6, min: 6, step: 6, stock: 100 }
+];
+const LISTS = [
+    { name: 'E2E Showroom', count: 4, thumbs: [IMG.gyp, null, null], more: 1 },
+    { name: 'E2E Warehouse', count: 2, thumbs: [IMG.milk, IMG.gyp], more: 0 }
+];
+const fmt = (n) => '$' + n.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const thumb = (src, s) => `<span class="th" style="--s:${s}px">${src ? `<img src="${src}" alt="" width="${s}" height="${s}" loading="lazy">` : ico('image')}</span>`;
+const countLabel = (n) => n === 1 ? '1 product' : `${n} products`;
+
+function header(wide) {
+    if (wide) {
+        return `<div class="sh"><img src="../../app/design/frontend/Elme/default/web/images/logo.svg" alt="elme living">
+            <nav class="sh__nav"><span>New</span><span>Flowers &amp; Plants</span><span>Homewares</span><span>Furniture</span><span>Outdoor</span><span>Sale</span></nav>
+            <div class="sh__group">${ico('search')}${ico('user')}${ico('heart')}<span class="sh__cart">${ico('cart')}<span class="sh__badge">46</span></span></div></div>`;
+    }
+    return `<div class="sh"><div class="sh__group">${ico('menu')}${ico('search')}</div>
+        <img src="../../app/design/frontend/Elme/default/web/images/logo.svg" alt="elme living">
+        <div class="sh__group">${ico('user')}<span class="sh__cart">${ico('cart')}<span class="sh__badge">46</span></span></div></div>`;
+}
+
+const stepper = (it, i) => `<div class="qty"><button type="button" class="qbtn" data-act="dec" data-i="${i}" aria-label="Decrease quantity" ${it.qty <= it.min ? 'disabled' : ''}>${ico('minus')}</button>
+    <input type="number" inputmode="numeric" value="${it.qty}" min="${it.min}" step="${it.step}" aria-label="Qty" data-i="${i}"><button type="button" class="qbtn" data-act="inc" data-i="${i}" aria-label="Increase quantity">${ico('plus')}</button></div>`;
+const status = `<span class="status" aria-live="polite"><span class="status__idle">All changes saved</span><span class="status__saving">${ico('loader')} Saving...</span><span class="status__saved">${ico('check')} Saved</span></span>`;
+const money = `<dl class="money"><div><dt>Subtotal (ex GST)</dt><dd data-sub></dd></div><div><dt>GST</dt><dd data-gst></dd></div><div class="money__total"><dt>Total (inc GST)</dt><dd data-tot></dd></div></dl>`;
+const skuHint = `<p class="field-hint">${ico('info')}<span>Type the full SKU as printed on the product page, for example FS.114.WH. Search by name is coming.</span></p>`;
+const titleRow = `<a class="back" href="#">${ico('back')} My Shopping List</a>
+    <div class="title-row"><h1 class="h1">E2E Showroom</h1><button type="button" class="ib" aria-label="Rename list">${ico('pencil')}</button></div>`;
+
+const R = {
+    1: {
+        lists(wide) {
+            if (wide) {
+                return `<h1 class="h1">My Shopping List</h1><div class="lists" style="display:block">
+                    <div class="lhead"><span>List</span><span>Products</span><span></span><span></span><span></span></div>
+                    ${LISTS.map((l) => `<div class="lrow"><a class="v1-name lcard__name" href="#">${l.name}</a>
+                        <span class="thumbs" style="display:flex;gap:6px">${l.thumbs.map((t) => thumb(t, 44)).join('')}</span>
+                        <span class="copy muted">${countLabel(l.count)}</span>
+                        <a class="btn btn--ghost btn--sm" href="#">Open list</a>
+                        <button type="button" class="ib ib--danger" data-del aria-label="Delete ${l.name}">${ico('trash')}</button></div>`).join('')}
+                    </div><p style="margin-top:28px"><a class="btn btn--ghost" href="#">${ico('plus')} Create new list</a></p>`;
+            }
+            return `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h1 class="h1">My Shopping List</h1>
+                <a class="btn btn--ghost btn--sm" href="#">${ico('plus')} New list</a></div>
+                <div class="lists">${LISTS.map((l) => `<article class="lcard">
+                    <div class="lcard__top"><a class="lcard__name" href="#">${l.name}</a><span class="note muted">${countLabel(l.count)}</span></div>
+                    <div class="thumbs">${l.thumbs.map((t) => thumb(t, 56)).join('')}${l.more ? `<span class="th th--more" style="--s:56px">+${l.more}</span>` : ''}</div>
+                    <div class="lcard__actions"><a class="btn btn--sm" href="#">Open list</a>
+                    <button type="button" class="ib ib--line ib--danger" data-del aria-label="Delete ${l.name}">${ico('trash')}</button></div></article>`).join('')}</div>`;
+        },
+        editor(wide) {
+            const lines = ITEMS.map((it, i) => `<li class="line">${thumb(it.img, wide ? 96 : 72)}
+                <div><a class="line__name" href="#">${it.name}</a><div class="line__meta note muted"><span>${it.sku}</span><span class="stock">${it.stock} in stock</span><span>${fmt(it.price)} each, ex GST</span></div>
+                ${wide ? '<button type="button" class="link note line__remove" style="background:none;border:0;padding:8px 0 0">Remove</button>' : ''}</div>
+                <p class="line__total" style="margin:0"><span class="tick" data-row="${i}"></span></p>
+                <div class="line__ctrl">${stepper(it, i)}${wide ? '' : `<button type="button" class="ib ib--danger" aria-label="Remove ${it.name}">${ico('trash')}</button>`}</div></li>`).join('');
+            const add = `<form class="add" onsubmit="return false"><input class="input" placeholder="Add a SKU" aria-label="SKU" autocomplete="off"><input class="input" type="number" value="1" aria-label="Qty" style="text-align:center"><button class="btn btn--ghost" type="submit">Add</button></form>${skuHint}`;
+            const sum = `<aside class="sumbox"><h2>List</h2>${money}<button class="btn" type="button" data-cta>${ico('cart')} Add to cart</button>${status}<p style="text-align:center;margin:12px 0 0"><a class="link note" href="#">View cart</a></p></aside>`;
+            return `${titleRow}<div class="ed"><div>${add}<ul class="lines">${lines}</ul></div>${sum}</div>`;
+        },
+        bar: () => `<div class="bar"><div class="bar__total"><span class="note muted">Total (inc GST)</span><span class="bar__amount"><span class="tick" data-tot2></span></span>${status}</div><button class="btn" type="button" data-cta>Add to cart</button></div>`
+    },
+    2: {
+        lists(wide) {
+            const tiles = LISTS.map((l) => {
+                const cells = [0, 1, 2].map((k) => k < l.thumbs.length ? thumb(l.thumbs[k], 120) : '<span class="th th--empty"></span>').join('');
+                return `<article class="tile"><div class="mosaic">${cells}</div>
+                    <div class="tile__body"><div><a class="tile__name" href="#">${l.name}</a><div class="tile__open">${countLabel(l.count)} ${ico('arrow')}</div></div>
+                    <button type="button" class="ib ib--danger" data-del aria-label="Delete ${l.name}">${ico('trash')}</button></div></article>`;
+            }).join('');
+            return `<h1 class="h1">My Shopping List</h1><div class="lists">${tiles}<a class="tile tile--new" href="#">${ico('plus')}<span>Create new list</span></a></div>`;
+        },
+        editor(wide) {
+            const lines = ITEMS.map((it, i) => `<li class="card">${thumb(it.img, 84)}
+                <div><a class="card__name" href="#">${it.name}</a><div class="card__meta note muted"><span>${it.sku}</span><span class="stock">${it.stock} in stock</span><span>${fmt(it.price)} each, ex GST</span></div></div>
+                <button type="button" class="ib ib--danger card__x" aria-label="Remove ${it.name}">${ico('trash')}</button>
+                <div class="card__foot">${stepper(it, i)}<span class="card__total"><span class="tick" data-row="${i}"></span></span></div></li>`).join('');
+            const add = `<form class="add" onsubmit="return false"><div class="add__row"><input class="input" placeholder="Add a SKU" aria-label="SKU" autocomplete="off"><input class="input" type="number" value="1" aria-label="Qty" style="text-align:center"><button class="ib" type="submit" aria-label="Add">${ico('plus')}</button></div>${skuHint}</form>`;
+            const sum = `<aside class="sumpanel"><h2>List</h2><p class="note muted" style="margin:0 0 18px">4 lines</p>${money}<button class="btn" type="button" data-cta>${ico('cart')} Add to cart</button>${status}</aside>`;
+            return `${titleRow}<div class="ed"><div>${add}<ul class="lines">${lines}</ul></div>${sum}</div>`;
+        },
+        bar: () => `<div class="bar"><div class="bar__sheet"><div>${money}</div></div><div class="bar__main">
+            <button type="button" class="bar__toggle" aria-expanded="false" data-toggle><span><span class="note" style="opacity:.75">Total (inc GST)</span><span class="bar__amount"><span class="tick" data-tot2></span></span>${status}</span>${ico('up')}</button>
+            <button class="btn" type="button" data-cta>Add to cart</button></div></div>`
+    },
+    3: {
+        lists(wide) {
+            const rows = LISTS.map((l) => `<div class="lrow"><span class="stack">${l.thumbs.map((t) => thumb(t, 40)).join('')}</span>
+                <span><a class="lrow__name" href="#">${l.name}</a><span class="note muted lrow__sub">${countLabel(l.count)}</span></span>
+                <span class="copy muted lrow__count">${countLabel(l.count)}</span>
+                <span class="lrow__acts"><a class="ib" href="#" aria-label="Open ${l.name}">${ico('arrow')}<span class="lbl">Open</span></a>
+                <button type="button" class="ib ib--danger" data-del aria-label="Delete ${l.name}">${ico('trash')}<span class="lbl">Delete</span></button></span></div>`).join('');
+            return `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h1 class="h1">My Shopping List</h1>
+                <a class="ib ib--line" href="#" aria-label="Create new list" style="${wide ? 'width:auto;padding:0 16px;gap:6px;grid-auto-flow:column' : ''}">${ico('plus')}${wide ? '<span>Create new list</span>' : ''}</a></div><div class="lists">${rows}</div>`;
+        },
+        editor(wide) {
+            const trash = (it) => `<button type="button" class="ib ib--danger" aria-label="Remove ${it.name}">${ico('trash')}</button>`;
+            const lines = ITEMS.map((it, i) => wide
+                ? `<li class="line">${thumb(it.img, 56)}
+                    <div><a class="line__name" href="#">${it.name}</a><div class="line__meta">${it.sku} &middot; <span class="stock">${it.stock} in stock</span></div></div>
+                    <span class="note muted">${fmt(it.price)}</span><span style="justify-self:center">${stepper(it, i)}</span>
+                    <p class="line__total" style="margin:0"><span class="tick" data-row="${i}"></span></p>${trash(it)}</li>`
+                : `<li class="line">${thumb(it.img, 56)}
+                    <a class="line__name" href="#">${it.name}</a>
+                    <p class="line__total" style="margin:0"><span class="tick" data-row="${i}"></span></p>
+                    <div class="line__meta">${it.sku} &middot; <span class="stock">${it.stock} in stock</span> &middot; ${fmt(it.price)} ea</div>
+                    <div class="line__ctrl">${stepper(it, i)}${trash(it)}</div></li>`).join('');
+            const add = `<form class="add" onsubmit="return false"><div class="add__row"><input class="input" placeholder="Add a SKU" aria-label="SKU" autocomplete="off"><input class="input" type="number" value="1" aria-label="Qty" style="text-align:center"><button class="btn" type="submit">Add</button></div>${skuHint}</form>`;
+            const head = `<div class="lhead"><span></span><span>Product</span><span>Each, ex GST</span><span style="text-align:center">Qty</span><span style="text-align:right">Total</span><span></span></div>`;
+            const sum = `<aside class="sumrail"><h2>4 lines</h2>${money}<button class="btn" type="button" data-cta>${ico('cart')} Add to cart</button>${status}</aside>`;
+            return `${titleRow}<div class="ed"><div>${add}${head}<ul class="lines">${lines}</ul></div>${sum}</div>`;
+        },
+        bar: () => `<div class="bar"><div><div class="bar__line">4 lines &middot; ex GST</div><div class="bar__amount"><span class="tick" data-tot2></span></div>${status}</div><button class="btn" type="button" data-cta>Add to cart</button></div>`
+    }
+};
+
+function empty(v) {
+    return `<h1 class="h1">My Shopping List</h1><div class="empty" style="margin-top:20px">${ico('list')}
+        <h2>No lists yet</h2><p>Save the products you order often, then add the whole list to your cart in one go.</p>
+        <div class="btns"><a class="btn" href="#">${ico('plus')} Create a list</a><a class="link note" href="#">Browse new arrivals</a></div></div>`;
+}
+
+document.querySelectorAll('[data-screen]').forEach((frame) => {
+    const v = frame.dataset.v;
+    const wide = frame.classList.contains('wide');
+    const screen = frame.dataset.screen;
+    let body = screen === 'lists' ? R[v].lists(wide) : screen === 'editor' ? R[v].editor(wide) : empty(v);
+    frame.innerHTML = `${header(wide)}<div class="v${v}" data-state="idle"><div class="main">${body}</div>${screen === 'editor' && !wide ? R[v].bar() : ''}</div>`;
+    if (screen === 'editor') {
+        if (v === '1' && !wide) {
+            frame.querySelector('.sumbox .btn').remove();
+            frame.querySelector('.sumbox .status').remove();
+        }
+        setupEditor(frame.querySelector(`.v${v}`));
+    }
+});
+
+function setupEditor(root) {
+    const items = ITEMS.map((it) => ({ ...it }));
+    let timer = null;
+    let savedTimer = null;
+    const paint = (changed, dir) => {
+        const sub = items.reduce((s, it) => s + it.price * it.qty, 0);
+        const gst = Math.round(sub * 10) / 100;
+        root.querySelectorAll('[data-row]').forEach((el) => {
+            const it = items[+el.dataset.row];
+            el.textContent = fmt(it.price * it.qty);
+            if (+el.dataset.row === changed) bump(el, dir);
+        });
+        root.querySelectorAll('[data-sub]').forEach((el) => { el.textContent = fmt(sub); });
+        root.querySelectorAll('[data-gst]').forEach((el) => { el.textContent = fmt(gst); });
+        root.querySelectorAll('[data-tot]').forEach((el) => { el.textContent = fmt(sub + gst); });
+        root.querySelectorAll('[data-tot2]').forEach((el) => {
+            el.textContent = root.classList.contains('v3') ? fmt(sub) : fmt(sub + gst);
+            if (changed !== undefined) bump(el, dir);
+        });
+        root.querySelectorAll('.qty').forEach((q) => {
+            const i = +q.querySelector('input').dataset.i;
+            q.querySelector('input').value = items[i].qty;
+            q.querySelector('[data-act="dec"]').disabled = items[i].qty <= items[i].min;
+        });
+    };
+    const bump = (el, dir) => {
+        el.classList.remove('is-up', 'is-down');
+        void el.offsetWidth;
+        el.classList.add(dir > 0 ? 'is-up' : 'is-down');
+    };
+    const save = () => {
+        root.dataset.state = 'saving';
+        clearTimeout(timer);
+        clearTimeout(savedTimer);
+        timer = setTimeout(() => {
+            root.dataset.state = 'saved';
+            savedTimer = setTimeout(() => { root.dataset.state = 'idle'; }, 1400);
+        }, 900);
+    };
+    root.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-act]');
+        if (btn) {
+            const it = items[+btn.dataset.i];
+            const dir = btn.dataset.act === 'inc' ? 1 : -1;
+            it.qty = Math.max(it.min, it.qty + dir * it.step);
+            paint(+btn.dataset.i, dir);
+            save();
+        }
+        const t = e.target.closest('[data-toggle]');
+        if (t) {
+            const bar = t.closest('.bar');
+            bar.classList.toggle('is-open');
+            t.setAttribute('aria-expanded', bar.classList.contains('is-open'));
+        }
+    });
+    root.addEventListener('change', (e) => {
+        if (!e.target.matches('.qty input')) return;
+        const i = +e.target.dataset.i;
+        const it = items[i];
+        const raw = parseInt(e.target.value, 10) || 0;
+        const next = Math.max(it.min, Math.ceil(raw / it.step) * it.step);
+        const dir = next >= it.qty ? 1 : -1;
+        it.qty = next;
+        paint(i, dir);
+        save();
+    });
+    paint();
+}
+
+document.addEventListener('click', (e) => {
+    const del = e.target.closest('[data-del]');
+    if (!del) return;
+    const row = del.closest('.lcard, .lrow, .tile');
+    row.classList.add('leaving');
+    setTimeout(() => { row.classList.remove('leaving'); }, 900);
+});
+document.getElementById('rm').addEventListener('change', (e) => document.body.classList.toggle('rm', e.target.checked));
+</script>
+</body>
+</html>
