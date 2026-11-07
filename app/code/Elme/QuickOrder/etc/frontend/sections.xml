@@ -10,6 +10,9 @@
     <action name="quick_order/list/save">
         <section name="quick_order"/>
     </action>
+    <action name="quick_order/list/rename">
+        <section name="quick_order"/>
+    </action>
     <action name="quick_order/list/delete">
         <section name="quick_order"/>
     </action>

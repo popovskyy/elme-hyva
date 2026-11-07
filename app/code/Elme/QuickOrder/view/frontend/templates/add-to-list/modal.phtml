@@ -46,7 +46,7 @@ $loggedIn = $loginOnly->isLoggedIn();
         </button>
 
         <div x-show="isLoading" class="py-10 text-center text-ink-muted" aria-busy="true">
-            <?= $escaper->escapeHtml(__('Loading…')) ?>
+            <?= $escaper->escapeHtml(__('Loading...')) ?>
         </div>
 
         <?php if (!$loggedIn): ?>
@@ -103,8 +103,16 @@ $loggedIn = $loginOnly->isLoggedIn();
                            class="form-input w-full"
                            :value="newListName"
                            @input="setNewListName"
+                           @keydown.enter.prevent="createAndConfirm"
+                           :aria-invalid="hasCreateError"
+                           aria-describedby="elme-qo-list-create-error"
                            maxlength="255"/>
                 </label>
+                <p id="elme-qo-list-create-error"
+                   class="-mt-2 mb-4 text-note text-error"
+                   role="alert"
+                   x-show="hasCreateError"
+                   x-text="createError"></p>
                 <div class="flex flex-wrap gap-3">
                     <button type="button" class="btn btn-secondary" @click="backToPick">
                         <?= $escaper->escapeHtml(__('Back')) ?>
@@ -145,6 +153,7 @@ $loggedIn = $loginOnly->isLoggedIn();
         const saveFailed = '<?= $escaper->escapeJs(__('Could not save the list.')) ?>';
         const pickListFirst = '<?= $escaper->escapeJs(__('Please select a shopping list.')) ?>';
         const nameRequired = '<?= $escaper->escapeJs(__('List name is required.')) ?>';
+        const nameTaken = '<?= $escaper->escapeJs(__('A list with this name already exists.')) ?>';
 
         return {
             open: false,
@@ -156,7 +165,9 @@ $loggedIn = $loginOnly->isLoggedIn();
             productName: '',
             selectedListName: '',
             newListName: '',
+            createError: '',
             pendingListName: '',
+            pendingIsNew: false,
 
             showGuest() {
                 return this.open && !loggedIn;
@@ -176,14 +187,20 @@ $loggedIn = $loginOnly->isLoggedIn();
             },
             setNewListName() {
                 this.newListName = this.$event.target.value || '';
+                this.createError = '';
+            },
+            hasCreateError() {
+                return this.createError ? 'true' : false;
             },
             showCreate() {
                 this.step = 'create';
                 this.newListName = '';
+                this.createError = '';
             },
             backToPick() {
                 this.step = 'pick';
                 this.pendingListName = '';
+                this.pendingIsNew = false;
             },
             continuePick() {
                 if (!this.selectedListName) {
@@ -193,17 +210,23 @@ $loggedIn = $loginOnly->isLoggedIn();
                     return;
                 }
                 this.pendingListName = this.selectedListName;
+                this.pendingIsNew = false;
                 this.step = 'confirm';
             },
             createAndConfirm() {
                 const name = (this.newListName || '').trim();
                 if (!name) {
-                    window.dispatchEvent(new CustomEvent('elme-toast', {
-                        detail: {type: 'error', text: nameRequired}
-                    }));
+                    this.createError = nameRequired;
+                    return;
+                }
+                // the server checks again on Confirm (mode create); this answers before that step
+                const taken = name.toLowerCase();
+                if (name === cartListName || this.lists.some((list) => String(list.name).toLowerCase() === taken)) {
+                    this.createError = nameTaken;
                     return;
                 }
                 this.pendingListName = name;
+                this.pendingIsNew = true;
                 this.step = 'confirm';
             },
 
@@ -216,7 +239,9 @@ $loggedIn = $loginOnly->isLoggedIn();
                 this.productName = '';
                 this.selectedListName = '';
                 this.newListName = '';
+                this.createError = '';
                 this.pendingListName = '';
+                this.pendingIsNew = false;
             },
 
             async openWith(detail) {
@@ -262,21 +287,29 @@ $loggedIn = $loginOnly->isLoggedIn();
                 }
                 this.isLoading = true;
                 try {
-                    const response = await fetch(saveUrl, {
-                        method: 'POST',
-                        cache: 'no-store',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify({
+                    if (this.pendingIsNew) {
+                        // never merge into a list that already has this name
+                        const created = await this.post({
                             form_key: hyva.getFormKey(),
                             name: this.pendingListName,
-                            mode: 'merge',
-                            items: [{sku: this.sku, qty: this.qty}]
-                        })
+                            mode: 'create',
+                            items: []
+                        });
+                        if (!created.success) {
+                            this.createError = created.message || saveFailed;
+                            this.step = 'create';
+                            this.isLoading = false;
+                            return;
+                        }
+                        this.pendingListName = created.name || this.pendingListName;
+                        this.pendingIsNew = false;
+                    }
+                    const data = await this.post({
+                        form_key: hyva.getFormKey(),
+                        name: this.pendingListName,
+                        mode: 'merge',
+                        items: [{sku: this.sku, qty: this.qty}]
                     });
-                    const data = await response.json();
                     if (!data.success) {
                         throw new Error(data.message || saveFailed);
                     }
@@ -302,6 +335,23 @@ $loggedIn = $loginOnly->isLoggedIn();
                     }));
                     this.isLoading = false;
                 }
+            },
+
+            async post(body) {
+                const response = await fetch(saveUrl, {
+                    method: 'POST',
+                    cache: 'no-store',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json().catch(() => null);
+                if (!data) {
+                    throw new Error(saveFailed);
+                }
+                return data;
             },
 
             eventListeners: {
