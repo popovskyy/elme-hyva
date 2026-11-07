@@ -7,6 +7,12 @@
     <action name="quick_order/cart/save">
         <section name="quick_order"/>
     </action>
+    <action name="quick_order/list/save">
+        <section name="quick_order"/>
+    </action>
+    <action name="quick_order/list/delete">
+        <section name="quick_order"/>
+    </action>
     <action name="elme_checkout/action/placeorder">
         <section name="quick_order"/>
     </action>

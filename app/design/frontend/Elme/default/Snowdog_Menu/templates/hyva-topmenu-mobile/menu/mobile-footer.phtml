@@ -27,6 +27,12 @@ $isLoggedIn = $loginOnly->isLoggedIn();
 // this server-side pick is only the first guess: menu.phtml syncAuthLinks() corrects it from private content.
 $links = [
     [
+        'label' => __('Shopping list'),
+        'icon' => 'heart',
+        'url' => $block->getUrl('quick_order/template'),
+        'auth' => 'customer',
+    ],
+    [
         'label' => __('Quick Order'),
         'icon' => 'clipboard-list',
         'url' => $block->getUrl('quick_order'),

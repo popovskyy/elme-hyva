@@ -51,10 +51,27 @@ not the customer. Every JSON answer carries `Cache-Control: private, no-store` a
 no-store`; the cart page block is `cacheable="false"`. With Fastly, also pass `^/quick-order` in `vcl_recv`, as the old
 site does (`ElmeLiving_QuickOrder/docs/fastly-no-cache.md` in m2-bart-group).
 
+## Shopping lists (FE-73, Bart wishlist remake)
+
+Magento wishlist stays off. Named rows in `quick_order_list` (any name except `cart_list`) are the customer's
+shopping lists.
+
+| Piece | Does |
+| --- | --- |
+| `Model\SavedLists` | List / delete / merge named lists; preview thumbnails for My Shopping List |
+| `GET /quick-order/list/getall` | `{success, lists, saved_skus, total_item_count}` |
+| `POST /quick-order/list/save` | JSON `{form_key, name, mode, items}` or legacy `list[name]` form body |
+| `POST /quick-order/list/delete` | JSON `{form_key, id}` |
+| `/quick-order/template` | My Shopping List page (account + header) |
+| Add to list modal | `elme:open-add-to-list-modal` or `[data-elme-qo-add-to-list][data-sku]` |
+| `/wishlist/*` | Redirects to `/quick-order/template` |
+
+Section `quick_order` also exposes `lists_item_count` for the header badge. Hearts on PLP/PDP and opening a
+list into the Quick Order page are FE-41 / FE-40 / FE-44.
+
 ## Not here yet
 
-- Reorder (`/sales/order/reorder`) and wishlist "add to cart" still fill the quote, which `/checkout` replaces with
-  `cart_list`: BE-14 and FE-44 move them to the cart.
+- Reorder (`/sales/order/reorder`) still fills the quote, which `/checkout` replaces with `cart_list`: BE-14.
 - Coupon: applied in checkout on the quote, as on the old site.
 
 ## Tests
