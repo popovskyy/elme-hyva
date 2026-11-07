@@ -140,7 +140,7 @@ $formKeyHtml = $block->getBlockHtml('formkey');
                                     :disabled="isAddingLook"
                                     :aria-busy="isAddingLook">
                                 <span x-show="isNotAddingLook"><?= $escaper->escapeHtml(__('Add this look')) ?></span>
-                                <span x-show="isAddingLook" x-cloak><?= $escaper->escapeHtml(__('Adding…')) ?></span>
+                                <span x-show="isAddingLook" x-cloak><?= $escaper->escapeHtml(__('Adding...')) ?></span>
                             </button>
                         <?php endif; ?>
                     </header>
@@ -203,7 +203,7 @@ $formKeyHtml = $block->getBlockHtml('formkey');
                                     </button>
                                     <a href="<?= $escaper->escapeUrl($pin['url']) ?>"
                                        class="shrink-0 text-sm font-bold text-ink underline underline-offset-2 hover:text-link-hover">
-                                        <?= $escaper->escapeHtml(__('View »')) ?>
+                                        <?= $escaper->escapeHtml(__('View')) ?> <span aria-hidden="true">&raquo;</span>
                                     </a>
                                 </li>
                             <?php endforeach; ?>
@@ -269,9 +269,9 @@ $formKeyHtml = $block->getBlockHtml('formkey');
                                             <p class="m-0 text-note text-ink-muted">
                                                 <?= $escaper->escapeHtml(__('%1 in stock', $qtyRules->formatQty((float) $stockQty))) ?>
                                                 <?php if ($stockLevel === ProductTile::STOCK_LOW): ?>
-                                                    · <?= $escaper->escapeHtml(__('Low Stock')) ?>
+                                                    &middot; <?= $escaper->escapeHtml(__('Low Stock')) ?>
                                                 <?php elseif ($stockLevel === ProductTile::STOCK_IN): ?>
-                                                    · <?= $escaper->escapeHtml(__('In Stock')) ?>
+                                                    &middot; <?= $escaper->escapeHtml(__('In Stock')) ?>
                                                 <?php endif; ?>
                                             </p>
                                         <?php elseif ($stockLevel): ?>
@@ -315,7 +315,7 @@ $formKeyHtml = $block->getBlockHtml('formkey');
 
                                     <a href="<?= $escaper->escapeUrl($pin['url']) ?>"
                                        class="text-sm font-bold text-ink underline underline-offset-2 hover:text-link-hover">
-                                        <?= $escaper->escapeHtml(__('View »')) ?>
+                                        <?= $escaper->escapeHtml(__('View')) ?> <span aria-hidden="true">&raquo;</span>
                                     </a>
 
                                     <?php if ($canAdd): ?>
