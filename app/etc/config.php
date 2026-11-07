@@ -368,6 +368,7 @@ return [
         'Elme_Newsletter' => 1,
         'Snowdog_Menu' => 1,
         'Elme_Theme' => 1,
+        'Elme_RecentlyViewed' => 1,
         'Elme_StoreLocator' => 1,
         'Elme_Styleguide' => 1,
         'Elme_Checkout' => 1,

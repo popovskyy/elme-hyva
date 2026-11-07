@@ -21,6 +21,9 @@
         "src": "app/code/Elme/QuickOrder"
       },
       {
+        "src": "app/code/Elme/RecentlyViewed"
+      },
+      {
         "src": "app/code/Elme/StoreLocator"
       },
       {
