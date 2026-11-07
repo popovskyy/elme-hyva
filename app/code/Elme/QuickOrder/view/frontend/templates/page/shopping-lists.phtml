@@ -238,7 +238,7 @@ $quickOrderUrl = $block->getUrl('quick_order');
                     window.dispatchEvent(new CustomEvent('elme:saved-lists-changed'));
                     document.body.dispatchEvent(new CustomEvent('reload-customer-section-data'));
                 } catch (e) {
-                    window.dispatchEvent(new CustomEvent('elme:toast', {
+                    window.dispatchEvent(new CustomEvent('elme-toast', {
                         detail: {type: 'error', text: e.message || deleteFailed}
                     }));
                     await this.fetchLists();
@@ -252,6 +252,11 @@ $quickOrderUrl = $block->getUrl('quick_order');
             eventListeners: {
                 ['@elme:saved-lists-changed.window']() {
                     this.fetchLists();
+                },
+                ['@keydown.escape.window']() {
+                    if (this.showDeleteModal) {
+                        this.closeDeleteModal();
+                    }
                 }
             }
         };

@@ -187,7 +187,7 @@ $loggedIn = $loginOnly->isLoggedIn();
             },
             continuePick() {
                 if (!this.selectedListName) {
-                    window.dispatchEvent(new CustomEvent('elme:toast', {
+                    window.dispatchEvent(new CustomEvent('elme-toast', {
                         detail: {type: 'error', text: pickListFirst}
                     }));
                     return;
@@ -198,7 +198,7 @@ $loggedIn = $loginOnly->isLoggedIn();
             createAndConfirm() {
                 const name = (this.newListName || '').trim();
                 if (!name) {
-                    window.dispatchEvent(new CustomEvent('elme:toast', {
+                    window.dispatchEvent(new CustomEvent('elme-toast', {
                         detail: {type: 'error', text: nameRequired}
                     }));
                     return;
@@ -289,7 +289,7 @@ $loggedIn = $loginOnly->isLoggedIn();
                     }));
                     window.dispatchEvent(new CustomEvent('elme:saved-lists-changed'));
                     document.body.dispatchEvent(new CustomEvent('reload-customer-section-data'));
-                    window.dispatchEvent(new CustomEvent('elme:toast', {
+                    window.dispatchEvent(new CustomEvent('elme-toast', {
                         detail: {
                             type: 'success',
                             text: '<?= $escaper->escapeJs(__('Saved to your shopping list.')) ?>'
@@ -297,7 +297,7 @@ $loggedIn = $loginOnly->isLoggedIn();
                     }));
                     this.close();
                 } catch (e) {
-                    window.dispatchEvent(new CustomEvent('elme:toast', {
+                    window.dispatchEvent(new CustomEvent('elme-toast', {
                         detail: {type: 'error', text: e.message || saveFailed}
                     }));
                     this.isLoading = false;
