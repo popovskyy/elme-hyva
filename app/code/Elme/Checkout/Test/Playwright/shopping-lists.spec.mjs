@@ -169,7 +169,7 @@ test('rename: Enter saves, a taken name is refused, Esc cancels', async ({ page 
 test('deleting a list on My Shopping List does not show the loading skeleton again', async ({ page }) => {
     expect((await saveList(page, OTHER, 'create')).success).toBe(true);
     await page.goto('/quick-order/template');
-    const rowsOnPage = page.locator('.elme-shopping-lists tbody tr');
+    const rowsOnPage = page.locator('.elme-shopping-lists [data-list-row]');
     await expect(rowsOnPage).toHaveCount(2);
     const skeleton = page.locator('.elme-shopping-lists [aria-busy="true"]');
     await expect(skeleton).toBeHidden();
@@ -185,7 +185,7 @@ test('deleting a list on My Shopping List does not show the loading skeleton aga
         }).observe(el, { attributes: true, attributeFilter: ['style'] });
     });
 
-    await page.locator('tr', { hasText: OTHER }).getByRole('button', { name: 'Delete' }).click();
+    await page.locator('[data-list-row]', { hasText: OTHER }).getByRole('button', { name: 'Delete' }).click();
     const deleted = page.waitForResponse(/\/quick-order\/list\/delete/);
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
     await deleted;

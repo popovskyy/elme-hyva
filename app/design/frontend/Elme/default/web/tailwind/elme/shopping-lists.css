@@ -1,0 +1,291 @@
+/*
+ * My Shopping List (/quick-order/template), FE-76 look 1 "Order sheet": white cards on the phone (name, count,
+ * three thumbs, Open list and Delete always in view), a ruled list on desktop with real links. Tokens only.
+ */
+
+@layer components {
+    .elme-sl__top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: --spacing(3);
+        margin-block-end: --spacing(5);
+
+        @variant lg {
+            margin-block-end: --spacing(7);
+        }
+    }
+
+    .elme-sl__title {
+        margin: 0;
+        font-family: var(--font-heading);
+        font-size: var(--text-h2);
+        line-height: var(--text-h2--line-height);
+        font-weight: 400;
+        color: var(--color-ink);
+
+        @variant lg {
+            font-size: var(--text-h2-desktop);
+        }
+    }
+
+    .elme-sl__new {
+        --btn-min-height: --spacing(11);
+        --btn-padding-inline: --spacing(4);
+        flex: none;
+        font-size: var(--text-copy);
+
+        svg {
+            width: --spacing(4);
+            height: --spacing(4);
+        }
+    }
+
+    .elme-sl__lists {
+        display: grid;
+        gap: --spacing(3);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        @variant lg {
+            gap: 0;
+            border-block-start: 1px solid var(--color-divider);
+        }
+    }
+
+    .elme-sl__head {
+        display: none;
+
+        @variant lg {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) --spacing(50) auto;
+            gap: --spacing(6);
+            padding: 0 --spacing(4) --spacing(2.5);
+            color: var(--color-ink-muted);
+            font-size: var(--text-label);
+            line-height: var(--text-label--line-height);
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+    }
+
+    .elme-sl__row {
+        display: grid;
+        gap: --spacing(3.5);
+        padding: --spacing(4);
+        border: 1px solid var(--color-divider);
+        background: var(--color-surface);
+
+        @variant lg {
+            grid-template-columns: minmax(0, 1fr) --spacing(50) auto;
+            gap: --spacing(6);
+            align-items: center;
+            padding: --spacing(4.5) --spacing(4);
+            border-width: 0 0 1px;
+            background: transparent;
+            transition: background-color var(--transition-duration-fast) var(--ease-out-quad);
+
+            &:hover {
+                background: var(--color-sand-faint);
+            }
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            animation: elme-sl-in var(--transition-duration-base) var(--ease-out-quart) both;
+
+            &:nth-child(2) {
+                animation-delay: 40ms;
+            }
+
+            &:nth-child(3) {
+                animation-delay: 80ms;
+            }
+
+            &:nth-child(n + 4) {
+                animation-delay: 120ms;
+            }
+
+            &.is-leaving {
+                animation: elme-sl-leave var(--transition-duration-base) var(--ease-out-quart) forwards;
+            }
+        }
+
+        &.is-leaving {
+            pointer-events: none;
+        }
+    }
+
+    .elme-sl__info {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: --spacing(3);
+        min-width: 0;
+
+        @variant lg {
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            gap: --spacing(1);
+        }
+    }
+
+    .elme-sl__name {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        color: var(--color-ink);
+        font-family: var(--font-heading);
+        font-size: var(--text-h4);
+        line-height: var(--text-h3-desktop);
+        text-decoration: none;
+        transition: color var(--transition-duration-fast) var(--ease-out-quad);
+
+        &:hover {
+            color: var(--color-olive);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+    }
+
+    .elme-sl__count {
+        flex: none;
+        color: var(--color-ink-muted);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+    }
+
+    .elme-sl__thumbs {
+        display: flex;
+        gap: --spacing(1.5);
+    }
+
+    .elme-sl__thumb {
+        display: grid;
+        flex: none;
+        place-items: center;
+        width: --spacing(14);
+        height: --spacing(14);
+        overflow: hidden;
+        border: 1px solid var(--color-divider);
+        background: var(--color-surface);
+        color: var(--color-placeholder);
+
+        @variant lg {
+            width: --spacing(11);
+            height: --spacing(11);
+        }
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        svg {
+            width: --spacing(5);
+            height: --spacing(5);
+        }
+    }
+
+    .elme-sl__thumb--more {
+        background: var(--color-sand-faint);
+        color: var(--color-ink-muted);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .elme-sl__actions {
+        display: flex;
+        gap: --spacing(2);
+    }
+
+    .elme-sl__open {
+        --btn-min-height: --spacing(11);
+        --btn-padding-inline: --spacing(4);
+        flex: 1 1 auto;
+        font-size: var(--text-copy);
+
+        @variant lg {
+            flex: none;
+        }
+    }
+
+    .elme-sl__bone {
+        height: --spacing(46);
+        border: 1px solid var(--color-divider);
+        background: var(--color-surface-muted);
+
+        @variant lg {
+            height: --spacing(20);
+            border-width: 0 0 1px;
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            animation: elme-cart-pulse 1.2s ease-in-out infinite;
+        }
+    }
+
+    /* Empty state: one calm box, a reason to make a list and the way to do it */
+    .elme-sl__empty {
+        padding: --spacing(10) --spacing(6);
+        border: 1px solid var(--color-divider);
+        background: var(--color-surface);
+        text-align: center;
+
+        @variant lg {
+            padding-block: --spacing(14);
+        }
+
+        > svg {
+            display: block;
+            width: --spacing(10);
+            height: --spacing(10);
+            margin: 0 auto --spacing(3.5);
+            color: var(--color-secondary);
+        }
+
+        h2 {
+            margin: 0 0 --spacing(1.5);
+            font-family: var(--font-heading);
+            font-size: var(--text-h4);
+            line-height: var(--text-h4--line-height);
+            font-weight: 400;
+            color: var(--color-ink);
+        }
+
+        p {
+            max-width: 34ch;
+            margin: 0 auto --spacing(5);
+            color: var(--color-ink-muted);
+            font-size: var(--text-copy);
+            line-height: var(--text-copy--line-height);
+        }
+    }
+
+    .elme-sl__empty-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: --spacing(3);
+    }
+}
+
+@keyframes elme-sl-in {
+    from {
+        opacity: 0;
+        translate: 0 --spacing(1);
+    }
+}
+
+@keyframes elme-sl-leave {
+    to {
+        opacity: 0;
+        translate: calc(var(--spacing) * -2) 0;
+    }
+}

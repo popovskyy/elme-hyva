@@ -1,0 +1,30 @@
+<?php
+/**
+ * FE-76: save status for the cart page and the list editor (summary and sticky bar). The parent component gives
+ * `saveState` (idle | saving | saved); the three labels share one slot, so a change never moves the layout
+ * (elme/cart-bar.css). Hidden from screen readers: the parent has one sr-only live region for the same text.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+?>
+<span class="elme-save-status" :data-state="saveState" aria-hidden="true">
+    <span class="elme-save-status__idle"><?= $escaper->escapeHtml(__('All changes saved')) ?></span>
+    <span class="elme-save-status__saving">
+        <?= $lucideIcons->loaderCircleHtml('', 14, 14, ['aria-hidden' => 'true']) ?>
+        <?= $escaper->escapeHtml(__('Saving...')) ?>
+    </span>
+    <span class="elme-save-status__saved">
+        <?= $lucideIcons->checkHtml('', 14, 14, ['aria-hidden' => 'true']) ?>
+        <?= $escaper->escapeHtml(__('Saved')) ?>
+    </span>
+</span>

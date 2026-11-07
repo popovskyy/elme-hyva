@@ -1,6 +1,7 @@
 <?php
 /**
  * FE-73: My Shopping List - named Quick Order lists (Bart wishlist remake).
+ * FE-76: cards on the phone, ruled rows with real links on desktop, empty state with a CTA (elme/shopping-lists.css).
  *
  * @var \Magento\Framework\View\Element\Template $block
  * @var \Magento\Framework\Escaper $escaper
@@ -10,9 +11,12 @@
 declare(strict_types=1);
 
 use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
 
 /** @var HyvaCsp $hyvaCsp */
 $hyvaCsp = $viewModels->require(HyvaCsp::class);
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
 
 $getAllUrl = $block->getUrl('quick_order/list/getall');
 $deleteUrl = $block->getUrl('quick_order/list/delete');
@@ -21,80 +25,86 @@ $quickOrderUrl = $block->getUrl('quick_order');
 <div class="elme-shopping-lists"
      x-data="initElmeShoppingLists"
      x-bind="eventListeners">
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-8">
-        <h1 class="font-heading text-h2 text-ink m-0">
-            <?= $escaper->escapeHtml(__('My Shopping List')) ?>
-        </h1>
+    <div class="elme-sl__top">
+        <h1 class="elme-sl__title"><?= $escaper->escapeHtml(__('My Shopping List')) ?></h1>
         <a href="<?= $escaper->escapeUrl($quickOrderUrl) ?>"
-           class="btn btn-secondary self-start sm:self-auto">
-            <?= $escaper->escapeHtml(__('Create new list')) ?>
+           class="btn btn-secondary elme-sl__new"
+           x-show="hasLists"
+           x-cloak>
+            <?= $lucideIcons->plusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+            <span class="lg:hidden"><?= $escaper->escapeHtml(__('New list')) ?></span>
+            <span class="hidden lg:inline"><?= $escaper->escapeHtml(__('Create new list')) ?></span>
         </a>
     </div>
 
-    <div x-show="isLoading" class="space-y-3" aria-busy="true" aria-live="polite">
-        <div class="h-16 rounded-sm bg-surface-muted animate-pulse"></div>
-        <div class="h-16 rounded-sm bg-surface-muted animate-pulse"></div>
-        <div class="h-16 rounded-sm bg-surface-muted animate-pulse"></div>
+    <div x-show="isLoading" class="elme-sl__lists" aria-busy="true">
+        <p class="sr-only"><?= $escaper->escapeHtml(__('Loading your lists...')) ?></p>
+        <div class="elme-sl__bone" aria-hidden="true"></div>
+        <div class="elme-sl__bone" aria-hidden="true"></div>
     </div>
 
-    <p x-show="showEmpty"
-       class="text-ink-muted text-body py-10 text-center border border-dashed border-divider rounded-sm"
-       x-cloak>
-        <?= $escaper->escapeHtml(__('No saved lists found')) ?>
-    </p>
+    <div class="elme-sl__empty" x-show="showEmpty" x-cloak>
+        <?= $lucideIcons->clipboardListHtml('', 40, 40, ['aria-hidden' => 'true']) ?>
+        <h2><?= $escaper->escapeHtml(__('No lists yet')) ?></h2>
+        <p><?= $escaper->escapeHtml(__('Save the products you order often, then add the whole list to your cart in one go.')) ?></p>
+        <div class="elme-sl__empty-actions">
+            <a class="btn btn-primary" href="<?= $escaper->escapeUrl($quickOrderUrl) ?>">
+                <?= $lucideIcons->plusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                <?= $escaper->escapeHtml(__('Create a list')) ?>
+            </a>
+            <a class="btn btn-link" href="<?= $escaper->escapeUrl($block->getBaseUrl()) ?>">
+                <?= $escaper->escapeHtml(__('Continue shopping')) ?>
+            </a>
+        </div>
+    </div>
 
-    <div x-show="showTable" class="overflow-x-auto" x-cloak>
-        <table class="w-full text-start border-collapse">
-            <thead>
-            <tr class="border-b border-divider text-note uppercase tracking-wide text-ink-muted">
-                <th class="py-3 pe-4 font-medium"><?= $escaper->escapeHtml(__('List name')) ?></th>
-                <th class="py-3 pe-4 font-medium"><?= $escaper->escapeHtml(__('Products')) ?></th>
-                <th class="py-3 font-medium text-end"><?= $escaper->escapeHtml(__('Actions')) ?></th>
-            </tr>
-            </thead>
-            <tbody>
+    <div x-show="hasLists" x-cloak>
+        <div class="elme-sl__head" aria-hidden="true">
+            <span><?= $escaper->escapeHtml(__('List')) ?></span>
+            <span><?= $escaper->escapeHtml(__('Products')) ?></span>
+            <span></span>
+        </div>
+        <ul class="elme-sl__lists">
             <template x-for="list in lists" :key="list.id">
-                <tr class="border-b border-divider align-middle hover:bg-surface-muted/60 cursor-pointer"
-                    :data-list-name="list.name"
-                    @click="openList">
-                    <td class="py-4 pe-4 font-medium text-ink" x-text="list.name"></td>
-                    <td class="py-4 pe-4">
-                        <div class="flex items-center gap-3">
-                            <div class="flex -space-x-2" x-show="list.has_preview">
-                                <template x-for="item in list.preview" :key="list.id + '-' + item.sku">
-                                    <span class="inline-flex size-12 rounded-sm border border-divider bg-surface overflow-hidden shrink-0"
-                                          :title="item.name">
-                                        <img class="size-full object-contain"
-                                             x-show="item.thumbnail_url"
-                                             :src="item.thumbnail_url"
-                                             :alt="item.name"
-                                             width="48"
-                                             height="48"
-                                             loading="lazy"/>
-                                    </span>
-                                </template>
-                            </div>
-                            <span class="text-note text-ink-muted" x-text="list.products_label"></span>
-                        </div>
-                    </td>
-                    <td class="py-4 text-end whitespace-nowrap">
-                        <a class="btn btn-secondary btn-sm me-2"
+                <li class="elme-sl__row" :class="rowClass" data-list-row>
+                    <div class="elme-sl__info">
+                        <a class="elme-sl__name" :href="list.edit_url" x-text="list.name"></a>
+                        <span class="elme-sl__count" x-text="list.products_label"></span>
+                    </div>
+                    <div class="elme-sl__thumbs" aria-hidden="true">
+                        <template x-for="item in list.preview" :key="list.id + '-' + item.sku">
+                            <span class="elme-sl__thumb" :title="item.name">
+                                <img x-show="item.thumbnail_url"
+                                     :src="item.thumbnail_url"
+                                     alt=""
+                                     width="56"
+                                     height="56"
+                                     loading="lazy">
+                                <span x-show="hasNoThumbnail">
+                                    <?= $lucideIcons->imageHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                                </span>
+                            </span>
+                        </template>
+                        <span class="elme-sl__thumb elme-sl__thumb--more" x-show="list.more" x-text="list.more_label"></span>
+                    </div>
+                    <div class="elme-sl__actions">
+                        <a class="btn btn-primary lg:btn-secondary elme-sl__open"
                            :href="list.edit_url"
-                           @click.stop>
-                            <?= $escaper->escapeHtml(__('Edit')) ?>
+                           :aria-label="list.open_label">
+                            <?= $escaper->escapeHtml(__('Open list')) ?>
                         </a>
                         <button type="button"
-                                class="btn btn-secondary btn-sm"
+                                class="elme-ib elme-ib--line elme-ib--danger"
                                 :data-list-id="list.id"
                                 :data-list-name="list.name"
-                                @click.stop="confirmDelete">
-                            <?= $escaper->escapeHtml(__('Delete')) ?>
+                                :aria-label="list.delete_label"
+                                @click="confirmDelete">
+                            <?= $lucideIcons->trash2Html('', 20, 20, ['aria-hidden' => 'true']) ?>
                         </button>
-                    </td>
-                </tr>
+                    </div>
+                </li>
             </template>
-            </tbody>
-        </table>
+        </ul>
     </div>
 
     <div x-show="showDeleteModal"
@@ -102,18 +112,30 @@ $quickOrderUrl = $block->getUrl('quick_order');
          role="dialog"
          aria-modal="true"
          aria-labelledby="elme-sl-delete-title"
+         x-transition:leave="duration-150"
          x-cloak>
-        <div class="absolute inset-0 bg-ink/40" @click="closeDeleteModal"></div>
-        <div class="relative w-full max-w-md bg-surface border border-divider shadow-lg p-6 rounded-sm">
+        <div class="absolute inset-0 bg-ink/40"
+             x-show="showDeleteModal"
+             x-transition:enter="transition-opacity ease-out-quart duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:leave="transition-opacity ease-out-quart duration-150"
+             x-transition:leave-end="opacity-0"
+             @click="closeDeleteModal"></div>
+        <div class="relative w-full max-w-md bg-surface border border-divider shadow-lg p-6"
+             x-show="showDeleteModal"
+             x-transition:enter="transition ease-out-quart duration-200"
+             x-transition:enter-start="opacity-0 scale-97 motion-reduce:scale-100"
+             x-transition:leave="transition ease-out-quart duration-150"
+             x-transition:leave-end="opacity-0 scale-97 motion-reduce:scale-100">
             <h2 id="elme-sl-delete-title" class="font-heading text-h4 text-ink mb-3">
                 <?= $escaper->escapeHtml(__('Delete list?')) ?>
             </h2>
-            <p class="text-body text-ink-muted mb-6">
+            <p class="text-copy text-ink-muted mb-6">
                 <?= $escaper->escapeHtml(__('This cannot be undone.')) ?>
                 <span class="block mt-1 font-medium text-ink" x-text="deleteName"></span>
             </p>
             <div class="flex flex-wrap gap-3 justify-end">
-                <button type="button" class="btn btn-secondary" @click="closeDeleteModal">
+                <button type="button" class="btn btn-secondary" x-ref="cancelDelete" @click="closeDeleteModal">
                     <?= $escaper->escapeHtml(__('Cancel')) ?>
                 </button>
                 <button type="button" class="btn btn-primary" @click="deleteList"
@@ -132,7 +154,14 @@ $quickOrderUrl = $block->getUrl('quick_order');
         const quickOrderUrl = '<?= $escaper->escapeJs($quickOrderUrl) ?>';
         const labelOne = '<?= $escaper->escapeJs(__('1 product')) ?>';
         const labelMany = '<?= $escaper->escapeJs(__('%1 products')) ?>';
+        const labelOpen = '<?= $escaper->escapeJs(__('Open list %1')) ?>';
+        const labelDelete = '<?= $escaper->escapeJs(__('Delete %1')) ?>';
         const deleteFailed = '<?= $escaper->escapeJs(__('Could not delete the list.')) ?>';
+        // the row leave animation (elme/shopping-lists.css), skipped with reduced motion
+        const LEAVE_MS = 240;
+
+        // the Delete button that opened the dialog: focus goes back to it on Cancel
+        let trigger = null;
 
         return {
             lists: [],
@@ -141,6 +170,7 @@ $quickOrderUrl = $block->getUrl('quick_order');
             isDeleting: false,
             deleteId: null,
             deleteName: '',
+            leavingId: null,
 
             init() {
                 this.fetchLists(false);
@@ -150,8 +180,16 @@ $quickOrderUrl = $block->getUrl('quick_order');
                 return !this.isLoading && this.lists.length === 0;
             },
 
-            showTable() {
+            hasLists() {
                 return !this.isLoading && this.lists.length > 0;
+            },
+
+            rowClass() {
+                return String(this.list.id) === String(this.leavingId) ? 'is-leaving' : '';
+            },
+
+            hasNoThumbnail() {
+                return !this.item.thumbnail_url;
             },
 
             editUrl(name) {
@@ -162,16 +200,20 @@ $quickOrderUrl = $block->getUrl('quick_order');
             mapList(list) {
                 const count = list.item_count || 0;
                 const preview = Array.isArray(list.preview) ? list.preview : [];
+                const more = Math.max(0, count - preview.length);
                 return Object.assign({}, list, {
                     preview: preview,
-                    has_preview: preview.length > 0,
+                    more: more,
+                    more_label: '+' + more,
                     products_label: count === 1 ? labelOne : hyva.str(labelMany, count),
+                    open_label: hyva.str(labelOpen, list.name),
+                    delete_label: hyva.str(labelDelete, list.name),
                     edit_url: this.editUrl(list.name)
                 });
             },
 
             /**
-             * @param {boolean} silent keep the table while asking again (no skeleton flash)
+             * @param {boolean} silent keep the rows while asking again (no skeleton flash)
              */
             async fetchLists(silent) {
                 if (!silent) {
@@ -196,18 +238,15 @@ $quickOrderUrl = $block->getUrl('quick_order');
                 }
             },
 
-            openList() {
-                const name = this.$event.currentTarget.getAttribute('data-list-name');
-                if (name) {
-                    window.location = this.editUrl(name);
-                }
-            },
-
             confirmDelete() {
                 const btn = this.$event.currentTarget;
+                trigger = btn;
                 this.deleteId = parseInt(btn.getAttribute('data-list-id'), 10) || null;
                 this.deleteName = btn.getAttribute('data-list-name') || '';
                 this.showDeleteModal = !!this.deleteId;
+                if (this.showDeleteModal) {
+                    this.$nextTick(() => this.$refs.cancelDelete.focus());
+                }
             },
 
             closeDeleteModal() {
@@ -217,6 +256,10 @@ $quickOrderUrl = $block->getUrl('quick_order');
                 this.showDeleteModal = false;
                 this.deleteId = null;
                 this.deleteName = '';
+                if (trigger) {
+                    trigger.focus();
+                    trigger = null;
+                }
             },
 
             async deleteList() {
@@ -226,18 +269,27 @@ $quickOrderUrl = $block->getUrl('quick_order');
                 const id = this.deleteId;
                 this.isDeleting = true;
                 this.showDeleteModal = false;
+                trigger = null;
+                this.leavingId = id;
+                const request = fetch(deleteUrl, {
+                    method: 'POST',
+                    cache: 'no-store',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({form_key: hyva.getFormKey(), id: id})
+                });
+                // handled below, after the row has left
+                request.catch(() => {});
+                if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                    await new Promise((resolve) => setTimeout(resolve, LEAVE_MS));
+                }
                 this.lists = this.lists.filter((list) => String(list.id) !== String(id));
+                this.leavingId = null;
 
                 try {
-                    const response = await fetch(deleteUrl, {
-                        method: 'POST',
-                        cache: 'no-store',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify({form_key: hyva.getFormKey(), id: id})
-                    });
+                    const response = await request;
                     const data = await response.json();
                     if (!data.success) {
                         throw new Error(data.message || deleteFailed);

@@ -1,0 +1,141 @@
+/*
+ * Cart page and list editor (FE-76, look 1 "Order sheet"): the sticky bottom bar on phone and tablet (total and the
+ * main button), the save status that never moves the layout, the qty stepper press and the number tick. Tokens only.
+ */
+
+@layer components {
+    .elme-cart__bar {
+        position: sticky;
+        bottom: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: --spacing(4);
+        margin: --spacing(6) calc(var(--container-gutter) * -1) 0;
+        padding: --spacing(3) var(--container-gutter) calc(--spacing(3) + env(safe-area-inset-bottom));
+        border-block-start: 1px solid var(--color-divider);
+        background: var(--color-surface);
+        box-shadow: 0 calc(var(--spacing) * -1.5) --spacing(4) color-mix(in srgb, var(--color-ink) 6%, transparent);
+
+        @variant md {
+            margin-inline: calc(var(--container-gutter-desktop) * -1);
+            padding-inline: var(--container-gutter-desktop);
+        }
+
+        @variant lg {
+            display: none;
+        }
+
+        .btn {
+            flex: none;
+        }
+    }
+
+    .elme-cart__bar-total {
+        display: grid;
+        min-width: 0;
+    }
+
+    .elme-cart__bar-label {
+        color: var(--color-ink-muted);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+    }
+
+    .elme-cart__bar-amount {
+        color: var(--color-ink);
+        font-size: var(--text-h4);
+        line-height: var(--text-base--line-height);
+        font-weight: 600;
+    }
+
+    /* the summary keeps its button and status for the desktop; on smaller screens they live in the bar */
+    .elme-cart__summary-cta {
+        display: none;
+
+        @variant lg {
+            display: flex;
+            flex-direction: column;
+            gap: --spacing(3);
+        }
+    }
+
+    /*
+     * Save status: three labels stacked in one fixed slot, only the current one is visible. Changing state
+     * cross-fades the text; nothing around it moves. Screen readers get the sr-only live region instead.
+     */
+    .elme-save-status {
+        display: inline-grid;
+        min-height: var(--text-copy--line-height);
+        color: var(--color-ink-muted);
+        font-size: var(--text-note);
+        line-height: var(--text-copy--line-height);
+
+        > span {
+            display: inline-flex;
+            grid-area: 1 / 1;
+            align-items: center;
+            gap: --spacing(1.5);
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 60ms linear;
+        }
+
+        svg {
+            width: --spacing(3.5);
+            height: --spacing(3.5);
+            flex: none;
+        }
+    }
+
+    .elme-save-status__saved {
+        color: var(--color-olive);
+    }
+
+    .elme-save-status[data-state="idle"] .elme-save-status__idle,
+    .elme-save-status[data-state="saving"] .elme-save-status__saving,
+    .elme-save-status[data-state="saved"] .elme-save-status__saved {
+        opacity: 1;
+        transition: opacity var(--transition-duration-fast) var(--ease-out-quad) 60ms;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .elme-save-status__saving svg {
+            animation: elme-spin 800ms linear infinite;
+        }
+    }
+
+    /* row total and bar total: the new number slides in (WAAPI from the template, skipped with reduced motion) */
+    .elme-cart__tick {
+        display: inline-block;
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* qty stepper press: the whole stepper gives a little under the finger */
+    .elme-cart .elme-qty {
+        transition:
+            border-color var(--transition-duration-fast) var(--ease-out-quad),
+            scale var(--transition-duration-micro) var(--ease-out-quad);
+
+        &:hover {
+            border-color: var(--color-ink-subtle);
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            &:has(.elme-qty__btn:active:not(:disabled)) {
+                scale: 0.97;
+            }
+        }
+    }
+
+    .elme-cart .elme-qty__btn:active:not(:disabled) {
+        background: var(--color-sand-faint);
+    }
+}
+
+@keyframes elme-spin {
+    to {
+        rotate: 360deg;
+    }
+}
