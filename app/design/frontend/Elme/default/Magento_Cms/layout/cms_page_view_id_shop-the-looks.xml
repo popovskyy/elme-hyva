@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-49 Shop the Looks: JSON-LD + OG; one BreadcrumbList (skip Hyvä duplicate); MOQ stepper JS.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="breadcrumbs">
+            <arguments>
+                <argument name="skip_ld_json_schema" xsi:type="boolean">true</argument>
+            </arguments>
+        </referenceBlock>
+
+        <referenceBlock name="page.main.title">
+            <arguments>
+                <argument name="css_class" xsi:type="string">elme-shop-the-looks-page__title mb-4 md:mb-6</argument>
+            </arguments>
+        </referenceBlock>
+
+        <referenceContainer name="head.additional">
+            <block name="shop.the.looks.head"
+                   template="Magento_Cms::shop-the-looks/head.phtml"/>
+        </referenceContainer>
+
+        <referenceContainer name="before.body.end">
+            <block name="shop.the.looks.jsonld"
+                   template="Magento_Cms::shop-the-looks/jsonld.phtml"/>
+            <block name="elme.lookbook.qty-stepper.js"
+                   template="Magento_Catalog::product/list/js/qty-stepper.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

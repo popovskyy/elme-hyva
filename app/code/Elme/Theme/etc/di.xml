@@ -12,6 +12,7 @@
                 <item name="instagram_slider" xsi:type="object">Elme\Theme\ViewModel\InstagramSlider</item>
                 <item name="catalogue_covers" xsi:type="object">Elme\Theme\ViewModel\CatalogueCovers</item>
                 <item name="virtual_catalogues" xsi:type="object">Elme\Theme\ViewModel\VirtualCatalogues</item>
+                <item name="lookbook" xsi:type="object">Elme\Theme\ViewModel\Lookbook</item>
                 <item name="usp_strip" xsi:type="object">Elme\Theme\ViewModel\UspStrip</item>
                 <item name="faq" xsi:type="object">Elme\Theme\ViewModel\Faq</item>
                 <item name="proof_pillars" xsi:type="object">Elme\Theme\ViewModel\ProofPillars</item>

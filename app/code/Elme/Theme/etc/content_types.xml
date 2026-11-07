@@ -187,6 +187,53 @@
         </field>
     </type>
 
+    <!-- /shop-the-looks (FE-49): lifestyle frames with %-pinned hotspots → product popup. Room tags
+         for Shop by Room; empty looks hide the gallery (UX-01). No Product JSON-LD (SEO plan). -->
+    <type code="lookbook"
+          label="Shop the Looks"
+          standalone="true"
+          group="pages"
+          icon="image-text"
+          description="Lifestyle look images with product hotspots. Guests see name, image and View; signed-in buyers get price, stock, MOQ qty and add to cart."
+          template="Elme_Theme::content-type/lookbook.phtml"
+          version="1">
+
+        <field name="intro" type="textarea" label="Intro" maxlength="480"
+               description="Optional plain text under the page H1. Wholesale voice: styled looks for Australian retailers; sign in for Pronto prices."/>
+
+        <field name="looks" type="repeater" label="Looks" label_field="title" max="60" required="true"
+               description="One lifestyle frame per row. Missing image or zero valid hotspots hide that look.">
+            <field name="title" type="text" label="Look title" required="true" maxlength="80" width="half"
+                   description="Visible H2 / figcaption, e.g. Dining vignette. Used for image alt when alt is empty."/>
+            <field name="room" type="select" label="Room" required="true" width="half" default="living"
+                   description="Shop by Room filter on /shop-the-looks.">
+                <option value="dining" label="Dining"/>
+                <option value="living" label="Living"/>
+                <option value="bedroom" label="Bedroom"/>
+                <option value="bathroom" label="Bathroom"/>
+                <option value="kitchen" label="Kitchen"/>
+                <option value="outdoors" label="Outdoors"/>
+            </field>
+            <field name="image" type="image" label="Lifestyle image" required="true" recommended="1440x960"
+                   description="Room vignette JPEG or WebP. Hotspot X/Y are percent of this frame."/>
+            <field name="image_alt" type="text" label="Image alt text" maxlength="160"
+                   description="What the vignette shows. Defaults to the look title."/>
+            <field name="description" type="text" label="Short line" maxlength="160"
+                   description="Optional line under the look title."/>
+            <field name="hotspots" type="repeater" renderer="hotspot" label="Hotspots" label_field="sku" max="24"
+                   description="Pins on the image. X and Y are percent from top-left. Missing SKU skips the pin.">
+                <field name="x" type="number" label="X %" required="true" min="0" max="100" width="half"
+                       description="Horizontal position, 0 = left edge, 100 = right."/>
+                <field name="y" type="number" label="Y %" required="true" min="0" max="100" width="half"
+                       description="Vertical position, 0 = top edge, 100 = bottom."/>
+                <field name="sku" type="text" label="Product SKU" required="true" maxlength="64" width="half"
+                       description="Magento SKU. Resolved on the server for name, image and PDP URL."/>
+                <field name="label" type="text" label="Pin label (optional)" maxlength="40" width="half"
+                       description="Optional override for the accessible pin name. Defaults to the product name."/>
+            </field>
+        </field>
+    </type>
+
     <!-- /virtual-catalogues season list (FE-50): cover cards always; flipbook + shop URLs only when
          logged in (QA 0). Empty catalogues hide the grid (UX-01). -->
     <type code="virtual_catalogues"

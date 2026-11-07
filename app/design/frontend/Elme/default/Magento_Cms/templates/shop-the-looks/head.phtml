@@ -1,0 +1,46 @@
+<?php
+/**
+ * FE-49: Open Graph / Twitter for /shop-the-looks (first look lifestyle image when present).
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\Lookbook;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$lookbook = $viewModels->require(Lookbook::class);
+if (!$lookbook->isShopTheLooksPage()) {
+    return;
+}
+
+$title = $lookbook->getMetaTitle();
+$description = $lookbook->getMetaDescription();
+$url = $lookbook->getCanonicalUrl();
+$image = $lookbook->getOgImageUrl();
+$twitterCard = $image !== '' ? 'summary_large_image' : 'summary';
+?>
+<link rel="canonical" href="<?= $escaper->escapeUrl($url) ?>"/>
+<meta property="og:type" content="<?= $escaper->escapeHtmlAttr($lookbook->getOgType()) ?>"/>
+<meta property="og:locale" content="<?= $escaper->escapeHtmlAttr($lookbook->getOgLocale()) ?>"/>
+<meta property="og:url" content="<?= $escaper->escapeUrl($url) ?>"/>
+<meta property="og:title" content="<?= $escaper->escapeHtmlAttr($title) ?>"/>
+<?php if ($description !== ''): ?>
+<meta property="og:description" content="<?= $escaper->escapeHtmlAttr($description) ?>"/>
+<?php endif; ?>
+<?php if ($image !== ''): ?>
+<meta property="og:image" content="<?= $escaper->escapeUrl($image) ?>"/>
+<?php endif; ?>
+<meta name="twitter:card" content="<?= $escaper->escapeHtmlAttr($twitterCard) ?>"/>
+<meta name="twitter:title" content="<?= $escaper->escapeHtmlAttr($title) ?>"/>
+<?php if ($description !== ''): ?>
+<meta name="twitter:description" content="<?= $escaper->escapeHtmlAttr($description) ?>"/>
+<?php endif; ?>
+<?php if ($image !== ''): ?>
+<meta name="twitter:image" content="<?= $escaper->escapeUrl($image) ?>"/>
+<?php endif; ?>

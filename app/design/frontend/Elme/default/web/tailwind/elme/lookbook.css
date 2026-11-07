@@ -1,0 +1,49 @@
+/**
+ * FE-49 Shop the Looks — room filter, %-pinned hotspots, product dialog.
+ */
+
+.elme-lookbook__chip {
+    @apply inline-flex min-h-11 items-center border border-divider bg-surface px-4 text-sm text-ink
+        transition-colors hover:border-ink focus-visible:outline focus-visible:outline-2
+        focus-visible:outline-offset-2 focus-visible:outline-ink;
+}
+
+/* Active chip from Alpine :data-room-filter on the section (CSP-safe; no per-chip :class). */
+.elme-lookbook[data-room-filter=""] .elme-lookbook__chip[data-room=""],
+.elme-lookbook[data-room-filter="dining"] .elme-lookbook__chip[data-room="dining"],
+.elme-lookbook[data-room-filter="living"] .elme-lookbook__chip[data-room="living"],
+.elme-lookbook[data-room-filter="bedroom"] .elme-lookbook__chip[data-room="bedroom"],
+.elme-lookbook[data-room-filter="bathroom"] .elme-lookbook__chip[data-room="bathroom"],
+.elme-lookbook[data-room-filter="kitchen"] .elme-lookbook__chip[data-room="kitchen"],
+.elme-lookbook[data-room-filter="outdoors"] .elme-lookbook__chip[data-room="outdoors"] {
+    @apply border-ink bg-ink text-surface;
+}
+
+.elme-lookbook[data-room-filter="dining"] .elme-lookbook__look:not([data-room="dining"]),
+.elme-lookbook[data-room-filter="living"] .elme-lookbook__look:not([data-room="living"]),
+.elme-lookbook[data-room-filter="bedroom"] .elme-lookbook__look:not([data-room="bedroom"]),
+.elme-lookbook[data-room-filter="bathroom"] .elme-lookbook__look:not([data-room="bathroom"]),
+.elme-lookbook[data-room-filter="kitchen"] .elme-lookbook__look:not([data-room="kitchen"]),
+.elme-lookbook[data-room-filter="outdoors"] .elme-lookbook__look:not([data-room="outdoors"]) {
+    display: none;
+}
+
+.elme-lookbook__frame {
+    /* Keep hotspot % positions tied to the image box at every width. */
+    @apply w-full;
+}
+
+.elme-lookbook__pin {
+    @apply absolute z-10 flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center
+        rounded-full border border-surface/80 bg-ink/50 text-surface transition
+        hover:bg-ink/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+        focus-visible:outline-surface md:size-9;
+}
+
+.elme-lookbook__pin-mark {
+    @apply text-lg font-bold leading-none;
+}
+
+.elme-lookbook__dialog[x-cloak] {
+    display: none !important;
+}
