@@ -1,0 +1,424 @@
+/*
+ * Quick Order cart page (/quick-order/cart). An order sheet: photo tile, name, the same qty
+ * stepper as the product card, and a flat summary panel. Tokens only.
+ */
+
+@layer components {
+    .elme-cart {
+        padding-block-end: --spacing(10);
+
+        @variant lg {
+            padding-block-end: --spacing(16);
+        }
+    }
+
+    .elme-cart__layout {
+        display: grid;
+        gap: --spacing(8);
+        align-items: start;
+
+        @variant lg {
+            grid-template-columns: minmax(0, 1fr) --spacing(80);
+            gap: --spacing(12);
+        }
+    }
+
+    .elme-cart__head,
+    .elme-cart__line {
+        display: grid;
+        grid-template-columns: --spacing(22) minmax(0, 1fr);
+        column-gap: --spacing(4);
+        row-gap: --spacing(3);
+    }
+
+    .elme-cart__head {
+        display: none;
+        padding-block-end: --spacing(3);
+        border-block-end: 1px solid var(--color-divider);
+        color: var(--color-ink-muted);
+        font-size: var(--text-label);
+        line-height: var(--text-label--line-height);
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+
+        @variant lg {
+            display: grid;
+            grid-template-columns: --spacing(24) minmax(0, 1fr) --spacing(34) minmax(--spacing(20), auto);
+            column-gap: --spacing(6);
+            align-items: end;
+        }
+    }
+
+    .elme-cart__head-product {
+        @variant lg {
+            grid-column: 1 / 3;
+        }
+    }
+
+    .elme-cart__head-qty {
+        text-align: center;
+    }
+
+    .elme-cart__head-total {
+        text-align: end;
+    }
+
+    .elme-cart__line {
+        padding-block: --spacing(5);
+        border-block-end: 1px solid var(--color-divider);
+        animation: elme-cart-in var(--transition-duration-base) var(--ease-out-quart) both;
+
+        @variant lg {
+            grid-template-columns: --spacing(24) minmax(0, 1fr) --spacing(34) minmax(--spacing(20), auto);
+            column-gap: --spacing(6);
+            row-gap: 0;
+            align-items: center;
+            padding-block: --spacing(6);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
+    }
+
+    .elme-cart__photo {
+        grid-row: 1 / span 2;
+        display: block;
+        aspect-ratio: 1;
+        overflow: hidden;
+        border: 1px solid var(--color-divider);
+        background: var(--color-surface);
+        align-self: start;
+
+        @variant lg {
+            grid-row: 1;
+            width: --spacing(24);
+        }
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: scale var(--transition-duration-slow) var(--ease-out-quart);
+        }
+    }
+
+    @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+        a.elme-cart__photo:hover img {
+            scale: 1.04;
+        }
+    }
+
+    .elme-cart__info {
+        grid-column: 2;
+        grid-row: 1;
+        min-width: 0;
+        padding-inline-end: --spacing(20);
+
+        @variant lg {
+            padding-inline-end: 0;
+        }
+    }
+
+    .elme-cart__name {
+        color: var(--color-ink);
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        font-weight: 500;
+        text-decoration: none;
+
+        @variant lg {
+            font-size: var(--text-copy-desktop);
+            line-height: var(--text-copy-desktop--line-height);
+        }
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    .elme-cart__sku,
+    .elme-cart__unit,
+    .elme-cart__message {
+        margin: 0;
+        margin-block-start: --spacing(1);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+    }
+
+    .elme-cart__sku,
+    .elme-cart__unit {
+        color: var(--color-ink-muted);
+    }
+
+    .elme-cart__was {
+        margin-inline-start: --spacing(2);
+        text-decoration: line-through;
+    }
+
+    .elme-cart__stock {
+        display: flex;
+        align-items: center;
+        gap: --spacing(1.5);
+        margin: --spacing(1.5) 0 0;
+        color: var(--color-ink-muted);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+    }
+
+    .elme-cart__stock.is-in {
+        color: var(--color-olive);
+    }
+
+    .elme-cart__stock.is-low {
+        color: var(--color-toast-warning-mark);
+    }
+
+    .elme-cart__dot {
+        width: --spacing(1.5);
+        height: --spacing(1.5);
+        flex-shrink: 0;
+        border-radius: 9999px;
+        background: currentColor;
+    }
+
+    .elme-cart__message {
+        color: var(--color-error);
+    }
+
+    .elme-cart__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: --spacing(1) --spacing(4);
+        margin-block-start: --spacing(3);
+    }
+
+    .elme-cart__textbtn {
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--color-ink-muted);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        cursor: pointer;
+
+        &:hover {
+            color: var(--color-ink);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
+        }
+    }
+
+    .elme-cart__qty {
+        grid-column: 2;
+        grid-row: 2;
+        justify-self: start;
+
+        @variant lg {
+            grid-column: 3;
+            grid-row: 1;
+            justify-self: center;
+        }
+
+        .elme-qty {
+            width: --spacing(34);
+        }
+    }
+
+    .elme-cart__row-total {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
+        margin: 0;
+        color: var(--color-ink);
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+
+        @variant lg {
+            grid-column: 4;
+            align-self: center;
+            font-size: var(--text-copy-desktop);
+            line-height: var(--text-copy-desktop--line-height);
+        }
+    }
+
+    .elme-cart.is-saving .elme-cart__row-total,
+    .elme-cart.is-saving .elme-cart__money dd {
+        opacity: 0.45;
+    }
+
+    .elme-cart__summary {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(4);
+        padding: --spacing(6);
+        border: 1px solid var(--color-divider);
+        background: var(--color-surface);
+
+        @variant lg {
+            position: sticky;
+            top: calc(var(--elme-header-offset, 0px) + --spacing(4));
+        }
+    }
+
+    .elme-cart__summary-title {
+        margin: 0;
+        font-family: var(--font-heading);
+        font-size: var(--text-h3);
+        line-height: var(--text-h3--line-height);
+        font-weight: 400;
+        color: var(--color-ink);
+    }
+
+    .elme-cart__summary-count {
+        margin: calc(--spacing(2) * -1) 0 0;
+        color: var(--color-ink-muted);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+    }
+
+    .elme-cart__money {
+        display: grid;
+        gap: --spacing(2.5);
+        margin: 0;
+        padding-block: --spacing(4);
+        border-block: 1px solid var(--color-divider);
+    }
+
+    .elme-cart__money div {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: --spacing(4);
+    }
+
+    .elme-cart__money dt {
+        color: var(--color-ink-muted);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+    }
+
+    .elme-cart__money dd {
+        margin: 0;
+        color: var(--color-ink);
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        font-variant-numeric: tabular-nums;
+        transition: opacity var(--transition-duration-fast) ease;
+    }
+
+    .elme-cart__money-total dt,
+    .elme-cart__money-total dd {
+        color: var(--color-ink);
+        font-size: var(--text-copy-desktop);
+        line-height: var(--text-copy-desktop--line-height);
+        font-weight: 600;
+    }
+
+    .elme-cart__saving {
+        margin: 0;
+        color: var(--color-ink-muted);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+    }
+
+    .elme-cart__continue {
+        align-self: center;
+        color: var(--color-ink-muted);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        text-underline-offset: 3px;
+
+        &:hover {
+            color: var(--color-ink);
+        }
+    }
+
+    .elme-cart__empty {
+        max-width: --spacing(112);
+        padding-block: --spacing(6) --spacing(16);
+    }
+
+    .elme-cart__empty p {
+        margin: 0 0 --spacing(6);
+        color: var(--color-ink);
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+    }
+
+    .elme-cart__error {
+        margin: 0 0 --spacing(4);
+        color: var(--color-error);
+    }
+
+    .elme-cart__loading {
+        display: grid;
+    }
+
+    .elme-cart__bone {
+        display: grid;
+        grid-template-columns: --spacing(22) minmax(0, 1fr);
+        gap: --spacing(4);
+        padding-block: --spacing(5);
+        border-block-end: 1px solid var(--color-divider);
+        animation: elme-cart-pulse 1.2s ease-in-out infinite;
+
+        @variant lg {
+            grid-template-columns: --spacing(24) minmax(0, 1fr);
+            padding-block: --spacing(6);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
+    }
+
+    .elme-cart__bone-photo,
+    .elme-cart__bone-line {
+        background: var(--color-surface-muted);
+    }
+
+    .elme-cart__bone-photo {
+        aspect-ratio: 1;
+    }
+
+    .elme-cart__bone-copy {
+        display: grid;
+        align-content: center;
+        gap: --spacing(2);
+    }
+
+    .elme-cart__bone-line {
+        height: --spacing(3);
+    }
+
+    .elme-cart__bone-line:first-child {
+        width: 70%;
+    }
+
+    .elme-cart__bone-line:last-child {
+        width: 36%;
+    }
+}
+
+@keyframes elme-cart-in {
+    from {
+        opacity: 0;
+        translate: 0 --spacing(1);
+    }
+}
+
+@keyframes elme-cart-pulse {
+    50% {
+        opacity: 0.55;
+    }
+}

@@ -1,13 +1,13 @@
 <?php
 /**
- * BE-16: plain cart page on window.elmeQuickOrderCart, so the cart works end to end. FE-33 replaces this markup
- * with the designed page; the data and the save rules stay in the client and the server.
+ * Cart page on window.elmeQuickOrderCart. The save rules stay in the client and the server.
  */
 
 declare(strict_types=1);
 
 use Hyva\Theme\Model\ViewModelRegistry;
 use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 
@@ -17,65 +17,145 @@ use Magento\Framework\View\Element\Template;
 
 /** @var HyvaCsp $hyvaCsp */
 $hyvaCsp = $viewModels->require(HyvaCsp::class);
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+$homeUrl = $block->getBaseUrl();
 ?>
-<section class="pb-6 lg:pb-10" x-data="initElmeQuickOrderCartPage" @elme-qo-cart.window="onCart">
-    <p class="text-ink-muted" x-show="isLoading"><?= $escaper->escapeHtml(__('Loading your cart...')) ?></p>
-    <p class="text-error" role="alert" x-show="hasLoadError" x-text="loadError" x-cloak></p>
+<section class="elme-cart"
+         x-data="initElmeQuickOrderCartPage"
+         @elme-qo-cart.window="onCart"
+         :class="savingClass">
+    <div class="elme-cart__loading" x-show="isLoading" aria-busy="true">
+        <p class="sr-only"><?= $escaper->escapeHtml(__('Loading your cart...')) ?></p>
+        <div class="elme-cart__bone" aria-hidden="true">
+            <span class="elme-cart__bone-photo"></span>
+            <span class="elme-cart__bone-copy">
+                <span class="elme-cart__bone-line"></span>
+                <span class="elme-cart__bone-line"></span>
+            </span>
+        </div>
+        <div class="elme-cart__bone" aria-hidden="true">
+            <span class="elme-cart__bone-photo"></span>
+            <span class="elme-cart__bone-copy">
+                <span class="elme-cart__bone-line"></span>
+                <span class="elme-cart__bone-line"></span>
+            </span>
+        </div>
+    </div>
+    <p class="elme-cart__error" role="alert" x-show="hasLoadError" x-text="loadError" x-cloak></p>
 
-    <div x-show="isEmpty" x-cloak>
-        <p class="text-copy text-ink mb-4"><?= $escaper->escapeHtml(__('Your cart is empty.')) ?></p>
-        <a class="btn btn-primary" href="<?= $escaper->escapeUrl($block->getBaseUrl()) ?>">
+    <div class="elme-cart__empty" x-show="isEmpty" x-cloak>
+        <p><?= $escaper->escapeHtml(__('Your cart is empty.')) ?></p>
+        <a class="btn btn-primary" href="<?= $escaper->escapeUrl($homeUrl) ?>">
             <?= $escaper->escapeHtml(__('Continue shopping')) ?>
         </a>
     </div>
 
-    <div class="grid gap-8 lg:grid-cols-[1fr_20rem]" x-show="hasItems" x-cloak>
-        <ul class="divide-y divide-divider border-y border-divider">
-            <template x-for="item in items" :key="item.sku">
-                <li class="flex gap-4 py-4">
-                    <img class="size-20 shrink-0 object-contain bg-surface"
-                         :src="item.image" :alt="item.name" width="80" height="80" loading="lazy">
-                    <div class="flex grow flex-col gap-1 min-w-0">
-                        <a class="text-ink font-bold hover:underline" :href="item.url" x-text="item.name"></a>
-                        <p class="text-note text-ink-muted" x-text="item.sku"></p>
-                        <p class="text-note text-ink-muted" x-show="hasStockLabel" x-text="stockLabel"></p>
-                        <p class="text-note text-ink" x-show="item.price" x-text="unitPrice"></p>
-                        <p class="text-note text-error" role="alert" x-show="item.message" x-text="item.message"></p>
-                        <div class="mt-2 flex flex-wrap items-center gap-3">
-                            <div class="flex items-center">
-                                <button type="button" class="btn px-3" @click="decrement" :disabled="isAtMin"
-                                        aria-label="<?= $escaper->escapeHtmlAttr(__('Decrease quantity')) ?>">-</button>
-                                <label class="sr-only" :for="qtyId"><?= $escaper->escapeHtml(__('Qty')) ?></label>
-                                <input type="number" class="form-input w-20 text-center" inputmode="numeric"
-                                       :id="qtyId" :value="item.qty" :min="item.min" :step="item.step"
-                                       @change="onQtyChange">
-                                <button type="button" class="btn px-3" @click="increment"
-                                        aria-label="<?= $escaper->escapeHtmlAttr(__('Increase quantity')) ?>">+</button>
-                            </div>
-                            <button type="button" class="text-note text-ink-muted underline" @click="removeItem">
-                                <?= $escaper->escapeHtml(__('Remove')) ?>
-                            </button>
+    <div class="elme-cart__layout" x-show="hasItems" x-cloak>
+        <div>
+            <div class="elme-cart__head">
+                <span class="elme-cart__head-product"><?= $escaper->escapeHtml(__('Product')) ?></span>
+                <span class="elme-cart__head-qty"><?= $escaper->escapeHtml(__('Qty')) ?></span>
+                <span class="elme-cart__head-total"><?= $escaper->escapeHtml(__('Total')) ?></span>
+            </div>
+            <ul>
+                <template x-for="item in items" :key="item.sku">
+                    <li class="elme-cart__line">
+                        <a class="elme-cart__photo" :href="item.url" x-show="hasUrl" tabindex="-1" aria-hidden="true">
+                            <img :src="item.image" :alt="item.name" width="96" height="96" loading="lazy">
+                        </a>
+                        <div class="elme-cart__photo" x-show="hasNoUrl" aria-hidden="true">
+                            <img :src="item.image" alt="" width="96" height="96" loading="lazy">
                         </div>
-                    </div>
-                    <p class="shrink-0 text-ink font-bold" x-text="rowTotal"></p>
-                </li>
-            </template>
-        </ul>
 
-        <aside class="flex flex-col gap-3">
-            <dl class="grid grid-cols-[1fr_auto] gap-y-2 text-ink">
-                <dt><?= $escaper->escapeHtml(__('Subtotal (ex GST)')) ?></dt>
-                <dd class="text-end" x-text="totals.subtotal_formatted"></dd>
-                <dt><?= $escaper->escapeHtml(__('GST')) ?></dt>
-                <dd class="text-end" x-text="totals.gst_formatted"></dd>
-                <dt class="font-bold"><?= $escaper->escapeHtml(__('Total (inc GST)')) ?></dt>
-                <dd class="text-end font-bold" x-text="totals.total_formatted"></dd>
+                        <div class="elme-cart__info">
+                            <a class="elme-cart__name" :href="item.url" x-show="hasUrl" x-text="item.name"></a>
+                            <p class="elme-cart__name" x-show="hasNoUrl" x-text="item.name"></p>
+                            <p class="elme-cart__sku" x-text="item.sku"></p>
+                            <p class="elme-cart__stock" :class="stockClass" x-show="hasStockLabel">
+                                <span class="elme-cart__dot" aria-hidden="true"></span>
+                                <span x-text="stockLabel"></span>
+                            </p>
+                            <p class="elme-cart__unit" x-show="hasPrice">
+                                <span x-text="unitPrice"></span>
+                                <s class="elme-cart__was" x-show="hasDiscount" x-text="regularPrice"></s>
+                            </p>
+                            <p class="elme-cart__message" role="alert" x-show="hasMessage" x-text="item.message"></p>
+                            <div class="elme-cart__actions">
+                                <button type="button" class="elme-cart__textbtn" @click="removeItem">
+                                    <?= $escaper->escapeHtml(__('Remove')) ?>
+                                </button>
+                                <button type="button"
+                                        class="elme-cart__textbtn"
+                                        data-elme-qo-add-to-list
+                                        :data-sku="item.sku"
+                                        :data-qty="item.qty"
+                                        :data-product-name="item.name">
+                                    <?= $escaper->escapeHtml(__('Add to shopping list')) ?>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="elme-cart__qty">
+                            <div class="elme-qty">
+                                <button type="button"
+                                        class="elme-qty__btn"
+                                        @click="decrement"
+                                        :disabled="isAtMin"
+                                        aria-label="<?= $escaper->escapeHtmlAttr(__('Decrease quantity')) ?>">
+                                    <?= $lucideIcons->minusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                                </button>
+                                <label class="sr-only" :for="qtyId"><?= $escaper->escapeHtml(__('Qty')) ?></label>
+                                <input type="number"
+                                       class="elme-qty__input"
+                                       inputmode="numeric"
+                                       :id="qtyId"
+                                       :value="item.qty"
+                                       :min="item.min"
+                                       :step="item.step"
+                                       @change="onQtyChange">
+                                <button type="button"
+                                        class="elme-qty__btn"
+                                        @click="increment"
+                                        aria-label="<?= $escaper->escapeHtmlAttr(__('Increase quantity')) ?>">
+                                    <?= $lucideIcons->plusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                                </button>
+                            </div>
+                        </div>
+
+                        <p class="elme-cart__row-total" x-text="rowTotal"></p>
+                    </li>
+                </template>
+            </ul>
+        </div>
+
+        <aside class="elme-cart__summary">
+            <h2 class="elme-cart__summary-title"><?= $escaper->escapeHtml(__('Summary')) ?></h2>
+            <p class="elme-cart__summary-count" x-text="lineCountLabel"></p>
+            <dl class="elme-cart__money">
+                <div>
+                    <dt><?= $escaper->escapeHtml(__('Subtotal (ex GST)')) ?></dt>
+                    <dd x-text="totals.subtotal_formatted"></dd>
+                </div>
+                <div>
+                    <dt><?= $escaper->escapeHtml(__('GST')) ?></dt>
+                    <dd x-text="totals.gst_formatted"></dd>
+                </div>
+                <div class="elme-cart__money-total">
+                    <dt><?= $escaper->escapeHtml(__('Total (inc GST)')) ?></dt>
+                    <dd x-text="totals.total_formatted"></dd>
+                </div>
             </dl>
-            <p class="text-note text-ink-muted" aria-live="polite" x-text="savingLabel"></p>
-            <button type="button" class="btn btn-primary w-full justify-center" @click="goToCheckout"
+            <p class="elme-cart__saving" aria-live="polite" x-show="saving" x-text="savingLabel" x-cloak></p>
+            <button type="button"
+                    class="btn btn-primary w-full justify-center"
+                    @click="goToCheckout"
                     :disabled="cannotCheckout">
                 <?= $escaper->escapeHtml(__('Proceed to checkout')) ?>
             </button>
+            <a class="elme-cart__continue" href="<?= $escaper->escapeUrl($homeUrl) ?>">
+                <?= $escaper->escapeHtml(__('Continue shopping')) ?>
+            </a>
         </aside>
     </div>
 </section>
@@ -117,23 +197,54 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             cannotCheckout() {
                 return this.saving || !this.cart || !this.cart.can_checkout;
             },
+            savingClass() {
+                return this.saving ? 'is-saving' : '';
+            },
             savingLabel() {
                 return this.saving ? '<?= $escaper->escapeJs(__('Saving...')) ?>' : '';
+            },
+            lineCountLabel() {
+                const count = this.items().length;
+                return count === 1
+                    ? '<?= $escaper->escapeJs(__('1 line')) ?>'
+                    : hyva.str('<?= $escaper->escapeJs(__('%1 lines')) ?>', count);
             },
 
             qtyId() {
                 return 'qo-qty-' + this.item.sku;
             },
+            hasUrl() {
+                return Boolean(this.item.url);
+            },
+            hasNoUrl() {
+                return !this.item.url;
+            },
             hasStockLabel() {
                 return Boolean(this.item.stock && this.item.stock.qty_formatted);
             },
+            stockClass() {
+                const level = this.item.stock && this.item.stock.level;
+                return level ? 'is-' + level : '';
+            },
             stockLabel() {
                 return hyva.str('<?= $escaper->escapeJs(__('%1 in stock')) ?>', this.item.stock.qty_formatted);
+            },
+            hasPrice() {
+                return Boolean(this.item.price);
+            },
+            hasDiscount() {
+                return Boolean(this.item.price && this.item.price.has_discount);
             },
             unitPrice() {
                 return this.item.price
                     ? hyva.str('<?= $escaper->escapeJs(__('%1 each, ex GST')) ?>', this.item.price.final_formatted)
                     : '';
+            },
+            regularPrice() {
+                return this.item.price ? this.item.price.regular_formatted : '';
+            },
+            hasMessage() {
+                return Boolean(this.item.message);
             },
             // until the save answers, the row total follows the qty in the page
             rowTotal() {
