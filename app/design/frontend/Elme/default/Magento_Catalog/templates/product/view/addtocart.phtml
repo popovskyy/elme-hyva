@@ -44,11 +44,21 @@ $ariaLabel = $isCartConfigure || !$product
         class="elme-save"
         form="product_addtocart_form"
         data-elme-qo-add-to-list
+        data-elme-heart
         data-sku="<?= $escaper->escapeHtmlAttr($product->getSku()) ?>"
         data-product-name="<?= $escaper->escapeHtmlAttr($product->getName()) ?>"
+        data-label-add="<?= $escaper->escapeHtmlAttr(__('Add to shopping list') . ' ' . $product->getName()) ?>"
+        data-label-saved="<?= $escaper->escapeHtmlAttr(__('Saved to shopping list') . ' ' . $product->getName()) ?>"
         aria-label="<?= $escaper->escapeHtmlAttr(__('Add to shopping list') . ' ' . $product->getName()) ?>"
+        aria-pressed="false"
+        aria-haspopup="dialog"
 >
-    <?= $lucideIcons->heartHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+    <span class="elme-heart__ring" aria-hidden="true"></span>
+    <span class="elme-heart__dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="elme-heart__icon" aria-hidden="true">
+        <?= $lucideIcons->heartHtml('elme-heart__line', 22, 22, ['aria-hidden' => 'true']) ?>
+        <?= $lucideIcons->heartHtml('elme-heart__fill', 22, 22, ['aria-hidden' => 'true']) ?>
+    </span>
 </button>
 <?php endif; ?>
 <button

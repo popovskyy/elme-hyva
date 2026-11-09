@@ -41,56 +41,64 @@ class SavedLists
      */
     public function getPayload(int $customerId): array
     {
-        $rawLists = $this->resource->loadNamedLists($customerId, CartList::NAME);
-        $savedSkuMap = [];
+        $summary = $this->getSummary($customerId);
         $previewSkuMap = [];
-        $lists = [];
-
-        foreach ($rawLists as $list) {
-            $items = is_array($list['items']) ? $list['items'] : [];
-            $itemCount = 0;
-            $previewSkus = [];
-            foreach ($items as $item) {
-                if (!is_array($item)) {
-                    continue;
-                }
-                $sku = trim((string) ($item['sku'] ?? ''));
-                if ($sku === '') {
-                    continue;
-                }
-                $itemCount++;
-                $savedSkuMap[$sku] = $sku;
-                if (count($previewSkus) < self::PREVIEW_LIMIT) {
-                    $previewSkus[] = $sku;
-                    $previewSkuMap[$sku] = $sku;
-                }
+        foreach ($summary['lists'] as $list) {
+            foreach (array_slice($list['skus'], 0, self::PREVIEW_LIMIT) as $sku) {
+                $previewSkuMap[$sku] = $sku;
             }
-
-            $lists[] = [
-                'id' => (int) $list['id'],
-                'name' => (string) $list['name'],
-                'item_count' => $itemCount,
-                '_preview_skus' => $previewSkus,
-            ];
         }
 
         $previews = $this->loadPreviews(array_values($previewSkuMap));
-        foreach ($lists as &$row) {
+        foreach ($summary['lists'] as &$row) {
             $row['preview'] = [];
-            foreach ($row['_preview_skus'] as $sku) {
+            foreach (array_slice($row['skus'], 0, self::PREVIEW_LIMIT) as $sku) {
                 $row['preview'][] = $previews[$sku] ?? [
                     'sku' => $sku,
                     'name' => $sku,
                     'thumbnail_url' => '',
                 ];
             }
-            unset($row['_preview_skus']);
         }
         unset($row);
 
+        return $summary;
+    }
+
+    /**
+     * Named lists with their SKUs, no product loads (one SELECT): section quick_order, so every page knows which
+     * hearts are filled and the list picker opens without a request.
+     *
+     * @return array{
+     *     lists: list<array{id: int, name: string, item_count: int, skus: list<string>}>,
+     *     saved_skus: list<string>,
+     *     total_item_count: int
+     * }
+     */
+    public function getSummary(int $customerId): array
+    {
+        $savedSkuMap = [];
+        $lists = [];
         $totalItemCount = 0;
-        foreach ($lists as $list) {
-            $totalItemCount += (int) $list['item_count'];
+
+        foreach ($this->resource->loadNamedLists($customerId, CartList::NAME) as $list) {
+            $skus = [];
+            foreach (is_array($list['items']) ? $list['items'] : [] as $item) {
+                $sku = is_array($item) ? trim((string) ($item['sku'] ?? '')) : '';
+                if ($sku === '') {
+                    continue;
+                }
+                $skus[] = $sku;
+                $savedSkuMap[$sku] = $sku;
+            }
+            $totalItemCount += count($skus);
+
+            $lists[] = [
+                'id' => (int) $list['id'],
+                'name' => (string) $list['name'],
+                'item_count' => count($skus),
+                'skus' => $skus,
+            ];
         }
 
         return [
@@ -98,23 +106,6 @@ class SavedLists
             'saved_skus' => array_values($savedSkuMap),
             'total_item_count' => $totalItemCount,
         ];
-    }
-
-    /**
-     * Sum of SKUs across named lists (header badge). One SELECT, no product loads.
-     */
-    public function getTotalItemCount(int $customerId): int
-    {
-        $count = 0;
-        foreach ($this->resource->loadNamedLists($customerId, CartList::NAME) as $list) {
-            foreach ($list['items'] as $item) {
-                if (is_array($item) && trim((string) ($item['sku'] ?? '')) !== '') {
-                    $count++;
-                }
-            }
-        }
-
-        return $count;
     }
 
     /**
@@ -215,6 +206,30 @@ class SavedLists
         }
 
         $this->save($customerId, $name, $canonical);
+    }
+
+    /**
+     * Takes SKUs off one named list (a ticked row in the heart's list picker). A SKU that is not on it is skipped.
+     *
+     * @param list<string> $skus
+     * @throws LocalizedException
+     */
+    public function remove(int $customerId, string $name, array $skus): void
+    {
+        $name = trim($name);
+        if ($name === '' || $name === CartList::NAME || !$this->resource->exists($customerId, $name)) {
+            throw new LocalizedException(__('List not found.'));
+        }
+
+        $drop = array_flip(array_map(static fn ($sku): string => mb_strtolower(trim((string) $sku)), $skus));
+        $current = $this->cartList->get($customerId, $name);
+        foreach (array_keys($current) as $sku) {
+            if (isset($drop[mb_strtolower((string) $sku)])) {
+                unset($current[$sku]);
+            }
+        }
+
+        $this->cartList->replace($customerId, $current, $name);
     }
 
     /**

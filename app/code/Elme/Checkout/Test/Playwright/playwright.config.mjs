@@ -14,4 +14,9 @@ export default defineConfig({
         trace: 'retain-on-failure',
         ...devices['Desktop Chrome'],
     },
+    projects: [
+        { name: 'chromium' },
+        // FE-78: Roman tests the heart in Firefox
+        { name: 'firefox', testMatch: 'heart.spec.mjs', use: { ...devices['Desktop Firefox'] } },
+    ],
 });

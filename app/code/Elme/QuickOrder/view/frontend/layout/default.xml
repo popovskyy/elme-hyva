@@ -4,7 +4,7 @@
     <body>
         <!-- The Quick Order cart is the only cart: no Magento mini-cart (FE-32 builds the header panel) -->
         <referenceBlock name="cart-drawer" remove="true"/>
-        <!-- FE-73: Add to Shopping List modal (hearts / data-elme-qo-add-to-list); guests see login -->
+        <!-- FE-78: the heart's list picker (data-elme-qo-add-to-list); guests see login -->
         <referenceContainer name="before.body.end">
             <block name="elme.quick-order.add-to-list-modal"
                    template="Elme_QuickOrder::add-to-list/modal.phtml"/>

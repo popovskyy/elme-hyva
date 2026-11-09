@@ -5,6 +5,8 @@
         <!-- Before any component that reads window.elmeQuickOrderCart -->
         <referenceContainer name="after.body.start">
             <block name="elme.quick-order.cart-client" template="Elme_QuickOrder::js/cart-client.phtml"/>
+            <!-- FE-78: window.elmeLists + window.elmeHearts, before the header and the list picker read them -->
+            <block name="elme.quick-order.lists-store" template="Elme_QuickOrder::js/lists-store.phtml"/>
         </referenceContainer>
     </body>
 </page>
