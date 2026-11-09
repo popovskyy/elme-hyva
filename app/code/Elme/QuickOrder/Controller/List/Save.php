@@ -23,6 +23,7 @@ use Psr\Log\LoggerInterface;
  *   replace the rows are the whole list: qty edits in the list editor
  *   add     merge into an existing list, every SKU checked against the catalogue: Add a SKU in the editor
  *   create  a new empty list; a taken name is refused ("A list with this name already exists."), items ignored
+ *   remove  take the SKUs of items off an existing list (qty ignored): a ticked row in the heart's list picker
  * Or legacy form: list[name], list[0][sku], list[0][qty] (as on Bart add-to-list modal).
  */
 class Save extends AbstractJson implements HttpPostActionInterface
@@ -32,6 +33,7 @@ class Save extends AbstractJson implements HttpPostActionInterface
     private const MODE_REPLACE = 'replace';
     private const MODE_ADD = 'add';
     private const MODE_CREATE = 'create';
+    private const MODE_REMOVE = 'remove';
 
     public function __construct(
         RequestInterface $request,
@@ -52,6 +54,8 @@ class Save extends AbstractJson implements HttpPostActionInterface
             $name = $this->savedLists->create($customerId, $name);
         } elseif ($mode === self::MODE_ADD) {
             $this->savedLists->add($customerId, $name, $rows);
+        } elseif ($mode === self::MODE_REMOVE) {
+            $this->savedLists->remove($customerId, $name, array_map('strval', array_keys($rows)));
         } else {
             $this->savedLists->save($customerId, $name, $rows, $mode === self::MODE_REPLACE);
         }
@@ -91,7 +95,7 @@ class Save extends AbstractJson implements HttpPostActionInterface
 
         $name = trim((string) ($payload['name'] ?? ''));
         $mode = (string) ($payload['mode'] ?? self::MODE_MERGE);
-        if (!in_array($mode, [self::MODE_MERGE, self::MODE_REPLACE, self::MODE_ADD, self::MODE_CREATE], true)) {
+        if (!in_array($mode, [self::MODE_MERGE, self::MODE_REPLACE, self::MODE_ADD, self::MODE_CREATE, self::MODE_REMOVE], true)) {
             throw new LocalizedException(__('Invalid data.'));
         }
         if ($mode === self::MODE_CREATE) {
@@ -105,7 +109,7 @@ class Save extends AbstractJson implements HttpPostActionInterface
     }
 
     /**
-     * A replace with no rows clears the list (the editor removed the last product). merge and add need rows.
+     * A replace with no rows clears the list (the editor removed the last product). merge, add and remove need rows.
      *
      * @param array<string, float> $rows
      * @throws LocalizedException

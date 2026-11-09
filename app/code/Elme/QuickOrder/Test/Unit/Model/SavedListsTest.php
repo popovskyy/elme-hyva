@@ -58,6 +58,51 @@ class SavedListsTest extends TestCase
         $this->assertSame('Showroom', $payload['lists'][0]['name']);
         $this->assertSame(2, $payload['lists'][0]['item_count']);
         $this->assertSame(['A', 'B'], $payload['saved_skus']);
+        $this->assertSame(['A', 'B'], $payload['lists'][0]['skus']);
+    }
+
+    public function testGetSummaryListsSkusWithoutLoadingProducts(): void
+    {
+        $resource = $this->createStub(QuickOrderList::class);
+        $resource->method('loadNamedLists')->willReturn([
+            ['id' => 3, 'name' => 'Showroom', 'items' => [['sku' => 'A', 'qty' => 6], ['sku' => ' ', 'qty' => 1]]],
+            ['id' => 4, 'name' => 'Warehouse', 'items' => [['sku' => 'A', 'qty' => 1], ['sku' => 'C', 'qty' => 2]]],
+        ]);
+        $catalogue = $this->createMock(CollectionFactory::class);
+        $catalogue->expects($this->never())->method('create');
+
+        $summary = $this->savedLists($resource, null, $catalogue)->getSummary(7);
+
+        $this->assertSame([
+            ['id' => 3, 'name' => 'Showroom', 'item_count' => 1, 'skus' => ['A']],
+            ['id' => 4, 'name' => 'Warehouse', 'item_count' => 2, 'skus' => ['A', 'C']],
+        ], $summary['lists']);
+        $this->assertSame(['A', 'C'], $summary['saved_skus']);
+        $this->assertSame(3, $summary['total_item_count']);
+    }
+
+    public function testRemoveTakesTheSkuOffOneListIgnoringCase(): void
+    {
+        $resource = $this->createStub(QuickOrderList::class);
+        $resource->method('exists')->willReturn(true);
+        $cartList = $this->createMock(CartList::class);
+        $cartList->method('get')->with(7, 'Showroom')->willReturn(['FS.114.WH' => 2.0, 'B' => 1.0]);
+        $cartList->expects($this->once())->method('replace')->with(7, ['B' => 1.0], 'Showroom');
+
+        $this->savedLists($resource, $cartList)->remove(7, 'Showroom', ['fs.114.wh', 'NOT-THERE']);
+    }
+
+    public function testRemoveRefusesAMissingList(): void
+    {
+        $resource = $this->createStub(QuickOrderList::class);
+        $resource->method('exists')->willReturn(false);
+        $cartList = $this->createMock(CartList::class);
+        $cartList->expects($this->never())->method('replace');
+
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('List not found.');
+
+        $this->savedLists($resource, $cartList)->remove(7, 'Showroom', ['A']);
     }
 
     public function testSaveRefusesCartListName(): void
