@@ -15,3 +15,21 @@
     --btn-active-bg: var(--color-surface);
     --btn-active-color: var(--color-ink);
 }
+
+/*
+ * FE-75: destructive action (Remove / Delete in the confirm dialog): `btn btn-danger`. Unlayered, like
+ * .btn-on-dark, so it wins over the values btn sets on itself.
+ */
+.btn-danger {
+    --btn-spinner-color: var(--color-on-primary);
+    --btn-stroke: var(--color-error-strong);
+    --btn-bg: var(--color-error-strong);
+    --btn-color: var(--color-on-primary);
+    --btn-ripple: color-mix(in srgb, var(--color-on-primary) 40%, transparent);
+    --btn-hover-stroke: var(--color-toast-error-mark);
+    --btn-hover-bg: var(--color-toast-error-mark);
+    --btn-hover-color: var(--color-on-primary);
+    --btn-active-stroke: var(--color-error-strong);
+    --btn-active-bg: var(--color-error-strong);
+    --btn-active-color: var(--color-on-primary);
+}

@@ -209,8 +209,10 @@ test('deleting a list on My Shopping List does not show the loading skeleton aga
     });
 
     await page.locator('[data-list-row]', { hasText: OTHER }).getByRole('button', { name: 'Delete' }).click();
+    // Confirm takes clicks once the dialog has finished opening (no delete on a double tap)
+    await page.waitForTimeout(250);
     const deleted = page.waitForResponse(/\/quick-order\/list\/delete/);
-    await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Delete' }).click();
     await deleted;
     await expect(rowsOnPage).toHaveCount(1);
     await page.waitForTimeout(500);
@@ -222,7 +224,7 @@ test('the delete dialog keeps keyboard focus inside and gives it back to the tra
     const trash = page.locator('[data-list-row]', { hasText: LIST }).getByRole('button', { name: 'Delete' });
     await trash.focus();
     await page.keyboard.press('Enter');
-    const dialog = page.getByRole('dialog');
+    const dialog = page.getByRole('alertdialog');
     await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeFocused();
 
     for (const key of ['Tab', 'Tab', 'Tab', 'Shift+Tab', 'Shift+Tab', 'Shift+Tab']) {
@@ -240,4 +242,29 @@ test('on a phone the sticky bar of the list editor never covers the focused elem
     await page.goto(listUrl(LIST));
     await expect(page.locator('.elme-cart__bar')).toBeVisible();
     expect(await focusHiddenByBar(page, 60)).toBeNull();
+});
+
+test('FE-75: list editor Remove asks first, the row turns to dust and the list is saved without it', async ({ page }) => {
+    await page.goto(listUrl(LIST));
+    const line = (sku) => page.locator('.elme-cart__line', { hasText: sku });
+    const remove = line('E2E-NO-MOQ').getByRole('button', { name: 'Remove', exact: true });
+    const dialog = page.getByRole('alertdialog');
+
+    await remove.click();
+    await expect(dialog).toHaveAccessibleName(/^Remove .*E2E-NO-MOQ from this list\?$/);
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(remove).toBeFocused();
+
+    await remove.click();
+    // Confirm takes clicks once the dialog has finished opening (no delete on a double tap)
+    await page.waitForTimeout(250);
+    const saved = page.waitForResponse(SAVE_URL);
+    await dialog.getByRole('button', { name: 'Remove' }).click();
+    await expect(page.locator('.elme-dust-canvas')).toBeAttached();
+    await saved;
+    await expect(line('E2E-NO-MOQ')).toHaveCount(0);
+    await expect(page.locator('.elme-dust-canvas')).not.toBeAttached();
+    await expect(line('E2E-MOQ6').getByRole('button', { name: 'Remove', exact: true })).toBeFocused();
+    expect(rows(await getList(page, LIST))).toEqual([{ sku: 'E2E-MOQ6', qty: 12 }]);
 });

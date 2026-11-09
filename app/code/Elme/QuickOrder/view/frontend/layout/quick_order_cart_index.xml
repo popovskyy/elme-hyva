@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <!-- FE-75: Remove asks first, then the row turns to dust -->
+    <update handle="elme_remove_confirm"/>
     <body>
         <referenceContainer name="content">
             <!-- Per customer, with a form key: never in the full page cache -->

@@ -1,0 +1,776 @@
+<?php
+/**
+ * FE-75: a deleted row turns to dust (Telegram message delete). Loaded by the layout handle elme_remove_confirm
+ * only, never in default.xml.
+ *
+ *   window.elmeDust.dissolve(row) -> Promise   the row turns to dust, then its li.elme-dust collapses; resolves
+ *                                              after the collapse (the dust may still be in the air)
+ *   window.elmeDust.restore(row, trigger?) -> Promise
+ *                                              a failed delete: the li opens again and the row fades back in;
+ *                                              focus goes back to the trigger unless the user has moved it
+ *   window.elmeDust.focusNext(row, selector, fallback)
+ *                                              focus the same control in the next row (or the one before), else
+ *                                              the fallback; call it right after dissolve()
+ *
+ * Markup: li.elme-dust > div > row (elme/dust.css). The row is drawn into an offscreen canvas from its real pixels
+ * (backgrounds, borders, images, icons as vectors, text at its Range rects), sampled every 2 px into particles and
+ * played on one fixed canvas that exists only while dust is in the air. A sweep goes left to right and clips the row
+ * as the particles leave it, so the row and its dust never overlap. Reduced motion: a fade and the collapse, no
+ * particles.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<script>
+    (function () {
+        // the sweep crosses the row in SWEEP_MS; each grain lives LIFE_MIN..LIFE_MIN + LIFE_SPREAD after it
+        const SWEEP_MS = 350;
+        const LIFE_MIN = 500;
+        const LIFE_SPREAD = 300;
+        const FADE_MS = 150;
+        // one grain per STEP css px, wider when a big row would give more than MAX_GRAINS
+        const STEP = 2;
+        const MAX_GRAINS = 6000;
+        // device px per css px for the snapshot and the overlay
+        const MAX_SCALE = 2;
+        // how far a grain can travel: the part of the overlay a row's dust can reach
+        const REACH_UP = 200;
+        const REACH_RIGHT = 160;
+        const REACH_EDGE = 12;
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+        let canvas = null;
+        let context = null;
+        let image = null;
+        let pixels = null;
+        let drawn = null;
+        // the viewport when the canvas opened: the frame loop reads no layout (a read there forces a style flush)
+        let view = null;
+        let frame = 0;
+        const effects = [];
+        // where focusNext() put the focus, so restore() knows the user has not moved it since
+        let movedTo = null;
+
+        function rootToken(name, fallback) {
+            return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+        }
+
+        function wait(ms) {
+            return new Promise((resolve) => setTimeout(resolve, ms));
+        }
+
+        function nextFrame() {
+            return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+        }
+
+        function isClear(color) {
+            return !color || color === 'transparent' || /(,\s*0|\/\s*0)\)$/.test(color);
+        }
+
+        function overlaps(rect, clip) {
+            return !clip || (rect.right > clip.left && rect.left < clip.right
+                && rect.bottom > clip.top && rect.top < clip.bottom);
+        }
+
+        function intersect(clip, rect) {
+            if (!clip) {
+                return {left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom};
+            }
+            return {
+                left: Math.max(clip.left, rect.left),
+                top: Math.max(clip.top, rect.top),
+                right: Math.min(clip.right, rect.right),
+                bottom: Math.min(clip.bottom, rect.bottom)
+            };
+        }
+
+        /* ---------- snapshot: what the row looks like, as a list of paint steps ---------- */
+
+        function collect(root) {
+            const steps = [];
+
+            function fontOf(style) {
+                return [style.fontStyle, style.fontWeight, style.fontSize, style.fontFamily].join(' ');
+            }
+
+            function paintBox(node, style, clip, alpha) {
+                const box = node.getBoundingClientRect();
+                if (!isClear(style.backgroundColor)) {
+                    const rects = node.getClientRects();
+                    for (let i = 0; i < rects.length; i++) {
+                        steps.push({
+                            kind: 'rect', clip: clip, alpha: alpha, color: style.backgroundColor,
+                            x: rects[i].left, y: rects[i].top, w: rects[i].width, h: rects[i].height,
+                            radius: rects.length === 1 ? parseFloat(style.borderTopLeftRadius) || 0 : 0
+                        });
+                    }
+                }
+                [['Top', 0], ['Right', 1], ['Bottom', 2], ['Left', 3]].forEach(([side, index]) => {
+                    const width = parseFloat(style['border' + side + 'Width']) || 0;
+                    const color = style['border' + side + 'Color'];
+                    if (!width || style['border' + side + 'Style'] === 'none' || isClear(color)) {
+                        return;
+                    }
+                    steps.push({
+                        kind: 'rect', clip: clip, alpha: alpha, color: color, radius: 0,
+                        x: index === 1 ? box.right - width : box.left,
+                        y: index === 2 ? box.bottom - width : box.top,
+                        w: index % 2 ? width : box.width,
+                        h: index % 2 ? box.height : width
+                    });
+                });
+                return box;
+            }
+
+            function paintImage(node, style, box, clip, alpha) {
+                if (!node.complete || !node.naturalWidth) {
+                    return;
+                }
+                const nw = node.naturalWidth;
+                const nh = node.naturalHeight;
+                let dx = box.left;
+                let dy = box.top;
+                let dw = box.width;
+                let dh = box.height;
+                let sx = 0;
+                let sy = 0;
+                let sw = nw;
+                let sh = nh;
+                if (style.objectFit === 'contain' || style.objectFit === 'scale-down') {
+                    const k = Math.min(box.width / nw, box.height / nh);
+                    dw = nw * k;
+                    dh = nh * k;
+                    dx += (box.width - dw) / 2;
+                    dy += (box.height - dh) / 2;
+                } else if (style.objectFit === 'cover') {
+                    const k = Math.max(box.width / nw, box.height / nh);
+                    sw = box.width / k;
+                    sh = box.height / k;
+                    sx = (nw - sw) / 2;
+                    sy = (nh - sh) / 2;
+                }
+                steps.push({
+                    kind: 'image', clip: intersect(clip, box), alpha: alpha, image: node,
+                    sx: sx, sy: sy, sw: sw, sh: sh, x: dx, y: dy, w: dw, h: dh
+                });
+            }
+
+            /** Icons (Lucide: paths, lines, rects, circles) are drawn as vectors: no image decode, no taint. */
+            function paintSvg(node, style, box, clip, alpha) {
+                if (!box.width || !box.height || !window.Path2D) {
+                    return;
+                }
+                const viewBox = node.viewBox && node.viewBox.baseVal;
+                const hasViewBox = Boolean(viewBox && viewBox.width && viewBox.height);
+                const colorOf = (value) => (value === 'none' || isClear(value) ? null
+                    : (/currentcolor/i.test(value) ? style.color : value));
+                const shapes = [];
+                node.querySelectorAll('path, line, rect, circle, ellipse, polyline, polygon').forEach((shape) => {
+                    const path = shapePath(shape);
+                    const look = getComputedStyle(shape);
+                    if (!path || look.display === 'none') {
+                        return;
+                    }
+                    shapes.push({
+                        path: path,
+                        stroke: colorOf(look.stroke),
+                        fill: colorOf(look.fill),
+                        width: parseFloat(look.strokeWidth) || 1,
+                        cap: look.strokeLinecap,
+                        join: look.strokeLinejoin
+                    });
+                });
+                steps.push({
+                    kind: 'svg', clip: clip, alpha: alpha, shapes: shapes,
+                    x: box.left, y: box.top, w: box.width, h: box.height,
+                    vx: hasViewBox ? viewBox.x : 0,
+                    vy: hasViewBox ? viewBox.y : 0,
+                    vw: hasViewBox ? viewBox.width : box.width,
+                    vh: hasViewBox ? viewBox.height : box.height
+                });
+            }
+
+            function shapePath(shape) {
+                const n = (name) => parseFloat(shape.getAttribute(name)) || 0;
+                const path = new Path2D();
+                switch (shape.tagName) {
+                    case 'path':
+                        return new Path2D(shape.getAttribute('d') || '');
+                    case 'line':
+                        path.moveTo(n('x1'), n('y1'));
+                        path.lineTo(n('x2'), n('y2'));
+                        return path;
+                    case 'rect':
+                        if (path.roundRect && n('rx')) {
+                            path.roundRect(n('x'), n('y'), n('width'), n('height'), n('rx'));
+                        } else {
+                            path.rect(n('x'), n('y'), n('width'), n('height'));
+                        }
+                        return path;
+                    case 'circle':
+                        path.arc(n('cx'), n('cy'), n('r'), 0, Math.PI * 2);
+                        return path;
+                    case 'ellipse':
+                        path.ellipse(n('cx'), n('cy'), n('rx'), n('ry'), 0, 0, Math.PI * 2);
+                        return path;
+                    default: {
+                        const points = (shape.getAttribute('points') || '').trim().split(/[\s,]+/).map(parseFloat);
+                        for (let i = 0; i + 1 < points.length; i += 2) {
+                            path[i ? 'lineTo' : 'moveTo'](points[i], points[i + 1]);
+                        }
+                        if (shape.tagName === 'polygon') {
+                            path.closePath();
+                        }
+                        return path;
+                    }
+                }
+            }
+
+            function paintField(node, style, box, clip, alpha) {
+                const text = node.value;
+                if (!text || isClear(style.color)) {
+                    return;
+                }
+                const align = /^(center|right)$/.test(style.textAlign) ? style.textAlign : 'left';
+                const left = box.left + (parseFloat(style.paddingLeft) || 0);
+                const right = box.right - (parseFloat(style.paddingRight) || 0);
+                steps.push({
+                    kind: 'text', clip: intersect(clip, box), alpha: alpha, color: style.color, font: fontOf(style),
+                    size: parseFloat(style.fontSize) || 16, spacing: style.letterSpacing, text: text, align: align,
+                    x: align === 'center' ? (left + right) / 2 : (align === 'right' ? right : left),
+                    y: box.top, h: box.height
+                });
+            }
+
+            function paintText(node, style, clip, alpha) {
+                const data = node.data;
+                if (!data.trim() || isClear(style.color)) {
+                    return;
+                }
+                const upper = style.textTransform === 'uppercase';
+                const font = fontOf(style);
+                const size = parseFloat(style.fontSize) || 16;
+                const range = document.createRange();
+                const words = /\S+/g;
+                let match;
+                while ((match = words.exec(data))) {
+                    range.setStart(node, match.index);
+                    range.setEnd(node, match.index + match[0].length);
+                    const rect = range.getClientRects()[0];
+                    if (!rect || !rect.width || !overlaps(rect, clip)) {
+                        continue;
+                    }
+                    steps.push({
+                        kind: 'text', clip: clip, alpha: alpha, color: style.color, font: font, size: size,
+                        spacing: style.letterSpacing, align: 'left',
+                        text: upper ? match[0].toUpperCase() : match[0],
+                        x: rect.left, y: rect.top, h: rect.height
+                    });
+                }
+            }
+
+            function walk(node, clip, alpha, isRoot) {
+                const style = getComputedStyle(node);
+                if (style.display === 'none' || style.visibility === 'hidden') {
+                    return;
+                }
+                // visually hidden text (sr-only) and anything already clipped away
+                if (!isRoot && style.position === 'absolute'
+                    && (style.clipPath !== 'none' || (style.clip && style.clip !== 'auto'))) {
+                    return;
+                }
+                alpha *= parseFloat(style.opacity);
+                if (alpha < 0.02) {
+                    return;
+                }
+                let box = null;
+                if (style.display !== 'contents') {
+                    if (!node.getClientRects().length) {
+                        return;
+                    }
+                    box = paintBox(node, style, clip, alpha);
+                    if (!overlaps(box, clip) && style.overflow !== 'visible') {
+                        return;
+                    }
+                }
+                const tag = node.tagName;
+                if (tag === 'IMG') {
+                    paintImage(node, style, box, clip, alpha);
+                    return;
+                }
+                if (tag === 'svg') {
+                    paintSvg(node, style, box, clip, alpha);
+                    return;
+                }
+                if ((tag === 'INPUT' && !/^(checkbox|radio|hidden)$/.test(node.type)) || tag === 'TEXTAREA') {
+                    paintField(node, style, box, clip, alpha);
+                    return;
+                }
+                const inner = box && (style.overflowX !== 'visible' || style.overflowY !== 'visible')
+                    ? intersect(clip, box)
+                    : clip;
+                for (let child = node.firstChild; child; child = child.nextSibling) {
+                    if (child.nodeType === 1) {
+                        walk(child, inner, alpha, false);
+                    } else if (child.nodeType === 3) {
+                        paintText(child, style, inner, alpha);
+                    }
+                }
+            }
+
+            walk(root, null, 1, true);
+            return steps;
+        }
+
+        function paint(steps, rect, scale, skip) {
+            const width = Math.max(1, Math.ceil(rect.width * scale));
+            const height = Math.max(1, Math.ceil(rect.height * scale));
+            const shot = document.createElement('canvas');
+            shot.width = width;
+            shot.height = height;
+            const g = shot.getContext('2d', {willReadFrequently: true});
+            g.scale(scale, scale);
+            g.translate(-rect.left, -rect.top);
+            steps.forEach((step) => {
+                if (skip[step.kind]) {
+                    return;
+                }
+                g.save();
+                g.globalAlpha = step.alpha;
+                if (step.clip) {
+                    g.beginPath();
+                    const clip = step.clip;
+                    g.rect(clip.left, clip.top, clip.right - clip.left, clip.bottom - clip.top);
+                    g.clip();
+                }
+                if (step.kind === 'rect') {
+                    g.fillStyle = step.color;
+                    g.beginPath();
+                    if (step.radius && g.roundRect) {
+                        g.roundRect(step.x, step.y, step.w, step.h, Math.min(step.radius, step.w / 2, step.h / 2));
+                    } else {
+                        g.rect(step.x, step.y, step.w, step.h);
+                    }
+                    g.fill();
+                } else if (step.kind === 'image') {
+                    g.drawImage(step.image, step.sx, step.sy, step.sw, step.sh, step.x, step.y, step.w, step.h);
+                } else if (step.kind === 'svg') {
+                    g.translate(step.x, step.y);
+                    g.scale(step.w / step.vw, step.h / step.vh);
+                    g.translate(-step.vx, -step.vy);
+                    step.shapes.forEach((shape) => {
+                        if (shape.fill) {
+                            g.fillStyle = shape.fill;
+                            g.fill(shape.path);
+                        }
+                        if (shape.stroke) {
+                            g.strokeStyle = shape.stroke;
+                            g.lineWidth = shape.width;
+                            g.lineCap = shape.cap;
+                            g.lineJoin = shape.join;
+                            g.stroke(shape.path);
+                        }
+                    });
+                } else {
+                    g.font = step.font;
+                    g.fillStyle = step.color;
+                    g.textAlign = step.align;
+                    g.textBaseline = 'alphabetic';
+                    if ('letterSpacing' in g) {
+                        g.letterSpacing = step.spacing === 'normal' ? '0px' : step.spacing;
+                    }
+                    const metrics = g.measureText(step.text);
+                    const ascent = metrics.fontBoundingBoxAscent || step.size * 0.8;
+                    const descent = metrics.fontBoundingBoxDescent || step.size * 0.2;
+                    const top = step.y + (step.h - ascent - descent) / 2;
+                    g.fillText(step.text, step.x, top + ascent);
+                }
+                g.restore();
+            });
+            return g.getImageData(0, 0, width, height);
+        }
+
+        /**
+         * The row's real pixels; images that would taint the canvas are left out (then only boxes and text).
+         * Reading the row, painting it and sampling it run in separate frames, so the dialog closing next to it
+         * never drops a frame for all three at once.
+         */
+        async function snapshot(el, rect, scale) {
+            const steps = collect(el);
+            await nextFrame();
+            try {
+                return paint(steps, rect, scale, {});
+            } catch (error) {
+                return paint(steps, rect, scale, {image: true});
+            }
+        }
+
+        /* ---------- grains ---------- */
+
+        function opaqueCount(data, rect, scale, step) {
+            let count = 0;
+            for (let y = 0; y < rect.height; y += step) {
+                const row = Math.min(data.height - 1, Math.floor((y + step / 2) * scale)) * data.width;
+                for (let x = 0; x < rect.width; x += step) {
+                    const col = Math.min(data.width - 1, Math.floor((x + step / 2) * scale));
+                    if (data.data[(row + col) * 4 + 3] > 24) {
+                        count++;
+                    }
+                }
+            }
+            return count;
+        }
+
+        function grains(data, rect, scale, start) {
+            let step = STEP;
+            let count = opaqueCount(data, rect, scale, step);
+            while (count > MAX_GRAINS) {
+                step *= Math.max(1.05, Math.sqrt(count / MAX_GRAINS));
+                count = opaqueCount(data, rect, scale, step);
+            }
+            const g = {
+                count: count,
+                size: step,
+                x: new Float32Array(count),
+                y: new Float32Array(count),
+                born: new Float32Array(count),
+                life: new Float32Array(count),
+                vx: new Float32Array(count),
+                vy: new Float32Array(count),
+                ax: new Float32Array(count),
+                ay: new Float32Array(count),
+                phase: new Float32Array(count),
+                wobble: new Float32Array(count),
+                rgb: new Uint32Array(count),
+                alpha: new Uint8Array(count)
+            };
+            let i = 0;
+            const px = data.data;
+            for (let y = 0; y < rect.height; y += step) {
+                const row = Math.min(data.height - 1, Math.floor((y + step / 2) * scale)) * data.width;
+                for (let x = 0; x < rect.width; x += step) {
+                    const at = (row + Math.min(data.width - 1, Math.floor((x + step / 2) * scale))) * 4;
+                    if (px[at + 3] <= 24) {
+                        continue;
+                    }
+                    g.x[i] = rect.left + x;
+                    g.y[i] = rect.top + y;
+                    // a grain leaves when the sweep reaches it, a little later now and then
+                    g.born[i] = start + (x / rect.width) * SWEEP_MS + Math.random() * 24;
+                    g.life[i] = LIFE_MIN + Math.random() * LIFE_SPREAD;
+                    // css px per second (and per second squared): up and to the right, with a little spread
+                    g.vx[i] = 10 + Math.random() * 50 + (Math.random() - 0.5) * 30;
+                    g.vy[i] = -(20 + Math.random() * 70) + (Math.random() - 0.5) * 30;
+                    g.ax[i] = 60 + Math.random() * 140;
+                    g.ay[i] = -(90 + Math.random() * 180);
+                    g.phase[i] = Math.random() * Math.PI * 2;
+                    g.wobble[i] = 1 + Math.random() * 2.5;
+                    g.rgb[i] = px[at] | (px[at + 1] << 8) | (px[at + 2] << 16);
+                    g.alpha[i] = px[at + 3];
+                    i++;
+                }
+            }
+            return g;
+        }
+
+        /* ---------- the overlay: one canvas, one frame loop, only while dust is in the air ---------- */
+
+        function scaleNow() {
+            return Math.min(MAX_SCALE, window.devicePixelRatio || 1);
+        }
+
+        function openCanvas() {
+            if (canvas) {
+                return;
+            }
+            canvas = document.createElement('canvas');
+            canvas.className = 'elme-dust-canvas';
+            canvas.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(canvas);
+            // Size from the canvas's own box: window.innerWidth includes a classic scrollbar, the fixed box does not,
+            // and a mismatch squeezes every grain to the left of the pixel it came from.
+            const box = canvas.getBoundingClientRect();
+            view = {width: box.width, height: box.height, scale: scaleNow()};
+            canvas.width = Math.ceil(view.width * view.scale);
+            canvas.height = Math.ceil(view.height * view.scale);
+            context = canvas.getContext('2d');
+        }
+
+        function closeCanvas() {
+            if (canvas) {
+                canvas.remove();
+            }
+            canvas = null;
+            context = null;
+            image = null;
+            pixels = null;
+            drawn = null;
+        }
+
+        /** The part of the viewport some dust can be in this frame, in css px. */
+        function reach() {
+            let left = Infinity;
+            let top = Infinity;
+            let right = -Infinity;
+            let bottom = -Infinity;
+            effects.forEach((effect) => {
+                left = Math.min(left, effect.rect.left - REACH_EDGE);
+                top = Math.min(top, effect.rect.top - REACH_UP);
+                right = Math.max(right, effect.rect.right + REACH_RIGHT);
+                bottom = Math.max(bottom, effect.rect.bottom + REACH_EDGE);
+            });
+            left = Math.max(0, Math.floor(left));
+            top = Math.max(0, Math.floor(top));
+            right = Math.min(view.width, Math.ceil(right));
+            bottom = Math.min(view.height, Math.ceil(bottom));
+            return right > left && bottom > top ? {left: left, top: top, right: right, bottom: bottom} : null;
+        }
+
+        function draw(now) {
+            frame = 0;
+            const scale = view.scale;
+            const area = reach();
+            if (drawn) {
+                context.clearRect(drawn.x, drawn.y, drawn.w, drawn.h);
+                drawn = null;
+            }
+            let busy = false;
+            const w = area ? Math.ceil((area.right - area.left) * scale) : 0;
+            const h = area ? Math.ceil((area.bottom - area.top) * scale) : 0;
+            if (area && (!image || image.width !== w || image.height !== h)) {
+                image = context.createImageData(w, h);
+                pixels = new Uint32Array(image.data.buffer);
+            } else if (pixels) {
+                pixels.fill(0);
+            }
+
+            for (let e = effects.length - 1; e >= 0; e--) {
+                const effect = effects[e];
+                if (area && particles(effect, now, area, scale, w, h)) {
+                    busy = true;
+                } else {
+                    effects.splice(e, 1);
+                }
+            }
+
+            if (area && busy) {
+                const x = Math.round(area.left * scale);
+                const y = Math.round(area.top * scale);
+                context.putImageData(image, x, y);
+                drawn = {x: x, y: y, w: w, h: h};
+            }
+            if (effects.length) {
+                frame = requestAnimationFrame(draw);
+            } else {
+                closeCanvas();
+            }
+        }
+
+        function particles(effect, now, area, scale, w, h) {
+            const g = effect.grains;
+            let alive = false;
+            for (let i = 0; i < g.count; i++) {
+                const age = now - g.born[i];
+                if (age < 0) {
+                    alive = true;
+                    continue;
+                }
+                const life = g.life[i];
+                if (age >= life) {
+                    continue;
+                }
+                alive = true;
+                const p = age / life;
+                const t = age / 1000;
+                const swirl = g.phase[i] + t * 11;
+                const x = g.x[i] + g.vx[i] * t + 0.5 * g.ax[i] * t * t + Math.sin(swirl) * g.wobble[i] * p;
+                const y = g.y[i] + g.vy[i] * t + 0.5 * g.ay[i] * t * t + Math.cos(swirl * 0.8) * g.wobble[i] * p;
+                const fade = 1 - p;
+                const alpha = Math.round(g.alpha[i] * fade * fade);
+                if (alpha < 4) {
+                    continue;
+                }
+                const size = Math.max(1, Math.round(g.size * (1 - 0.55 * p) * scale));
+                const px = Math.round((x - area.left) * scale);
+                const py = Math.round((y - area.top) * scale);
+                if (px >= w || py >= h || px + size <= 0 || py + size <= 0) {
+                    continue;
+                }
+                const color = (g.rgb[i] | (alpha << 24)) >>> 0;
+                const x0 = Math.max(0, px);
+                const x1 = Math.min(w, px + size);
+                const y1 = Math.min(h, py + size);
+                for (let yy = Math.max(0, py); yy < y1; yy++) {
+                    const line = yy * w;
+                    for (let xx = x0; xx < x1; xx++) {
+                        pixels[line + xx] = color;
+                    }
+                }
+            }
+            return alive;
+        }
+
+        /* ---------- public ---------- */
+
+        /** The collapse transition of elme/dust.css. */
+        function collapseMs() {
+            const token = reduceMotion.matches ? '--transition-duration-fast' : '--transition-duration-base';
+            return parseFloat(rootToken(token, '240')) || 240;
+        }
+
+        function collapse(wrap) {
+            if (!wrap) {
+                return Promise.resolve();
+            }
+            wrap.classList.add('is-collapsed');
+            return wait(collapseMs() + 20);
+        }
+
+        function fade(el, from, to) {
+            if (!el.animate) {
+                el.style.opacity = String(to);
+                return Promise.resolve();
+            }
+            const animation = el.animate([{opacity: from}, {opacity: to}], {
+                duration: FADE_MS,
+                easing: rootToken('--ease-out-quart', 'ease-out'),
+                fill: 'forwards'
+            });
+            return animation.finished.catch(() => {}).then(() => {
+                el.style.opacity = to === 1 ? '' : String(to);
+                animation.cancel();
+            });
+        }
+
+        /**
+         * Hides the row from left to right (WAAPI, so no style write per frame); a few px of slack on the other
+         * sides keeps focus rings and shadows as they were.
+         */
+        function sweep(el, rect, start) {
+            const hidden = 'inset(0 0 0 100%)';
+            if (!el.animate) {
+                el.style.clipPath = hidden;
+                return wait(SWEEP_MS);
+            }
+            // its own layer: the moving clip does not repaint the row's content
+            el.style.willChange = 'transform';
+            const animation = el.animate([
+                {clipPath: 'inset(-8px -8px -8px 0px)'},
+                {clipPath: 'inset(-8px -8px -8px ' + rect.width + 'px)'}
+            ], {duration: SWEEP_MS, easing: 'linear', fill: 'forwards'});
+            animation.startTime = start;
+            return animation.finished.catch(() => {}).then(() => {
+                el.style.clipPath = hidden;
+                el.style.willChange = '';
+                animation.cancel();
+            });
+        }
+
+        async function dissolve(el) {
+            if (!el) {
+                return;
+            }
+            const wrap = el.closest('.elme-dust');
+            el.inert = true;
+            if (wrap) {
+                wrap.classList.add('is-dusting');
+            }
+            const rect = el.getBoundingClientRect();
+            const onScreen = rect.width && rect.height && rect.bottom > 0 && rect.top < window.innerHeight;
+            let g = null;
+            if (!reduceMotion.matches && onScreen) {
+                try {
+                    await nextFrame();
+                    const scale = scaleNow();
+                    const shot = await snapshot(el, rect, scale);
+                    await nextFrame();
+                    g = grains(shot, rect, scale, 0);
+                } catch (error) {
+                    g = null;
+                }
+            }
+            if (!g || !g.count) {
+                await fade(el, 1, 0);
+                await collapse(wrap);
+                return;
+            }
+            // grains and the clip run on the same clock: a grain leaves as the clip passes it
+            const start = document.timeline ? document.timeline.currentTime : performance.now();
+            for (let i = 0; i < g.count; i++) {
+                g.born[i] += start;
+            }
+            openCanvas();
+            effects.push({rect: rect, grains: g});
+            if (!frame) {
+                frame = requestAnimationFrame(draw);
+            }
+            await sweep(el, rect, start);
+            await collapse(wrap);
+        }
+
+        async function restore(el, trigger) {
+            if (!el) {
+                return;
+            }
+            const wrap = el.closest('.elme-dust');
+            el.style.opacity = '0';
+            el.style.clipPath = '';
+            if (wrap) {
+                wrap.classList.remove('is-collapsed');
+                await wait(collapseMs());
+                wrap.classList.remove('is-dusting');
+            }
+            await fade(el, 0, 1);
+            el.inert = false;
+            const active = document.activeElement;
+            if (trigger && trigger.isConnected && (!active || active === document.body || active === movedTo)) {
+                trigger.focus({preventScroll: true});
+            }
+            movedTo = null;
+        }
+
+        function usable(node) {
+            return node.getClientRects().length > 0 && !node.disabled && !node.closest('[inert]');
+        }
+
+        function focusNext(el, selector, fallback) {
+            const wrap = el && el.closest('.elme-dust');
+            const pick = (dir) => {
+                for (let node = wrap && wrap[dir]; node; node = node[dir]) {
+                    const row = node.classList;
+                    if (row && row.contains('elme-dust') && !row.contains('is-dusting')) {
+                        const found = Array.prototype.find.call(node.querySelectorAll(selector), usable);
+                        if (found) {
+                            return found;
+                        }
+                    }
+                }
+                return null;
+            };
+            const target = pick('nextElementSibling') || pick('previousElementSibling') || fallback;
+            if (!target) {
+                return;
+            }
+            if (target.tabIndex < 0 && !target.hasAttribute('tabindex')) {
+                target.setAttribute('tabindex', '-1');
+            }
+            target.focus({preventScroll: true});
+            movedTo = target;
+        }
+
+        window.elmeDust = {
+            dissolve: dissolve,
+            restore: restore,
+            focusNext: focusNext
+        };
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

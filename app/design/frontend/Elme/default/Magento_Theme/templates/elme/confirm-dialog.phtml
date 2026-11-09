@@ -1,0 +1,151 @@
+<?php
+/**
+ * FE-75: one confirm dialog for every destructive action (FE-03 modal look). Loaded by the layout handle
+ * elme_remove_confirm.
+ *
+ *   window.elmeConfirm({title, text?, confirmLabel?, cancelLabel?, trigger?}) -> Promise<boolean>
+ *
+ * Focus goes to Cancel and stays in the dialog; Esc, the backdrop and Cancel resolve false and give focus back to
+ * the trigger. Confirm resolves true and leaves focus to the caller (the trigger is usually on its way out).
+ * On a phone the dialog can open under the finger: Confirm takes no click until the dialog has finished opening, so
+ * a double tap on a trash icon never deletes.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<div x-data="initElmeConfirm" x-bind="eventListeners">
+    <div x-show="open"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         x-transition:leave="duration-150"
+         x-cloak>
+        <div class="absolute inset-0 bg-ink/40"
+             x-show="open"
+             x-transition:enter="transition-opacity ease-out-quart duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:leave="transition-opacity ease-out-quart duration-150"
+             x-transition:leave-end="opacity-0"
+             @click="cancel"></div>
+        <div class="relative w-full max-w-md bg-surface border border-divider shadow-lg p-6"
+             role="alertdialog"
+             aria-modal="true"
+             aria-labelledby="elme-confirm-title"
+             aria-describedby="elme-confirm-text"
+             x-ref="panel"
+             x-show="open"
+             x-transition:enter="transition ease-out-quart duration-200"
+             x-transition:enter-start="opacity-0 scale-97 motion-reduce:scale-100"
+             x-transition:leave="transition ease-out-quart duration-150"
+             x-transition:leave-end="opacity-0 scale-97 motion-reduce:scale-100">
+            <h2 id="elme-confirm-title" class="font-heading text-h4 text-ink" x-text="title"></h2>
+            <p id="elme-confirm-text" class="text-copy text-ink-muted mt-3" x-show="hasText" x-text="text"></p>
+            <div class="flex flex-wrap gap-3 justify-end mt-6">
+                <button type="button" class="btn btn-secondary" x-ref="cancel" @click="cancel" x-text="cancelLabel">
+                </button>
+                <button type="button" class="btn btn-danger" @click="accept" x-text="confirmLabel"></button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function initElmeConfirm() {
+        const defaults = {
+            confirmLabel: '<?= $escaper->escapeJs(__('Remove')) ?>',
+            cancelLabel: '<?= $escaper->escapeJs(__('Cancel')) ?>'
+        };
+        // the enter transition (duration-200): Confirm is not armed before it ends
+        const ARM_MS = 200;
+        // kept out of the Alpine state: a function and an element behind the proxy
+        let resolver = null;
+        let trigger = null;
+        let openedAt = 0;
+
+        return {
+            open: false,
+            title: '',
+            text: '',
+            confirmLabel: defaults.confirmLabel,
+            cancelLabel: defaults.cancelLabel,
+
+            hasText() {
+                return Boolean(this.text);
+            },
+
+            show(detail) {
+                if (resolver) {
+                    resolver(false);
+                }
+                resolver = detail.resolve || null;
+                trigger = detail.trigger || document.activeElement;
+                this.title = detail.title || '';
+                this.text = detail.text || '';
+                this.confirmLabel = detail.confirmLabel || defaults.confirmLabel;
+                this.cancelLabel = detail.cancelLabel || defaults.cancelLabel;
+                this.open = true;
+                openedAt = performance.now();
+                this.$nextTick(() => {
+                    hyva.trapFocus(this.$refs.panel);
+                    this.$refs.cancel.focus();
+                });
+            },
+
+            finish(result) {
+                if (!this.open) {
+                    return;
+                }
+                hyva.releaseFocus(this.$refs.panel);
+                this.open = false;
+                const done = resolver;
+                resolver = null;
+                if (!result && trigger && trigger.isConnected) {
+                    trigger.focus();
+                }
+                trigger = null;
+                if (done) {
+                    done(result);
+                }
+            },
+
+            cancel() {
+                this.finish(false);
+            },
+
+            accept() {
+                if (performance.now() - openedAt < ARM_MS) {
+                    return;
+                }
+                this.finish(true);
+            },
+
+            eventListeners: {
+                ['@elme-confirm.window'](event) {
+                    this.show(event.detail || {});
+                },
+                ['@keydown.escape.window']() {
+                    if (this.open) {
+                        this.cancel();
+                    }
+                }
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeConfirm', initElmeConfirm), {once: true});
+
+    window.elmeConfirm = function (options) {
+        return new Promise((resolve) => {
+            window.dispatchEvent(new CustomEvent('elme-confirm', {
+                detail: Object.assign({}, options, {resolve: resolve})
+            }));
+        });
+    };
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

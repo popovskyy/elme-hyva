@@ -2,6 +2,7 @@
 /**
  * FE-73: My Shopping List - named Quick Order lists (Bart wishlist remake).
  * FE-76: cards on the phone, ruled rows with real links on desktop, empty state with a CTA (elme/shopping-lists.css).
+ * FE-75: Delete asks in the shared confirm dialog, then the row turns to dust (elme/dust.phtml).
  *
  * @var \Magento\Framework\View\Element\Template $block
  * @var \Magento\Framework\Escaper $escaper
@@ -26,7 +27,7 @@ $quickOrderUrl = $block->getUrl('quick_order');
      x-data="initElmeShoppingLists"
      x-bind="eventListeners">
     <div class="elme-sl__top">
-        <h1 class="elme-sl__title"><?= $escaper->escapeHtml(__('My Shopping List')) ?></h1>
+        <h1 class="elme-sl__title" x-ref="title"><?= $escaper->escapeHtml(__('My Shopping List')) ?></h1>
         <a href="<?= $escaper->escapeUrl($quickOrderUrl) ?>"
            class="btn btn-secondary elme-sl__new"
            x-show="hasLists"
@@ -66,86 +67,51 @@ $quickOrderUrl = $block->getUrl('quick_order');
         </div>
         <ul class="elme-sl__lists">
             <template x-for="list in lists" :key="list.id">
-                <li class="elme-sl__row" :class="rowClass" data-list-row>
-                    <div class="elme-sl__info">
-                        <a class="elme-sl__name" :href="list.edit_url" x-text="list.name"></a>
-                        <span class="elme-sl__count" x-text="list.products_label"></span>
-                    </div>
-                    <div class="elme-sl__thumbs" aria-hidden="true">
-                        <template x-for="item in list.preview" :key="list.id + '-' + item.sku">
-                            <span class="elme-sl__thumb" :title="item.name">
-                                <img x-show="item.thumbnail_url"
-                                     :src="item.thumbnail_url"
-                                     alt=""
-                                     width="56"
-                                     height="56"
-                                     loading="lazy">
-                                <span x-show="hasNoThumbnail">
-                                    <?= $lucideIcons->imageHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
-                                </span>
-                            </span>
-                        </template>
-                        <span class="elme-sl__thumb elme-sl__thumb--more" x-show="list.more" x-text="list.more_label"></span>
-                    </div>
-                    <div class="elme-sl__actions">
-                        <a class="btn btn-primary lg:btn-secondary elme-sl__open"
-                           :href="list.edit_url"
-                           :aria-label="list.open_label">
-                            <?= $escaper->escapeHtml(__('Open list')) ?>
-                        </a>
-                        <button type="button"
-                                class="elme-ib elme-ib--line elme-ib--danger"
-                                :data-list-id="list.id"
-                                :data-list-name="list.name"
-                                :aria-label="list.delete_label"
-                                @click="confirmDelete">
-                            <?= $lucideIcons->trash2Html('', 20, 20, ['aria-hidden' => 'true']) ?>
-                        </button>
+                <li class="elme-dust">
+                    <div>
+                        <div class="elme-sl__row" data-list-row>
+                            <div class="elme-sl__info">
+                                <a class="elme-sl__name" :href="list.edit_url" x-text="list.name"></a>
+                                <span class="elme-sl__count" x-text="list.products_label"></span>
+                            </div>
+                            <div class="elme-sl__thumbs" aria-hidden="true">
+                                <template x-for="item in list.preview" :key="list.id + '-' + item.sku">
+                                    <span class="elme-sl__thumb" :title="item.name">
+                                        <img x-show="item.thumbnail_url"
+                                             :src="item.thumbnail_url"
+                                             alt=""
+                                             width="56"
+                                             height="56"
+                                             loading="lazy">
+                                        <span x-show="hasNoThumbnail">
+                                            <?= $lucideIcons->imageHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                                        </span>
+                                    </span>
+                                </template>
+                                <span class="elme-sl__thumb elme-sl__thumb--more" x-show="list.more" x-text="list.more_label"></span>
+                            </div>
+                            <div class="elme-sl__actions">
+                                <a class="btn btn-primary lg:btn-secondary elme-sl__open"
+                                   :href="list.edit_url"
+                                   :aria-label="list.open_label">
+                                    <?= $escaper->escapeHtml(__('Open list')) ?>
+                                </a>
+                                <button type="button"
+                                        class="elme-ib elme-ib--line elme-ib--danger"
+                                        :data-list-id="list.id"
+                                        :data-list-name="list.name"
+                                        :aria-label="list.delete_label"
+                                        @click="confirmDelete">
+                                    <?= $lucideIcons->trash2Html('', 20, 20, ['aria-hidden' => 'true']) ?>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </li>
             </template>
         </ul>
     </div>
-
-    <div x-show="showDeleteModal"
-         class="fixed inset-0 z-50 flex items-center justify-center p-4"
-         role="dialog"
-         aria-modal="true"
-         aria-labelledby="elme-sl-delete-title"
-         x-transition:leave="duration-150"
-         x-cloak>
-        <div class="absolute inset-0 bg-ink/40"
-             x-show="showDeleteModal"
-             x-transition:enter="transition-opacity ease-out-quart duration-200"
-             x-transition:enter-start="opacity-0"
-             x-transition:leave="transition-opacity ease-out-quart duration-150"
-             x-transition:leave-end="opacity-0"
-             @click="closeDeleteModal"></div>
-        <div class="relative w-full max-w-md bg-surface border border-divider shadow-lg p-6"
-             x-ref="deleteDialog"
-             x-show="showDeleteModal"
-             x-transition:enter="transition ease-out-quart duration-200"
-             x-transition:enter-start="opacity-0 scale-97 motion-reduce:scale-100"
-             x-transition:leave="transition ease-out-quart duration-150"
-             x-transition:leave-end="opacity-0 scale-97 motion-reduce:scale-100">
-            <h2 id="elme-sl-delete-title" class="font-heading text-h4 text-ink mb-3">
-                <?= $escaper->escapeHtml(__('Delete list?')) ?>
-            </h2>
-            <p class="text-copy text-ink-muted mb-6">
-                <?= $escaper->escapeHtml(__('This cannot be undone.')) ?>
-                <span class="block mt-1 font-medium text-ink" x-text="deleteName"></span>
-            </p>
-            <div class="flex flex-wrap gap-3 justify-end">
-                <button type="button" class="btn btn-secondary" x-ref="cancelDelete" @click="closeDeleteModal">
-                    <?= $escaper->escapeHtml(__('Cancel')) ?>
-                </button>
-                <button type="button" class="btn btn-primary" @click="deleteList"
-                        :disabled="isDeleting">
-                    <?= $escaper->escapeHtml(__('Delete')) ?>
-                </button>
-            </div>
-        </div>
-    </div>
+    <p class="sr-only" role="status" x-text="announcement"></p>
 </div>
 
 <script>
@@ -158,20 +124,13 @@ $quickOrderUrl = $block->getUrl('quick_order');
         const labelOpen = '<?= $escaper->escapeJs(__('Open list %1')) ?>';
         const labelDelete = '<?= $escaper->escapeJs(__('Delete %1')) ?>';
         const deleteFailed = '<?= $escaper->escapeJs(__('Could not delete the list.')) ?>';
-        // the row leave animation (elme/shopping-lists.css), skipped with reduced motion
-        const LEAVE_MS = 240;
-
-        // the Delete button that opened the dialog: focus goes back to it on Cancel
-        let trigger = null;
 
         return {
             lists: [],
             isLoading: true,
-            showDeleteModal: false,
-            isDeleting: false,
-            deleteId: null,
-            deleteName: '',
-            leavingId: null,
+            // ids of lists turning to dust
+            deleting: {},
+            announcement: '',
 
             init() {
                 this.fetchLists(false);
@@ -183,10 +142,6 @@ $quickOrderUrl = $block->getUrl('quick_order');
 
             hasLists() {
                 return !this.isLoading && this.lists.length > 0;
-            },
-
-            rowClass() {
-                return String(this.list.id) === String(this.leavingId) ? 'is-leaving' : '';
             },
 
             hasNoThumbnail() {
@@ -239,45 +194,27 @@ $quickOrderUrl = $block->getUrl('quick_order');
                 }
             },
 
-            confirmDelete() {
-                const btn = this.$event.currentTarget;
-                trigger = btn;
-                this.deleteId = parseInt(btn.getAttribute('data-list-id'), 10) || null;
-                this.deleteName = btn.getAttribute('data-list-name') || '';
-                this.showDeleteModal = !!this.deleteId;
-                if (this.showDeleteModal) {
-                    // Tab and Shift+Tab stay between Cancel and Delete while the dialog is open
-                    this.$nextTick(() => {
-                        hyva.trapFocus(this.$refs.deleteDialog);
-                        this.$refs.cancelDelete.focus();
-                    });
-                }
-            },
-
-            closeDeleteModal() {
-                if (this.isDeleting) {
+            /**
+             * Asks first. The delete goes to the server at once while the row turns to dust; the list leaves the
+             * page after its gap has closed. A failed delete brings the row back with a toast.
+             */
+            async confirmDelete() {
+                const trigger = this.$event.currentTarget;
+                const id = parseInt(trigger.getAttribute('data-list-id'), 10) || null;
+                const name = trigger.getAttribute('data-list-name') || '';
+                if (!id || this.deleting[id]) {
                     return;
                 }
-                hyva.releaseFocus(this.$refs.deleteDialog);
-                this.showDeleteModal = false;
-                this.deleteId = null;
-                this.deleteName = '';
-                if (trigger) {
-                    trigger.focus();
-                    trigger = null;
-                }
-            },
-
-            async deleteList() {
-                if (!this.deleteId || this.isDeleting) {
+                const confirmed = await window.elmeConfirm({
+                    title: hyva.str('<?= $escaper->escapeJs(__('Delete %1?')) ?>', name),
+                    text: '<?= $escaper->escapeJs(__('This cannot be undone.')) ?>',
+                    confirmLabel: '<?= $escaper->escapeJs(__('Delete')) ?>',
+                    trigger: trigger
+                });
+                if (!confirmed || this.deleting[id]) {
                     return;
                 }
-                const id = this.deleteId;
-                this.isDeleting = true;
-                hyva.releaseFocus(this.$refs.deleteDialog);
-                this.showDeleteModal = false;
-                trigger = null;
-                this.leavingId = id;
+                this.deleting[id] = true;
                 const request = fetch(deleteUrl, {
                     method: 'POST',
                     cache: 'no-store',
@@ -286,21 +223,22 @@ $quickOrderUrl = $block->getUrl('quick_order');
                         'X-Requested-With': 'XMLHttpRequest'
                     },
                     body: JSON.stringify({form_key: hyva.getFormKey(), id: id})
-                });
-                // handled below, after the row has left
-                request.catch(() => {});
-                if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                    await new Promise((resolve) => setTimeout(resolve, LEAVE_MS));
-                }
-                this.lists = this.lists.filter((list) => String(list.id) !== String(id));
-                this.leavingId = null;
-
-                try {
-                    const response = await request;
-                    const data = await response.json();
+                }).then((response) => response.json()).then((data) => {
                     if (!data.success) {
                         throw new Error(data.message || deleteFailed);
                     }
+                });
+                // handled below, after the row has turned to dust
+                request.catch(() => {});
+                const row = trigger.closest('.elme-sl__row');
+                const gone = window.elmeDust.dissolve(row);
+                window.elmeDust.focusNext(row, '.elme-ib--danger', this.$refs.title);
+
+                await gone;
+                try {
+                    await request;
+                    this.lists = this.lists.filter((list) => String(list.id) !== String(id));
+                    this.announcement = hyva.str('<?= $escaper->escapeJs(__('%1 deleted.')) ?>', name);
                     // the row is already gone here: our own listener skips this one
                     window.dispatchEvent(new CustomEvent('elme:saved-lists-changed', {
                         detail: {source: 'shopping-lists'}
@@ -308,13 +246,11 @@ $quickOrderUrl = $block->getUrl('quick_order');
                     document.body.dispatchEvent(new CustomEvent('reload-customer-section-data'));
                 } catch (e) {
                     window.dispatchEvent(new CustomEvent('elme-toast', {
-                        detail: {type: 'error', text: e.message || deleteFailed}
+                        detail: {type: 'error', text: (e && e.message) || deleteFailed}
                     }));
-                    await this.fetchLists(true);
+                    await window.elmeDust.restore(row, trigger);
                 } finally {
-                    this.isDeleting = false;
-                    this.deleteId = null;
-                    this.deleteName = '';
+                    delete this.deleting[id];
                 }
             },
 
@@ -324,11 +260,6 @@ $quickOrderUrl = $block->getUrl('quick_order');
                         return;
                     }
                     this.fetchLists(true);
-                },
-                ['@keydown.escape.window']() {
-                    if (this.showDeleteModal) {
-                        this.closeDeleteModal();
-                    }
                 }
             }
         };
