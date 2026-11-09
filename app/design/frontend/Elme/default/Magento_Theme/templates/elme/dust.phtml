@@ -494,10 +494,13 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             canvas = document.createElement('canvas');
             canvas.className = 'elme-dust-canvas';
             canvas.setAttribute('aria-hidden', 'true');
-            view = {width: window.innerWidth, height: window.innerHeight, scale: scaleNow()};
+            document.body.appendChild(canvas);
+            // Size from the canvas's own box: window.innerWidth includes a classic scrollbar, the fixed box does not,
+            // and a mismatch squeezes every grain to the left of the pixel it came from.
+            const box = canvas.getBoundingClientRect();
+            view = {width: box.width, height: box.height, scale: scaleNow()};
             canvas.width = Math.ceil(view.width * view.scale);
             canvas.height = Math.ceil(view.height * view.scale);
-            document.body.appendChild(canvas);
             context = canvas.getContext('2d');
         }
 
