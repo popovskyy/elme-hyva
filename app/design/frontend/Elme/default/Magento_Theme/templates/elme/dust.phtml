@@ -32,9 +32,9 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
 <script>
     (function () {
         // the sweep crosses the row in SWEEP_MS; each grain lives LIFE_MIN..LIFE_MIN + LIFE_SPREAD after it
-        const SWEEP_MS = 350;
-        const LIFE_MIN = 500;
-        const LIFE_SPREAD = 300;
+        const SWEEP_MS = 420;
+        const LIFE_MIN = 600;
+        const LIFE_SPREAD = 360;
         const FADE_MS = 150;
         // one grain per STEP css px, wider when a big row would give more than MAX_GRAINS
         const STEP = 2;
@@ -42,9 +42,9 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
         // device px per css px for the snapshot and the overlay
         const MAX_SCALE = 2;
         // how far a grain can travel: the part of the overlay a row's dust can reach
-        const REACH_UP = 200;
-        const REACH_RIGHT = 160;
-        const REACH_EDGE = 12;
+        const REACH_UP = 240;
+        const REACH_RIGHT = 200;
+        const REACH_EDGE = 24;
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
         let canvas = null;
@@ -466,13 +466,14 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                     // a grain leaves when the sweep reaches it, a little later now and then
                     g.born[i] = start + (x / rect.width) * SWEEP_MS + Math.random() * 24;
                     g.life[i] = LIFE_MIN + Math.random() * LIFE_SPREAD;
-                    // css px per second (and per second squared): up and to the right, with a little spread
-                    g.vx[i] = 10 + Math.random() * 50 + (Math.random() - 0.5) * 30;
-                    g.vy[i] = -(20 + Math.random() * 70) + (Math.random() - 0.5) * 30;
-                    g.ax[i] = 60 + Math.random() * 140;
-                    g.ay[i] = -(90 + Math.random() * 180);
+                    // css px per second (and per second squared): up and to the right, spread wide so the grains
+                    // fly apart instead of rising as one sheet
+                    g.vx[i] = 8 + Math.random() * 44 + (Math.random() - 0.5) * 80;
+                    g.vy[i] = -(16 + Math.random() * 60) + (Math.random() - 0.5) * 80;
+                    g.ax[i] = 40 + Math.random() * 110;
+                    g.ay[i] = -(60 + Math.random() * 140);
                     g.phase[i] = Math.random() * Math.PI * 2;
-                    g.wobble[i] = 1 + Math.random() * 2.5;
+                    g.wobble[i] = 1.5 + Math.random() * 4;
                     g.rgb[i] = px[at] | (px[at + 1] << 8) | (px[at + 2] << 16);
                     g.alpha[i] = px[at + 3];
                     i++;
@@ -622,8 +623,8 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
 
         /** The collapse transition of elme/dust.css. */
         function collapseMs() {
-            const token = reduceMotion.matches ? '--transition-duration-fast' : '--transition-duration-base';
-            return parseFloat(rootToken(token, '240')) || 240;
+            const token = reduceMotion.matches ? '--transition-duration-fast' : '--transition-duration-slow';
+            return parseFloat(rootToken(token, '300')) || 300;
         }
 
         function collapse(wrap) {

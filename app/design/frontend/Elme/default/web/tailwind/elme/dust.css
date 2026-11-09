@@ -8,7 +8,7 @@
     .elme-dust {
         display: grid;
         grid-template-rows: 1fr;
-        transition: grid-template-rows var(--transition-duration-base) var(--ease-out-quart);
+        transition: grid-template-rows var(--transition-duration-slow) var(--ease-out-quart);
 
         & > * {
             min-height: 0;
