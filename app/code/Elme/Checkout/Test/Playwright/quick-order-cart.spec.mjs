@@ -245,3 +245,99 @@ test('on a phone the sticky bar of the cart never covers the focused element', a
     await expect(page.locator('.elme-cart__bar')).toBeVisible();
     expect(await focusHiddenByBar(page, 60)).toBeNull();
 });
+
+// FE-75: Remove asks in the shared confirm dialog, then the row turns to dust (Magento_Theme::elme/dust.phtml)
+const cartLine = (page, sku) => page.locator('.elme-cart__line', { hasText: sku });
+const removeText = (page, sku) => cartLine(page, sku).getByRole('button', { name: 'Remove', exact: true });
+
+async function confirmRemove(page) {
+    // Confirm takes clicks once the dialog has finished opening (no delete on a double tap)
+    await page.waitForTimeout(250);
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Remove' }).click();
+}
+
+test('FE-75: Remove asks first; Cancel and Esc keep the row, Remove turns it to dust, then the total changes', async ({ page }) => {
+    await saveCart(page, [{ sku: 'E2E-NO-MOQ', qty: 1 }, { sku: 'E2E-MOQ6', qty: 6 }]);
+    await page.goto('/quick-order/cart');
+    const remove = removeText(page, 'E2E-NO-MOQ');
+    const dialog = page.getByRole('alertdialog');
+    const total = page.locator('.elme-cart__summary .elme-cart__money-total dd');
+    await expect(total).not.toHaveText('');
+    const before = await total.textContent();
+
+    await remove.click();
+    await expect(dialog).toHaveAccessibleName(/^Remove .*E2E-NO-MOQ from your cart\?$/);
+    await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeFocused();
+    await expect(dialog.locator('h1')).toHaveCount(0);
+    await dialog.getByRole('button', { name: 'Cancel' }).click();
+    await expect(dialog).toBeHidden();
+    await expect(remove).toBeFocused();
+
+    await remove.click();
+    await expect(dialog).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(remove).toBeFocused();
+    await expect(page.locator('.elme-cart__line')).toHaveCount(2);
+    await expect(page.locator('.elme-dust-canvas')).toHaveCount(0);
+
+    await remove.click();
+    await confirmRemove(page);
+    await expect(page.locator('.elme-dust-canvas')).toBeAttached();
+    await expect(page.locator('.elme-cart__line')).toHaveCount(1);
+    await expect(total).not.toHaveText(before);
+    await expect(page.locator('.elme-dust-canvas')).not.toBeAttached();
+    await expect(removeText(page, 'E2E-MOQ6')).toBeFocused();
+    await expect(page.getByRole('status').filter({ hasText: 'removed from your cart' })).toHaveCount(1);
+    expect(rows(await getCart(page))).toEqual([{ sku: 'E2E-MOQ6', qty: 6 }]);
+});
+
+test('FE-75: a failed remove brings the row back with the error', async ({ page }) => {
+    await saveCart(page, [{ sku: 'E2E-NO-MOQ', qty: 1 }, { sku: 'E2E-MOQ6', qty: 6 }]);
+    await page.goto('/quick-order/cart');
+    await expect(page.locator('.elme-cart__line')).toHaveCount(2);
+    await page.route(/\/quick-order\/cart\/save/, (route) => route.fulfill({
+        json: { success: false, message: 'E2E: the cart could not be saved.' },
+    }));
+
+    const remove = removeText(page, 'E2E-NO-MOQ');
+    await remove.click();
+    await confirmRemove(page);
+    await expect(page.locator('.elme-toast-stack').getByText('E2E: the cart could not be saved.')).toBeVisible();
+    await expect(page.locator('.elme-dust-canvas')).not.toBeAttached();
+    await expect(cartLine(page, 'E2E-NO-MOQ')).toHaveCSS('opacity', '1');
+    await expect(cartLine(page, 'E2E-NO-MOQ')).toHaveCSS('clip-path', 'none');
+    await expect(page.locator('.elme-dust.is-collapsed')).toHaveCount(0);
+    await expect(remove).toBeFocused();
+
+    await page.unroute(/\/quick-order\/cart\/save/);
+    expect(rows(await getCart(page))).toEqual([{ sku: 'E2E-NO-MOQ', qty: 1 }, { sku: 'E2E-MOQ6', qty: 6 }]);
+});
+
+test('FE-75: with reduced motion Remove fades the row out without dust', async ({ page }) => {
+    await saveCart(page, [{ sku: 'E2E-NO-MOQ', qty: 1 }, { sku: 'E2E-MOQ6', qty: 6 }]);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/quick-order/cart');
+    await expect(page.locator('.elme-cart__line')).toHaveCount(2);
+    await page.evaluate(() => {
+        window.e2eDust = false;
+        new MutationObserver(() => {
+            window.e2eDust = window.e2eDust || Boolean(document.querySelector('.elme-dust-canvas'));
+        }).observe(document.body, { childList: true });
+    });
+
+    await removeText(page, 'E2E-NO-MOQ').click();
+    await confirmRemove(page);
+    await expect(page.locator('.elme-cart__line')).toHaveCount(1);
+    expect(await page.evaluate(() => window.e2eDust)).toBe(false);
+});
+
+test('FE-75: the confirm dialog and the dust load only where something can be removed', async ({ page }) => {
+    for (const path of ['/quick-order/cart', '/quick-order/template']) {
+        await page.goto(path);
+        expect(await page.evaluate(() => typeof window.elmeDust + typeof window.elmeConfirm), path)
+            .toBe('objectfunction');
+    }
+    await page.goto('/');
+    expect(await page.content()).not.toContain('elmeDust');
+});
