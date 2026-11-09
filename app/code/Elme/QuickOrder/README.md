@@ -19,7 +19,7 @@ and qty are stored: name, image, price, stock and MOQ are read live, so catalogu
 | `Model\CartEditor` | Every change: `add()` (add to cart) and `save()` (replace or merge). New or changed qty is checked; a refused row keeps its old qty |
 | `Model\CartData` | The cart as JSON for the browser, with subtotal, GST and total from the server (ex GST prices) |
 | `Model\QuoteBuilder` | Rebuilds the quote from `cart_list` |
-| `CustomerData\QuickOrder` | Section `quick_order`: `summary_count` (sum of qty, the header badge) and `items_count` |
+| `CustomerData\QuickOrder` | Section `quick_order`: `summary_count` (sum of qty, the header badge), `items_count`, `lists_item_count` and `lists` (`[{id, name, item_count, skus}]`, for the hearts) |
 
 ## Flows
 
@@ -59,19 +59,20 @@ shopping lists.
 | Piece | Does |
 | --- | --- |
 | `Model\SavedLists` | List / create / rename / delete / merge named lists; preview thumbnails for My Shopping List |
-| `GET /quick-order/list/getall` | `{success, lists, saved_skus, total_item_count}` |
-| `POST /quick-order/list/save` | JSON `{form_key, name, mode, items}` or legacy `list[name]` form body. `mode`: `merge` (default), `replace` (whole list), `add` (existing list, SKUs checked: "SKU not found."), `create` (empty list, a taken name is refused) |
+| `GET /quick-order/list/getall` | `{success, lists, saved_skus, total_item_count}`, each list with `skus` and `preview` |
+| `POST /quick-order/list/save` | JSON `{form_key, name, mode, items}` or legacy `list[name]` form body. `mode`: `merge` (default), `replace` (whole list), `add` (existing list, SKUs checked: "SKU not found."), `create` (empty list, a taken name is refused), `remove` (take the SKUs off an existing list). Answers with the getall payload |
 | `POST /quick-order/list/rename` | JSON `{form_key, name, new_name}`, same duplicate rule as `create` |
 | `POST /quick-order/list/delete` | JSON `{form_key, id}` |
 
 List names are unique per customer with case ignored (unique key on `customer_id, name`); `create` and `rename`
 never touch another list.
 | `/quick-order/template` | My Shopping List page (account + header) |
-| Add to list modal | `elme:open-add-to-list-modal` or `[data-elme-qo-add-to-list][data-sku]` |
+| `templates/js/lists-store.phtml` | `window.elmeLists` (FE-78): the lists from section `quick_order`, shared by the hearts, the picker and the header badge; paints every `[data-elme-heart]` |
+| List picker (`templates/add-to-list/modal.phtml`) | `elme:open-add-to-list-modal` or a click on `[data-elme-qo-add-to-list][data-sku]`. One step: a row saves, a ticked row removes, New list at the bottom |
 | `/wishlist/*` | Redirects to `/quick-order/template` |
 
-Section `quick_order` also exposes `lists_item_count` for the header badge. Hearts on PLP/PDP and opening a
-list into the Quick Order page are FE-41 / FE-40 / FE-44.
+Section `quick_order` also exposes `lists_item_count` and `lists`, so a page knows the customer's lists without a
+request. Opening a list into the Quick Order page is FE-40 / FE-44.
 
 ## Not here yet
 

@@ -48,6 +48,11 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
             qoCount: 0,
             qoBumped: false,
             listsCount: 0,
+            listsPrev: 0,
+            listsRolling: false,
+            listsSquashed: false,
+            listsPending: null,
+            listsTimer: null,
             isCartOpen: false,
             pageHeader: null,
             promo: null,
@@ -62,6 +67,9 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
             isMac: /Mac|iPhone|iPad|iPod/.test(navigator.userAgentData?.platform || navigator.platform || ''),
 
             init() {
+                if (window.elmeLists && window.elmeLists.isKnown()) {
+                    this.listsCount = window.elmeLists.count();
+                }
                 this.pageHeader = this.$root.closest('.page-header');
                 this.promo = this.pageHeader ? this.pageHeader.querySelector('.header-promo') : null;
                 this.measure();
@@ -201,8 +209,66 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
                 const data = this.$event.detail.data || {};
                 if (data.quick_order) {
                     this.applyQoCount(data.quick_order.summary_count);
-                    this.listsCount = parseInt(data.quick_order.lists_item_count, 10) || 0;
                 }
+            },
+
+            // FE-78: the lists badge follows window.elmeLists (`elme-lists`). When a heart flies here the count
+            // waits for it (`elme-lists-landed`), then the icon squashes and the number rolls.
+            setListsCount() {
+                const detail = this.$event.detail || {};
+                const count = parseInt(detail.count, 10) || 0;
+                if (detail.landing || this.listsTimer) {
+                    this.listsPending = count;
+                    if (!this.listsTimer) {
+                        // the heart never lands (tab in the background): count anyway
+                        this.listsTimer = setTimeout(() => this.landLists(), 1400);
+                    }
+                    return;
+                }
+                this.applyListsCount(count, detail.reason !== 'sync', false);
+            },
+
+            landLists() {
+                clearTimeout(this.listsTimer);
+                this.listsTimer = null;
+                if (this.listsPending !== null) {
+                    this.applyListsCount(this.listsPending, true, true);
+                    this.listsPending = null;
+                }
+            },
+
+            applyListsCount(count, animate, squash) {
+                if (count === this.listsCount && !squash) {
+                    return;
+                }
+                const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                this.listsPrev = this.listsCount;
+                this.listsCount = count;
+                this.listsRolling = false;
+                this.listsSquashed = false;
+                if (!animate || reduced) {
+                    return;
+                }
+                this.$nextTick(() => requestAnimationFrame(() => {
+                    this.listsRolling = this.listsPrev !== this.listsCount && this.listsPrev > 0;
+                    this.listsSquashed = squash;
+                }));
+            },
+
+            listsRollEnd() {
+                this.listsRolling = false;
+            },
+
+            listsSquashEnd() {
+                this.listsSquashed = false;
+            },
+
+            listsIconClass() {
+                return {'is-squashed': this.listsSquashed};
+            },
+
+            listsBadgeClass() {
+                return {'is-rolling': this.listsRolling};
             },
 
             // The Quick Order cart client dispatches `elme-qo-count` with {count} after each change
@@ -336,6 +402,8 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
      x-data="initHeader"
      @private-content-loaded.window="getData"
      @elme-qo-count.window="setQoCount"
+     @elme-lists.window="setListsCount"
+     @elme-lists-landed.window="landLists"
      @keydown.escape.window="searchEscape"
      @keydown.window="searchShortcut"
 >
@@ -409,14 +477,20 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
                     class="elme-header__action elme-header__lists-btn hidden lg:inline-flex"
                     :aria-label="listsAriaLabel"
                 >
-                    <span class="elme-header__icon" aria-hidden="true">
+                    <span class="elme-header__icon"
+                          aria-hidden="true"
+                          :class="listsIconClass"
+                          @animationend.self="listsSquashEnd">
                         <?= $lucideIcons->heartHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
                         <span
-                            class="elme-header__badge"
-                            x-text="listsCount"
+                            class="elme-header__badge elme-header__badge--roll"
+                            :class="listsBadgeClass"
                             x-show="hasListsCount"
                             x-cloak
-                        ></span>
+                        >
+                            <span class="elme-header__roll-out" x-show="listsRolling" x-text="listsPrev"></span>
+                            <span class="elme-header__roll-in" x-text="listsCount" @animationend="listsRollEnd"></span>
+                        </span>
                     </span>
                     <span class="elme-header__label"><?= $escaper->escapeHtml(__('Shopping list')) ?></span>
                 </a>

@@ -1,0 +1,278 @@
+/**
+ * FE-78: the heart that saves a product to a shopping list (tile .elme-card__heart, PDP .elme-save), look 1 "Burst"
+ * of docs/design/heart-save-options.html. window.elmeHearts (Elme_QuickOrder::js/lists-store.phtml) sets
+ * .is-saved and plays .is-saving / .is-removing / .is-failing. Transform and opacity only; reduced motion keeps
+ * the colour change and nothing else.
+ */
+@layer components {
+    [data-elme-heart] {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+
+        & > * {
+            grid-area: 1 / 1;
+        }
+    }
+
+    .elme-heart__icon {
+        position: relative;
+        display: block;
+        --elme-heart-size: --spacing(4.5);
+        width: var(--elme-heart-size);
+        height: var(--elme-heart-size);
+        transition: transform 100ms var(--ease-out-quad);
+
+        & svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+    }
+
+    .elme-save .elme-heart__icon {
+        --elme-heart-size: --spacing(5.5);
+    }
+
+    .elme-heart__fill {
+        opacity: 0;
+        transform-origin: 50% 55%;
+        transition: opacity var(--transition-duration-fast) var(--ease-out-quad);
+
+        & path {
+            fill: currentColor;
+            stroke: none;
+        }
+    }
+
+    [data-elme-heart].is-saved {
+        color: var(--color-primary);
+
+        & .elme-heart__fill {
+            opacity: 1;
+        }
+    }
+
+    [data-elme-heart]:active .elme-heart__icon {
+        transform: scale(.85);
+    }
+
+    .elme-heart__ring {
+        width: --spacing(7.5);
+        height: --spacing(7.5);
+        place-self: center;
+        border-radius: 9999px;
+        border: 1.5px solid var(--color-secondary);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .elme-heart__dots {
+        position: relative;
+        width: 0;
+        height: 0;
+        place-self: center;
+        pointer-events: none;
+
+        & i {
+            position: absolute;
+            left: --spacing(-0.625);
+            top: --spacing(-0.625);
+            width: --spacing(1.25);
+            height: --spacing(1.25);
+            border-radius: 9999px;
+            background: var(--elme-dot, var(--color-olive));
+            opacity: 0;
+        }
+
+        & i:nth-child(1) { --a: 0deg; }
+        & i:nth-child(2) { --a: 51deg; --elme-dot: var(--color-secondary); }
+        & i:nth-child(3) { --a: 103deg; --elme-dot: var(--color-tertiary); }
+        & i:nth-child(4) { --a: 154deg; --elme-dot: var(--color-accent); }
+        & i:nth-child(5) { --a: 206deg; }
+        & i:nth-child(6) { --a: 257deg; --elme-dot: var(--color-secondary); }
+        & i:nth-child(7) { --a: 309deg; --elme-dot: var(--color-tertiary); }
+    }
+
+    /* save: spring 0.85 > 1.2 > 1, a ring and seven dots behind it */
+    [data-elme-heart].is-saving {
+        & .elme-heart__icon {
+            animation: elme-heart-pop 380ms;
+        }
+
+        & .elme-heart__ring {
+            animation: elme-heart-ring 460ms var(--ease-out-quart);
+        }
+
+        & .elme-heart__dots i {
+            animation: elme-heart-dot 520ms var(--ease-out-quart) 60ms backwards;
+        }
+    }
+
+    [data-elme-heart].is-removing .elme-heart__icon {
+        animation: elme-heart-shrink 220ms var(--ease-out-quart);
+    }
+
+    [data-elme-heart].is-failing .elme-heart__icon {
+        animation: elme-heart-shake 320ms var(--ease-out-quad);
+    }
+
+    @keyframes elme-heart-pop {
+        0% {
+            transform: scale(.85);
+            animation-timing-function: var(--ease-out-quart);
+        }
+        45% {
+            transform: scale(1.2);
+            animation-timing-function: var(--ease-in-out-cubic);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    @keyframes elme-heart-ring {
+        from {
+            transform: scale(.35);
+            opacity: .9;
+        }
+        to {
+            transform: scale(1.45);
+            opacity: 0;
+        }
+    }
+
+    @keyframes elme-heart-dot {
+        0% {
+            transform: rotate(var(--a)) translateY(-6px) scale(1);
+            opacity: 1;
+        }
+        100% {
+            transform: rotate(var(--a)) translateY(-21px) scale(.2);
+            opacity: 0;
+        }
+    }
+
+    @keyframes elme-heart-shrink {
+        45% {
+            transform: scale(.8);
+        }
+    }
+
+    @keyframes elme-heart-shake {
+        20% { transform: translateX(-3px); }
+        40% { transform: translateX(3px); }
+        60% { transform: translateX(-2px); }
+        80% { transform: translateX(2px); }
+    }
+
+    /* the small heart that flies to the header: x and y on two boxes with different easing make the curve */
+    .elme-heart-fly {
+        position: fixed;
+        z-index: 60;
+        pointer-events: none;
+        color: var(--color-primary);
+        animation: elme-heart-fly-x 620ms var(--ease-in-out-cubic) forwards;
+
+        & svg {
+            display: block;
+            width: --spacing(4);
+            height: --spacing(4);
+            margin: --spacing(-2) 0 0 --spacing(-2);
+            opacity: 1;
+            animation: elme-heart-fly-s 620ms var(--ease-in-out-cubic) forwards;
+        }
+
+        & path {
+            fill: currentColor;
+            stroke: none;
+        }
+    }
+
+    .elme-heart-fly__y {
+        animation: elme-heart-fly-y 620ms var(--ease-out-quart) forwards;
+    }
+
+    @keyframes elme-heart-fly-x {
+        to { transform: translateX(var(--dx)); }
+    }
+
+    @keyframes elme-heart-fly-y {
+        to { transform: translateY(var(--dy)); }
+    }
+
+    @keyframes elme-heart-fly-s {
+        80% { opacity: 1; }
+        100% {
+            transform: scale(.6);
+            opacity: 0;
+        }
+    }
+
+    /* where the heart lands: the header lists icon squashes, its number rolls up */
+    .elme-header__icon.is-squashed {
+        animation: elme-heart-squash 360ms var(--ease-out-quart);
+    }
+
+    @keyframes elme-heart-squash {
+        30% { transform: scale(1.22, .8); }
+        60% { transform: scale(.92, 1.08); }
+    }
+
+    .elme-header__badge--roll {
+        overflow: hidden;
+
+        & span {
+            display: block;
+        }
+    }
+
+    .elme-header__badge--roll.is-rolling {
+        & .elme-header__roll-out {
+            position: absolute;
+            inset: 0;
+            animation: elme-badge-roll-out var(--transition-duration-base) var(--ease-out-quart) forwards;
+        }
+
+        & .elme-header__roll-in {
+            animation: elme-badge-roll-in var(--transition-duration-base) var(--ease-out-quart);
+        }
+    }
+
+    @keyframes elme-badge-roll-out {
+        to {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+    }
+
+    @keyframes elme-badge-roll-in {
+        from {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .elme-header__icon.is-squashed,
+        .elme-header__badge--roll.is-rolling span {
+            animation: none;
+        }
+
+        .elme-heart__icon,
+        [data-elme-heart]:active .elme-heart__icon {
+            transform: none;
+        }
+
+        [data-elme-heart] .elme-heart__icon,
+        [data-elme-heart] .elme-heart__ring,
+        [data-elme-heart] .elme-heart__dots i {
+            animation: none !important;
+        }
+
+        .elme-heart-fly {
+            display: none;
+        }
+    }
+}
