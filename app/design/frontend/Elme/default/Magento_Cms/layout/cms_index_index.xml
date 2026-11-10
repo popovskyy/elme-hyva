@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <!-- Home page, "Calm gallery" (picked 31 Oct 2026):
      CMS content (hero, welcome intro, category grid, From the showroom, Become a Stockist), then the
-     FE-12 Instagram slider. Our Difference lives on About us; Need assistance? is in the footer
-     (Magento_Theme::html/footer.phtml) for every page. Motion on this page is the hero
+     FE-12 Instagram slider. Our Difference and Need assistance? live on About us
+     and the help pages, not on home or in the footer. Motion on this page is the hero
      (web/tailwind/elme/hero.css) and the Become a Stockist collage
      (Magento_Theme::html/home-motion.phtml, home-motion.css). -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
