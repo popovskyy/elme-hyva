@@ -35,7 +35,11 @@ ol, ul { list-style: none; margin: 0; padding: 0; }
 h1, h2, h3, p { margin: 0; }
 
 /* chooser chrome */
-.page { padding: 32px 40px 80px; min-width: 1360px; }
+.page { padding: 32px 40px 80px; }
+/* fit the fixed-size frames to small screens; --fit is set by the script */
+.frame.wide { zoom: var(--fit-wide, 1); }
+.frame.phone { zoom: var(--fit-phone, 1); }
+@media (max-width: 600px) { .page { padding: 20px 12px 60px; } }
 .page > h1 { font: 400 28px/34px DMSerifDisplay, serif; margin: 0 0 6px; }
 .page > p { margin: 0 0 8px; color: var(--color-ink-muted); max-width: 90ch; }
 .toggles { display: flex; gap: 24px; align-items: center; margin: 12px 0 0; font-size: 14px; }
@@ -714,6 +718,13 @@ function renderAll() { document.querySelectorAll('.frame').forEach(render); }
 document.querySelectorAll('input[name="who"]').forEach(r => r.addEventListener('change', () => { loggedIn = r.value === 'in' && r.checked; renderAll(); }));
 document.getElementById('rm').addEventListener('change', e => document.body.classList.toggle('rm', e.target.checked));
 renderAll();
+function fit() {
+    const room = document.querySelector('.page').clientWidth - 2 * parseFloat(getComputedStyle(document.querySelector('.page')).paddingLeft);
+    document.body.style.setProperty('--fit-wide', Math.min(1, room / 1280).toFixed(3));
+    document.body.style.setProperty('--fit-phone', Math.min(1, room / 390).toFixed(3));
+}
+fit();
+addEventListener('resize', fit);
 </script>
 </body>
 </html>
