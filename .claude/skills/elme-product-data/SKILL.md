@@ -5,21 +5,33 @@ description: Use when a ticket reads, shows, stores, imports or filters product 
 
 # Elme product data: where every field comes from
 
-Target architecture of the EL replatform, as specified by the backend team (PIM data specification
-and Pronto item API inventory, state of 9 Nov 2026, figures from the prod dump of 15 Oct 2026).
-It replaces the old picture in which product data lived in the shared Magento and Pronto pushed
-fields into it. `elme-business` still holds the customer, price, order and delivery rules.
+**This is the planned picture, not what runs today.** The PIM does not exist as a service yet, and
+neither do its feeds into Magento, the DWH B2B reads or the Search Service. The backend team's
+documents (PIM data specification and Pronto item API inventory, state of 9 Nov 2026, figures from
+the prod dump of 15 Oct 2026) describe how it will look. `elme-business` still holds the customer,
+price, order and delivery rules.
 
-Parts of it are working assumptions, marked **(assumption)**. Do not build an integration on one
-without asking; build the storefront so it survives the answer either way.
+How to use it now:
+
+- Today product data on this instance is ordinary Magento catalog data (admin, data patches, test
+  fixtures). That is fine and nothing here blocks a ticket.
+- Use the plan to choose the shape of what you build, so it does not have to be redone when the PIM
+  arrives: field names and meaning, lists instead of numbered attributes, what may be empty, what
+  will never be stored in Magento.
+- Do not build a client, importer or sync for the PIM, DWH or Search Service unless a ticket asks
+  for it, and do not wait for them either.
+- Parts of the plan are working assumptions, marked **(assumption)**. Where one changes what a
+  ticket builds, ask.
+
+Below, "is" and "receives" describe the target.
 
 ## The systems
 
 - **PIM** - the only place product data is created or edited. One record per item for all channels
   (EL = B2B, JL and SG = B2C). Nothing writes product data back from Magento.
-- **This instance = "M2 B2B"** - receives EL listings from the PIM: on publish, on every change to a
-  published item, and as a full re-send on request. Treat catalog data here as a copy: no admin
-  workflow, importer or data patch may be the source of a product field.
+- **This instance = "M2 B2B"** - will receive EL listings from the PIM: on publish, on every change
+  to a published item, and as a full re-send on request. Once that runs, catalog data here is a
+  copy, so do not design a feature around editing product fields in the Magento admin.
 - **Pronto B2B** (Elme company) and **Pronto B2C** (JL/SG) - commercial and operational data. It does
   not pass through the PIM. This instance reads it from the data warehouse **DWH B2B**: price lists,
   item groups, contract and marketing prices, promo prices, MOQ / order rules, condition code.
@@ -37,6 +49,8 @@ B2C only, so for them this instance reads prices, MOQ and condition code from **
 list is open. The Shipment Service adds JL distribution-centre stock to Elme stock for EL availability.
 
 ## Rules for anything you build here
+
+They keep today's work compatible with the plan; none of them needs the PIM to exist.
 
 1. **Use the PIM field, not the old attribute.** 377 old M2 attributes collapse into 74 fields.
    Look the old code up in `references/m2-attribute-map.csv` (verdict Keep / Merge / Derive /
@@ -97,7 +111,7 @@ configurables, axes colour and size" came from a staging snapshot and are supers
 
 Today nothing can write an item to Pronto: the only proven API writes are sales orders, payments and
 customers. Whether an item create/update API exists or is licensed is an open question for the Pronto
-owner, so "the PIM creates the item in Pronto" is not available yet. Reads exist through the Pronto
+owner, so "the PIM creates the item in Pronto" has no route yet. Reads exist through the Pronto
 Xi API and, richest, the data warehouse. Details, field map and traps (assembly price stored as
 `'$120'` text, field tables that are wrong, one bad tag voids a whole post):
 `references/pronto-item-api.md`.

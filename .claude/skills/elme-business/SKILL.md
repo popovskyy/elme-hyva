@@ -17,8 +17,9 @@ instance**. Nothing below exists here yet: it is what the old site does and what
 Business rules are the target behaviour; module/table names are where to read the old implementation.
 When a rule depends on a config switch, check the switch on the old site before relying on it.
 
-**Where the data comes from on the new instance** (PIM, Pronto through the data warehouse, Shipment
-Service, no Avenue, no stock in Magento) is in the `elme-product-data` skill. Where this file names
+**Where the data will come from on the new instance** (a PIM that is planned but not built, Pronto
+through the data warehouse, Shipment Service, no Avenue, no stock in Magento) is in the
+`elme-product-data` skill. Where this file names
 an old source (Avenue, feasibility.cc, MSI sources, Pronto hourly sync), that is how the old site
 worked, not what to build.
 
@@ -65,7 +66,7 @@ worked, not what to build.
 
 ## Stock
 
-Target: Magento stores no stock. Labels, quantity and ETA come from a live request to the Shipment
+Planned target: Magento stores no stock. Labels, quantity and ETA come from a live request to the Shipment
 Service, which combines Elme stock with James Lane DC stock for shared items. The rules below are
 what the customer must see; the MSI sources are the old implementation.
 
