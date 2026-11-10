@@ -664,13 +664,20 @@
     }
 
     .elme-look-card__row {
-        display: flex;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
         align-items: stretch;
         gap: --spacing(2);
 
         & .elme-qty {
-            flex: none;
             width: --spacing(30);
+        }
+
+        /* Default heart is 44px and does not stretch. This one matches the stepper height and stays square. */
+        & .elme-look-heart {
+            width: auto;
+            height: 100%;
+            aspect-ratio: 1;
         }
     }
 
