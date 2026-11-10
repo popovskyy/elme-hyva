@@ -1,0 +1,379 @@
+m2_attribute,label,type,filled_el,old_pdp,old_filter,verdict,pim_field,note
+assembly,Assembly,int/select,96%,spec table,,Keep,assembly_info,
+buyer_code,Buyer Code,varchar/text,89%,,,Keep,buyer_code,
+special_care,Care Instructions,text/textarea,99%,,,Keep,care_instructions,
+colour_super_sku,Colour Super SKU,varchar/text,65%,,,Keep,colour_super_sku,
+condition_code,Condition code,int/select,41%,,,Keep,condition_code,
+description,Description,text/textarea,82%,,,Keep,description,
+disclaimer,Disclaimer,text/textarea,65%,spec table,,Keep,disclaimer,
+google_product_category,Google Product Category,varchar/select,<1%,,,Keep,feed_mapping,
+product_label,Product Label,varchar/multiselect,31%,,,Keep,labels,
+price,Price,decimal/price,51%,,,Keep,list_price,
+made_to_order,Is Made To Order product,int/boolean,100%,,,Keep,made_to_order,
+name,Product Name,varchar/text,100%,,,Keep,name,
+stk_user_group_2,Parcel Classification,varchar/text,92%,,,Keep,parcel_class,
+postage_handling,Product Note,text/textarea,12%,spec table,,Keep,product_note,
+product_set,Product Set,int/select,84%,,,Keep,product_type,
+range,Range,varchar/text,88%,spec table,,Keep,range,
+recycling_code,Recycling code,varchar/text,<1%,,,Keep,recycling_code,
+yotpo_group,Yotpo Group,varchar/text,46%,,,Keep,review_group,
+short_description,Short Description,text/textarea,82%,,,Keep,short_description,
+sku,SKU,static/text,100%,spec table,,Keep,sku,
+composition,Composition,varchar/text,79%,spec table,,Keep,specs.composition,
+fabric,Fabric,varchar/text,73%,spec table,,Keep,specs.fabric,
+stock_group,Stock Group,varchar/text,69%,,,Keep,stock_group,
+subtitle,Subtitle,varchar/text,40%,,,Keep,subtitle,
+supplier_lead_time,Supplier Lead Time,varchar/text,<1%,,,Keep,supplier_lead_time,
+unit_desc,Unit Description,varchar/text,91%,,,Keep,unit_of_measure,
+units_per_ctn,Units Per Carton,int/weight,72%,,,Keep,units_per_carton,
+url_key,URL Key,varchar/text,100%,,,Keep,url_key,
+visibility,Visibility,int/select,100%,,,Keep,visibility,
+assembly_code,Assembly Code,varchar/text,59%,,,Merge,assembly_service,
+assembly_price,Assembly Price,decimal/price,60%,,,Merge,assembly_service,
+free_assembly,Free Assembly,int/boolean,100%,,,Merge,assembly_service,
+discounted_price,Discounted Price,decimal/text,63%,,,Merge,b2c_promo_display,
+multibuy_price_max,Multibuy Price To,decimal/text,60%,,,Merge,b2c_promo_display,
+multibuy_price_min,Multibuy Price From,decimal/text,60%,,,Merge,b2c_promo_display,
+promo_text,Current Promotion,varchar/text,<1%,,,Merge,b2c_promo_display,
+promo_text_color,Promo Text Color,varchar/text,61%,,,Merge,b2c_promo_display,
+brand,Brand,varchar/text,99%,,,Merge,brand,
+mattress_super_sku,Mattress Super SKU,varchar/text,<1%,,,Merge,bundle_links,
+upsell_qty_1,Mattress upsell Qty 1,varchar/text,<1%,,,Merge,bundle_links,
+upsell_sku_1,Mattress upsell SKU 1,varchar/text,<1%,,,Merge,bundle_links,
+ctn10_depth,Carton 10 depth,decimal/weight,11%,,,Merge,cartons,
+ctn10_length,Carton 10 length,decimal/weight,11%,,,Merge,cartons,
+ctn10_weight,Carton 10 weight,decimal/weight,11%,,,Merge,cartons,
+ctn10_width,Carton 10 width,decimal/weight,11%,,,Merge,cartons,
+ctn1_depth,Carton 1 depth,decimal/weight,92%,,,Merge,cartons,
+ctn1_length,Carton 1 length,decimal/weight,92%,,,Merge,cartons,
+ctn1_weight,Carton 1 weight,decimal/weight,92%,,,Merge,cartons,
+ctn1_width,Carton 1 width,decimal/weight,92%,,,Merge,cartons,
+ctn2_depth,Carton 2 depth,decimal/weight,43%,,,Merge,cartons,
+ctn2_length,Carton 2 length,decimal/weight,43%,,,Merge,cartons,
+ctn2_weight,Carton 2 weight,decimal/weight,43%,,,Merge,cartons,
+ctn2_width,Carton 2 width,decimal/weight,43%,,,Merge,cartons,
+ctn3_depth,Carton 3 depth,decimal/weight,38%,,,Merge,cartons,
+ctn3_length,Carton 3 length,decimal/weight,38%,,,Merge,cartons,
+ctn3_weight,Carton 3 weight,decimal/weight,37%,,,Merge,cartons,
+ctn3_width,Carton 3 width,decimal/weight,38%,,,Merge,cartons,
+ctn4_depth,Carton 4 depth,decimal/weight,29%,,,Merge,cartons,
+ctn4_length,Carton 4 length,decimal/weight,29%,,,Merge,cartons,
+ctn4_weight,Carton 4 weight,decimal/weight,29%,,,Merge,cartons,
+ctn4_width,Carton 4 width,decimal/weight,29%,,,Merge,cartons,
+ctn5_depth,Carton 5 depth,decimal/weight,21%,,,Merge,cartons,
+ctn5_length,Carton 5 length,decimal/weight,21%,,,Merge,cartons,
+ctn5_weight,Carton 5 weight,decimal/weight,21%,,,Merge,cartons,
+ctn5_width,Carton 5 width,decimal/weight,21%,,,Merge,cartons,
+ctn6_depth,Carton 6 depth,decimal/weight,15%,,,Merge,cartons,
+ctn6_length,Carton 6 length,decimal/weight,15%,,,Merge,cartons,
+ctn6_weight,Carton 6 weight,decimal/weight,15%,,,Merge,cartons,
+ctn6_width,Carton 6 width,decimal/weight,15%,,,Merge,cartons,
+ctn7_depth,Carton 7 depth,decimal/weight,11%,,,Merge,cartons,
+ctn7_length,Carton 7 length,decimal/weight,12%,,,Merge,cartons,
+ctn7_weight,Carton 7 weight,decimal/weight,11%,,,Merge,cartons,
+ctn7_width,Carton 7 width,decimal/weight,12%,,,Merge,cartons,
+ctn8_depth,Carton 8 depth,decimal/weight,11%,,,Merge,cartons,
+ctn8_length,Carton 8 length,decimal/weight,11%,,,Merge,cartons,
+ctn8_weight,Carton 8 weight,decimal/weight,11%,,,Merge,cartons,
+ctn8_width,Carton 8 width,decimal/weight,11%,,,Merge,cartons,
+ctn9_depth,Carton 9 depth,decimal/weight,11%,,,Merge,cartons,
+ctn9_length,Carton 9 length,decimal/weight,11%,,,Merge,cartons,
+ctn9_weight,Carton 9 weight,decimal/weight,11%,,,Merge,cartons,
+ctn9_width,Carton 9 width,decimal/weight,11%,,,Merge,cartons,
+no_of_ctns,Number of Cartons,int/weight,91%,,,Merge,cartons,
+dropship_live_approved,Dropship Approved To Be Live,int/boolean,95%,,,Merge,dropship,temporary until the Supplier Portal
+status,Enable Product,int/select,100%,,,Merge,channel_assignment,
+color,Color,int/select,99%,,,Merge,colour,
+colour,Colour,text/text,99%,spec table,,Merge,colour,
+depth,Depth (cm),varchar/text,53%,dimensions tab,,Merge,dimensions,
+fg_depth,FG depth,decimal/weight,72%,,,Merge,dimensions,
+fg_length,FG length,decimal/weight,72%,,,Merge,dimensions,
+fg_weight,FG weight,decimal/weight,76%,,,Merge,dimensions,
+fg_width,FG width,decimal/weight,72%,,,Merge,dimensions,
+height,Height (cm),varchar/text,91%,dimensions tab,,Merge,dimensions,
+length,Length (cm),text/text,38%,dimensions tab,,Merge,dimensions,
+weight,Weight (kg),decimal/weight,74%,dimensions tab,,Merge,dimensions,
+width,Width (cm),decimal/weight,91%,dimensions tab,,Merge,dimensions,
+dropship_available,Dropship Available,int/boolean,43%,,,Not PIM,,sent by the supplier through the stock API (Supplier Portal later)
+dropship_made_to_order,Dropship Made To Order,int/boolean,43%,,,Merge,dropship,temporary until the Supplier Portal
+elme_dropship,Elme Dropship,int/boolean,85%,,,Merge,dropship,
+fcs_timber,FCS Timber?,int/boolean,71%,spec table,,Merge,features,
+goodweave,Goodweave?,int/select,<1%,spec table,yes,Merge,features,
+handmade,Handmade?,text/text,<1%,spec table,,Merge,features,
+hypoallergenic,Hypoallergenic?,text/text,<1%,spec table,,Merge,features,
+recliner,Recliner,int/select,,spec table,yes,Merge,features,
+removable_covers,Removable Covers,int/select,38%,spec table,yes,Merge,features,
+stackable,Stackable,int/select,<1%,spec table,yes,Merge,features,
+waterproof,Waterproof,int/select,<1%,spec table,,Merge,features,
+watertight,Watertight,int/select,<1%,spec table,yes,Merge,features,
+available_interstate_nsw,Interstate NSW,int/boolean,100%,,,Merge,fulfilment_options,
+available_interstate_qld,Interstate QLD,int/boolean,100%,,,Merge,fulfilment_options,
+available_interstate_vic,Interstate VIC,int/boolean,100%,,,Merge,fulfilment_options,
+disable_stores_cnc,Disallow Click & Collect From Stores,int/boolean,99%,,,Merge,fulfilment_options,
+is_click_and_collect,Click and Collect Allow,int/boolean,100%,,,Merge,fulfilment_options,
+hover_image,Hover Image,varchar/media_image,99%,,,Merge,images,
+image,Base,varchar/media_image,100%,,,Merge,images,
+image_label,Image Label,varchar/text,6%,,,Merge,images,
+small_image,Small,varchar/media_image,100%,,,Merge,images,
+small_image_label,Small Image Label,varchar/text,6%,,,Merge,images,
+swatch_image,Swatch,varchar/media_image,72%,,,Merge,images,
+thumbnail,Thumbnail,varchar/media_image,100%,,,Merge,images,
+thumbnail_label,Thumbnail Label,varchar/text,6%,,,Merge,images,
+publishing_date,Publishing Date,datetime/datetime,8%,,,Merge,launch_date,
+bed_type,Bed Material,int/select,21%,spec table,yes,Merge,material,
+casegood_material,Material,text/multiselect,<1%,,yes,Merge,material,
+material,Material,int/select,83%,spec table,,Merge,material,
+rug_material,Rug Material,int/select,<1%,spec table,yes,Merge,material,
+sofa_style,Material,text/multiselect,48%,spec table,yes,Merge,material,
+mattress_brand,Mattress Brand,int/select,<1%,spec table,yes,Merge,mattress_facets,
+mattress_range,Mattress Range,int/select,<1%,spec table,yes,Merge,mattress_facets,
+dimensions_between_the_legs,Dimensions Between the Legs,varchar/text,<1%,spec table,,Merge,measurements,
+drawer_dimensions,Drawer Dimensions,varchar/text,<1%,spec table,,Merge,measurements,
+height_clearance,Height Clearance (cm),varchar/text,<1%,spec table,,Merge,measurements,
+internal_storage,Internal Storage Dimension,varchar/text,<1%,spec table,,Merge,measurements,
+seat_depth,Seat Depth (cm),varchar/text,27%,spec table,,Merge,measurements,
+seat_height,Seat Height (cm),varchar/text,36%,,,Merge,measurements,
+seat_width,Seat Width (cm),varchar/text,<1%,spec table,,Merge,measurements,
+shelf_spacing,Shelf Spacing,varchar/text,<1%,spec table,,Merge,measurements,
+slat_height_from_base,Slat height from base,varchar/text,,spec table,,Merge,measurements,
+weight_limit,Weight Limit (kg),varchar/text,5%,spec table,,Merge,measurements,
+freedom_price,Freedom MOQ,varchar/text,12%,,,Merge,order_rules,
+pack_cubic_size,Pack Cubic Size,decimal/weight,89%,,,Merge,pack,
+pack_weight,Pack Weight,decimal/weight,89%,,,Merge,pack,
+is_kit_component,Is Kit Component,int/boolean,69%,,,Merge,product_structure,
+special_from_date,Special Price From Date,datetime/date,10%,,,Merge,promo_price,
+special_price,Special Price,decimal/price,8%,,,Merge,promo_price,
+special_to_date,Special Price To Date,datetime/date,5%,,,Merge,promo_price,
+number_of_seats,Number of Seats,varchar/text,<1%,spec table,,Merge,seats,
+seats,Seats,int/select,<1%,spec table,yes,Merge,seats,
+meta_description,Meta Description,varchar/textarea,16%,,,Merge,seo,
+meta_title,Meta Title,varchar/text,16%,,,Merge,seo,
+coffee_shape,Shape,int/select,<1%,,yes,Merge,shape,
+rug_shape,Rug Shape,int/select,<1%,spec table,yes,Merge,shape,
+shape,Shape,text/text,<1%,spec table,,Merge,shape,
+country_of_manufacture,Country of Manufacture,varchar/select,22%,,,Merge,shipping_flags,
+fusedship_product_data,Fusedship Product Data,text/textarea,94%,,,Merge,shipping_flags,
+rug_size,Rug Size,int/select,<1%,spec table,yes,Merge,size,
+size,Size,int/select,35%,spec table,yes,Merge,size,
+cuttable_tearable,Cuttable / Tearable,varchar/text,<1%,spec table,,Merge,specs.decor_other,
+cutting_method,Cutting Method,int/select,<1%,spec table,,Merge,specs.decor_other,
+detachable_sections,Detachable Sections,varchar/text,<1%,spec table,,Merge,specs.decor_other,
+dishwasher_safe,Dishwasher Safe,varchar/text,<1%,spec table,,Merge,specs.decor_other,
+double_sided,Double-Sided,varchar/text,<1%,spec table,,Merge,specs.decor_other,
+drainage_hole,Drainage Hole,varchar/text,,spec table,,Merge,specs.decor_other,
+drawer_side,Drawer Side,int/select,,spec table,,Merge,specs.decor_other,
+glassmaking_technique,Glassmaking Technique,int/select,<1%,spec table,,Merge,specs.decor_other,
+hand_painted,Hand Painted,varchar/text,<1%,spec table,,Merge,specs.decor_other,
+hanging_info,Hanging Info,text/textarea,,spec table,,Merge,specs.decor_other,
+microwave_safe,Microwave Safe,varchar/text,<1%,spec table,,Merge,specs.decor_other,
+open_centre_compartment,Open Centre Compartment,varchar/text,,spec table,,Merge,specs.decor_other,
+oven_safe,Oven Safe,varchar/text,<1%,,,Merge,specs.decor_other,
+pile_height,Pile Height (cm),varchar/text,<1%,spec table,,Merge,specs.decor_other,
+plant_height,Plant Height,int/select,<1%,spec table,,Merge,specs.decor_other,
+pot_dimensions,Pot Dimensions,varchar/text,2%,spec table,,Merge,specs.decor_other,
+quality,Quality,int/select,<1%,spec table,,Merge,specs.decor_other,
+scent,Scent,varchar/text,,spec table,,Merge,specs.decor_other,
+uv_resistant,UV Resistant,varchar/text,<1%,spec table,,Merge,specs.decor_other,
+bulb_included,Bulb Included?,text/text,<1%,spec table,,Merge,specs.lighting,
+cord_length,Cord Length (cm),varchar/text,<1%,spec table,,Merge,specs.lighting,
+fitting_type,Fitting Type,varchar/text,<1%,spec table,,Merge,specs.lighting,
+max_wattage,Max Wattage,text/text,<1%,spec table,,Merge,specs.lighting,
+switch,Switch,varchar/text,<1%,spec table,,Merge,specs.lighting,
+actifresh,ActiFresh,varchar/text,<1%,spec table,,Merge,specs.mattress,
+bottom_wall_fabric,Bottom Wall Fabric,varchar/text,<1%,spec table,,Merge,specs.mattress,
+comfort_layer,Comfort Layer,varchar/text,,spec table,,Merge,specs.mattress,
+cooling_fabric,Cooling Fabric,varchar/text,,spec table,,Merge,specs.mattress,
+edge_support,Edge support,varchar/text,<1%,spec table,,Merge,specs.mattress,
+fire_retardant,Fire Retardant,varchar/text,<1%,spec table,,Merge,specs.mattress,
+pillow_top,Pillow Top,varchar/text,<1%,spec table,,Merge,specs.mattress,
+quilt_layer,Quilt Layer,varchar/text,<1%,spec table,,Merge,specs.mattress,
+side_wall_fabric,Side Wall Fabric,varchar/text,<1%,spec table,,Merge,specs.mattress,
+skirt,Skirt,varchar/text,,spec table,,Merge,specs.mattress,
+spring_count,Spring Count,varchar/text,,spec table,,Merge,specs.mattress,
+spring_unit,Spring Unit,varchar/text,<1%,spec table,,Merge,specs.mattress,
+ticking,Ticking Fabric,varchar/text,<1%,spec table,,Merge,specs.mattress,
+ultrafresh,Ultrafresh,varchar/text,,spec table,,Merge,specs.mattress,
+waterproof_membrane,Waterproof membrane,varchar/text,,spec table,,Merge,specs.mattress,
+zoning,Zoning,varchar/text,<1%,spec table,,Merge,specs.mattress,
+adjustability,Adjustability,varchar/text,<1%,spec table,,Merge,specs.upholstery,
+bed_slat,Bed Slats,text/text,13%,spec table,,Merge,specs.upholstery,
+construction,Construction,text/text,1%,spec table,,Merge,specs.upholstery,
+cushion_filling,Cushion filling,varchar/text,13%,spec table,,Merge,specs.upholstery,
+filling,Filling,varchar/text,24%,spec table,,Merge,specs.upholstery,
+frame,Frame,int/select,<1%,spec table,yes,Merge,specs.upholstery,
+frame_colour,Frame Colour,text/text,<1%,spec table,,Merge,specs.upholstery,
+leg_colour,Leg Colour,text/text,47%,spec table,,Merge,specs.upholstery,
+leg_material,Leg Material,text/text,47%,spec table,,Merge,specs.upholstery,
+suspension,Suspension,varchar/text,38%,spec table,,Merge,specs.upholstery,
+aesthetic,Aesthetic,varchar/text,<1%,spec table,,Merge,style,
+art_style_elme,Style,text/multiselect,<1%,spec table,yes,Merge,style,
+rug_style,Aesthetic,int/select,<1%,spec table,yes,Merge,style,
+supplier_sku,Supplier SKU,text/text,4%,,,Keep (temporary),supplier_sku,supplier item code / DS142 twin link; temporary until the Supplier Portal
+art_type,Art Type,int/select,,spec table,yes,Merge,type_detail,
+bed_category,Bed Type,text/multiselect,16%,spec table,yes,Merge,type_detail,
+mirror_type,Mirror Type,int/select,<1%,spec table,yes,Merge,type_detail,
+plant_type,Plant Type,int/select,4%,spec table,yes,Merge,type_detail,
+sofa_type,Type,text/multiselect,49%,spec table,yes,Merge,type_detail,
+vessel_type,Vessel Type,int/select,4%,spec table,,Merge,type_detail,
+chaise_side,Chaise Side,int/select,5%,spec table,,Merge,variant_axes,
+feel,Comfort Level,int/select,38%,spec table,yes,Merge,variant_axes,
+orientation,Orientation,int/select,<1%,spec table,yes,Merge,variant_axes,
+show_material_popup,Show Material Features Popup,int/boolean,100%,,,Merge,warnings,
+show_toppling_warning,Show Toppling Warning,int/boolean,100%,,,Merge,warnings,
+warranty,Warranty,text/textarea,89%,,,Merge,warranty,
+fusedship_product_cartons,Fusedship Product Cartons,text/textarea,97%,,,Derive,cartons,cartons (JSON built from cartons)
+colour_group,Colour,int/select,90%,,yes,Derive,colour_group,colour_group (from colour)
+dimension,Dimensions,varchar/text,22%,spec table,,Derive,dimensions,dimensions (display string)
+length_range,Width (cm),int/select,<1%,,yes,Derive,size_bands,size_bands (from dimensions)
+width_range_cm,Depth (cm),int/select,<1%,,yes,Derive,size_bands,size_bands (from dimensions)
+banner_url,Banner url,varchar/text,,,,Not PIM,,M2 merchandising
+cart_coupon_tooltip_block_id,Cart Coupon Tooltip CSM Block,varchar/select,74%,,,Not PIM,,M2 merchandising (CMS link)
+created_at,NULL,static/date,100%,,,Not PIM,,M2 system
+custom_design,New Theme,varchar/select,<1%,,,Not PIM,,M2 layout
+custom_design_from,Active From,datetime/date,,,,Not PIM,,M2 layout
+custom_design_to,Active To,datetime/date,,,,Not PIM,,M2 layout
+custom_layout,New Layout,varchar/select,,,,Not PIM,,M2 layout
+custom_layout_update,Layout Update XML,text/textarea,,,,Not PIM,,M2 layout
+custom_layout_update_file,Custom Layout Update,varchar/select,,,,Not PIM,,M2 layout
+customer_id,Customer ID,int/text,<1%,,,Not PIM,,misuse of a product attribute
+elasticsearchcore_ignore,Ignore the product for indexation,int/boolean,100%,,,Not PIM,,search engine flag
+gallery,Image Gallery,varchar/gallery,,,,Not PIM,,M2 system (images)
+gift_message_available,Allow Gift Message,varchar/select,99%,,,Not PIM,,not used on any site
+gift_wrapping_available,Allow Gift Wrapping,varchar/select,99%,,,Not PIM,,"EE gift wrapping, not used"
+gift_wrapping_price,Price for Gift Wrapping,decimal/price,12%,,,Not PIM,,"EE gift wrapping, not used"
+has_options,NULL,static/text,100%,,,Not PIM,,M2 system
+highlights_block_id,Highlights CSM Block,varchar/select,<1%,,,Not PIM,,M2 merchandising (CMS link)
+is_returnable,Enable RMA,varchar/select,71%,,,Not PIM,,EE RMA
+items_sold,Item sold,int/text,100%,,,Not PIM,,derived from orders (M2 sort)
+lookbook_collection_block_id,Lookbook Collection CSM Block,varchar/select,,,,Not PIM,,M2 merchandising (CMS link)
+m_seo_canonical,Canonical URL,text/text,,,,Not PIM,,M2 SEO module
+marketing_priority,Marketing Priority,varchar/text,<1%,,,Not PIM,,no code reads it
+mattress_pdp_cms_blocks,Mattress PDP CMS blocks,varchar/text,<1%,,,Not PIM,,M2 merchandising (CMS link)
+meta_keyword,Meta Keywords,text/textarea,16%,,,Not PIM,,no SEO value
+mgs_lookbook,Lookbook,int/select,<1%,,,Not PIM,,M2 merchandising (lookbook)
+minimal_price,Minimal Price,decimal/price,,,,Not PIM,,M2 system
+msrp,Minimum Advertised Price,decimal/price,,,,Not PIM,,M2 system
+msrp_display_actual_price_type,Display Actual Price,varchar/select,100%,,,Not PIM,,M2 system
+od_source_item_cdc_date,OD - CDC Date From Od Source Item,datetime/date,,,,Not PIM,,stock / ETA (legacy)
+od_source_item_location,OD - Location From Od Source Item,varchar/multiselect,59%,,,Not PIM,,stock (legacy)
+od_source_item_qty,OD - QTY From Od Source Item,varchar/text,59%,,,Not PIM,,stock (legacy)
+od_source_item_qty_back_ordered,OD - QTY Backordered From Od Source Item,varchar/text,,spec table,,Not PIM,,stock (legacy)
+od_source_item_qty_on_order,OD - QTY On Order From Od Source Item,varchar/text,,spec table,,Not PIM,,stock (legacy)
+options_container,Display Product Options In,varchar/select,100%,,,Not PIM,,M2 system
+page_layout,Layout,varchar/select,24%,,,Not PIM,,M2 layout
+perfect_coastal_interior,Perfect Coastal Interior block,text/textarea,<1%,,,Not PIM,,M2 merchandising (CMS text)
+price_type,Dynamic Price,int/boolean,,,,Not PIM,,M2 bundle system
+price_view,Price View,int/select,,,,Not PIM,,M2 bundle system
+quantity_and_stock_status,Quantity,int/select,90%,,,Not PIM,,stock lives in Shipment Service
+required_options,NULL,static/text,100%,,,Not PIM,,M2 system
+shipment_type,Ship Bundle Items,int/select,,,,Not PIM,,M2 bundle system
+shipping_and_returns,Shipping & Returns,text/textarea,,,,Not PIM,,CMS content (1 item)
+sku_type,Dynamic SKU,int/boolean,,,,Not PIM,,M2 bundle system
+stock_availability,Stock Availability,int/select,14%,,yes,Not PIM,,derived from Shipment Service
+storelocator_item_qty,Qty in all stores,int/text,100%,,,Not PIM,,stock (legacy storelocator)
+summer_refresh,Summer refresh block,text/textarea,<1%,,,Not PIM,,M2 merchandising (CMS text)
+synced_to_yotpo_product,Synced to Yotpo,int/boolean,95%,,,Not PIM,,integration state
+tax_class_id,Tax Class,int/select,100%,,,Not PIM,,M2 rule (GST)
+terms_conditions_url_key,Terms conditions url key,varchar/text,99%,,,Not PIM,,M2 merchandising
+tier_price,Tier Price,decimal/text,,,,Not PIM,,M2 system
+updated_at,NULL,static/date,100%,,,Not PIM,,M2 system
+url_path,NULL,varchar/text,,,,Not PIM,,M2 system
+use_promo_banner,Use promo banner,int/boolean,100%,,,Not PIM,,M2 merchandising
+videowise_product_data_sha,Videowise Product Data SHA,varchar/text,26%,,,Not PIM,,integration state
+viewa_id,Viewa ID Num,int/text,<1%,,,Drop,,Viewa dropped (user 2026-10-28)
+warehouse_cost,Warehouse cost,decimal/price,4%,,,Not PIM,,"cost price: Pronto data, sensitive; analytics only (Bart_Tracking)"
+weight_type,Dynamic Weight,int/boolean,,,,Not PIM,,M2 bundle system
+category_ids,Categories,static/text,100%,,,Not PIM,categories (TBC),"categories (PIM, TBC)"
+media_gallery,Media Gallery,static/gallery,100%,,,Not PIM,images,M2 system (images)
+allow_message,Allow Message,int/text,,,,Drop,,no value on any site
+allow_open_amount,Open Amount,int/select,,,,Drop,,no value on any site
+awards,Mattress Awards List,varchar/text,,spec table,,Drop,,no value on any site: not carried (D24)
+bed_features,Bed Features,text/multiselect,,,yes,Drop,,no value on any site: not carried (D24)
+brochure_and_manuals,Brochure & Manuals,text/textarea,,spec table,,Drop,,no value on any site
+brochure_link,Brochure Link,text/text,,spec table,,Drop,,no value on any site
+demo,Demo,int/select,,spec table,,Drop,,no value on any site
+details,Details,text/textarea,,,,Drop,,no value on any site
+direction,Direction,text/text,,spec table,,Drop,,"no value on any site, yet configured as an Algolia facet: remove the facet"
+email_template,Email Template,varchar/text,,,,Drop,,no value on any site
+facebook_age_group,Age Group,text/select,,,,Drop,,no value on any site
+facebook_age_range,Age Range,text/text,,,,Drop,,duplicate
+facebook_baby_food_stage,Baby Food Stage,text/text,,,,Drop,,no value on any site
+facebook_capacity,Capacity,text/text,,,,Drop,,no value on any site
+facebook_color,Color,text/text,,,,Drop,,no value on any site
+facebook_compatible_devices,Compatible Devices,text/text,,,,Drop,,no value on any site
+facebook_decor_style,Decor Style,text/select,,,,Drop,,no value on any site
+facebook_digital_zoom,Digital Zoom,text/text,,,,Drop,,no value on any site
+facebook_display_technology,Display Technology,text/text,,,,Drop,,no value on any site
+facebook_finish,Finish,text/text,,,,Drop,,no value on any site
+facebook_gemstone,Gemstone,text/text,,,,Drop,,no value on any site
+facebook_gender,Gender,text/select,,,,Drop,,no value on any site
+facebook_health_concern,Health Concern,text/text,,,,Drop,,no value on any site
+facebook_ingredients,Ingredients,text/text,,,,Drop,,no value on any site
+facebook_is_assembly_required,Is Assembly Required,text/select,,,,Drop,,no value on any site
+facebook_material,Material,text/text,,,,Drop,,no value on any site
+facebook_maximum_weight,Maximum Weight,text/text,,,,Drop,,no value on any site
+facebook_megapixels,Megapixels,text/text,,,,Drop,,no value on any site
+facebook_minimum_weight,Minimum Weight,text/text,,,,Drop,,no value on any site
+facebook_model,Model,text/text,,,,Drop,,no value on any site
+facebook_number_of_licenses,Number of Licenses,text/text,,,,Drop,,no value on any site
+facebook_operating_system,Operating System,text/text,,,,Drop,,no value on any site
+facebook_optical_zoom,Optical Zoom,text/text,,,,Drop,,no value on any site
+facebook_package_quantity,Package Quantity,text/text,,,,Drop,,no value on any site
+facebook_pattern,Pattern,text/select,,,,Drop,,no value on any site
+facebook_product_depth,Product Depth,text/text,,,,Drop,,no value on any site
+facebook_product_form,Product Form,text/text,,,,Drop,,no value on any site
+facebook_product_height,Product Height,text/text,,,,Drop,,no value on any site
+facebook_product_length,Product Length,text/text,,,,Drop,,no value on any site
+facebook_product_weight,Product Weight,text/text,,,,Drop,,no value on any site
+facebook_product_width,Product Width,text/text,,,,Drop,,no value on any site
+facebook_recommended_use,Recommended Use,text/text,,,,Drop,,no value on any site
+facebook_resolution,Resolution,text/text,,,,Drop,,no value on any site
+facebook_scent,Scent,text/text,,,,Drop,,no value on any site
+facebook_screen_size,Screen Size,text/text,,,,Drop,,no value on any site
+facebook_shoe_width,Shoe Width,text/text,,,,Drop,,no value on any site
+facebook_size,Size,text/text,,,,Drop,,no value on any site
+facebook_storage_capacity,Storage Capacity,text/text,,,,Drop,,no value on any site
+facebook_style,Style,text/text,,,,Drop,,no value on any site
+facebook_system_requirements,Software System Requirements,text/text,,,,Drop,,no value on any site
+facebook_thread_count,Thread Count,text/text,,,,Drop,,no value on any site
+facebook_video_game_platform,Video Game Platform,text/text,,,,Drop,,no value on any site
+family_sort_order,Family Configuration Sort Order,int/text,,spec table,,Drop,,no value on any site
+faq,FAQ,text/textarea,,,,Drop,,no value on any site
+giftcard_amounts,Amount,decimal/price,,,,Drop,,no value on any site
+giftcard_type,Card Type,int/select,,,,Drop,,no value on any site
+is_redeemable,Is Redeemable,int/text,,,,Drop,,no value on any site
+lifetime,Lifetime,int/text,,,,Drop,,no value on any site
+links_exist,NULL,int/NULL,,,,Drop,,no value on any site
+links_purchased_separately,Links can be purchased separately,int/NULL,,,,Drop,,no value on any site
+links_title,Links title,varchar/NULL,,,,Drop,,no value on any site
+main_colour,Colour,text/multiselect,,,,Drop,,no value on any site: not carried (D24)
+mattress_features,Mattress Features,varchar/multiselect,,,,Drop,,no value on any site: not carried (D24)
+news_to_date,Set Product as New to Date,datetime/date,,,,Drop,,no value on any site
+old_id,NULL,int/text,,,,Drop,,no value on any site
+open_amount_max,Open Amount To,decimal/price,,,,Drop,,no value on any site
+open_amount_min,Open Amount From,decimal/price,,,,Drop,,no value on any site
+related_tgtr_position_behavior,Related Target Rule Position Behavior,int/text,,,,Drop,,no value on any site
+related_tgtr_position_limit,Related Target Rule Rule Based Positions,int/text,,,,Drop,,no value on any site
+samples_title,Samples title,varchar/NULL,,,,Drop,,no value on any site
+specific_view,Specific view,int/select,,,,Drop,,no value on any site
+upsell_tgtr_position_behavior,Upsell Target Rule Position Behavior,int/text,,,,Drop,,no value on any site
+upsell_tgtr_position_limit,Upsell Target Rule Rule Based Positions,int/text,,,,Drop,,no value on any site
+use_config_allow_message,Use Config Allow Message,int/text,,,,Drop,,no value on any site
+use_config_email_template,Use Config Email Template,int/text,,,,Drop,,no value on any site
+use_config_is_redeemable,Use Config Is Redeemable,int/text,,,,Drop,,no value on any site
+use_config_lifetime,Use Config Lifetime,int/text,,,,Drop,,no value on any site
+facebook_brand,Brand,text/text,<1%,,,Drop,brand,duplicate
+size_skus,Size SKUs,varchar/text,,,,Drop,-,no value on any site: not carried (D24)
+size_super_sku,Size Super SKU,varchar/text,,,,Drop,-,no value on any site: not carried (D24)
+upsell_qty_2,Mattress upsell Qty 2,varchar/text,,,,Drop,-,no value on any site: not carried (D24)
+upsell_sku_2,Mattress upsell SKU 2,varchar/text,,,,Drop,-,no value on any site: not carried (D24)
+image_diagram,Image Diagram,varchar/text,,,,Drop,diagram_image,"JL/SG 68, EL 13 products have a value, almost all the same placeholder file (Untitled_design_3_.png): check before migrating"
+news_from_date,Set Product as New from Date,datetime/date,,,,Drop,-,no value on any site: not carried (D24)
+glass_finish,Glass Finish,int/select,,spec table,,Drop,-,no value on any site: not carried (D24)
+top_wall_fabric,Top Wall Fabric,varchar/text,,spec table,,Drop,-,no value on any site: not carried (D24)
+woolcloud,WoolCloud,varchar/text,,spec table,,Drop,-,no value on any site: not carried (D24)
+art_style,Art Style,int/select,,spec table,yes,Drop,-,no value on any site: not carried (D24)
+od_source_item_supplier_id,OD - Supplier ID From Od Source Item,varchar/text,,spec table,,Drop,-,no value on any site: not carried (D24)
+video_url,YouTube Video URL,varchar/text,,,,Drop,-,no value on any site: not carried (D24)
+warranty_cart_item_description,Warranty cart item description,text/textarea,,,,Drop,-,no value on any site: not carried (D24)
+NOTES,Verdicts,"Keep = becomes a PIM field as is (renamed where needed). Merge = folded into a PIM field together with other attributes. Derive = computed from other data, not typed in PIM. Not PIM = stock, M2 system/layout, CMS links or integration state. Drop = no value on any site, or a duplicate.",,,,,,

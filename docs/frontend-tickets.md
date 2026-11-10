@@ -48,7 +48,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-22 | Search autocomplete in header | 4 PLP & search | FE-06, D1 | To do |
 | FE-23 | Search results page + no-results state | 4 PLP & search | FE-19, FE-21, D1 | To do |
 | FE-24 | Recently viewed categories / products | 4 PLP & search | FE-19 | To do |
-| FE-25 | PDP layout + image gallery | 5 PDP | FE-04 | To do |
+| FE-25 | PDP layout + image gallery | 5 PDP | FE-04 | In review |
 | FE-26 | PDP buy box, logged out | 5 PDP | FE-25 | To do |
 | FE-27 | PDP buy box, logged in (price, MOQ, add to cart/wishlist, sticky bar) | 5 PDP | FE-25, FE-53, BE-06 | To do |
 | FE-28 | Configurable products: colour/size swatches to sibling products | 5 PDP | FE-27 | To do |
@@ -547,7 +547,7 @@ Production PDP: gallery left, info right (badge, name, SKU, stock, short descrip
 
 ### FE-28 Configurable products (colour / size)
 
-**Scope:** colour and size swatches; clicking a swatch goes to the sibling product page (Elme has 147 configurables; swatch = navigation, not an in-page switch). Swatches on PLP cards too.
+**Scope:** colour and size swatches; clicking a swatch goes to the sibling product page (swatch = navigation, not an in-page switch). Prod, 15 Oct 2026: colour is not a configurable axis, colour variants are separate products grouped by `colour_super_sku`; the 2,024 configurables vary by size, chaise side or comfort (see `elme-product-data`). The earlier figure of 147 configurables came from a staging snapshot. Swatches on PLP cards too.
 
 **Ref:** `Bart/el/Bart_ConfigurableByAttribute/templates/product/options.phtml`, `product/listing/options.phtml`, `Overdose_ConfigurableByAttribute`
 
@@ -1170,16 +1170,18 @@ Production audit on 22 Oct 2026, logged out, 1440 px and 390 px. Each ticket fix
 
 These decisions change the scope of the tickets named in **Affects**. Make them before those tickets start. Open Source has no Adobe Commerce features (dynamic banners, customer segments, content staging, gift cards), so nothing may depend on them.
 
+The ids D1...D15 belong to this file. The backend team's replatform documents (PIM data specification, Pronto item API) have their own decision log with the same numbers for other things: their D14 is "Avenue is not in the target", ours is the cart. Quote theirs as "replatform D14". What those documents say about product data is in the `elme-product-data` skill.
+
 | # | Decision | Production today | Options | Affects |
 | --- | --- | --- | --- | --- |
-| D1 | Search and recommendations engine | Algolia InstantSearch + Algolia Recommend | Keep Algolia (Hyvä compat module) · native OpenSearch + Hyvä autocomplete, related/upsell from admin | FE-17, FE-22, FE-23, FE-30 |
+| D1 | Search and recommendations engine | Algolia InstantSearch + Algolia Recommend | Keep Algolia (Hyvä compat module) · native OpenSearch + Hyvä autocomplete, related/upsell from admin. Backend target (9 Nov 2026): a separate Search Service builds the index from Magento product data and Shipment Service stock (replatform D26); which engine the storefront talks to is still open | FE-17, FE-22, FE-23, FE-30 |
 | D2 | Layered navigation | Aheadworks Layered Navigation | Aheadworks + Hyvä compat · Hyvä native filters with our own ranges and chips | FE-21, FE-23 |
 | D3 | Menu source | Snowdog Menu (built in admin) | **Decided:** Snowdog Menu (`snowdog/module-menu` ≥2.24, native Hyvä templates; no separate compat module). Local patch for Symfony `execute(): int` on Magento 2.4.9. | FE-08, FE-09 |
 | D4 | Product reviews | Yotpo enabled, not visible to guests | Keep Yotpo · drop reviews | FE-25, FE-43 |
 | D5 | Lookbook hotspots | MGS Lookbook | **Decided:** Content Studio type `lookbook` (FE-57) | FE-49, FE-16 |
-| D6 | PDP stock / delivery data | Pronto stock, shipment service, Fusedship rates, showroom stock | Which of these exist on the new instance at launch | FE-31 |
+| D6 | PDP stock / delivery data | Pronto stock, shipment service, Fusedship rates, showroom stock | **Decided by the backend target (9 Nov 2026):** no stock data is stored in Magento; stock label, quantity, dock date and ETA come from a live request to the Shipment Service (Elme stock plus James Lane DC stock for shared items). Until that request exists the card and the PDP read the label from MSI (`Elme\Theme\ViewModel\ProductTile`); FE-31 replaces it. Open: what is available at launch | FE-31, FE-19, FE-25 |
 | D7 | Newsletter and signup popup | Klaviyo popup + footer form | Klaviyo forms · Magento newsletter + own popup | FE-11, FE-54 |
-| D8 | Product images | Cloudinary | Keep Cloudinary · native Magento images | FE-19, FE-25 |
+| D8 | Product images | Cloudinary | **Decided (backend target, 9 Nov 2026):** Cloudinary stays the media store; the PIM sends the reference, roles, alt text and order. Templates read images through the Magento gallery and image blocks only, so the URL source can change without touching them. Open: the Cloudinary module on this instance | FE-19, FE-25 |
 | D9 | Blog | Magefan Blog templates exist, /blog is 404 | Drop (recommended) · port | — |
 | D10 | Instagram feed | Overdose InstaFeed | Instagram API module · static images in CMS | FE-12, FE-50 |
 | D11 | CMS content | Adobe Page Builder + LESS classes | **Decided:** new content, no migration; Page Builder for plain text pages, own copy of Content Studio (Open Source + Hyva) for structured blocks, placed with its Page Builder content type or widget; no CMS Tailwind JIT | FE-14...16, FE-47...49, FE-57 |

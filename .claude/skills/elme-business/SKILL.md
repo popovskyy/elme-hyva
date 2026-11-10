@@ -17,6 +17,11 @@ instance**. Nothing below exists here yet: it is what the old site does and what
 Business rules are the target behaviour; module/table names are where to read the old implementation.
 When a rule depends on a config switch, check the switch on the old site before relying on it.
 
+**Where the data comes from on the new instance** (PIM, Pronto through the data warehouse, Shipment
+Service, no Avenue, no stock in Magento) is in the `elme-product-data` skill. Where this file names
+an old source (Avenue, feasibility.cc, MSI sources, Pronto hourly sync), that is how the old site
+worked, not what to build.
+
 ## Customers
 
 - Businesses registered **with an ABN** (ABN Lookup validation at registration, admin notification
@@ -40,12 +45,15 @@ When a rule depends on a config switch, check the switch on the old site before 
   Applied by `ElmeLiving_CustomPricing` in the cart (quote item processor plugin), on the configurable
   PDP JSON, and by ajax `/custom_pricing/price/get` for search hits (prices load after render).
   **Catalog/FPC HTML never contains the customer's price** - it is fetched per customer.
-- Special prices: daily cron from `api.feasibility.cc/sync/special-prices`. Full Pronto price sync is off.
+- Special prices on the old site: daily cron from `api.feasibility.cc/sync/special-prices`; full
+  Pronto price sync off. Target: price lists, contract, marketing and promo prices are read from the
+  data warehouse DWH B2B; feasibility.cc is not used.
 - **No tier prices, no multibuy "buy 2+" promo** on Elme (the multibuy is JL/SG only).
 
 ## Ordering rules
 
-- **MOQ** (minimum sale qty > 1) on ~3,600 products: qty steppers must jump in MOQ multiples.
+- **MOQ** (minimum sale qty > 1) on 3,766 products: qty steppers must jump in MOQ multiples. The old
+  site got the value from the Avenue push; the target source is DWH B2B.
 - **Minimum order value per customer**: customer attribute `minimum_order_value`, enforced before
   place order; Quick Order shows the remaining amount.
 - **Quick Order** (`ElmeLiving_QuickOrder`, 56 theme files): bulk SKU entry, its own mini-cart, saved
@@ -56,6 +64,10 @@ When a rule depends on a config switch, check the switch on the old site before 
   customer's balance (customer attribute `outstanding_balance`).
 
 ## Stock
+
+Target: Magento stores no stock. Labels, quantity and ETA come from a live request to the Shipment
+Service, which combines Elme stock with James Lane DC stock for shared items. The rules below are
+what the customer must see; the MSI sources are the old implementation.
 
 - Elme sells from its own warehouse **VTA** (Melbourne, VIC); **VBL** is the showroom (a store, not
   stock for sale).
@@ -78,8 +90,11 @@ When a rule depends on a config switch, check the switch on the old site before 
 
 ## Catalogue and search
 
-- ~8,300 products, only 147 configurables; configurable axes `color` and `size`; clicking a swatch
-  navigates to the sibling product (Bart_ConfigurableByAttribute).
+- 25,293 products assigned to EL in prod (15 Oct 2026): 23,267 simple, 2,024 configurable. Configurable
+  axes are size, chaise side and comfort. Colour is not an axis: colour variants are separate
+  products grouped by `colour_super_sku`, and clicking a colour navigates to the sibling product
+  (Bart_ConfigurableByAttribute). An earlier staging snapshot gave about 8,300 products and 147
+  configurables; tickets that quote it describe that snapshot.
 - Search and listings on the old site: Algolia (+ Algolia Recommend widgets: frequently bought
   together, trending, related - `ElmeLiving_AlgoliaRecommend`), Aheadworks layered navigation, Mirasvit
   SEO. Dropship partner range is off on Elme.
@@ -93,9 +108,10 @@ Source, dynamic blocks (Banner) are not, RMA, gift cards, reward points, store c
 
 ## Integrations to plan for
 
-Pronto (Elme instance: stock, dock dates, customers, price mappings, special prices), data warehouse
-(hold stock), shipment service (labels, ETA, rates, calendar), Algolia, Klaviyo, Triple Whale,
-Zendesk chat. JL stock feed into `b2b` needs a new contract once Elme is a separate instance.
+PIM (all product data, see `elme-product-data`), data warehouse DWH B2B (Pronto prices, MOQ,
+condition code; DWH B2C for items shared with JL), Pronto B2B (orders, customers), Shipment Service
+(stock, labels, ETA, rates, calendar), Search Service, Cloudinary, Klaviyo, Triple Whale, Zendesk
+chat. Old-site sources that are gone: Pronto Avenue, feasibility.cc, the hourly Pronto stock sync.
 
 ## Where to read more
 

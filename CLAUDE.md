@@ -21,6 +21,7 @@ New Elme Living storefront (moving off the shared Adobe Commerce instance `m2-ba
 ## Skills
 
 - `elme-business` - who Elme's customers are and the B2B rules (login-only, per-customer Pronto prices, ex GST, MOQ, minimum order value, Quick Order, stock, freight). Read it before building anything that shows prices, stock or touches cart/checkout.
+- `elme-product-data` - where every product field comes from on the new instance (PIM, Pronto through the data warehouse, Shipment Service; no stock in Magento, no Avenue), the 74 PIM fields that replace 377 old attributes, what the Pronto item API can do. Read it before a ticket that shows, stores, imports or filters product data (PDP, PLP tile, filters, search, structured data, attributes).
 - `elme-port-from-luma` - how to port a block from the old `Bart/el` theme: where its sources are, how to check the live site, Hyvä rules, verification. `references/tokens-map.md` maps every old LESS variable to a token.
 - `elme-qa` - run when a change is done: `scope.py` (diff + Hyvä lint) + `smoke.sh` + `browse.mjs` (new vs old site screenshots), ends with the TASK / Change log / Steps For QA block.
 - `elme-look-options` - before restyling a block: a standalone HTML page in `docs/design/` with two or three looks (phone and desktop). The user picks, then the theme changes. Do not edit templates in the same step.
