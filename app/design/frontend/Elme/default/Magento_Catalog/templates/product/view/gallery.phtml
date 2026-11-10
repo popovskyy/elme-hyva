@@ -4,11 +4,12 @@
  *
  * One list of slides, two looks:
  *   below lg  one photo at a time, swipe, thumbnail strip underneath (arrows from md, where a mouse is likely);
- *   from lg   every photo in a grid of equal squares, two per row, fading in on scroll. Elme photos
- *             are square (about 80% on production, the rest landscape drawings and room shots, which
- *             sit whole inside the square). A photo left alone in the last row is centred, larger.
+ *   from lg   a mosaic of squares, fading in on scroll: the first photo large with two small ones
+ *             stacked beside it, then rows of three; the last row is always full (two halves, or
+ *             two rows of halves). 1 photo: one square; 2 or 4 photos: equal halves.
+ *             Elme photos are square (about 80% on production; the landscape rest sit whole inside).
  * A click on a photo opens it fullscreen (<dialog>): arrows, thumbnails, click to zoom, Esc to close.
- * One image: no arrows, thumbnails or counter. More than six: the rest sit behind "Show all photos"
+ * One image: no arrows, thumbnails or counter. More than nine: all but six sit behind "Show all photos"
  * in the grid (the swipe gallery and fullscreen always hold all of them).
  *
  * The first photo is in the HTML, eager and fetchpriority=high (LCP); nothing here hides it before JS runs.
@@ -39,9 +40,6 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
 /** @var ProductTile $tile */
 $tile = $viewModels->require(ProductTile::class);
 
-// Photos shown in the grid before "Show all photos": three rows of two.
-$gridLimit = 6;
-
 $product = $block->getProduct();
 $productName = (string) $product->getName();
 
@@ -56,6 +54,24 @@ if ($isPlaceholder) {
     $images = array_slice(array_values($placeholder->getPlaceholderImages()), 0, 1);
 }
 $count = count($images);
+// The grid shows up to nine photos; with more, six (large + two + a row of three) and "Show all photos".
+$gridLimit = $count > 9 ? 6 : $count;
+// Tile sizes, so every row of the mosaic is full: hero (2/3), small (1/3), half (1/2), solo.
+$tailHalves = match (true) {
+    $count < 5 => 0,
+    ($count - 3) % 3 === 2 => 2,
+    ($count - 3) % 3 === 1 => 4,
+    default => 0,
+};
+$tileSize = static function (int $i) use ($count, $tailHalves): string {
+    if ($count === 1) {
+        return 'solo';
+    }
+    if ($count === 2 || $count === 4 || $i >= $count - $tailHalves) {
+        return 'half';
+    }
+    return $i === 0 ? 'hero' : 'small';
+};
 $hasMany = $count > 1;
 $hiddenInGrid = max(0, $count - $gridLimit);
 
@@ -86,9 +102,7 @@ $badge = $tile->getBadge($product);
                 <?php
                 $alt = (string) ($img->getData('video_title') ?: $img->getData('label') ?: $productName);
                 $isVideo = (bool) $img->getData('video_url');
-                $slideClass = 'elme-gallery__slide'
-                    // a photo left alone in the last row of the grid (also the only photo)
-                    . ($i === $count - 1 && $count % 2 === 1 ? ' elme-gallery__slide--solo' : '');
+                $slideClass = 'elme-gallery__slide elme-gallery__slide--' . $tileSize($i);
                 ?>
                 <?php if ($isPlaceholder): ?>
                 <div class="<?= /* @noEscape */ $slideClass ?> elme-gallery__slide--placeholder">

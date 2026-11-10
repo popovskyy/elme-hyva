@@ -33,6 +33,31 @@ $product = $productViewModel->getProduct();
 $subtitle = trim((string) $product->getData('subtitle'));
 $shortDescription = trim((string) $productViewModel->getShortDescription());
 $stockLevel = $tile->getStockLevel($product);
+
+// UX-11 essentials next to the buy box: size, material, assembly (planned PIM fields `dimensions`,
+// `material`, `assembly_info`; see elme-product-data). A row without a value is not rendered.
+$attributeText = static function (string $code) use ($product): string {
+    $attribute = $product->getResource()->getAttribute($code);
+    if (!$attribute || $product->getData($code) === null || $product->getData($code) === '') {
+        return '';
+    }
+    $value = $attribute->usesSource() ? $product->getAttributeText($code) : $product->getData($code);
+    return trim(is_array($value) ? implode(', ', $value) : (string) $value);
+};
+$size = array_filter([
+    'W' => $attributeText('width'),
+    'D' => $attributeText('depth'),
+    'H' => $attributeText('height'),
+]);
+$sizeParts = [];
+foreach ($size as $letter => $value) {
+    $sizeParts[] = $letter . ' ' . $value;
+}
+$essentials = array_filter([
+    (string) __('Dimensions') => $sizeParts ? implode(' x ', $sizeParts) . ' cm' : '',
+    (string) __('Material') => $attributeText('material'),
+    (string) __('Assembly') => $attributeText('assembly_info'),
+]);
 ?>
 <div class="elme-pdp__info">
     <h1 class="elme-pdp__title" itemprop="name"><?= $escaper->escapeHtml($product->getName()) ?></h1>
@@ -102,12 +127,23 @@ $stockLevel = $tile->getStockLevel($product);
         <?= $block->getChildHtml('product.info.additional.actions') ?>
     </div>
 
+    <?php if ($essentials): ?>
+        <dl class="elme-pdp__essentials">
+            <?php foreach ($essentials as $label => $value): ?>
+                <div>
+                    <dt><?= $escaper->escapeHtml($label) ?></dt>
+                    <dd><?= $escaper->escapeHtml($value) ?></dd>
+                </div>
+            <?php endforeach; ?>
+        </dl>
+    <?php endif; ?>
+
     <?= $block->getChildHtml('product.info.additional') ?>
 </div>
 
 <?php if ($shortDescription !== ''): ?>
 <script>
-    // Short description: three lines on phones with "Read more"; the button only shows when text is cut.
+    // Short description: three lines on phones, six from lg, with "Read more"; the button only shows when text is cut.
     function initElmeClamp() {
         return {
             open: false,
