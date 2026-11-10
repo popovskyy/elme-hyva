@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- FE-12 Instagram (SKU-filtered) + FE-13 Our Difference on PDP. -->
+<!-- FE-12 Instagram (SKU-filtered) + FE-13 Our Difference on PDP. FE-25: layout, gallery, info column. -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
@@ -10,6 +10,11 @@
         <referenceBlock name="reviews.tab" remove="true"/>
         <referenceBlock name="review_list" remove="true"/>
         <referenceBlock name="product.review.form" remove="true"/>
+        <!-- FE-25: the product name is the H1 inside the info column (product/view/product-info.phtml) -->
+        <referenceBlock name="page.main.title" remove="true"/>
+        <referenceBlock name="product.info.title" remove="true"/>
+        <referenceBlock name="product.info.stockstatus" remove="true"/>
+        <referenceBlock name="product.price.tier" remove="true"/>
         <referenceBlock name="recently_viewed_products.default_widget_pdp">
             <arguments>
                 <argument name="show_buttons" xsi:type="string">add_to_cart</argument>

@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!-- Elme: only the values that differ from Hyva/default. -->
+<view xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:Config/etc/view.xsd">
+    <media>
+        <images module="Magento_Catalog">
+            <!-- FE-25: the first photo of the product grid is up to about 950px tall on a 1920px screen -->
+            <image id="product_page_image_medium" type="image">
+                <width>1000</width>
+                <height>1000</height>
+            </image>
+            <!-- FE-25: thumbnails are 64px, sharp on 2x screens -->
+            <image id="product_page_image_small" type="thumbnail">
+                <width>160</width>
+                <height>160</height>
+            </image>
+        </images>
+    </media>
+</view>

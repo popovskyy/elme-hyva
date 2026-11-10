@@ -1,0 +1,146 @@
+<?php
+/**
+ * Elme FE-25: product info column: name (the page H1), subtitle, SKU, stock line, short description,
+ * then the buy box. The buy box here is Hyva's blocks in one panel; FE-26 (guests) and FE-27 (customers)
+ * rebuild it and must keep btn-atc on the add to cart button (FE-70).
+ *
+ * Every field may be empty (elme-product-data): subtitle and short description render nothing then.
+ * From lg the buy box sits above the description (CSS order); the source order stays name, text, buy.
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\ProductTile;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\ProductPage;
+use Magento\Catalog\Model\Product;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var ProductPage $productViewModel */
+$productViewModel = $viewModels->require(ProductPage::class);
+/** @var ProductTile $tile */
+$tile = $viewModels->require(ProductTile::class);
+
+/** @var Product $product */
+$product = $productViewModel->getProduct();
+$subtitle = trim((string) $product->getData('subtitle'));
+$shortDescription = trim((string) $productViewModel->getShortDescription());
+$stockLevel = $tile->getStockLevel($product);
+?>
+<div class="elme-pdp__info">
+    <h1 class="elme-pdp__title" itemprop="name"><?= $escaper->escapeHtml($product->getName()) ?></h1>
+
+    <?php if ($subtitle !== ''): ?>
+        <p class="elme-pdp__subtitle"><?= $escaper->escapeHtml($subtitle) ?></p>
+    <?php endif; ?>
+
+    <div class="elme-pdp__meta">
+        <p>
+            <?= $escaper->escapeHtml(__('SKU')) ?>
+            <span class="text-ink" itemprop="sku"><?= $escaper->escapeHtml($product->getSku()) ?></span>
+        </p>
+        <?php if ($stockLevel): ?>
+            <p class="elme-card__stock--<?= /* @noEscape */ $stockLevel ?> flex items-center gap-1.5 font-medium">
+                <span class="size-1.5 shrink-0 rounded-full bg-current" aria-hidden="true"></span>
+                <?= $escaper->escapeHtml($stockLevel === ProductTile::STOCK_IN ? __('In Stock') : __('Low Stock')) ?>
+            </p>
+        <?php endif; ?>
+        <?= $block->getChildHtml('product.info.stockqty') ?>
+    </div>
+
+    <?php if ($shortDescription !== ''): ?>
+        <div class="elme-pdp__desc" x-data="initElmeClamp">
+            <div id="elme-pdp-desc"
+                 class="elme-pdp__desc-text prose"
+                 x-ref="text"
+                 :class="textClass"
+            ><?= /* @noEscape */ $shortDescription ?></div>
+            <button type="button"
+                    class="elme-pdp__more"
+                    aria-controls="elme-pdp-desc"
+                    :aria-expanded="isOpen"
+                    x-show="canToggle"
+                    x-cloak
+                    @click="toggle"
+            >
+                <span x-show="isClosed"><?= $escaper->escapeHtml(__('Read more')) ?></span>
+                <span x-show="isOpen"><?= $escaper->escapeHtml(__('Read less')) ?></span>
+            </button>
+        </div>
+    <?php endif; ?>
+
+    <div class="elme-pdp__buy">
+        <?= $block->getChildHtml('alert.urls') ?>
+
+        <?= $block->getChildHtml('product.info.form') ?>
+
+        <?php if ($product->getTypeId() === 'bundle'): ?>
+            <span class="sr-only"><?= $escaper->escapeHtml(__('The price depends on the chosen options')) ?></span>
+        <?php endif; ?>
+
+        <div role="group" aria-label="<?= $escaper->escapeHtmlAttr(__('Price')) ?>">
+            <?= $block->getChildHtml('product.info.price') ?>
+        </div>
+
+        <?php
+        $buyControls = $product->isSaleable()
+            ? trim($block->getChildHtml('product.info.quantity') . $block->getChildHtml('product.info.addtocart'))
+            : '';
+        ?>
+        <?php if ($buyControls !== ''): ?>
+            <div class="flex flex-wrap gap-2"><?= /* @noEscape */ $buyControls ?></div>
+            <?= $block->getChildHtml('addtocart.shortcut.buttons') ?>
+        <?php endif; ?>
+
+        <?= $block->getChildHtml('product.info.additional.actions') ?>
+    </div>
+
+    <?= $block->getChildHtml('product.info.additional') ?>
+</div>
+
+<?php if ($shortDescription !== ''): ?>
+<script>
+    // Short description: three lines on phones with "Read more"; the button only shows when text is cut.
+    function initElmeClamp() {
+        return {
+            open: false,
+            overflows: false,
+            init() {
+                this.$nextTick(() => this.measure());
+                window.addEventListener('resize', () => this.measure(), { passive: true });
+            },
+            measure() {
+                if (!this.open) {
+                    const text = this.$refs.text;
+                    this.overflows = text.scrollHeight > text.clientHeight + 1;
+                }
+            },
+            toggle() {
+                this.open = !this.open;
+            },
+            isOpen() {
+                return this.open;
+            },
+            isClosed() {
+                return !this.open;
+            },
+            canToggle() {
+                return this.overflows;
+            },
+            textClass() {
+                return { 'is-open': this.open };
+            }
+        };
+    }
+
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeClamp', initElmeClamp), { once: true });
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+<?php endif; ?>

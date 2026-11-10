@@ -1,0 +1,539 @@
+<?php
+/**
+ * Elme FE-25: product gallery. Our own template (Hyva's snap-slider gallery is not used).
+ *
+ * One list of slides, two looks:
+ *   below lg  one photo at a time, swipe, thumbnail strip underneath (arrows from md, where a mouse is likely);
+ *   from lg   every photo in a grid: the first one wide, the rest in pairs, fading in on scroll.
+ * A click on a photo opens it fullscreen (<dialog>): arrows, thumbnails, click to zoom, Esc to close.
+ * One image: no arrows, thumbnails or counter. More than seven: the rest sit behind "Show all photos"
+ * in the grid (the swipe gallery and fullscreen always hold all of them).
+ *
+ * The first photo is in the HTML, eager and fetchpriority=high (LCP); nothing here hides it before JS runs.
+ * Configurable products: "update-gallery" swaps the first photo for the chosen variant's main image and
+ * "reset-gallery" puts it back (FE-28 owns anything beyond that).
+ * Look: web/tailwind/elme/pdp.css.
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\ProductTile;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Hyva\Theme\ViewModel\Product\Placeholder;
+use Magento\Catalog\Block\Product\View\Gallery;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var Gallery $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var Placeholder $placeholder */
+$placeholder = $viewModels->require(Placeholder::class);
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var ProductTile $tile */
+$tile = $viewModels->require(ProductTile::class);
+
+// Photos shown in the grid before "Show all photos": one wide + three pairs.
+$gridLimit = 7;
+
+$product = $block->getProduct();
+$productName = (string) $product->getName();
+
+$images = $block->getGalleryImages()->getItems();
+$mainImage = current(array_filter($images, [$block, 'isMainImage']));
+if ($mainImage) {
+    $images = array_merge([$mainImage], array_filter($images, fn ($img) => $img !== $mainImage));
+}
+$images = array_values($images);
+$isPlaceholder = !$images;
+if ($isPlaceholder) {
+    $images = array_slice(array_values($placeholder->getPlaceholderImages()), 0, 1);
+}
+$count = count($images);
+$hasMany = $count > 1;
+$hiddenInGrid = max(0, $count - $gridLimit);
+
+$mediumWidth = (int) $block->getImageAttribute('product_page_image_medium', 'width', 1000);
+$mediumHeight = (int) $block->getImageAttribute('product_page_image_medium', 'height', 1000);
+$smallWidth = (int) $block->getImageAttribute('product_page_image_small', 'width', 160);
+$smallHeight = (int) $block->getImageAttribute('product_page_image_small', 'height', 160);
+
+$badge = $tile->getBadge($product);
+?>
+<section id="gallery"
+         class="elme-gallery"
+         aria-label="<?= $escaper->escapeHtmlAttr(__('Product images')) ?>"
+         <?php if (!$isPlaceholder): ?>
+         x-data="initElmeGallery"
+         x-bind="eventListeners"
+         <?php endif; ?>
+>
+    <div class="elme-gallery__stage">
+        <?php if ($badge): ?>
+            <span class="elme-card__badge elme-card__badge--<?= /* @noEscape */ $badge ?> elme-gallery__badge">
+                <?= $escaper->escapeHtml($badge === ProductTile::BADGE_SALE ? __('Sale') : __('New')) ?>
+            </span>
+        <?php endif; ?>
+
+        <div class="elme-gallery__track" data-track>
+            <?php foreach ($images as $i => $img): ?>
+                <?php
+                $alt = (string) ($img->getData('video_title') ?: $img->getData('label') ?: $productName);
+                $isVideo = (bool) $img->getData('video_url');
+                $slideClass = 'elme-gallery__slide'
+                    // an odd photo left alone at the end of the grid takes the full row
+                    . ($i > 0 && $i === $count - 1 && $count % 2 === 0 ? ' elme-gallery__slide--wide' : '');
+                ?>
+                <?php if ($isPlaceholder): ?>
+                <div class="<?= /* @noEscape */ $slideClass ?> elme-gallery__slide--placeholder">
+                <?php else: ?>
+                <button type="button"
+                        class="<?= /* @noEscape */ $slideClass ?>"
+                        data-slide
+                        data-full="<?= $escaper->escapeUrl($img->getData('large_image_url')) ?>"
+                        data-video="<?= $escaper->escapeUrl((string) $img->getData('video_url')) ?>"
+                        data-alt="<?= $escaper->escapeHtmlAttr($alt) ?>"
+                        <?php if ($i >= $gridLimit): ?>data-more<?php endif; ?>
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Image %1 of %2, open fullscreen', $i + 1, $count)) ?>"
+                        @click="openSlide"
+                >
+                <?php endif; ?>
+                    <img src="<?= $escaper->escapeUrl($img->getData('medium_image_url')) ?>"
+                         alt="<?= $escaper->escapeHtmlAttr($alt) ?>"
+                         width="<?= /* @noEscape */ $mediumWidth ?>"
+                         height="<?= /* @noEscape */ $mediumHeight ?>"
+                         draggable="false"
+                         <?php if ($i === 0): ?>
+                         loading="eager"
+                         fetchpriority="high"
+                         itemprop="image"
+                         <?php else: ?>
+                         loading="lazy"
+                         decoding="async"
+                         <?php endif; ?>
+                    >
+                    <?php if ($isVideo): ?>
+                        <span class="elme-gallery__play" aria-hidden="true">
+                            <?= $lucideIcons->playHtml('', 28, 28, ['aria-hidden' => 'true']) ?>
+                        </span>
+                    <?php elseif (!$isPlaceholder): ?>
+                        <span class="elme-gallery__plus" aria-hidden="true">
+                            <?= $lucideIcons->plusHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                        </span>
+                    <?php endif; ?>
+                <?= /* @noEscape */ $isPlaceholder ? '</div>' : '</button>' ?>
+            <?php endforeach; ?>
+        </div>
+
+        <?php if ($hasMany): ?>
+            <p class="elme-gallery__count" aria-hidden="true" x-text="counter">1 / <?= /* @noEscape */ $count ?></p>
+
+            <div class="elme-gallery__nav">
+                <button type="button"
+                        class="elme-ib elme-ib--line elme-gallery__arrow"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Previous image')) ?>"
+                        @click="prev"
+                        :disabled="atStart"
+                        disabled
+                >
+                    <?= $lucideIcons->arrowLeftHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                </button>
+                <button type="button"
+                        class="elme-ib elme-ib--line elme-gallery__arrow"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Next image')) ?>"
+                        @click="next"
+                        :disabled="atEnd"
+                >
+                    <?= $lucideIcons->arrowRightHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                </button>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <?php if ($hasMany): ?>
+        <div class="elme-gallery__thumbs" data-thumbs>
+            <?php foreach ($images as $i => $img): ?>
+                <button type="button"
+                        class="elme-gallery__thumb"
+                        data-thumb
+                        data-index="<?= /* @noEscape */ $i ?>"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Show image %1', $i + 1)) ?>"
+                        <?php if ($i === 0): ?>aria-current="true"<?php endif; ?>
+                        @click="goToThumb"
+                >
+                    <img src="<?= $escaper->escapeUrl($img->getData('small_image_url')) ?>"
+                         alt=""
+                         width="<?= /* @noEscape */ $smallWidth ?>"
+                         height="<?= /* @noEscape */ $smallHeight ?>"
+                         loading="lazy"
+                         decoding="async"
+                         draggable="false"
+                    >
+                </button>
+            <?php endforeach; ?>
+            <span class="elme-gallery__marker" data-marker aria-hidden="true"></span>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($hiddenInGrid): ?>
+        <div class="elme-gallery__more" x-show="isCollapsed">
+            <button type="button" class="btn btn-secondary w-full" @click="expand">
+                <?= $escaper->escapeHtml(__('Show all %1 photos', $count)) ?>
+            </button>
+        </div>
+    <?php endif; ?>
+
+    <?php if (!$isPlaceholder): ?>
+    <dialog class="elme-lightbox"
+            x-ref="dialog"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('%1, images', $productName)) ?>"
+            @close="onDialogClose"
+            @keydown.left="lightboxPrev"
+            @keydown.right="lightboxNext"
+    >
+        <div class="elme-lightbox__top">
+            <p class="elme-lightbox__count" x-text="lightboxCounter"></p>
+            <button type="button"
+                    class="elme-ib elme-ib--line"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Close')) ?>"
+                    @click="closeLightbox"
+            >
+                <?= $lucideIcons->xHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+            </button>
+        </div>
+
+        <div class="elme-lightbox__stage"
+             @touchstart.passive="touchStart"
+             @touchend.passive="touchEnd"
+        >
+            <img class="elme-lightbox__img"
+                 x-ref="full"
+                 x-show="lightboxIsImage"
+                 :src="lightbox.src"
+                 :alt="lightbox.alt"
+                 :class="lightboxImgClass"
+                 @load="onFullLoad"
+                 @click="toggleZoom"
+                 @mousemove="panZoom"
+                 draggable="false"
+            >
+            <template x-if="lightbox.video">
+                <video class="elme-lightbox__video" :src="lightbox.video" :title="lightbox.alt" controls autoplay playsinline></video>
+            </template>
+            <template x-if="lightbox.embed">
+                <iframe class="elme-lightbox__video"
+                        :src="lightbox.embed"
+                        :title="lightbox.alt"
+                        allow="autoplay; encrypted-media; picture-in-picture"
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen
+                ></iframe>
+            </template>
+
+            <?php if ($hasMany): ?>
+                <button type="button"
+                        class="elme-ib elme-ib--line elme-lightbox__arrow elme-lightbox__arrow--prev"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Previous image')) ?>"
+                        @click="lightboxPrev"
+                >
+                    <?= $lucideIcons->arrowLeftHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                </button>
+                <button type="button"
+                        class="elme-ib elme-ib--line elme-lightbox__arrow elme-lightbox__arrow--next"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Next image')) ?>"
+                        @click="lightboxNext"
+                >
+                    <?= $lucideIcons->arrowRightHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                </button>
+            <?php endif; ?>
+        </div>
+
+        <?php if ($hasMany): ?>
+            <div class="elme-lightbox__thumbs" data-lightbox-thumbs>
+                <?php foreach ($images as $i => $img): ?>
+                    <button type="button"
+                            class="elme-gallery__thumb"
+                            data-index="<?= /* @noEscape */ $i ?>"
+                            aria-label="<?= $escaper->escapeHtmlAttr(__('Show image %1', $i + 1)) ?>"
+                            @click="lightboxGoTo"
+                    >
+                        <img src="<?= $escaper->escapeUrl($img->getData('small_image_url')) ?>"
+                             alt=""
+                             width="<?= /* @noEscape */ $smallWidth ?>"
+                             height="<?= /* @noEscape */ $smallHeight ?>"
+                             loading="lazy"
+                             decoding="async"
+                        >
+                    </button>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </dialog>
+    <?php endif; ?>
+</section>
+
+<?php if (!$isPlaceholder): ?>
+<script>
+    function initElmeGallery() {
+        return {
+            index: 0,
+            count: 0,
+            expanded: false,
+            lightbox: { index: 0, src: '', alt: '', video: '', embed: '', zoom: false, ready: false },
+
+            init() {
+                this.track = this.$root.querySelector('[data-track]');
+                this.slides = Array.from(this.track.querySelectorAll('[data-slide]'));
+                this.count = this.slides.length;
+                this.thumbsBox = this.$root.querySelector('[data-thumbs]');
+                this.thumbs = Array.from(this.$root.querySelectorAll('[data-thumb]'));
+                this.marker = this.$root.querySelector('[data-marker]');
+                this.lightboxThumbs = Array.from(this.$root.querySelectorAll('[data-lightbox-thumbs] > *'));
+                this.firstImg = this.slides[0].querySelector('img');
+                this.initial = { src: this.firstImg.src, full: this.slides[0].dataset.full };
+
+                let frame = 0;
+                this.track.addEventListener('scroll', () => {
+                    cancelAnimationFrame(frame);
+                    frame = requestAnimationFrame(() => this.sync());
+                }, { passive: true });
+                window.addEventListener('resize', () => this.paintThumbs(), { passive: true });
+
+                this.$nextTick(() => {
+                    this.paintThumbs();
+                    this.revealOnScroll();
+                });
+            },
+
+            // From lg the track is a grid: photos below the fold fade in when they are scrolled to.
+            revealOnScroll() {
+                const isGrid = getComputedStyle(this.track).display === 'grid';
+                const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                if (!isGrid || reduced || !('IntersectionObserver' in window)) {
+                    return;
+                }
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.remove('is-below');
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.15 });
+                this.slides.slice(1).forEach((slide) => {
+                    if (slide.getBoundingClientRect().top > window.innerHeight) {
+                        slide.classList.add('is-below');
+                        observer.observe(slide);
+                    }
+                });
+            },
+
+            // --- swipe gallery (below lg) ---
+            origin() {
+                return this.slides[0].offsetLeft;
+            },
+            sync() {
+                let nearest = 0;
+                let distance = Infinity;
+                this.slides.forEach((slide, i) => {
+                    const d = Math.abs(slide.offsetLeft - this.origin() - this.track.scrollLeft);
+                    if (d < distance) {
+                        distance = d;
+                        nearest = i;
+                    }
+                });
+                if (nearest !== this.index) {
+                    this.index = nearest;
+                    this.paintThumbs();
+                }
+            },
+            goTo(i) {
+                const target = this.slides[Math.max(0, Math.min(this.count - 1, i))];
+                const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                this.track.scrollTo({ left: target.offsetLeft - this.origin(), behavior: reduced ? 'auto' : 'smooth' });
+            },
+            prev() {
+                this.goTo(this.index - 1);
+            },
+            next() {
+                this.goTo(this.index + 1);
+            },
+            goToThumb() {
+                this.goTo(Number(this.$event.currentTarget.dataset.index));
+            },
+            atStart() {
+                return this.index === 0;
+            },
+            atEnd() {
+                return this.index >= this.count - 1;
+            },
+            counter() {
+                return (this.index + 1) + ' / ' + this.count;
+            },
+            paintThumbs() {
+                if (!this.thumbs.length) {
+                    return;
+                }
+                this.thumbs.forEach((thumb, i) => {
+                    if (i === this.index) {
+                        thumb.setAttribute('aria-current', 'true');
+                    } else {
+                        thumb.removeAttribute('aria-current');
+                    }
+                });
+                const active = this.thumbs[this.index];
+                this.marker.style.width = active.offsetWidth + 'px';
+                this.marker.style.translate = active.offsetLeft + 'px 0';
+                this.thumbsBox.scrollTo({
+                    left: active.offsetLeft - this.thumbsBox.clientWidth / 2 + active.offsetWidth / 2,
+                    behavior: 'smooth'
+                });
+            },
+
+            // --- grid (from lg) ---
+            isCollapsed() {
+                return !this.expanded;
+            },
+            expand() {
+                this.expanded = true;
+                this.$root.classList.add('is-expanded');
+            },
+
+            // --- fullscreen ---
+            openSlide() {
+                this.showInLightbox(this.slides.indexOf(this.$event.currentTarget));
+                if (!this.$refs.dialog.open) {
+                    this.$refs.dialog.showModal();
+                }
+            },
+            showInLightbox(i) {
+                const index = (i + this.count) % this.count;
+                const data = this.slides[index].dataset;
+                const video = data.video || '';
+                const embed = video ? this.embedUrl(video) : '';
+                this.lightbox = {
+                    index,
+                    src: data.full,
+                    alt: data.alt,
+                    video: video && !embed ? video : '',
+                    embed,
+                    zoom: false,
+                    ready: false
+                };
+                this.lightboxThumbs.forEach((thumb, k) => {
+                    if (k === index) {
+                        thumb.setAttribute('aria-current', 'true');
+                    } else {
+                        thumb.removeAttribute('aria-current');
+                    }
+                });
+            },
+            embedUrl(src) {
+                let url;
+                try {
+                    url = new URL(src);
+                } catch (e) {
+                    return '';
+                }
+                if (url.hostname.includes('youtube.com') || url.hostname.includes('youtu.be')) {
+                    const id = url.searchParams.get('v') || url.pathname.split('/').pop();
+                    return 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1';
+                }
+                if (url.hostname.includes('vimeo.com')) {
+                    return 'https://player.vimeo.com/video/' + url.pathname.split('/').pop() + '?autoplay=1';
+                }
+                return '';
+            },
+            lightboxIsImage() {
+                return !this.lightbox.video && !this.lightbox.embed;
+            },
+            lightboxCounter() {
+                return (this.lightbox.index + 1) + ' / ' + this.count;
+            },
+            lightboxImgClass() {
+                return {
+                    'is-ready': this.lightbox.ready,
+                    'is-zoom': this.lightbox.zoom
+                };
+            },
+            onFullLoad() {
+                this.lightbox.ready = true;
+            },
+            lightboxPrev() {
+                this.showInLightbox(this.lightbox.index - 1);
+            },
+            lightboxNext() {
+                this.showInLightbox(this.lightbox.index + 1);
+            },
+            lightboxGoTo() {
+                this.showInLightbox(Number(this.$event.currentTarget.dataset.index));
+            },
+            closeLightbox() {
+                this.$refs.dialog.close();
+            },
+            onDialogClose() {
+                // leave the swipe gallery on the photo that was open, and stop any video
+                this.goTo(this.lightbox.index);
+                this.lightbox = { index: this.lightbox.index, src: '', alt: '', video: '', embed: '', zoom: false, ready: false };
+            },
+            // Mouse: click zooms into the spot under the cursor and the photo follows the pointer.
+            // Touch: the stage allows the browser's own pinch zoom, so a tap does nothing.
+            toggleZoom() {
+                if (this.touched) {
+                    this.touched = false;
+                    return;
+                }
+                this.panZoom();
+                this.lightbox.zoom = !this.lightbox.zoom;
+            },
+            panZoom() {
+                const event = this.$event;
+                const rect = this.$refs.full.parentNode.getBoundingClientRect();
+                const x = (event.clientX - rect.left) / rect.width * 100;
+                const y = (event.clientY - rect.top) / rect.height * 100;
+                this.$refs.full.style.transformOrigin = x + '% ' + y + '%';
+            },
+            touchStart() {
+                const touches = this.$event.touches;
+                this.touched = true;
+                this.swipeFrom = touches.length === 1 ? touches[0].clientX : null;
+            },
+            touchEnd() {
+                const zoomed = window.visualViewport && window.visualViewport.scale > 1.05;
+                if (this.swipeFrom === null || zoomed || this.count < 2) {
+                    return;
+                }
+                const dx = this.$event.changedTouches[0].clientX - this.swipeFrom;
+                if (Math.abs(dx) > 48) {
+                    this.showInLightbox(this.lightbox.index + (dx < 0 ? 1 : -1));
+                }
+            },
+
+            // --- configurable products ---
+            swapFirst(src, full) {
+                this.firstImg.src = src;
+                this.slides[0].dataset.full = full;
+            },
+            eventListeners: {
+                ['@update-gallery.window'](event) {
+                    const images = event.detail || [];
+                    const main = images.find((image) => image.isMain) || images[0];
+                    if (main && main.type !== 'video') {
+                        this.swapFirst(main.img, main.full);
+                    }
+                },
+                ['@reset-gallery.window']() {
+                    this.swapFirst(this.initial.src, this.initial.full);
+                }
+            }
+        };
+    }
+
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeGallery', initElmeGallery), { once: true });
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+<?php endif; ?>

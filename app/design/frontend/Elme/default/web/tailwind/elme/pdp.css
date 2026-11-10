@@ -1,0 +1,576 @@
+/*
+ * FE-25 product page: layout, gallery and fullscreen viewer.
+ * Templates: Magento_Catalog::product/product-detail-page.phtml, product/view/gallery.phtml,
+ * product/view/product-info.phtml.
+ *
+ * Gallery below lg: one photo, swipe, thumbnail strip (arrows from md). From lg: photo grid, the
+ * first photo wide, the info column pinned beside it.
+ */
+@layer components {
+    /* ---------- layout ---------- */
+    .elme-pdp {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: --spacing(6);
+        padding-bottom: --spacing(10);
+
+        @variant md {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            align-items: start;
+            gap: --spacing(8);
+        }
+
+        @variant lg {
+            grid-template-columns: minmax(0, 1fr) --spacing(100);
+            gap: --spacing(12);
+            padding-bottom: --spacing(16);
+        }
+
+        @variant 2xl {
+            grid-template-columns: minmax(0, 1fr) --spacing(120);
+            gap: --spacing(16);
+        }
+    }
+
+    /* ---------- info column ---------- */
+    .elme-pdp__info {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(4);
+        min-width: 0;
+
+        @variant lg {
+            position: sticky;
+            top: calc(var(--elme-header-offset, 0px) + --spacing(6));
+            gap: --spacing(5);
+        }
+    }
+
+    .elme-pdp__title {
+        margin: 0;
+        text-wrap: balance;
+
+        @variant lg {
+            font-size: var(--text-title-section-desktop);
+            line-height: var(--text-title-section-desktop--line-height);
+        }
+    }
+
+    .elme-pdp__subtitle {
+        margin-top: calc(--spacing(2) * -1);
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
+        color: var(--color-ink-muted);
+    }
+
+    .elme-pdp__meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: --spacing(1.5) --spacing(4);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        color: var(--color-ink-muted);
+    }
+
+    .elme-pdp__desc-text {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+
+        &.is-open {
+            display: block;
+        }
+
+        @variant lg {
+            display: block;
+            font-size: var(--text-copy-desktop);
+            line-height: var(--text-copy-desktop--line-height);
+        }
+
+        > :last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    .elme-pdp__more {
+        margin-top: --spacing(1.5);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        text-decoration: underline;
+        text-underline-offset: --spacing(0.75);
+        cursor: pointer;
+
+        @variant lg {
+            display: none;
+        }
+    }
+
+    .elme-pdp__buy {
+        display: grid;
+        gap: --spacing(3);
+
+        @variant lg {
+            order: -1;
+            padding: --spacing(5);
+            background: var(--color-surface);
+        }
+
+        /* the add to cart form holds only hidden inputs for a guest: no gap for it */
+        > form {
+            margin: 0;
+
+            &:not(:has(> :not(input[type="hidden"]))) {
+                display: none;
+            }
+        }
+    }
+
+    /* name, subtitle and SKU line stay above the buy box when it moves up at lg */
+    .elme-pdp__title,
+    .elme-pdp__subtitle,
+    .elme-pdp__meta {
+        @variant lg {
+            order: -2;
+        }
+    }
+
+    /* ---------- gallery ---------- */
+    .elme-gallery {
+        position: relative;
+        min-width: 0;
+        /* phones: photos run edge to edge */
+        margin-inline: calc(var(--container-gutter) * -1);
+
+        @variant md {
+            margin-inline: 0;
+        }
+    }
+
+    .elme-gallery__stage {
+        position: relative;
+    }
+
+    .elme-gallery__track {
+        display: flex;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        @variant lg {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: --spacing(2);
+            overflow: visible;
+        }
+    }
+
+    .elme-gallery__slide {
+        position: relative;
+        display: block;
+        flex: none;
+        width: 100%;
+        aspect-ratio: 1;
+        overflow: hidden;
+        padding: 0;
+        background: var(--color-surface);
+        scroll-snap-align: start;
+
+        &:is(button) {
+            cursor: zoom-in;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: -2px;
+        }
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            user-select: none;
+        }
+
+        @variant lg {
+            &:first-child,
+            &.elme-gallery__slide--wide {
+                grid-column: 1 / -1;
+                aspect-ratio: 3 / 2;
+            }
+
+            &[data-more] {
+                display: none;
+            }
+        }
+    }
+
+    .elme-gallery.is-expanded .elme-gallery__slide[data-more] {
+        display: block;
+    }
+
+    /* no photo: the theme placeholder fills the tile */
+    .elme-gallery__slide--placeholder img {
+        object-fit: cover;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .elme-gallery__slide img {
+            transition: scale calc(var(--transition-duration-slow) * 3) var(--ease-out-expo);
+        }
+
+        /* set by JS on photos below the fold (grid only), removed when they scroll into view */
+        .elme-gallery__slide {
+            transition:
+                opacity calc(var(--transition-duration-slow) * 2) var(--ease-out-quart),
+                translate calc(var(--transition-duration-slow) * 3) var(--ease-out-expo);
+        }
+
+        .elme-gallery__slide.is-below {
+            opacity: 0;
+            translate: 0 --spacing(8);
+        }
+    }
+
+    .elme-gallery__plus,
+    .elme-gallery__play {
+        position: absolute;
+        display: grid;
+        place-items: center;
+        background: var(--color-surface);
+        color: var(--color-ink);
+        pointer-events: none;
+    }
+
+    .elme-gallery__play {
+        top: 50%;
+        left: 50%;
+        width: --spacing(16);
+        height: --spacing(16);
+        border-radius: 50%;
+        translate: -50% -50%;
+    }
+
+    /* "+" in the corner of a grid photo on hover or keyboard focus */
+    .elme-gallery__plus {
+        right: --spacing(3);
+        bottom: --spacing(3);
+        display: none;
+        width: --spacing(9);
+        height: --spacing(9);
+        opacity: 0;
+        translate: 0 --spacing(1.5);
+        transition:
+            opacity var(--transition-duration-base) var(--ease-out-quart),
+            translate var(--transition-duration-base) var(--ease-out-quart);
+
+        @variant lg {
+            display: grid;
+        }
+    }
+
+    .elme-gallery__slide:focus-visible .elme-gallery__plus {
+        opacity: 1;
+        translate: 0 0;
+    }
+
+    @media (hover: hover) {
+        .elme-gallery__slide:hover .elme-gallery__plus {
+            opacity: 1;
+            translate: 0 0;
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            @variant lg {
+                .elme-gallery__slide:is(button):hover img {
+                    scale: 1.04;
+                }
+            }
+        }
+    }
+
+    .elme-gallery__badge {
+        position: absolute;
+        top: --spacing(4);
+        left: var(--container-gutter);
+        z-index: 2;
+
+        @variant md {
+            left: --spacing(4);
+        }
+    }
+
+    .elme-gallery__count {
+        position: absolute;
+        bottom: --spacing(3.5);
+        left: var(--container-gutter);
+        z-index: 2;
+        padding: --spacing(1) --spacing(2);
+        background: var(--color-surface);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        font-variant-numeric: tabular-nums;
+        color: var(--color-ink-muted);
+
+        @variant md {
+            left: --spacing(4);
+        }
+
+        @variant lg {
+            display: none;
+        }
+    }
+
+    .elme-gallery__nav {
+        position: absolute;
+        right: --spacing(4);
+        bottom: --spacing(4);
+        z-index: 2;
+        display: none;
+        gap: --spacing(2);
+
+        @variant md {
+            display: flex;
+        }
+
+        @variant lg {
+            display: none;
+        }
+    }
+
+    .elme-gallery__arrow {
+        background: var(--color-surface);
+
+        &:disabled {
+            opacity: 0.4;
+        }
+    }
+
+    /* thumbnail strip under the photo; a frame glides to the current one */
+    .elme-gallery__thumbs {
+        position: relative;
+        display: flex;
+        gap: --spacing(2);
+        overflow-x: auto;
+        padding: --spacing(2) var(--container-gutter) 0;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        @variant md {
+            padding-inline: 0;
+        }
+
+        @variant lg {
+            display: none;
+        }
+    }
+
+    .elme-gallery__thumb {
+        flex: none;
+        width: --spacing(16);
+        height: --spacing(16);
+        padding: 0;
+        background: var(--color-surface);
+        opacity: 0.7;
+        cursor: pointer;
+        transition: opacity var(--transition-duration-fast) ease;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        &:hover,
+        &[aria-current="true"] {
+            opacity: 1;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: -2px;
+            opacity: 1;
+        }
+    }
+
+    .elme-gallery__marker {
+        position: absolute;
+        top: --spacing(2);
+        left: 0;
+        width: --spacing(16);
+        height: --spacing(16);
+        border: 1px solid var(--color-ink);
+        pointer-events: none;
+
+        @media (prefers-reduced-motion: no-preference) {
+            transition: translate calc(var(--transition-duration-slow) * 1.4) var(--ease-out-expo);
+        }
+    }
+
+    /* "Show all N photos": grid only */
+    .elme-gallery__more {
+        display: none;
+        margin-top: --spacing(2);
+
+        @variant lg {
+            display: block;
+        }
+    }
+
+    /* ---------- fullscreen ---------- */
+    .elme-lightbox {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        max-width: none;
+        height: 100dvh;
+        max-height: none;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: var(--color-page);
+        color: var(--color-ink);
+
+        &[open] {
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+        }
+
+        &::backdrop {
+            background: var(--color-page);
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            opacity: 0;
+            transition:
+                opacity var(--transition-duration-base) var(--ease-out-quart),
+                overlay var(--transition-duration-base) allow-discrete,
+                display var(--transition-duration-base) allow-discrete;
+
+            &[open] {
+                opacity: 1;
+
+                @starting-style {
+                    opacity: 0;
+                }
+            }
+        }
+    }
+
+    html:has(.elme-lightbox[open]) {
+        overflow: hidden;
+    }
+
+    .elme-lightbox__top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: --spacing(3) --spacing(4);
+    }
+
+    .elme-lightbox__count {
+        font-size: var(--text-copy);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .elme-lightbox__stage {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-height: 0;
+        overflow: hidden;
+        /* phones: the browser's own pinch zoom works on the photo */
+        touch-action: pinch-zoom;
+    }
+
+    /* fills the stage; object-fit keeps the photo whole whatever its shape */
+    .elme-lightbox__img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        opacity: 0;
+        cursor: zoom-in;
+        user-select: none;
+
+        &.is-ready {
+            opacity: 1;
+        }
+
+        &.is-zoom {
+            transform: scale(2.4);
+            cursor: zoom-out;
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            scale: 0.97;
+            transition:
+                opacity var(--transition-duration-base) var(--ease-out-quart),
+                scale calc(var(--transition-duration-slow) * 1.5) var(--ease-out-expo),
+                transform var(--transition-duration-slow) var(--ease-out-quart);
+
+            &.is-ready {
+                scale: 1;
+            }
+        }
+    }
+
+    .elme-lightbox__video {
+        width: min(100%, --spacing(320));
+        max-height: 100%;
+        aspect-ratio: 16 / 9;
+    }
+
+    /* phones swipe; arrows from md. Two classes so .elme-ib's display does not win. */
+    .elme-lightbox .elme-lightbox__arrow {
+        position: absolute;
+        top: 50%;
+        z-index: 2;
+        display: none;
+        background: var(--color-surface);
+        translate: 0 -50%;
+
+        @variant md {
+            display: inline-grid;
+        }
+    }
+
+    .elme-lightbox__arrow--prev {
+        left: --spacing(4);
+    }
+
+    .elme-lightbox__arrow--next {
+        right: --spacing(4);
+    }
+
+    .elme-lightbox__thumbs {
+        display: flex;
+        gap: --spacing(2);
+        justify-content: safe center;
+        overflow-x: auto;
+        padding: --spacing(3) --spacing(4) --spacing(4);
+        scrollbar-width: none;
+
+        .elme-gallery__thumb {
+            width: --spacing(14);
+            height: --spacing(14);
+            border: 1px solid transparent;
+
+            &[aria-current="true"] {
+                border-color: var(--color-ink);
+            }
+        }
+    }
+}

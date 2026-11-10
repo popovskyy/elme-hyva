@@ -1,0 +1,26 @@
+<?php
+/**
+ * Elme FE-25: product page wrapper. Gallery and info side by side from md; from lg the gallery is a
+ * photo grid and the info column stays pinned while it scrolls. Look: web/tailwind/elme/pdp.css.
+ */
+
+declare(strict_types=1);
+
+use Magento\Catalog\Block\Product\View;
+use Magento\Framework\Escaper;
+
+/** @var View $block */
+/** @var Escaper $escaper */
+?>
+<section class="elme-pdp" aria-label="<?= $escaper->escapeHtmlAttr(__('Product Info')) ?>">
+    <?= $block->getChildHtml('product.media') ?>
+    <?= $block->getChildHtml('product.info') ?>
+</section>
+
+<?= $block->getChildHtml('product_options_wrapper_bottom') ?>
+
+<?= $block->getChildHtml('product.info.details'); ?>
+
+<?= $block->getChildHtml('related') ?>
+
+<?= $block->getChildHtml('upsell') ?>
