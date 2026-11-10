@@ -38,8 +38,8 @@ https://www.elmeliving.com/ on 2026-10-21. "Uses" = occurrences in the `Bart/el`
 
 | Token | Value | Old |
 |---|---|---|
-| `font-sans` (hyva.config.json `fonts`) | Karla 300-800 | `@font-family-name__base` |
-| `font-heading` | DM Serif Display 400 (+ italic) | `@font-family-name__dmserif`, `@heading__font-family__base` |
+| `font-sans` (hyva.config.json `fonts`) | Figtree 300-800 (the old site used Karla) | `@font-family-name__base` |
+| `font-heading` | Figtree Medium, registered at weight 400 (+ italic); the old site used DM Serif Display | `@font-family-name__dmserif`, `@heading__font-family__base` |
 | `text-base` | 15px / 20px | `@font-size__base`, `@line-height__base` |
 | `text-h1` / `h1-desktop` | 27px/35px → 60px | `@h1__font-size`, `@h1__font-size-desktop` |
 | `text-h2` / `h2-desktop` | 20px/30px → 28px | `@h2__font-size`, `@od-h2__font-size--desktop` |

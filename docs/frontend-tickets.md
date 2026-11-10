@@ -132,7 +132,7 @@ Everything else builds on these four. Ship them first, so other tickets reuse th
 
 ### FE-01 Design tokens, fonts, base typography
 
-**Scope:** colour palette, type scale (body 15/20 Karla, headings DM Serif Display), breakpoints, container up to 1920 px, square corners, form and button metrics in `hyva.config.json` → `tokens.values`; self-hosted fonts. Mostly done.
+**Scope:** colour palette, type scale (body 15/20; fonts changed on 11 Nov 2026 from Karla and DM Serif Display to Figtree for body and headings), breakpoints, container up to 1920 px, square corners, form and button metrics in `hyva.config.json` → `tokens.values`; self-hosted fonts. Mostly done.
 
 **Ref:** `Bart/el/web/css/source/variables/*`; computed styles on https://www.elmeliving.com/
 
