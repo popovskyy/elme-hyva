@@ -2,15 +2,15 @@
 /**
  * Elme FE-25: product gallery. Our own template (Hyva's snap-slider gallery is not used).
  *
- * One list of slides, two looks:
- *   below lg  one photo at a time, swipe, thumbnail strip underneath (arrows from md, where a mouse is likely);
- *   from lg   a mosaic of squares, fading in on scroll: the first photo large with two small ones
- *             stacked beside it, then rows of three; the last row is always full (two halves, or
- *             two rows of halves). 1 photo: one square; 2 or 4 photos: equal halves.
- *             Elme photos are square (about 80% on production; the landscape rest sit whole inside).
- * A click on a photo opens it fullscreen (<dialog>): arrows, thumbnails, click to zoom, Esc to close.
- * One image: no arrows, thumbnails or counter. More than nine: all but six sit behind "Show all photos"
- * in the grid (the swipe gallery and fullscreen always hold all of them).
+ * At every width: one square photo at a time (swipe; arrows at its sides from md), with a counter.
+ * Under it:
+ *   below lg  a thumbnail strip; a tap shows that photo;
+ *   from lg   the same list as a two-column grid of square photos, cut off after a strip with
+ *             "View gallery" (opens the whole grid, "Hide gallery" closes it); a click opens that
+ *             photo fullscreen.
+ * A click on the main photo opens it fullscreen (<dialog>): arrows, thumbnails, click to zoom, Esc.
+ * One image: no arrows, thumbnails, grid or counter.
+ * Elme photos are square (about 80% on production; the landscape rest sit whole inside the square).
  *
  * The first photo is in the HTML, eager and fetchpriority=high (LCP); nothing here hides it before JS runs.
  * Configurable products: "update-gallery" swaps the first photo for the chosen variant's main image and
@@ -54,26 +54,7 @@ if ($isPlaceholder) {
     $images = array_slice(array_values($placeholder->getPlaceholderImages()), 0, 1);
 }
 $count = count($images);
-// The grid shows up to nine photos; with more, six (large + two + a row of three) and "Show all photos".
-$gridLimit = $count > 9 ? 6 : $count;
-// Tile sizes, so every row of the mosaic is full: hero (2/3), small (1/3), half (1/2), solo.
-$tailHalves = match (true) {
-    $count < 5 => 0,
-    ($count - 3) % 3 === 2 => 2,
-    ($count - 3) % 3 === 1 => 4,
-    default => 0,
-};
-$tileSize = static function (int $i) use ($count, $tailHalves): string {
-    if ($count === 1) {
-        return 'solo';
-    }
-    if ($count === 2 || $count === 4 || $i >= $count - $tailHalves) {
-        return 'half';
-    }
-    return $i === 0 ? 'hero' : 'small';
-};
 $hasMany = $count > 1;
-$hiddenInGrid = max(0, $count - $gridLimit);
 
 $mediumWidth = (int) $block->getImageAttribute('product_page_image_medium', 'width', 1000);
 $mediumHeight = (int) $block->getImageAttribute('product_page_image_medium', 'height', 1000);
@@ -102,7 +83,7 @@ $badge = $tile->getBadge($product);
                 <?php
                 $alt = (string) ($img->getData('video_title') ?: $img->getData('label') ?: $productName);
                 $isVideo = (bool) $img->getData('video_url');
-                $slideClass = 'elme-gallery__slide elme-gallery__slide--' . $tileSize($i);
+                $slideClass = 'elme-gallery__slide';
                 ?>
                 <?php if ($isPlaceholder): ?>
                 <div class="<?= /* @noEscape */ $slideClass ?> elme-gallery__slide--placeholder">
@@ -113,7 +94,6 @@ $badge = $tile->getBadge($product);
                         data-full="<?= $escaper->escapeUrl($img->getData('large_image_url')) ?>"
                         data-video="<?= $escaper->escapeUrl((string) $img->getData('video_url')) ?>"
                         data-alt="<?= $escaper->escapeHtmlAttr($alt) ?>"
-                        <?php if ($i >= $gridLimit): ?>data-more<?php endif; ?>
                         aria-label="<?= $escaper->escapeHtmlAttr(__('Image %1 of %2, open fullscreen', $i + 1, $count)) ?>"
                         @click="openSlide"
                 >
@@ -135,10 +115,6 @@ $badge = $tile->getBadge($product);
                     <?php if ($isVideo): ?>
                         <span class="elme-gallery__play" aria-hidden="true">
                             <?= $lucideIcons->playHtml('', 28, 28, ['aria-hidden' => 'true']) ?>
-                        </span>
-                    <?php elseif (!$isPlaceholder): ?>
-                        <span class="elme-gallery__plus" aria-hidden="true">
-                            <?= $lucideIcons->plusHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
                         </span>
                     <?php endif; ?>
                 <?= /* @noEscape */ $isPlaceholder ? '</div>' : '</button>' ?>
@@ -181,7 +157,11 @@ $badge = $tile->getBadge($product);
                         <?php if ($i === 0): ?>aria-current="true"<?php endif; ?>
                         @click="goToThumb"
                 >
+                    <?php /* 64px in the strip, about a quarter of the screen in the grid */ ?>
                     <img src="<?= $escaper->escapeUrl($img->getData('small_image_url')) ?>"
+                         srcset="<?= $escaper->escapeUrl($img->getData('small_image_url')) ?> <?= /* @noEscape */ $smallWidth ?>w,
+                                 <?= $escaper->escapeUrl($img->getData('medium_image_url')) ?> <?= /* @noEscape */ $mediumWidth ?>w"
+                         sizes="(min-width: 1025px) 28vw, 64px"
                          alt=""
                          width="<?= /* @noEscape */ $smallWidth ?>"
                          height="<?= /* @noEscape */ $smallHeight ?>"
@@ -189,19 +169,25 @@ $badge = $tile->getBadge($product);
                          decoding="async"
                          draggable="false"
                     >
+                    <span class="elme-gallery__plus" aria-hidden="true">
+                        <?= $lucideIcons->plusHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                    </span>
                 </button>
             <?php endforeach; ?>
             <span class="elme-gallery__marker" data-marker aria-hidden="true"></span>
         </div>
-    <?php endif; ?>
-
-    <?php if ($hiddenInGrid): ?>
-        <div class="elme-gallery__more" x-show="isCollapsed">
-            <button type="button" class="btn btn-secondary w-full" @click="expand">
-                <?= $escaper->escapeHtml(__('Show all %1 photos', $count)) ?>
+        <div class="elme-gallery__toggle">
+            <button type="button"
+                    class="btn btn-secondary"
+                    :aria-expanded="expanded"
+                    @click="toggleGrid"
+            >
+                <span x-show="isCollapsed"><?= $escaper->escapeHtml(__('View gallery')) ?></span>
+                <span x-show="expanded" x-cloak><?= $escaper->escapeHtml(__('Hide gallery')) ?></span>
             </button>
         </div>
     <?php endif; ?>
+
 
     <?php if (!$isPlaceholder): ?>
     <dialog class="elme-lightbox"
@@ -321,32 +307,9 @@ $badge = $tile->getBadge($product);
 
                 this.$nextTick(() => {
                     this.paintThumbs();
-                    this.revealOnScroll();
                 });
             },
 
-            // From lg the track is a grid: photos below the fold fade in when they are scrolled to.
-            revealOnScroll() {
-                const isGrid = getComputedStyle(this.track).display === 'grid';
-                const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                if (!isGrid || reduced || !('IntersectionObserver' in window)) {
-                    return;
-                }
-                const observer = new IntersectionObserver((entries) => {
-                    entries.forEach((entry) => {
-                        if (entry.isIntersecting) {
-                            entry.target.classList.remove('is-below');
-                            observer.unobserve(entry.target);
-                        }
-                    });
-                }, { threshold: 0.15 });
-                this.slides.slice(1).forEach((slide) => {
-                    if (slide.getBoundingClientRect().top > window.innerHeight) {
-                        slide.classList.add('is-below');
-                        observer.observe(slide);
-                    }
-                });
-            },
 
             // --- swipe gallery (below lg) ---
             origin() {
@@ -378,8 +341,14 @@ $badge = $tile->getBadge($product);
             next() {
                 this.goTo(this.index + 1);
             },
+            // Strip (below lg): show that photo. Grid (from lg): open it fullscreen.
             goToThumb() {
-                this.goTo(Number(this.$event.currentTarget.dataset.index));
+                const index = Number(this.$event.currentTarget.dataset.index);
+                if (getComputedStyle(this.thumbsBox).display === 'grid') {
+                    this.openAt(index);
+                } else {
+                    this.goTo(index);
+                }
             },
             atStart() {
                 return this.index === 0;
@@ -414,14 +383,20 @@ $badge = $tile->getBadge($product);
             isCollapsed() {
                 return !this.expanded;
             },
-            expand() {
-                this.expanded = true;
-                this.$root.classList.add('is-expanded');
+            toggleGrid() {
+                this.expanded = !this.expanded;
+                this.$root.classList.toggle('is-expanded', this.expanded);
+                if (!this.expanded) {
+                    this.$root.scrollIntoView({ block: 'nearest' });
+                }
             },
 
             // --- fullscreen ---
             openSlide() {
-                this.showInLightbox(this.slides.indexOf(this.$event.currentTarget));
+                this.openAt(this.slides.indexOf(this.$event.currentTarget));
+            },
+            openAt(index) {
+                this.showInLightbox(index);
                 if (!this.$refs.dialog.open) {
                     this.$refs.dialog.showModal();
                 }

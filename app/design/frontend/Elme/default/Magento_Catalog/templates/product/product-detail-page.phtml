@@ -1,7 +1,8 @@
 <?php
 /**
- * Elme FE-25: product page wrapper. Gallery and info side by side from md; from lg the gallery is a
- * photo grid and the info column stays pinned while it scrolls. Look: web/tailwind/elme/pdp.css.
+ * Elme FE-25: product page wrapper. Gallery and info side by side from md; from lg whichever column
+ * is shorter stays pinned while the other scrolls. The detail sections (accordion) are in the info
+ * column. Look: web/tailwind/elme/pdp.css.
  */
 
 declare(strict_types=1);
@@ -18,8 +19,6 @@ use Magento\Framework\Escaper;
 </section>
 
 <?= $block->getChildHtml('product_options_wrapper_bottom') ?>
-
-<?= $block->getChildHtml('product.info.details'); ?>
 
 <?= $block->getChildHtml('related') ?>
 

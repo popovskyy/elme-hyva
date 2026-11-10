@@ -1,0 +1,68 @@
+<?php
+/**
+ * Elme FE-25: product detail sections as an accordion inside the info column (moved there in
+ * catalog_product_view.xml). Native <details>: works without JS, several can be open, all closed on
+ * load (the short description above already says what "Details" starts with). Sections with no content are not rendered. FE-29 adds the remaining sections
+ * (dimensions, delivery, CMS blocks, FAQ) to the same list. Look: web/tailwind/elme/pdp.css.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Hyva\Theme\ViewModel\ProductPage;
+use Magento\Catalog\Block\Product\View\Details;
+use Magento\Framework\Escaper;
+
+/** @var Details $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+$product = $viewModels->require(ProductPage::class)->getProduct();
+
+$titles = [
+    'description' => __('Details'),
+    'product.attributes' => __('Product Specifications'),
+];
+
+$sections = [];
+foreach ($block->getGroupSortedChildNames('detailed_info', '') as $sectionName) {
+    $sectionBlock = $block->getLayout()->getBlock($sectionName);
+    $html = trim((string) $sectionBlock->toHtml());
+    if ($html !== '') {
+        $sections[$sectionName] = [
+            'title' => $titles[$sectionName] ?? $sectionBlock->getData('title') ?? $sectionName,
+            'html' => $html,
+        ];
+    }
+}
+// Planned PIM field `care_instructions` (elme-product-data); nothing is rendered while it is empty.
+$care = trim((string) $product->getData('care_instructions'));
+if ($care !== '') {
+    $sections['care'] = [
+        'title' => __('Care Instructions'),
+        'html' => '<div class="prose">'
+            . $viewModels->require(ProductPage::class)->productAttributeHtml($product, $care, 'care_instructions')
+            . '</div>',
+    ];
+}
+if (!$sections) {
+    return;
+}
+?>
+<div class="elme-pdp__sections">
+    <?php foreach ($sections as $name => $section): ?>
+        <details class="elme-pdp__section"
+                 id="<?= $escaper->escapeHtmlAttr(str_replace('.', '-', (string) $name)) ?>">
+            <summary>
+                <h2><?= $escaper->escapeHtml($section['title']) ?></h2>
+                <?= $lucideIcons->chevronDownHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+            </summary>
+            <div class="elme-pdp__section-body">
+                <?= /* @noEscape */ $section['html'] ?>
+            </div>
+        </details>
+    <?php endforeach; ?>
+</div>

@@ -15,6 +15,8 @@
         <referenceBlock name="product.info.title" remove="true"/>
         <referenceBlock name="product.info.stockstatus" remove="true"/>
         <referenceBlock name="product.price.tier" remove="true"/>
+        <!-- FE-25: detail sections are an accordion inside the info column -->
+        <move element="product.info.details" destination="product.info"/>
         <referenceBlock name="recently_viewed_products.default_widget_pdp">
             <arguments>
                 <argument name="show_buttons" xsi:type="string">add_to_cart</argument>
