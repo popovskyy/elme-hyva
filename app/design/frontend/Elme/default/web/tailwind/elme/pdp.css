@@ -3,8 +3,8 @@
  * Templates: Magento_Catalog::product/product-detail-page.phtml, product/view/gallery.phtml,
  * product/view/product-info.phtml.
  *
- * Gallery below lg: one photo, swipe, thumbnail strip (arrows from md). From lg: photo grid, the
- * first photo wide, the info column pinned beside it.
+ * Gallery below lg: one photo, swipe, thumbnail strip (arrows from md). From lg: grid of square
+ * photos, two per row, the info column pinned beside it. Every tile is square at every width.
  */
 @layer components {
     /* ---------- layout ---------- */
@@ -201,10 +201,11 @@
         }
 
         @variant lg {
-            &:first-child,
-            &.elme-gallery__slide--wide {
+            /* alone in its row: still square, centred, as large as fits on screen */
+            &.elme-gallery__slide--solo {
                 grid-column: 1 / -1;
-                aspect-ratio: 3 / 2;
+                justify-self: center;
+                width: min(100%, calc(100svh - var(--elme-header-offset, 0px) - --spacing(12)));
             }
 
             &[data-more] {
