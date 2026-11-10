@@ -17,15 +17,26 @@ use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 
 /**
- * FE-49: seed /shop-the-looks CMS page + Content Studio lookbook gallery entry.
+ * FE-49 / FE-77: seed /shop-the-looks CMS page + Content Studio lookbook gallery entry.
+ *
+ * Look frames live in the theme at web/images/lookbook/ (full-size lifestyle JPEGs from the
+ * live Shop the Looks set). Never seed from web/images/sample-images — those are 400px soft
+ * placeholders that stretch badly in the editorial layout.
  */
 class CreateShopTheLooksPage implements DataPatchInterface
 {
-    private const MEDIA_DIR = 'bart_content_studio/fe49';
+    public const MEDIA_DIR = 'bart_content_studio/fe49';
 
-    private const ENTRY_IDENTIFIER = 'shop-the-looks-gallery';
+    public const ENTRY_IDENTIFIER = 'shop-the-looks-gallery';
 
     private const PAGE_IDENTIFIER = 'shop-the-looks';
+
+    /** Theme-relative lookbook frames copied into pub/media on install/update. */
+    private const IMAGE_FILES = [
+        'look-living.jpg',
+        'look-dining.jpg',
+        'look-bedroom.jpg',
+    ];
 
     public function __construct(
         private readonly EntryFactory $entryFactory,
@@ -40,10 +51,7 @@ class CreateShopTheLooksPage implements DataPatchInterface
     public function apply(): self
     {
         self::syncImagesToMedia();
-        $mediaBase = rtrim(
-            $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA),
-            '/'
-        ) . '/' . self::MEDIA_DIR . '/';
+        $mediaBase = self::mediaBaseUrl($this->storeManager);
 
         $this->ensureEntry($mediaBase);
         $this->upsertPage();
@@ -53,31 +61,38 @@ class CreateShopTheLooksPage implements DataPatchInterface
 
     public static function syncImagesToMedia(): void
     {
-        $sourceDir = BP . '/app/design/frontend/Elme/default/web/images/sample-images';
+        $sourceDir = BP . '/app/design/frontend/Elme/default/web/images/lookbook';
         $targetDir = BP . '/pub/media/' . self::MEDIA_DIR;
 
         if (!is_dir($targetDir) && !mkdir($targetDir, 0775, true) && !is_dir($targetDir)) {
             return;
         }
 
-        $map = [
-            'room-styled.jpg' => 'look-living.jpg',
-            'vessels.jpg' => 'look-dining.jpg',
-            'orchids-wide.jpg' => 'look-bedroom.jpg',
-        ];
-
-        foreach ($map as $fromName => $toName) {
-            $from = $sourceDir . '/' . $fromName;
-            $to = $targetDir . '/' . $toName;
+        foreach (self::IMAGE_FILES as $fileName) {
+            $from = $sourceDir . '/' . $fileName;
+            $to = $targetDir . '/' . $fileName;
             if (is_file($from)) {
                 copy($from, $to);
             }
         }
     }
 
-    private function ensureEntry(string $mediaBase): void
+    public static function mediaBaseUrl(StoreManagerInterface $storeManager): string
     {
-        $data = [
+        return rtrim(
+            $storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA),
+            '/'
+        ) . '/' . self::MEDIA_DIR . '/';
+    }
+
+    /**
+     * Gallery payload used on create and when FE-77 refreshes an existing entry.
+     *
+     * @return array{intro: string, looks: list<array<string, mixed>>}
+     */
+    public static function galleryData(string $mediaBase): array
+    {
+        return [
             'intro' => 'Elme Living wholesale styled looks for Australian retailers.'
                 . ' Tap the hotspots to see products in the scene, then sign in for your Pronto prices'
                 . ' (ex GST), or apply for a trade account with an ABN.',
@@ -86,39 +101,42 @@ class CreateShopTheLooksPage implements DataPatchInterface
                     'title' => 'Living room vignette',
                     'room' => 'living',
                     'image' => $mediaBase . 'look-living.jpg',
-                    'image_alt' => 'Elme Living showroom look with vessels and flora',
-                    'description' => 'A retail floor set with vessels and stems',
+                    'image_alt' => 'Styled living room with a cream modular sofa, side table and lamp',
+                    'description' => 'A showroom living set with seating and lighting',
                     'hotspots' => [
-                        ['x' => 32, 'y' => 48, 'sku' => 'FE53-VASE', 'label' => ''],
-                        ['x' => 58, 'y' => 40, 'sku' => 'FE53-LAMP', 'label' => ''],
-                        ['x' => 72, 'y' => 62, 'sku' => 'FE19-MOQ6', 'label' => ''],
+                        ['x' => 78, 'y' => 52, 'sku' => 'FE53-VASE', 'label' => ''],
+                        ['x' => 80, 'y' => 22, 'sku' => 'FE53-LAMP', 'label' => ''],
+                        ['x' => 42, 'y' => 82, 'sku' => 'FE19-MOQ6', 'label' => ''],
                     ],
                 ],
                 [
                     'title' => 'Dining table edit',
                     'room' => 'dining',
                     'image' => $mediaBase . 'look-dining.jpg',
-                    'image_alt' => 'Elme Living dining look with vessels',
-                    'description' => 'Tabletop vessels for a window display',
+                    'image_alt' => 'Dining table set with bronze vessels, bowls and a lit candlestick',
+                    'description' => 'A dark dining vignette for a window display',
                     'hotspots' => [
-                        ['x' => 40, 'y' => 55, 'sku' => 'FE53-LAMP', 'label' => ''],
-                        ['x' => 62, 'y' => 42, 'sku' => 'FE19-QTY50', 'label' => ''],
+                        ['x' => 55, 'y' => 30, 'sku' => 'FE53-LAMP', 'label' => ''],
+                        ['x' => 24, 'y' => 70, 'sku' => 'FE19-QTY50', 'label' => ''],
                     ],
                 ],
                 [
                     'title' => 'Bedroom flora',
                     'room' => 'bedroom',
                     'image' => $mediaBase . 'look-bedroom.jpg',
-                    'image_alt' => 'Elme Living bedroom look with orchids',
-                    'description' => 'Soft flora for a bedroom floor set',
+                    'image_alt' => 'Cream sofa against a terracotta wall with a marble side table and vessel',
+                    'description' => 'A soft seating vignette with a table vessel',
                     'hotspots' => [
-                        ['x' => 45, 'y' => 50, 'sku' => 'FE53-VASE', 'label' => ''],
-                        ['x' => 68, 'y' => 38, 'sku' => 'TEST-SOFA-1', 'label' => ''],
+                        ['x' => 60, 'y' => 48, 'sku' => 'FE53-VASE', 'label' => ''],
+                        ['x' => 45, 'y' => 50, 'sku' => 'TEST-SOFA-1', 'label' => ''],
                     ],
                 ],
             ],
         ];
+    }
 
+    private function ensureEntry(string $mediaBase): void
+    {
         try {
             $this->entryRepository->getByIdentifier(self::ENTRY_IDENTIFIER, Store::DEFAULT_STORE_ID);
             return;
@@ -131,7 +149,7 @@ class CreateShopTheLooksPage implements DataPatchInterface
             ->setType('lookbook')
             ->setTitle('Shop the Looks')
             ->setIsActive(true)
-            ->setEntryData($data)
+            ->setEntryData(self::galleryData($mediaBase))
             ->setStoreIds([Store::DEFAULT_STORE_ID]);
         $this->entryRepository->save($entry);
     }
