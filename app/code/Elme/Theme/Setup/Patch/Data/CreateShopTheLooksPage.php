@@ -33,7 +33,7 @@ class CreateShopTheLooksPage implements DataPatchInterface
 
     /** Theme-relative lookbook frames copied into pub/media on install/update. */
     private const IMAGE_FILES = [
-        'look-living.jpg',
+        'look-room.webp',
         'look-dining.jpg',
         'look-bedroom.jpg',
     ];
@@ -100,13 +100,13 @@ class CreateShopTheLooksPage implements DataPatchInterface
                 [
                     'title' => 'Living room vignette',
                     'room' => 'living',
-                    'image' => $mediaBase . 'look-living.jpg',
-                    'image_alt' => 'Styled living room with a cream modular sofa, side table and lamp',
-                    'description' => 'A showroom living set with seating and lighting',
+                    'image' => $mediaBase . 'look-room.webp',
+                    'image_alt' => 'Eucalyptus in a sand ceramic vessel by a window',
+                    'description' => 'A showroom corner with a vessel and stems',
                     'hotspots' => [
-                        ['x' => 78, 'y' => 52, 'sku' => 'FE53-VASE', 'label' => ''],
-                        ['x' => 80, 'y' => 22, 'sku' => 'FE53-LAMP', 'label' => ''],
-                        ['x' => 42, 'y' => 82, 'sku' => 'FE19-MOQ6', 'label' => ''],
+                        ['x' => 72, 'y' => 40, 'sku' => 'FE19-MOQ6', 'label' => ''],
+                        ['x' => 75, 'y' => 74, 'sku' => 'FE53-VASE', 'label' => ''],
+                        ['x' => 78, 'y' => 90, 'sku' => 'FE53-LAMP', 'label' => ''],
                     ],
                 ],
                 [

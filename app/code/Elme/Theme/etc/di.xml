@@ -25,4 +25,8 @@
             </argument>
         </arguments>
     </type>
+    <type name="Magento\Catalog\Model\View\Asset\Placeholder">
+        <plugin name="elme_theme_product_placeholder"
+                type="Elme\Theme\Plugin\Catalog\ProductPlaceholderPlugin"/>
+    </type>
 </config>
