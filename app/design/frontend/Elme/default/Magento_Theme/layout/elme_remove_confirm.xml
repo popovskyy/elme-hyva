@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+FE-75: confirm dialog + dust delete for pages where something can be removed. Add with
+<update handle="elme_remove_confirm"/>; not in default.xml, so other pages carry no extra JS.
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="before.body.end">
+            <block name="elme.confirm-dialog" template="Magento_Theme::elme/confirm-dialog.phtml"/>
+            <block name="elme.dust" template="Magento_Theme::elme/dust.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

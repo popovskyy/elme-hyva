@@ -26,49 +26,13 @@
             display: none;
         }
     }
-
-    /* Need assistance? letterhead sits on the footer rule. From the wide layout the column
-       lines run down onto that rule, in the same sage, so the borders meet. Hidden on pages
-       whose main content already shows the block, so the contacts are never twice. */
-    .elme-footer__assist {
-        padding-block: --spacing(8) --spacing(5);
-
-        @variant lg {
-            padding-block: --spacing(10) 0;
-        }
-
-        .elme-need-assistance {
-            margin-bottom: 0;
-        }
-    }
-
-    @container (min-width: 56rem) {
-        .elme-footer__assist .elme-need-assistance__inner {
-            align-items: end;
-        }
-
-        .elme-footer__assist .elme-need-assistance__title,
-        .elme-footer__assist .elme-need-assistance__cells > li {
-            padding-bottom: --spacing(8);
-        }
-
-        .elme-footer__assist .elme-need-assistance__cells > li {
-            border-color: var(--color-secondary);
-        }
-    }
-
-    body:has(main .elme-need-assistance) .elme-footer__assist {
-        display: none;
-    }
 }
 
 /*
- * From 2xl the letterhead and the footer row share one grid, so Call us sits on Shop,
- * Email us on Service, and Visit our Showroom on the newsletter column.
+ * From 2xl the footer row is one grid, so the link columns and the newsletter keep fixed tracks.
  * Tracks: brand, the gap under the logo, the link inset, Shop, a flexible gap, Service,
  * a flexible gap, Help, the link inset, the gap before the newsletter, the newsletter.
  * Unlayered so these beat the flex utilities on the same elements.
- * Narrower than 2xl the letterhead stays as it is (stacked, then its own row).
  */
 @variant 2xl {
     .elme-footer__sheet {
@@ -90,7 +54,6 @@
         align-items: start;
     }
 
-    .elme-footer__assist,
     .elme-footer__top,
     .elme-footer__bottom {
         grid-column: 1 / -1;
@@ -98,27 +61,17 @@
         row-gap: 0;
     }
 
-    .elme-footer__assist {
-        display: grid;
-        grid-template-columns: subgrid;
-        grid-row: 1;
-        align-items: end;
-    }
-
     .elme-footer__top {
         display: grid;
         grid-template-columns: subgrid;
-        grid-row: 2;
+        grid-row: 1;
         align-items: start;
     }
 
     .elme-footer__bottom {
-        grid-row: 3;
+        grid-row: 2;
     }
 
-    .elme-footer__assist .elme-need-assistance,
-    .elme-footer__assist .elme-need-assistance__inner,
-    .elme-footer__assist .elme-need-assistance__cells,
     .elme-footer__main,
     .elme-footer__links,
     .elme-footer__columns {
@@ -127,69 +80,6 @@
         column-gap: 0;
         row-gap: 0;
         min-width: 0;
-    }
-
-    .elme-footer__assist .elme-need-assistance {
-        grid-column: 1 / -1;
-        grid-row: 1;
-        container-type: normal;
-        margin-bottom: 0;
-    }
-
-    .elme-footer__assist .elme-need-assistance__inner {
-        grid-column: 1 / -1;
-        align-items: end;
-    }
-
-    .elme-footer__assist .elme-need-assistance__title {
-        grid-column: 1;
-        grid-row: 1;
-        min-width: 0;
-        padding-bottom: --spacing(8);
-        white-space: nowrap;
-    }
-
-    .elme-footer__assist .elme-need-assistance__cells {
-        grid-column: 4 / -1;
-        grid-row: 1;
-        margin: 0;
-        padding: 0;
-    }
-
-    .elme-footer__assist .elme-need-assistance__cells > li:nth-child(1) {
-        grid-column: 1;
-    }
-
-    .elme-footer__assist .elme-need-assistance__cells > li:nth-child(2) {
-        grid-column: 3;
-    }
-
-    .elme-footer__assist .elme-need-assistance__cells > li:nth-child(3) {
-        grid-column: 8;
-    }
-
-    .elme-footer__assist .elme-need-assistance__cells > li {
-        position: relative;
-        margin: 0;
-        padding: 0 0 --spacing(8);
-        border: 0;
-    }
-
-    .elme-footer__assist .elme-need-assistance__value,
-    .elme-footer__assist .elme-need-assistance__value--line {
-        white-space: nowrap;
-        overflow-wrap: normal;
-    }
-
-    .elme-footer__assist .elme-need-assistance__cells > li:not(:first-child)::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        right: 100%;
-        width: 1px;
-        margin-right: --spacing(7);
-        background: var(--color-secondary);
     }
 
     .elme-footer__brand {
@@ -225,11 +115,5 @@
         grid-column: 10;
         width: auto;
         max-width: none;
-    }
-
-    /* Unlayered, so it still wins over the grid above. The same rule in the layer
-       covers every width below 2xl. */
-    body:has(main .elme-need-assistance) .elme-footer__assist {
-        display: none;
     }
 }

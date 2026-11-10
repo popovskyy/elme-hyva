@@ -157,6 +157,18 @@ class SeedHomepageContentSections implements DataPatchInterface
             'slides' => [
                 $slide(
                     $media,
+                    'eucalyptus-',
+                    'wide.webp',
+                    'mobile.webp',
+                    'Eucalyptus branches in a sand-coloured ceramic vessel on a travertine plinth against a pale wall',
+                    "See the Range in\nOur Melbourne\nShowroom",
+                    'Browse furniture, homewares and florals in person, by appointment for trade customers.',
+                    'Visit Our Showroom',
+                    '/showroom-locator',
+                    'light'
+                ),
+                $slide(
+                    $media,
                     'peonies-',
                     'desktop-4k.webp',
                     'mobile-hd.webp',
@@ -190,18 +202,6 @@ class SeedHomepageContentSections implements DataPatchInterface
                     'Shop Vessels',
                     '/homewares/vessels.html',
                     'dark'
-                ),
-                $slide(
-                    $media,
-                    'eucalyptus-',
-                    'wide.webp',
-                    'mobile.webp',
-                    'Eucalyptus branches in a sand-coloured ceramic vessel on a travertine plinth against a pale wall',
-                    "See the Range in\nOur Melbourne\nShowroom",
-                    'Browse furniture, homewares and florals in person, by appointment for trade customers.',
-                    'Visit Our Showroom',
-                    '/showroom-locator',
-                    'light'
                 ),
             ],
         ];

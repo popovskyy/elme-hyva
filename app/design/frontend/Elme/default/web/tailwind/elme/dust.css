@@ -1,0 +1,39 @@
+/*
+ * FE-75: a deleted row turns to dust, then its gap closes (Magento_Theme::elme/dust.phtml).
+ * Markup: li.elme-dust > div > row. The middle div has no padding, border or margin, so 0fr is really 0 px; keep
+ * the space between rows inside the row (padding, or a margin inside the middle div), not as a gap on the list.
+ */
+
+@layer components {
+    .elme-dust {
+        display: grid;
+        grid-template-rows: 1fr;
+        transition: grid-template-rows var(--transition-duration-slow) var(--ease-out-quart);
+
+        & > * {
+            min-height: 0;
+        }
+
+        &.is-collapsed {
+            grid-template-rows: 0fr;
+
+            & > * {
+                overflow: hidden;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            transition-duration: var(--transition-duration-fast);
+        }
+    }
+
+    /* the overlay the dust flies on; only in the DOM while it does */
+    .elme-dust-canvas {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 45;
+    }
+}

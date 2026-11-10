@@ -10,7 +10,8 @@
  *
  *   load()            GET the cart (once; load(true) asks again)
  *   setQty(sku, qty)  change a row now, save after the debounce; 0 removes the row
- *   remove(sku)       remove a row, saved at once
+ *   remove(sku)       remove a row, saved at once; resolves true when saved, false when the save failed (the row
+ *                     is back in the cart then, as the server still has it)
  *   flush()           save a pending edit now; resolves when the cart is saved (call before going to checkout)
  */
 
@@ -42,6 +43,8 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
         let inFlight = null;
         let dirty = false;
         let editsSinceSend = 0;
+        // the last edit a successful save carried (each save sends the whole cart)
+        let savedEdits = 0;
 
         function emit() {
             const count = cart ? cart.items.reduce((sum, item) => sum + item.qty, 0) : 0;
@@ -103,6 +106,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                 },
                 body: JSON.stringify({ form_key: hyva.getFormKey(), mode: 'replace', items: rows() })
             }).then((data) => {
+                savedEdits = Math.max(savedEdits, sentEdits);
                 // edits made while this save was on its way win; the next save sends them
                 if (editsSinceSend === sentEdits) {
                     cart = data.cart;
@@ -141,9 +145,25 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             emit();
         }
 
-        function remove(sku) {
+        async function remove(sku) {
+            const index = cart ? cart.items.findIndex((item) => item.sku === sku) : -1;
+            if (index < 0) {
+                return true;
+            }
+            const item = cart.items[index];
             change(sku, 0);
-            return send();
+            const edit = editsSinceSend;
+            send();
+            await flush();
+            if (savedEdits >= edit) {
+                return true;
+            }
+            // the save failed (send() showed the error): the row comes back where it was
+            if (cart && !cart.items.some((row) => row.sku === sku)) {
+                cart.items.splice(Math.min(index, cart.items.length), 0, item);
+                emit();
+            }
+            return false;
         }
 
         async function flush() {

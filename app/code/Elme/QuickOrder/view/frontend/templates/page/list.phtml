@@ -119,6 +119,7 @@ $listsUrl = $block->getUrl('quick_order/template');
                     <span class="sr-only"><?= $escaper->escapeHtml(__('SKU')) ?></span>
                     <input type="text"
                            class="form-input w-full"
+                           x-ref="skuInput"
                            :value="skuQuery"
                            @input="setSkuQuery"
                            :aria-invalid="hasAddError"
@@ -162,68 +163,72 @@ $listsUrl = $block->getUrl('quick_order/template');
                     </div>
                     <ul>
                         <template x-for="item in items" :key="item.sku">
-                            <li class="elme-cart__line">
-                                <a class="elme-cart__photo" :href="item.url" x-show="hasUrl" tabindex="-1" aria-hidden="true">
-                                    <img :src="item.image" :alt="item.name" width="96" height="96" loading="lazy">
-                                </a>
-                                <div class="elme-cart__photo" x-show="hasNoUrl" aria-hidden="true">
-                                    <img :src="item.image" alt="" width="96" height="96" loading="lazy">
-                                </div>
-                                <div class="elme-cart__info">
-                                    <a class="elme-cart__name" :href="item.url" x-show="hasUrl" x-text="item.name"></a>
-                                    <p class="elme-cart__name" x-show="hasNoUrl" x-text="item.name"></p>
-                                    <p class="elme-cart__sku" x-text="item.sku"></p>
-                                    <p class="elme-cart__stock" :class="stockClass" x-show="hasStockLabel">
-                                        <span class="elme-cart__dot" aria-hidden="true"></span>
-                                        <span x-text="stockLabel"></span>
-                                    </p>
-                                    <p class="elme-cart__unit" x-show="hasPrice">
-                                        <span x-text="unitPrice"></span>
-                                    </p>
-                                    <p class="elme-cart__message" role="alert" x-show="hasMessage" x-text="item.message"></p>
-                                    <div class="elme-cart__actions hidden lg:flex">
-                                        <button type="button" class="elme-cart__textbtn" @click="removeItem" :disabled="locked">
-                                            <?= $escaper->escapeHtml(__('Remove')) ?>
-                                        </button>
-                                    </div>
-                                </div>
-                                <p class="elme-cart__row-total"><span class="elme-cart__tick" x-text="rowTotal"></span></p>
-                                <div class="elme-cart__ctrl">
-                                    <div class="elme-cart__qty">
-                                        <div class="elme-qty">
+                            <li class="elme-dust">
+                                <div>
+                                    <div class="elme-cart__line">
+                                        <a class="elme-cart__photo" :href="item.url" x-show="hasUrl" tabindex="-1" aria-hidden="true">
+                                            <img :src="item.image" :alt="item.name" width="96" height="96" loading="lazy">
+                                        </a>
+                                        <div class="elme-cart__photo" x-show="hasNoUrl" aria-hidden="true">
+                                            <img :src="item.image" alt="" width="96" height="96" loading="lazy">
+                                        </div>
+                                        <div class="elme-cart__info">
+                                            <a class="elme-cart__name" :href="item.url" x-show="hasUrl" x-text="item.name"></a>
+                                            <p class="elme-cart__name" x-show="hasNoUrl" x-text="item.name"></p>
+                                            <p class="elme-cart__sku" x-text="item.sku"></p>
+                                            <p class="elme-cart__stock" :class="stockClass" x-show="hasStockLabel">
+                                                <span class="elme-cart__dot" aria-hidden="true"></span>
+                                                <span x-text="stockLabel"></span>
+                                            </p>
+                                            <p class="elme-cart__unit" x-show="hasPrice">
+                                                <span x-text="unitPrice"></span>
+                                            </p>
+                                            <p class="elme-cart__message" role="alert" x-show="hasMessage" x-text="item.message"></p>
+                                            <div class="elme-cart__actions hidden lg:flex">
+                                                <button type="button" class="elme-cart__textbtn elme-cart__remove-text" @click="removeItem" :disabled="locked">
+                                                    <?= $escaper->escapeHtml(__('Remove')) ?>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <p class="elme-cart__row-total"><span class="elme-cart__tick" x-text="rowTotal"></span></p>
+                                        <div class="elme-cart__ctrl">
+                                            <div class="elme-cart__qty">
+                                                <div class="elme-qty">
+                                                    <button type="button"
+                                                            class="elme-qty__btn"
+                                                            @click="decrement"
+                                                            :disabled="cannotDecrement"
+                                                            aria-label="<?= $escaper->escapeHtmlAttr(__('Decrease quantity')) ?>">
+                                                        <?= $lucideIcons->minusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                                                    </button>
+                                                    <label class="sr-only" :for="qtyId"><?= $escaper->escapeHtml(__('Qty')) ?></label>
+                                                    <input type="number"
+                                                           class="elme-qty__input"
+                                                           inputmode="numeric"
+                                                           :id="qtyId"
+                                                           :value="item.qty"
+                                                           :min="item.min"
+                                                           :step="item.step"
+                                                           :disabled="locked"
+                                                           @change="onQtyChange">
+                                                    <button type="button"
+                                                            class="elme-qty__btn"
+                                                            @click="increment"
+                                                            :disabled="locked"
+                                                            aria-label="<?= $escaper->escapeHtmlAttr(__('Increase quantity')) ?>">
+                                                        <?= $lucideIcons->plusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                                                    </button>
+                                                </div>
+                                            </div>
                                             <button type="button"
-                                                    class="elme-qty__btn"
-                                                    @click="decrement"
-                                                    :disabled="cannotDecrement"
-                                                    aria-label="<?= $escaper->escapeHtmlAttr(__('Decrease quantity')) ?>">
-                                                <?= $lucideIcons->minusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
-                                            </button>
-                                            <label class="sr-only" :for="qtyId"><?= $escaper->escapeHtml(__('Qty')) ?></label>
-                                            <input type="number"
-                                                   class="elme-qty__input"
-                                                   inputmode="numeric"
-                                                   :id="qtyId"
-                                                   :value="item.qty"
-                                                   :min="item.min"
-                                                   :step="item.step"
-                                                   :disabled="locked"
-                                                   @change="onQtyChange">
-                                            <button type="button"
-                                                    class="elme-qty__btn"
-                                                    @click="increment"
+                                                    class="elme-ib elme-ib--danger elme-cart__trash"
+                                                    @click="removeItem"
                                                     :disabled="locked"
-                                                    aria-label="<?= $escaper->escapeHtmlAttr(__('Increase quantity')) ?>">
-                                                <?= $lucideIcons->plusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                                                    :aria-label="removeLabel">
+                                                <?= $lucideIcons->trash2Html('', 20, 20, ['aria-hidden' => 'true']) ?>
                                             </button>
                                         </div>
                                     </div>
-                                    <button type="button"
-                                            class="elme-ib elme-ib--danger elme-cart__trash"
-                                            @click="removeItem"
-                                            :disabled="locked"
-                                            :aria-label="removeLabel">
-                                        <?= $lucideIcons->trash2Html('', 20, 20, ['aria-hidden' => 'true']) ?>
-                                    </button>
                                 </div>
                             </li>
                         </template>
@@ -280,6 +285,7 @@ $listsUrl = $block->getUrl('quick_order/template');
                 </button>
             </div>
             <p class="sr-only" aria-live="polite" x-text="saveLabel"></p>
+            <p class="sr-only" role="status" x-text="announcement"></p>
         </div>
     <?php endif; ?>
 </section>
@@ -325,6 +331,8 @@ $listsUrl = $block->getUrl('quick_order/template');
         let chain = Promise.resolve();
         let queued = false;
         let edits = 0;
+        // totals the server sent while a row was turning to dust: shown after its gap has closed
+        let heldTotals = null;
 
         return {
             listName: listName,
@@ -345,6 +353,9 @@ $listsUrl = $block->getUrl('quick_order/template');
             isRenaming: false,
             renameValue: '',
             renameError: '',
+            // sku -> {item, index} of rows turning to dust: still in the page, no longer in the saved rows
+            removing: {},
+            announcement: '',
 
             init() {
                 if (!this.isNew) {
@@ -384,6 +395,10 @@ $listsUrl = $block->getUrl('quick_order/template');
 
             /** Totals come from the server; when the total changes, it ticks in the summary and the bar. */
             setTotals(totals) {
+                if (this.isRemoving()) {
+                    heldTotals = totals;
+                    return;
+                }
                 const before = Number(this.totals.total);
                 this.totals = totals;
                 const after = Number(totals.total);
@@ -414,11 +429,31 @@ $listsUrl = $block->getUrl('quick_order/template');
                 }
             },
 
+            /** The list as shown: a row turning to dust stays in place even when a reload no longer has it. */
             items() {
-                return this.list && this.list.items ? this.list.items : [];
+                const items = this.list && this.list.items ? this.list.items : [];
+                const leaving = Object.keys(this.removing);
+                if (!leaving.length) {
+                    return items;
+                }
+                const shown = items.slice();
+                leaving.forEach((sku) => {
+                    if (!shown.some((item) => item.sku === sku)) {
+                        const row = this.removing[sku];
+                        shown.splice(Math.min(row.index, shown.length), 0, row.item);
+                    }
+                });
+                return shown;
+            },
+            /** The list as saved: without the rows on their way out. */
+            keptItems() {
+                return this.items().filter((item) => !this.removing[item.sku]);
+            },
+            isRemoving() {
+                return Object.keys(this.removing).length > 0;
             },
             rows() {
-                return this.items()
+                return this.keptItems()
                     .filter((item) => item.qty > 0)
                     .map((item) => ({sku: item.sku, qty: item.qty}));
             },
@@ -442,7 +477,7 @@ $listsUrl = $block->getUrl('quick_order/template');
             },
             // a save on its way does not block: addAll waits for it (flush) and shows the button busy
             cannotAdd() {
-                return this.locked || !this.items().some((item) => item.available);
+                return this.locked || !this.keptItems().some((item) => item.available);
             },
             savingClass() {
                 return this.saving ? 'is-saving' : '';
@@ -579,14 +614,52 @@ $listsUrl = $block->getUrl('quick_order/template');
                     this.queueSave();
                 }
             },
-            removeItem() {
-                if (this.locked) {
+            /**
+             * Asks first. The save without the row starts at once while the row turns to dust; the row leaves the
+             * list (and the totals change) after its gap has closed. A failed save brings the row back.
+             */
+            async removeItem() {
+                const trigger = this.$event.currentTarget;
+                const sku = this.item.sku;
+                const name = this.item.name;
+                if (this.locked || this.removing[sku]) {
                     return;
                 }
-                const sku = this.item.sku;
+                const confirmed = await window.elmeConfirm({
+                    title: hyva.str('<?= $escaper->escapeJs(__('Remove %1 from this list?')) ?>', name),
+                    confirmLabel: '<?= $escaper->escapeJs(__('Remove')) ?>',
+                    trigger: trigger
+                });
+                const items = this.items();
+                const index = items.findIndex((item) => item.sku === sku);
+                if (!confirmed || this.locked || index < 0 || this.removing[sku]) {
+                    return;
+                }
                 edits++;
-                this.list.items = this.items().filter((item) => item.sku !== sku);
-                this.enqueueSave();
+                this.removing[sku] = {item: JSON.parse(JSON.stringify(items[index])), index: index};
+                const row = trigger.closest('.elme-cart__line');
+                const gone = window.elmeDust.dissolve(row);
+                window.elmeDust.focusNext(
+                    row,
+                    trigger.classList.contains('elme-cart__trash') ? '.elme-cart__trash' : '.elme-cart__remove-text',
+                    this.$refs.skuInput
+                );
+                const saved = this.enqueueSave();
+                await gone;
+                const ok = await saved;
+                delete this.removing[sku];
+                if (ok) {
+                    this.list.items = this.list.items.filter((item) => item.sku !== sku);
+                    this.announcement = hyva.str('<?= $escaper->escapeJs(__('%1 removed from this list.')) ?>', name);
+                }
+                if (!this.isRemoving() && heldTotals) {
+                    const totals = heldTotals;
+                    heldTotals = null;
+                    this.setTotals(totals);
+                }
+                if (!ok) {
+                    await window.elmeDust.restore(row, trigger);
+                }
             },
 
             queueSave() {
@@ -597,6 +670,7 @@ $listsUrl = $block->getUrl('quick_order/template');
                 timer = setTimeout(() => this.enqueueSave(), DEBOUNCE_MS);
             },
 
+            /** Resolves with the result of the save that carries the current rows (true when it was saved). */
             enqueueSave() {
                 clearTimeout(timer);
                 timer = null;
@@ -632,6 +706,7 @@ $listsUrl = $block->getUrl('quick_order/template');
                     await this.load();
                 }
                 this.setSaving(queued || Boolean(timer), ok);
+                return ok;
             },
 
             /** Resolves when no edit waits and no save is on its way. */
@@ -724,7 +799,7 @@ $listsUrl = $block->getUrl('quick_order/template');
                 this.adding = true;
                 try {
                     await this.flush();
-                    const items = this.items()
+                    const items = this.keptItems()
                         .filter((item) => item.available && item.qty > 0)
                         .map((item) => ({sku: item.sku, qty: item.qty}));
                     if (!items.length) {

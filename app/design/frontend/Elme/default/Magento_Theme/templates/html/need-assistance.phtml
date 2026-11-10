@@ -21,7 +21,7 @@ use Magento\Framework\View\Element\Template;
 $contact = $viewModels->require(StoreContact::class);
 
 $email = $contact->getEmail();
-// The footer renders this block too; it passes its own id so the page never has the same id twice.
+// A second copy on one page can pass its own heading_id so the page never has the same id twice.
 $headingId = (string) ($block->getData('heading_id') ?: 'elme-need-assistance-heading');
 ?>
 <section class="elme-need-assistance" aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">

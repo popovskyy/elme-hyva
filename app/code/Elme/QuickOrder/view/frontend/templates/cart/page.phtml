@@ -68,77 +68,81 @@ $homeUrl = $block->getBaseUrl();
             </div>
             <ul>
                 <template x-for="item in items" :key="item.sku">
-                    <li class="elme-cart__line">
-                        <a class="elme-cart__photo" :href="item.url" x-show="hasUrl" tabindex="-1" aria-hidden="true">
-                            <img :src="item.image" :alt="item.name" width="96" height="96" loading="lazy">
-                        </a>
-                        <div class="elme-cart__photo" x-show="hasNoUrl" aria-hidden="true">
-                            <img :src="item.image" alt="" width="96" height="96" loading="lazy">
-                        </div>
+                    <li class="elme-dust">
+                        <div>
+                            <div class="elme-cart__line">
+                                <a class="elme-cart__photo" :href="item.url" x-show="hasUrl" tabindex="-1" aria-hidden="true">
+                                    <img :src="item.image" :alt="item.name" width="96" height="96" loading="lazy">
+                                </a>
+                                <div class="elme-cart__photo" x-show="hasNoUrl" aria-hidden="true">
+                                    <img :src="item.image" alt="" width="96" height="96" loading="lazy">
+                                </div>
 
-                        <div class="elme-cart__info">
-                            <a class="elme-cart__name" :href="item.url" x-show="hasUrl" x-text="item.name"></a>
-                            <p class="elme-cart__name" x-show="hasNoUrl" x-text="item.name"></p>
-                            <p class="elme-cart__sku" x-text="item.sku"></p>
-                            <p class="elme-cart__stock" :class="stockClass" x-show="hasStockLabel">
-                                <span class="elme-cart__dot" aria-hidden="true"></span>
-                                <span x-text="stockLabel"></span>
-                            </p>
-                            <p class="elme-cart__unit" x-show="hasPrice">
-                                <span x-text="unitPrice"></span>
-                                <s class="elme-cart__was" x-show="hasDiscount" x-text="regularPrice"></s>
-                            </p>
-                            <p class="elme-cart__message" role="alert" x-show="hasMessage" x-text="item.message"></p>
-                            <div class="elme-cart__actions">
-                                <button type="button" class="elme-cart__textbtn elme-cart__remove-text" @click="removeItem">
-                                    <?= $escaper->escapeHtml(__('Remove')) ?>
-                                </button>
-                                <button type="button"
-                                        class="elme-cart__textbtn"
-                                        data-elme-qo-add-to-list
-                                        :data-sku="item.sku"
-                                        :data-qty="item.qty"
-                                        :data-product-name="item.name">
-                                    <?= $escaper->escapeHtml(__('Add to shopping list')) ?>
-                                </button>
-                            </div>
-                        </div>
+                                <div class="elme-cart__info">
+                                    <a class="elme-cart__name" :href="item.url" x-show="hasUrl" x-text="item.name"></a>
+                                    <p class="elme-cart__name" x-show="hasNoUrl" x-text="item.name"></p>
+                                    <p class="elme-cart__sku" x-text="item.sku"></p>
+                                    <p class="elme-cart__stock" :class="stockClass" x-show="hasStockLabel">
+                                        <span class="elme-cart__dot" aria-hidden="true"></span>
+                                        <span x-text="stockLabel"></span>
+                                    </p>
+                                    <p class="elme-cart__unit" x-show="hasPrice">
+                                        <span x-text="unitPrice"></span>
+                                        <s class="elme-cart__was" x-show="hasDiscount" x-text="regularPrice"></s>
+                                    </p>
+                                    <p class="elme-cart__message" role="alert" x-show="hasMessage" x-text="item.message"></p>
+                                    <div class="elme-cart__actions">
+                                        <button type="button" class="elme-cart__textbtn elme-cart__remove-text" @click="removeItem">
+                                            <?= $escaper->escapeHtml(__('Remove')) ?>
+                                        </button>
+                                        <button type="button"
+                                                class="elme-cart__textbtn"
+                                                data-elme-qo-add-to-list
+                                                :data-sku="item.sku"
+                                                :data-qty="item.qty"
+                                                :data-product-name="item.name">
+                                            <?= $escaper->escapeHtml(__('Add to shopping list')) ?>
+                                        </button>
+                                    </div>
+                                </div>
 
-                        <p class="elme-cart__row-total"><span class="elme-cart__tick" x-text="rowTotal"></span></p>
+                                <p class="elme-cart__row-total"><span class="elme-cart__tick" x-text="rowTotal"></span></p>
 
-                        <div class="elme-cart__ctrl">
-                            <div class="elme-cart__qty">
-                                <div class="elme-qty">
+                                <div class="elme-cart__ctrl">
+                                    <div class="elme-cart__qty">
+                                        <div class="elme-qty">
+                                            <button type="button"
+                                                    class="elme-qty__btn"
+                                                    @click="decrement"
+                                                    :disabled="isAtMin"
+                                                    aria-label="<?= $escaper->escapeHtmlAttr(__('Decrease quantity')) ?>">
+                                                <?= $lucideIcons->minusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                                            </button>
+                                            <label class="sr-only" :for="qtyId"><?= $escaper->escapeHtml(__('Qty')) ?></label>
+                                            <input type="number"
+                                                   class="elme-qty__input"
+                                                   inputmode="numeric"
+                                                   :id="qtyId"
+                                                   :value="item.qty"
+                                                   :min="item.min"
+                                                   :step="item.step"
+                                                   @change="onQtyChange">
+                                            <button type="button"
+                                                    class="elme-qty__btn"
+                                                    @click="increment"
+                                                    aria-label="<?= $escaper->escapeHtmlAttr(__('Increase quantity')) ?>">
+                                                <?= $lucideIcons->plusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                                            </button>
+                                        </div>
+                                    </div>
                                     <button type="button"
-                                            class="elme-qty__btn"
-                                            @click="decrement"
-                                            :disabled="isAtMin"
-                                            aria-label="<?= $escaper->escapeHtmlAttr(__('Decrease quantity')) ?>">
-                                        <?= $lucideIcons->minusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
-                                    </button>
-                                    <label class="sr-only" :for="qtyId"><?= $escaper->escapeHtml(__('Qty')) ?></label>
-                                    <input type="number"
-                                           class="elme-qty__input"
-                                           inputmode="numeric"
-                                           :id="qtyId"
-                                           :value="item.qty"
-                                           :min="item.min"
-                                           :step="item.step"
-                                           @change="onQtyChange">
-                                    <button type="button"
-                                            class="elme-qty__btn"
-                                            @click="increment"
-                                            aria-label="<?= $escaper->escapeHtmlAttr(__('Increase quantity')) ?>">
-                                        <?= $lucideIcons->plusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                                            class="elme-ib elme-ib--danger elme-cart__trash"
+                                            @click="removeItem"
+                                            :aria-label="removeLabel">
+                                        <?= $lucideIcons->trash2Html('', 20, 20, ['aria-hidden' => 'true']) ?>
                                     </button>
                                 </div>
                             </div>
-                            <button type="button"
-                                    class="elme-ib elme-ib--danger elme-cart__trash"
-                                    @click="removeItem"
-                                    :aria-label="removeLabel">
-                                <?= $lucideIcons->trash2Html('', 20, 20, ['aria-hidden' => 'true']) ?>
-                            </button>
                         </div>
                     </li>
                 </template>
@@ -195,6 +199,7 @@ $homeUrl = $block->getBaseUrl();
         </button>
     </div>
     <p class="sr-only" aria-live="polite" x-text="saveLabel"></p>
+    <p class="sr-only" role="status" x-text="announcement"></p>
 </section>
 <script>
     function initElmeQuickOrderCartPage() {
@@ -202,6 +207,8 @@ $homeUrl = $block->getBaseUrl();
         const SAVED_MS = 1400;
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
         let savedTimer = null;
+        // the last cart the client sent; rows on their way out (removing) stay in the page until they collapsed
+        let latest = null;
 
         /** The new number slides in from below (up) or above (down); fast token, ease-out-quart. */
         function tick(el, dir) {
@@ -225,6 +232,9 @@ $homeUrl = $block->getBaseUrl();
             justSaved: false,
             leaving: false,
             loadError: '',
+            // sku -> {item, index} of rows turning to dust
+            removing: {},
+            announcement: '',
 
             init() {
                 window.elmeQuickOrderCart.load().catch((error) => {
@@ -234,10 +244,8 @@ $homeUrl = $block->getBaseUrl();
 
             onCart() {
                 const detail = this.$event.detail;
-                const before = Number(this.totals.total);
                 const wasSaving = this.saving;
-                this.cart = detail.cart;
-                this.totals = (this.cart && this.cart.totals) || {};
+                latest = detail;
                 this.saving = detail.saving;
 
                 clearTimeout(savedTimer);
@@ -248,8 +256,36 @@ $homeUrl = $block->getBaseUrl();
                         this.justSaved = false;
                     }, SAVED_MS);
                 }
+                this.render();
+            },
 
-                const after = Number(this.totals.total);
+            /** The client's cart, with the rows on their way out kept in place; totals wait for the collapse. */
+            render() {
+                if (!latest) {
+                    return;
+                }
+                let cart = latest.cart;
+                const leaving = Object.keys(this.removing);
+                if (cart && leaving.length) {
+                    const items = cart.items.slice();
+                    leaving.forEach((sku) => {
+                        if (!items.some((item) => item.sku === sku)) {
+                            const row = this.removing[sku];
+                            items.splice(Math.min(row.index, items.length), 0, row.item);
+                        }
+                    });
+                    cart = Object.assign({}, cart, {items: items});
+                }
+                this.cart = cart;
+                if (!leaving.length) {
+                    this.showTotals((cart && cart.totals) || {});
+                }
+            },
+
+            showTotals(totals) {
+                const before = Number(this.totals.total);
+                this.totals = totals;
+                const after = Number(totals.total);
                 if (before && after && before !== after) {
                     this.$nextTick(() => {
                         tick(this.$refs.barTotal, after > before ? 1 : -1);
@@ -368,8 +404,45 @@ $homeUrl = $block->getBaseUrl();
                 this.tickRow(this.$event.target, qty > this.item.qty ? 1 : -1);
                 window.elmeQuickOrderCart.setQty(this.item.sku, qty);
             },
-            removeItem() {
-                window.elmeQuickOrderCart.remove(this.item.sku);
+            /**
+             * Asks first. The delete goes to the server at once while the row turns to dust; the row leaves the
+             * list (and the totals change) after its gap has closed. A failed save brings the row back.
+             */
+            async removeItem() {
+                const trigger = this.$event.currentTarget;
+                const sku = this.item.sku;
+                const name = this.item.name;
+                if (this.removing[sku]) {
+                    return;
+                }
+                const confirmed = await window.elmeConfirm({
+                    title: hyva.str('<?= $escaper->escapeJs(__('Remove %1 from your cart?')) ?>', name),
+                    confirmLabel: '<?= $escaper->escapeJs(__('Remove')) ?>',
+                    trigger: trigger
+                });
+                const items = this.items();
+                const index = items.findIndex((item) => item.sku === sku);
+                if (!confirmed || index < 0 || this.removing[sku]) {
+                    return;
+                }
+                this.removing[sku] = {item: JSON.parse(JSON.stringify(items[index])), index: index};
+                const row = trigger.closest('.elme-cart__line');
+                const gone = window.elmeDust.dissolve(row);
+                window.elmeDust.focusNext(
+                    row,
+                    trigger.classList.contains('elme-cart__trash') ? '.elme-cart__trash' : '.elme-cart__remove-text',
+                    document.querySelector('h1')
+                );
+                const saved = window.elmeQuickOrderCart.remove(sku);
+                await gone;
+                const ok = await saved;
+                delete this.removing[sku];
+                this.render();
+                if (ok) {
+                    this.announcement = hyva.str('<?= $escaper->escapeJs(__('%1 removed from your cart.')) ?>', name);
+                } else {
+                    await window.elmeDust.restore(row, trigger);
+                }
             },
             async goToCheckout() {
                 if (this.leaving) {
