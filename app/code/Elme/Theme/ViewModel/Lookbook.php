@@ -14,6 +14,8 @@ use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\Checkout\Helper\Cart as CartHelper;
 use Magento\Cms\Model\Page as CmsPage;
+use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Filesystem;
@@ -28,10 +30,12 @@ use Magento\Store\Model\StoreManagerInterface;
 use Throwable;
 
 /**
- * Content Studio type `lookbook` (FE-49) + /shop-the-looks JSON-LD / OG helpers.
+ * Content Studio type `lookbook` (FE-49, FE-77) + /shop-the-looks JSON-LD / OG helpers.
  *
  * Guest HTML: look image, hotspot product name / thumb / PDP URL, sign-in CTA. Never customer prices.
  * Logged-in: MOQ / stock / ATC data (prices still load after render via Elme_LoginOnly placeholders).
+ * Configurables carry their options and children, so the card asks for the colour and adds the child.
+ * Layout `feature` (home Be Inspired) shows one look, from its own rows or from another lookbook entry.
  */
 class Lookbook implements ArgumentInterface
 {
@@ -46,6 +50,12 @@ class Lookbook implements ArgumentInterface
     public const IMAGE_SIZE = [1440, 960];
 
     public const PRODUCT_IMAGE_SIZE = [240, 240];
+
+    public const LAYOUT_GALLERY = 'gallery';
+
+    public const LAYOUT_FEATURE = 'feature';
+
+    private const TONE_CACHE_PREFIX = 'elme_lookbook_tone_';
 
     /** @var array<string, string> */
     public const ROOMS = [
@@ -70,6 +80,9 @@ class Lookbook implements ArgumentInterface
     /** @var array<string, int> */
     private array $stockIds = [];
 
+    /** @var array<string, array<string, mixed>> */
+    private array $entryContentById = [];
+
     public function __construct(
         private readonly StoreManagerInterface $storeManager,
         private readonly Filesystem $filesystem,
@@ -83,7 +96,8 @@ class Lookbook implements ArgumentInterface
         private readonly ProductTile $productTile,
         private readonly GetProductSalableQtyInterface $getProductSalableQty,
         private readonly StockResolverInterface $stockResolver,
-        private readonly IsSourceItemManagementAllowedForProductTypeInterface $isQtyManagedType
+        private readonly IsSourceItemManagementAllowedForProductTypeInterface $isQtyManagedType,
+        private readonly CacheInterface $cache
     ) {
     }
 
@@ -108,22 +122,75 @@ class Lookbook implements ArgumentInterface
     }
 
     /**
-     * @return list<array{code: string, label: string}>
+     * @param array<string, mixed> $content
+     */
+    public function getLayout(array $content): string
+    {
+        return $this->text($content, 'layout') === self::LAYOUT_FEATURE ? self::LAYOUT_FEATURE : self::LAYOUT_GALLERY;
+    }
+
+    /**
+     * @param array<string, mixed> $content
+     */
+    public function getHeading(array $content): string
+    {
+        return $this->text($content, 'heading');
+    }
+
+    /**
+     * @param array<string, mixed> $content
+     * @return array{label: string, url: string}|null
+     */
+    public function getLink(array $content): ?array
+    {
+        $label = $this->text($content, 'link_label');
+        $url = $this->text($content, 'link');
+        if ($label === '' || $url === '') {
+            return null;
+        }
+        if (!preg_match('#^(https?:)?//#i', $url)) {
+            $url = rtrim((string) $this->storeManager->getStore()->getBaseUrl(), '/') . '/' . ltrim($url, '/');
+        }
+
+        return ['label' => $label, 'url' => $url];
+    }
+
+    /**
+     * The one look of the `feature` layout. "Look number" counts the looks that show; out of range = the first.
+     *
+     * @param array<string, mixed> $content
+     * @return list<array<string, mixed>>
+     */
+    public function getFeatureLooks(array $content): array
+    {
+        $looks = $this->getLooks($content);
+        if ($looks === []) {
+            return [];
+        }
+        $index = max(0, (int) ($content['feature_look'] ?? 1) - 1);
+
+        return [$looks[$index] ?? $looks[0]];
+    }
+
+    /**
+     * Rooms present in the looks, in the fixed room order, with how many looks each has.
+     *
+     * @return list<array{code: string, label: string, count: int}>
      */
     public function getRoomFilters(array $looks): array
     {
-        $present = [];
+        $counts = [];
         foreach ($looks as $look) {
             $code = (string) ($look['room'] ?? '');
             if ($code !== '' && isset(self::ROOMS[$code])) {
-                $present[$code] = self::ROOMS[$code];
+                $counts[$code] = ($counts[$code] ?? 0) + 1;
             }
         }
 
         $filters = [];
         foreach (self::ROOMS as $code => $label) {
-            if (isset($present[$code])) {
-                $filters[] = ['code' => $code, 'label' => $label];
+            if (isset($counts[$code])) {
+                $filters[] = ['code' => $code, 'label' => $label, 'count' => $counts[$code]];
             }
         }
 
@@ -141,8 +208,9 @@ class Lookbook implements ArgumentInterface
      *     description: string,
      *     image_alt: string,
      *     image: array{src: string, width: int, height: int},
+     *     tone: string,
      *     hotspots: list<array<string, mixed>>,
-     *     add_all: list<array{product_id: int, sku: string, qty: float, add_url: string}>
+     *     add_all: list<array{name: string, qty: float, add_url: string, product_id: int, reason: string}>
      * }>
      */
     public function getLooks(array $content): array
@@ -150,7 +218,7 @@ class Lookbook implements ArgumentInterface
         $looks = [];
         $loggedIn = $this->isLoggedIn();
 
-        foreach ((array) ($content['looks'] ?? []) as $row) {
+        foreach ($this->lookRows($content) as $row) {
             if (!is_array($row)) {
                 continue;
             }
@@ -172,17 +240,17 @@ class Lookbook implements ArgumentInterface
             }
 
             $alt = $this->text($row, 'image_alt');
+            // Every pin goes in: the ones with a reason are named as not added
             $addAll = [];
             if ($loggedIn) {
                 foreach ($hotspots as $pin) {
-                    if (!(bool) ($pin['can_add'] ?? false)) {
-                        continue;
-                    }
+                    $reason = $this->skipReason($pin);
                     $addAll[] = [
-                        'product_id' => (int) $pin['product_id'],
-                        'sku' => (string) $pin['sku'],
+                        'name' => (string) $pin['name'],
                         'qty' => (float) $pin['qty_min'],
-                        'add_url' => (string) $pin['add_url'],
+                        'add_url' => $reason === '' ? (string) $pin['add_url'] : '',
+                        'product_id' => (int) $pin['product_id'],
+                        'reason' => $reason,
                     ];
                 }
             }
@@ -194,6 +262,7 @@ class Lookbook implements ArgumentInterface
                 'description' => $this->text($row, 'description'),
                 'image_alt' => $alt !== '' ? $alt : $title,
                 'image' => $this->image($image, self::IMAGE_SIZE),
+                'tone' => $this->tone($image),
                 'hotspots' => $hotspots,
                 'add_all' => $addAll,
             ];
@@ -216,20 +285,7 @@ class Lookbook implements ArgumentInterface
         }
 
         $this->entryLoaded = true;
-        $this->entryContent = [];
-        $storeId = (int) $this->storeManager->getStore()->getId();
-
-        foreach ([$storeId, Store::DEFAULT_STORE_ID] as $tryStoreId) {
-            try {
-                $entry = $this->entryRepository->getByIdentifier(self::ENTRY_IDENTIFIER, $tryStoreId);
-                if ($entry->isActive()) {
-                    $this->entryContent = $entry->getEntryData();
-                    break;
-                }
-            } catch (NoSuchEntityException) {
-                continue;
-            }
-        }
+        $this->entryContent = $this->entryContent(self::ENTRY_IDENTIFIER);
 
         return $this->entryContent;
     }
@@ -451,25 +507,45 @@ class Lookbook implements ArgumentInterface
             $label = $this->text($row, 'label');
             $accessible = $label !== '' ? $label : $name;
             $productId = (int) $product->getId();
-            $canAdd = $loggedIn && $product->isSaleable() && $product->getTypeId() === 'simple';
-            $qty = $canAdd ? $this->qtyRules->getMinAndStep($product) : ['min' => 1.0, 'step' => 1.0];
-            $stockLevel = $loggedIn ? $this->productTile->getStockLevel($product) : null;
-            $stockQty = $loggedIn ? $this->salableQty($product) : null;
+            $type = match ((string) $product->getTypeId()) {
+                'simple', 'virtual' => 'simple',
+                Configurable::TYPE_CODE => 'configurable',
+                default => 'other',
+            };
+            $config = $loggedIn && $type === 'configurable'
+                ? $this->configurableOptions($product)
+                : ['attributes' => [], 'children' => []];
+            $saleable = $loggedIn && $product->isSaleable();
+            $canAdd = match ($type) {
+                'simple' => $saleable,
+                // FE-77: a configurable is bought as its child; the card asks for the options first
+                'configurable' => $saleable && $config['attributes'] !== []
+                    && array_filter($config['children'], static fn (array $child): bool => $child['saleable']) !== [],
+                default => false,
+            };
+            $qty = $canAdd && $type === 'simple'
+                ? $this->qtyRules->getMinAndStep($product)
+                : ['min' => 1.0, 'step' => 1.0];
+            $isSimple = $loggedIn && $type === 'simple';
 
             $pins[] = [
                 'x' => $x,
                 'y' => $y,
                 'sku' => $sku,
                 'product_id' => $productId,
+                'type' => $type,
                 'name' => $name,
                 'label' => $accessible,
                 'url' => $product->getProductUrl(),
                 'image' => $this->productImage($product),
+                'saleable' => $saleable,
                 'can_add' => $canAdd,
                 'qty_min' => $qty['min'],
                 'qty_step' => $qty['step'],
-                'stock_level' => $stockLevel,
-                'stock_qty' => $stockQty,
+                'stock_level' => $isSimple ? $this->productTile->getStockLevel($product) : null,
+                'stock_qty' => $isSimple ? $this->salableQty($product) : null,
+                'attributes' => $config['attributes'],
+                'children' => $config['children'],
                 'add_url' => $canAdd ? $this->cartHelper->getAddUrl($product, ['useUencPlaceholder' => true]) : '',
             ];
 
@@ -479,6 +555,204 @@ class Lookbook implements ArgumentInterface
         }
 
         return $pins;
+    }
+
+    /**
+     * Options of a configurable and its enabled children, for the card's option picker.
+     *
+     * @return array{
+     *     attributes: list<array{id: int, code: string, label: string, values: list<array{id: int, label: string}>}>,
+     *     children: list<array{id: int, sku: string, attrs: array<string, int>, label: string, saleable: bool,
+     *         min: float, step: float, stock_qty: float|null}>
+     * }
+     */
+    private function configurableOptions(Product $product): array
+    {
+        $none = ['attributes' => [], 'children' => []];
+        $type = $product->getTypeInstance();
+        if (!$type instanceof Configurable) {
+            return $none;
+        }
+
+        try {
+            $rawAttributes = $type->getConfigurableAttributesAsArray($product);
+            $usedProducts = $type->getUsedProducts($product);
+        } catch (Throwable) {
+            return $none;
+        }
+
+        $attributes = [];
+        foreach ($rawAttributes as $raw) {
+            $id = (int) ($raw['attribute_id'] ?? 0);
+            $code = (string) ($raw['attribute_code'] ?? '');
+            if ($id === 0 || $code === '') {
+                continue;
+            }
+            $values = [];
+            foreach ((array) ($raw['values'] ?? []) as $value) {
+                $valueId = (int) ($value['value_index'] ?? 0);
+                $valueLabel = (string) ($value['store_label'] ?? $value['label'] ?? $value['default_label'] ?? '');
+                if ($valueId !== 0 && $valueLabel !== '') {
+                    $values[$valueId] = $valueLabel;
+                }
+            }
+            $attributes[$id] = [
+                'code' => $code,
+                'label' => (string) ($raw['store_label'] ?? $raw['label'] ?? $raw['frontend_label'] ?? $code),
+                'values' => $values,
+            ];
+        }
+
+        $children = [];
+        $usedValues = [];
+        foreach ($usedProducts as $child) {
+            if (!$child instanceof Product || (int) $child->getStatus() !== Status::STATUS_ENABLED) {
+                continue;
+            }
+            $attrs = [];
+            $names = [];
+            foreach ($attributes as $id => $attribute) {
+                $valueId = (int) $child->getData($attribute['code']);
+                if (!isset($attribute['values'][$valueId])) {
+                    continue 2;
+                }
+                $attrs[(string) $id] = $valueId;
+                $names[] = $attribute['values'][$valueId];
+            }
+            foreach ($attrs as $id => $valueId) {
+                $usedValues[$id][$valueId] = true;
+            }
+            $rules = $this->qtyRules->getMinAndStep($child);
+            $children[] = [
+                'id' => (int) $child->getId(),
+                'sku' => (string) $child->getSku(),
+                'attrs' => $attrs,
+                'label' => implode(', ', $names),
+                'saleable' => (bool) $child->isSaleable(),
+                'min' => (float) $rules['min'],
+                'step' => (float) $rules['step'],
+                'stock_qty' => $this->salableQty($child),
+            ];
+        }
+
+        $list = [];
+        foreach ($attributes as $id => $attribute) {
+            $values = [];
+            foreach ($attribute['values'] as $valueId => $valueLabel) {
+                if (isset($usedValues[(string) $id][$valueId])) {
+                    $values[] = ['id' => $valueId, 'label' => $valueLabel];
+                }
+            }
+            if ($values === []) {
+                return $none;
+            }
+            $list[] = ['id' => $id, 'code' => $attribute['code'], 'label' => $attribute['label'], 'values' => $values];
+        }
+
+        return ['attributes' => $list, 'children' => $children];
+    }
+
+    /**
+     * Why Add this look leaves a pin out; '' = it goes in at its MOQ.
+     *
+     * @param array<string, mixed> $pin
+     */
+    private function skipReason(array $pin): string
+    {
+        if (!$pin['saleable']) {
+            return (string) __('out of stock');
+        }
+        if ($pin['type'] === 'configurable' && $pin['can_add']) {
+            $names = array_map(
+                static fn (array $attribute): string => mb_strtolower($attribute['label']),
+                $pin['attributes']
+            );
+
+            return (string) __('choose a %1', implode(' and ', $names));
+        }
+        if ($pin['type'] !== 'simple') {
+            return (string) __('choose options on the product page');
+        }
+
+        return $pin['can_add'] ? '' : (string) __('out of stock');
+    }
+
+    /**
+     * @param array<string, mixed> $content
+     * @return list<mixed>
+     */
+    private function lookRows(array $content): array
+    {
+        $rows = (array) ($content['looks'] ?? []);
+        $source = $this->text($content, 'source');
+        if ($rows === [] && $source !== '') {
+            $rows = (array) ($this->entryContent($source)['looks'] ?? []);
+        }
+
+        return array_values($rows);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function entryContent(string $identifier): array
+    {
+        if (isset($this->entryContentById[$identifier])) {
+            return $this->entryContentById[$identifier];
+        }
+
+        $content = [];
+        $storeId = (int) $this->storeManager->getStore()->getId();
+        foreach ([$storeId, Store::DEFAULT_STORE_ID] as $tryStoreId) {
+            try {
+                $entry = $this->entryRepository->getByIdentifier($identifier, $tryStoreId);
+                if ($entry->isActive()) {
+                    $content = (array) $entry->getEntryData();
+                    break;
+                }
+            } catch (NoSuchEntityException) {
+                continue;
+            }
+        }
+
+        return $this->entryContentById[$identifier] = $content;
+    }
+
+    /**
+     * Average colour of a media image (#RRGGBB), shown behind the photo while it loads; '' when unknown.
+     */
+    private function tone(string $url): string
+    {
+        $relative = $this->mediaRelativePath($url);
+        if ($relative === null || !function_exists('imagecreatefromstring')) {
+            return '';
+        }
+
+        try {
+            $media = $this->filesystem->getDirectoryRead(DirectoryList::MEDIA);
+            if (!$media->isFile($relative)) {
+                return '';
+            }
+            $path = $media->getAbsolutePath($relative);
+            $key = self::TONE_CACHE_PREFIX . md5($relative . '|' . (string) filemtime($path));
+            $cached = $this->cache->load($key);
+            if (is_string($cached) && $cached !== '') {
+                return $cached === '-' ? '' : $cached;
+            }
+
+            $tone = '';
+            $image = @imagecreatefromstring((string) file_get_contents($path));
+            if ($image !== false) {
+                $pixel = imagecreatetruecolor(1, 1);
+                imagecopyresampled($pixel, $image, 0, 0, 0, 0, 1, 1, imagesx($image), imagesy($image));
+                $tone = sprintf('#%06X', imagecolorat($pixel, 0, 0) & 0xFFFFFF);
+            }
+            $this->cache->save($tone !== '' ? $tone : '-', $key, [], 30 * 86400);
+
+            return $tone;
+        } catch (Throwable) {
+            return '';
+        }
     }
 
     private function productBySku(string $sku): ?Product

@@ -14,6 +14,7 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Helper\Image as ImageHelper;
 use Magento\Checkout\Helper\Cart as CartHelper;
 use Magento\Cms\Model\Page as CmsPage;
+use Magento\Framework\App\CacheInterface;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Filesystem\Directory\ReadInterface;
 use Magento\Framework\UrlInterface;
@@ -113,11 +114,46 @@ class LookbookTest extends TestCase
 
         $this->assertSame(
             [
-                ['code' => 'dining', 'label' => 'Dining'],
-                ['code' => 'living', 'label' => 'Living'],
+                ['code' => 'dining', 'label' => 'Dining', 'count' => 2],
+                ['code' => 'living', 'label' => 'Living', 'count' => 1],
             ],
             $filters
         );
+    }
+
+    public function testFeatureLayoutReadsLooksFromSourceEntry(): void
+    {
+        $entryRepo = $this->createMock(EntryRepositoryInterface::class);
+        $entry = $this->createMock(EntryInterface::class);
+        $entry->method('isActive')->willReturn(true);
+        $entry->method('getEntryData')->willReturn([
+            'looks' => [
+                ['title' => 'No pins', 'image' => self::MEDIA_URL . 'looks/look.png', 'hotspots' => []],
+            ],
+        ]);
+        $entryRepo->expects($this->atLeastOnce())
+            ->method('getByIdentifier')
+            ->with('shop-the-looks-gallery')
+            ->willReturn($entry);
+
+        $viewModel = $this->viewModel(false, null, $entryRepo);
+        $content = ['layout' => 'feature', 'source' => 'shop-the-looks-gallery', 'looks' => []];
+
+        $this->assertSame(Lookbook::LAYOUT_FEATURE, $viewModel->getLayout($content));
+        $this->assertSame(Lookbook::LAYOUT_GALLERY, $viewModel->getLayout([]));
+        // the source look has no resolvable pins, so the feature shows nothing (UX-01)
+        $this->assertSame([], $viewModel->getFeatureLooks($content));
+    }
+
+    public function testLinkMakesPathsAbsolute(): void
+    {
+        $viewModel = $this->viewModel(false);
+
+        $this->assertSame(
+            ['label' => 'Shop the Looks', 'url' => 'https://elme.test/shop-the-looks'],
+            $viewModel->getLink(['link_label' => 'Shop the Looks', 'link' => '/shop-the-looks'])
+        );
+        $this->assertNull($viewModel->getLink(['link_label' => 'Shop the Looks']));
     }
 
     private function viewModel(
@@ -174,7 +210,8 @@ class LookbookTest extends TestCase
             $this->createMock(ProductTile::class),
             $this->createMock(GetProductSalableQtyInterface::class),
             $this->createMock(StockResolverInterface::class),
-            $this->createMock(IsSourceItemManagementAllowedForProductTypeInterface::class)
+            $this->createMock(IsSourceItemManagementAllowedForProductTypeInterface::class),
+            $this->createMock(CacheInterface::class)
         );
     }
 }

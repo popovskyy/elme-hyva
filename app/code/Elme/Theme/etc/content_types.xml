@@ -198,11 +198,28 @@
           template="Elme_Theme::content-type/lookbook.phtml"
           version="1">
 
-        <field name="intro" type="textarea" label="Intro" maxlength="480"
-               description="Optional plain text under the page H1. Wholesale voice: styled looks for Australian retailers; sign in for Pronto prices."/>
+        <field name="layout" type="select" label="Layout" default="gallery"
+               description="Gallery: every look with the room filter (the Shop the Looks page). Feature: one look under a section heading (home Be Inspired).">
+            <option value="gallery" label="Gallery"/>
+            <option value="feature" label="Feature (one look)"/>
+        </field>
 
-        <field name="looks" type="repeater" label="Looks" label_field="title" max="60" required="true"
-               description="One lifestyle frame per row. Missing image or zero valid hotspots hide that look.">
+        <field name="heading" type="text" label="Section heading (Feature)" maxlength="60" width="half"
+               description="e.g. Be Inspired. The look title sits under it."/>
+        <field name="feature_look" type="number" label="Look number (Feature)" min="1" max="60" default="1" width="half"
+               description="Which look to show, counting from 1. A look that cannot show is skipped for the first one."/>
+        <field name="link_label" type="text" label="Link label (Feature)" maxlength="40" width="half"
+               description="e.g. Shop the Looks. Shown next to the heading."/>
+        <field name="link" type="url" label="Link (Feature)" width="half"
+               description="e.g. /shop-the-looks"/>
+        <field name="source" type="text" label="Use the looks of entry" maxlength="64"
+               description="Identifier of another Shop the Looks entry (e.g. shop-the-looks-gallery). Used when Looks below is empty, so the home block and the page share one set of looks."/>
+
+        <field name="intro" type="textarea" label="Intro" maxlength="480"
+               description="Optional plain text under the page H1 (Gallery). Wholesale voice: styled looks for Australian retailers; sign in for Pronto prices."/>
+
+        <field name="looks" type="repeater" label="Looks" label_field="title" max="60"
+               description="One lifestyle frame per row. Missing image or zero valid hotspots hide that look. Leave empty to use the looks of the entry above.">
             <field name="title" type="text" label="Look title" required="true" maxlength="80" width="half"
                    description="Visible H2 / figcaption, e.g. Dining vignette. Used for image alt when alt is empty."/>
             <field name="room" type="select" label="Room" required="true" width="half" default="living"
