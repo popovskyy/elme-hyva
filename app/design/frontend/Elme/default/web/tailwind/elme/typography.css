@@ -12,8 +12,10 @@
 
     /* Plain element selectors: :where() would lose to Tailwind preflight's `h1 { font-size: inherit }` */
     h1, h2, h3, h4, h5, h6 {
+        /* --font-heading is Figtree Medium registered at weight 400, so font-normal headings stay medium */
         font-family: var(--font-heading);
         font-weight: 400;
+        letter-spacing: -0.02em;
         color: var(--color-ink);
     }
 

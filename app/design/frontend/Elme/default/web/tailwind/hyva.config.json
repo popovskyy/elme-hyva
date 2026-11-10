@@ -205,7 +205,7 @@
   "fonts": [
     {
       "provider": "local",
-      "name": "Karla",
+      "name": "Figtree",
       "cssVariable": "--font-sans",
       "fallbacks": [
         "ui-sans-serif",
@@ -217,52 +217,54 @@
         {
           "weight": "300",
           "style": "normal",
-          "src": "karla/Karla-Light.woff2"
+          "src": "figtree/Figtree-Light.woff2"
         },
         {
           "weight": "400",
           "style": "normal",
-          "src": "karla/Karla-Regular.woff2"
+          "src": "figtree/Figtree-Regular.woff2"
         },
         {
           "weight": "500",
           "style": "normal",
-          "src": "karla/Karla-Medium.woff2"
+          "src": "figtree/Figtree-Medium.woff2"
         },
         {
           "weight": "600",
           "style": "normal",
-          "src": "karla/Karla-SemiBold.woff2"
+          "src": "figtree/Figtree-SemiBold.woff2"
         },
         {
           "weight": "700",
           "style": "normal",
-          "src": "karla/Karla-Bold.woff2"
+          "src": "figtree/Figtree-Bold.woff2"
         },
         {
           "weight": "800",
           "style": "normal",
-          "src": "karla/Karla-ExtraBold.woff2"
+          "src": "figtree/Figtree-ExtraBold.woff2"
         }
       ]
     },
     {
       "provider": "local",
-      "name": "DMSerifDisplay",
+      "name": "FigtreeHeading",
       "cssVariable": "--font-heading",
       "fallbacks": [
+        "ui-sans-serif",
+        "system-ui",
         "sans-serif"
       ],
       "variants": [
         {
           "weight": "400",
           "style": "normal",
-          "src": "dm-serif-display/DMSerifDisplay-Regular.woff2"
+          "src": "figtree/Figtree-Medium.woff2"
         },
         {
           "weight": "400",
           "style": "italic",
-          "src": "dm-serif-display/DMSerifDisplay-Italic.woff2"
+          "src": "figtree/Figtree-MediumItalic.woff2"
         }
       ]
     }
