@@ -1,7 +1,7 @@
 <?php
 /**
- * "Sign in to see pricing": shown to guests wherever a price would be (PLP, PDP, sliders, widgets).
- * Rendered by Elme\LoginOnly\Plugin\PriceRenderPlugin and as the PDP price block for guests.
+ * UX-02: short guest price line on cards (and anywhere PriceRenderPlugin swaps the final price).
+ * Also the PDP price block for guests. "Log in" keeps data-elme-sign-in for the referer cookie.
  */
 
 declare(strict_types=1);
@@ -17,12 +17,12 @@ use Magento\Framework\View\Element\Template;
 
 /** @var LoginOnly $loginOnly */
 $loginOnly = $viewModels->require(LoginOnly::class);
-$signInLink = sprintf(
+$logInLink = sprintf(
     '<a href="%s" class="font-bold underline underline-offset-2 hover:text-link-hover" data-elme-sign-in>%s</a>',
     $escaper->escapeUrl($loginOnly->getLoginUrl()),
-    $escaper->escapeHtml(__('Sign in'))
+    $escaper->escapeHtml(__('Log in'))
 );
 ?>
 <p class="elme-sign-in-price text-copy text-ink">
-    <?= /* @noEscape */ __('%1 to see pricing', $signInLink) ?>
+    <?= /* @noEscape */ __('%1 for price', $logInLink) ?>
 </p>
