@@ -37,11 +37,11 @@ and qty are stored: name, image, price, stock and MOQ are read live, so catalogu
   dispatches `elme-qo-cart` and `elme-qo-count`. The header panel (FE-32) and the cart page (FE-33) build on it.
 - **Cart page** (`/quick-order/cart`, FE-33): item table, MOV notice, totals (no freight), Proceed to checkout,
   empty state. `/checkout/cart` redirects here (`Observer\RedirectCartPage`). Head is `noindex, nofollow` with a
-  self canonical. Coupon place is still open in D14 (see Not here yet).
+  self canonical. No coupon field here (Roman: checkout only; quote exists only after `/checkout` opens).
 - **Checkout**: one rule. `Plugin\RebuildQuoteOnCheckoutPlugin` rebuilds the quote from `cart_list` every time
   `/checkout` opens. Refused rows send the customer back to the cart page with their reason. No merge, no
-  "hydrate if empty", no skip flag. Elme_Checkout then works on the quote as before. `Model\Validator\QuoteMatchesCart`
-  refuses place order when the cart changed since checkout opened (another tab).
+  "hydrate if empty", no skip flag. Elme_Checkout then works on the quote as before (coupon on checkout).
+  `Model\Validator\QuoteMatchesCart` refuses place order when the cart changed since checkout opened (another tab).
 - **After the order**: `Observer\ClearCartAfterOrder` empties `cart_list` on `sales_model_service_quote_submit_success`.
   A failed payment or an abandoned checkout keeps it.
 
@@ -78,8 +78,7 @@ request. Opening a list into the Quick Order page is FE-40 / FE-44.
 ## Not here yet
 
 - Reorder (`/sales/order/reorder`) still fills the quote, which `/checkout` replaces with `cart_list`: BE-14.
-- Coupon: D14 left the field's place open (cart vs checkout). There is no quote until `/checkout` opens, so a cart
-  coupon needs a stored code applied in `QuoteBuilder` (BE). Do not invent a cart coupon UI until Roman picks.
+- Coupon UI: checkout only (Roman on FE-33 / D14). Cart has no coupon field.
 
 ## Tests
 
