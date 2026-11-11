@@ -118,7 +118,7 @@
             }
 
             .elme-dust:nth-child(n + 4) > * > & {
-                animation-delay: 120ms;
+                animation-delay: var(--transition-duration-micro);
             }
         }
     }
@@ -233,7 +233,7 @@
         }
 
         @media (prefers-reduced-motion: no-preference) {
-            animation: elme-cart-pulse 1.2s ease-in-out infinite;
+            animation: elme-cart-pulse 1.2s var(--ease-in-out-cubic) infinite;
         }
     }
 

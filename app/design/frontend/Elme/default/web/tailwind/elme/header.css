@@ -22,11 +22,11 @@
 
     @variant max-lg {
         .page-header {
-            transition: transform 200ms ease-out;
+            transition: transform var(--transition-duration-fast) var(--ease-out-quad);
         }
 
         /* Move by the row height only (the USP strip is already above the screen), so the row and
-           .elme-sticky-below-header travel the same distance in the same 200ms */
+           .elme-sticky-below-header travel the same distance in the same var(--transition-duration-fast) */
         .page-header.is-hidden {
             transform: translateY(calc(var(--elme-promo-h, 0px) - 100%));
         }
@@ -41,7 +41,7 @@
         position: sticky;
         top: var(--elme-header-offset, 0px);
         z-index: 20;
-        transition: top 200ms ease-out;
+        transition: top var(--transition-duration-fast) var(--ease-out-quad);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -52,7 +52,7 @@
     }
 
     .elme-header {
-        transition: box-shadow 200ms ease-out, border-color 200ms ease-out;
+        transition: box-shadow var(--transition-duration-fast) var(--ease-out-quad), border-color var(--transition-duration-fast) var(--ease-out-quad);
     }
 
     .page-header.is-stuck .elme-header {
@@ -74,7 +74,7 @@
 
     .elme-header .elme-header__logo a {
         display: block;
-        transition: opacity 150ms ease-out;
+        transition: opacity var(--transition-duration-fast) var(--ease-out-quad);
 
         @media (hover: hover) {
             &:hover {
@@ -121,7 +121,7 @@
     .elme-header__icon {
         position: relative;
         display: inline-flex;
-        transition: color 150ms ease-out, translate 200ms ease-out;
+        transition: color var(--transition-duration-fast) var(--ease-out-quad), translate var(--transition-duration-fast) var(--ease-out-quad);
     }
 
     .elme-header__label {
@@ -135,7 +135,7 @@
 
     .elme-header__chevron {
         display: inline-flex;
-        transition: rotate 200ms ease-out;
+        transition: rotate var(--transition-duration-fast) var(--ease-out-quad);
     }
 
     .elme-header__action[aria-expanded='true'] .elme-header__chevron {
@@ -169,7 +169,7 @@
             line-height: var(--text-note--line-height);
             font-weight: 500;
             letter-spacing: 0.01em;
-            transition: background-size 200ms ease-out;
+            transition: background-size var(--transition-duration-fast) var(--ease-out-quad);
         }
 
         @media (hover: hover) {
@@ -202,7 +202,7 @@
                 opacity: 0;
                 pointer-events: none;
                 translate: -50% --spacing(-1);
-                transition: opacity 150ms ease-out, translate 150ms ease-out;
+                transition: opacity var(--transition-duration-fast) var(--ease-out-quad), translate var(--transition-duration-fast) var(--ease-out-quad);
             }
 
             .elme-header--signed-in .elme-header__action:focus-visible .elme-header__label {
@@ -214,7 +214,7 @@
                 .elme-header--signed-in .elme-header__action:hover .elme-header__label {
                     opacity: 1;
                     translate: -50% 0;
-                    transition-delay: 300ms;
+                    transition-delay: var(--transition-duration-slow);
                 }
             }
 
@@ -244,7 +244,7 @@
     }
 
     .elme-header__badge.is-bumped {
-        animation: elme-badge-pop 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+        animation: elme-badge-pop var(--transition-duration-slow) var(--ease-out-quint);
 
         @media (prefers-reduced-motion: reduce) {
             animation: none;
@@ -266,9 +266,9 @@
             padding: --spacing(2) --spacing(4);
             color: var(--color-ink);
             font-size: var(--text-copy);
-            line-height: var(--text-body--line-height);
+            line-height: var(--text-base--line-height);
             text-decoration: none;
-            transition: background-color 150ms ease-out, padding 150ms ease-out;
+            transition: background-color var(--transition-duration-fast) var(--ease-out-quad), padding var(--transition-duration-fast) var(--ease-out-quad);
 
             &:hover {
                 background-color: var(--color-page);
@@ -292,7 +292,7 @@
     .elme-header-search__input {
         background-color: var(--color-page);
         border-color: transparent;
-        transition: border-color 150ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out;
+        transition: border-color var(--transition-duration-fast) var(--ease-out-quad), background-color var(--transition-duration-fast) var(--ease-out-quad), box-shadow var(--transition-duration-fast) var(--ease-out-quad);
 
         &:hover {
             border-color: var(--color-border);
@@ -311,7 +311,7 @@
     }
 
     .elme-header-search__submit {
-        transition: color 150ms ease-out;
+        transition: color var(--transition-duration-fast) var(--ease-out-quad);
 
         &:hover {
             color: var(--color-accent-dark);

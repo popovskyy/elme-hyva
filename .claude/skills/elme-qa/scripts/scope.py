@@ -29,7 +29,8 @@ IGNORE = ('var/', 'pub/', 'generated/', '.playwright-mcp/', 'node_modules/', 'ap
           f'{THEME}/web/tailwind/generated/', f'{THEME}/web/fonts/generated/')
 
 # Template / CSS rules from CLAUDE.md and the elme-port-from-luma skill. Each hit is a line to look at,
-# not automatically a bug.
+# not automatically a bug. Entries with fail=True exit non-zero (UX-17 token hygiene for elme/*.css).
+# elme ms: stagger delays 0/22/40/60/80ms may stay literal; every other Nms fails.
 LINT = [
     (r'\.phtml$', r'#[0-9a-fA-F]{3,8}\b(?![^<]*\?>)', 'hex colour in a template: use a colour token (bg-primary, text-ink-muted...)'),
     (r'\.phtml$', r'\b[a-z-]+-\[\d+(\.\d+)?px\]', 'arbitrary px value: add a token in hyva.config.json instead'),
@@ -41,6 +42,13 @@ LINT = [
     (r'\.phtml$', r'ObjectManager::getInstance|->helper\(', 'ObjectManager / helper in a template: use a ViewModel'),
     (r'\.(phtml|css)$', r'transition:\s*all|transition-all\b', 'transition all: list the properties (transform, opacity)'),
     (r'\.(phtml|css)$', r'outline(-none|:\s*none)', 'outline removed: make sure a focus-visible style replaces it'),
+    (r'/web/tailwind/elme/.*\.css$',
+     r'font-size:\s*(?!var\(|calc\(|inherit\b|revert-layer\b|revert\b|unset\b|initial\b)\S',
+     'literal font-size in elme CSS: use a text token (var(--text-base), var(--text-h2), ...)', True),
+    (r'/web/tailwind/elme/.*\.css$', r'#[0-9a-fA-F]{3,8}\b',
+     'hex colour in elme CSS: use a colour token (var(--color-ink), ...)', True),
+    (r'/web/tailwind/elme/.*\.css$', r'(?<!\d)(?!(?:0|22|40|60|80)ms\b)\d+ms\b',
+     'literal ms duration in elme CSS: use transition-duration tokens (stagger delays 0/22/40/60/80ms ok)', True),
 ]
 
 
@@ -122,17 +130,26 @@ def theme_reach(path):
 
 def lint(path):
     hits = []
+    hard = []
     try:
         lines = open(path, encoding='utf-8', errors='ignore').read().splitlines()
     except OSError:
-        return hits
-    for file_re, line_re, note in LINT:
+        return hits, hard
+    for entry in LINT:
+        file_re, line_re, note = entry[0], entry[1], entry[2]
+        fail = entry[3] if len(entry) > 3 else False
         if not re.search(file_re, path):
             continue
         for n, line in enumerate(lines, 1):
-            if re.search(line_re, line):
-                hits.append(f'{path}:{n}  {note}\n        {line.strip()[:140]}')
-    return hits
+            code = line.split('/*', 1)[0]
+            if not code.strip() or code.lstrip().startswith('*'):
+                continue
+            if re.search(line_re, code):
+                msg = f'{path}:{n}  {note}\n        {line.strip()[:140]}'
+                hits.append(msg)
+                if fail:
+                    hard.append(msg)
+    return hits, hard
 
 
 def php_references(path):
@@ -200,8 +217,14 @@ def main():
             print(f'  ! {w}')
         print()
 
-    hits = [h for path, status in files.items()
-            if status != 'D' and not path.endswith('/web/css/styles.css') for h in lint(path)]
+    hits = []
+    hard = []
+    for path, status in files.items():
+        if status == 'D' or path.endswith('/web/css/styles.css'):
+            continue
+        h, f = lint(path)
+        hits.extend(h)
+        hard.extend(f)
     print('## Hyvä / project rules lint (look at each, not every hit is a bug)')
     for h in hits[:40]:
         print(f'  ? {h}')
@@ -210,6 +233,12 @@ def main():
     if not hits:
         print('  none')
     print()
+
+    if hard:
+        print('## FAIL elme CSS token hygiene (UX-17)')
+        for h in hard:
+            print(f'  ! {h}')
+        print()
 
     print('## PHP classes changed -> other files referencing them')
     for path, status in files.items():
@@ -221,6 +250,9 @@ def main():
                     print(f'      {ref}')
                 if len(refs) > 12:
                     print(f'      ... +{len(refs) - 12} more')
+
+    if hard:
+        sys.exit(1)
 
 
 if __name__ == '__main__':

@@ -192,7 +192,7 @@
         height: auto;
         aspect-ratio: 4 / 3;
         object-fit: cover;
-        transition: scale var(--transition-duration-slow) var(--ease-out-cubic);
+        transition: scale var(--transition-duration-slow) var(--ease-out-quad);
 
         @variant md {
             aspect-ratio: 4 / 5;

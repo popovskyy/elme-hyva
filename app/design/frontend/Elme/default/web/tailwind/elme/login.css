@@ -75,7 +75,7 @@
 
     @media (prefers-reduced-motion: no-preference) {
         .elme-login__img {
-            animation: elme-login-drift 26s ease-in-out infinite alternate;
+            animation: elme-login-drift 26s var(--ease-in-out-cubic) infinite alternate;
         }
     }
 
@@ -327,7 +327,7 @@
     /* the panel's parts settle in once on load */
     @media (prefers-reduced-motion: no-preference) {
         .elme-login__panel > * {
-            animation: elme-login-rise 600ms var(--ease-out-quart) both;
+            animation: elme-login-rise var(--transition-duration-long) var(--ease-out-quart) both;
         }
 
         .elme-login__panel > :nth-child(2) {
@@ -335,11 +335,11 @@
         }
 
         .elme-login__panel > :nth-child(3) {
-            animation-delay: 160ms;
+            animation-delay: var(--transition-duration-fast);
         }
 
         .elme-login__quote {
-            animation: elme-login-rise 900ms var(--ease-out-quart) 200ms both;
+            animation: elme-login-rise var(--transition-duration-long) var(--ease-out-quart) var(--transition-duration-fast) both;
         }
     }
 }

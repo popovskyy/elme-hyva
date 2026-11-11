@@ -93,8 +93,6 @@
         "h4": "1rem",
         "h4--line-height": "1.25",
         "h4-desktop": "1.125rem",
-        "body": "1rem",
-        "body--line-height": "1.5",
         "copy": "0.875rem",
         "copy--line-height": "1.45",
         "copy-desktop": "0.9375rem",
@@ -164,20 +162,17 @@
       },
       "ease": {
         "out-quad": "cubic-bezier(.25, .46, .45, .94)",
-        "out-cubic": "cubic-bezier(.215, .61, .355, 1)",
         "out-quart": "cubic-bezier(.165, .84, .44, 1)",
         "out-quint": "cubic-bezier(.23, 1, .32, 1)",
-        "out-expo": "cubic-bezier(.19, 1, .22, 1)",
-        "out-back": "cubic-bezier(.34, 1.56, .64, 1)",
         "in-out-cubic": "cubic-bezier(.645, .045, .355, 1)",
-        "in-out-quart": "cubic-bezier(.77, 0, .175, 1)",
         "in-quart": "cubic-bezier(.895, .03, .685, .22)"
       },
       "transition-duration": {
         "micro": "120ms",
         "fast": "180ms",
         "base": "240ms",
-        "slow": "300ms"
+        "slow": "300ms",
+        "long": "600ms"
       }
     }
   },
@@ -193,11 +188,6 @@
       ],
       "preload": false,
       "variants": [
-        {
-          "weight": "300",
-          "style": "normal",
-          "src": "figtree/Figtree-Light.woff2"
-        },
         {
           "weight": "400",
           "style": "normal",
@@ -217,11 +207,6 @@
           "weight": "700",
           "style": "normal",
           "src": "figtree/Figtree-Bold.woff2"
-        },
-        {
-          "weight": "800",
-          "style": "normal",
-          "src": "figtree/Figtree-ExtraBold.woff2"
         }
       ]
     },

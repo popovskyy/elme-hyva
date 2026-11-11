@@ -110,9 +110,9 @@
     .elme-need-assistance__value {
         display: block;
         margin-top: --spacing(1);
-        font-size: var(--text-body);
+        font-size: var(--text-base);
         font-weight: 400;
-        line-height: var(--text-body--line-height);
+        line-height: var(--text-base--line-height);
         color: var(--color-ink);
         overflow-wrap: anywhere;
     }

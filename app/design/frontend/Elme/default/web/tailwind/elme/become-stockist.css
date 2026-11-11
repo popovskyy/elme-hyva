@@ -5,8 +5,8 @@
  */
 @layer components {
     .elme-become-stockist .elme-become-stockist__lead {
-        font-size: var(--text-body);
-        line-height: var(--text-body--line-height);
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
         color: var(--color-ink);
     }
 
@@ -65,8 +65,8 @@
     .elme-become-stockist.elme-help-body .elme-become-stockist__step-title {
         margin: 0 0 --spacing(1.5);
         font-family: var(--font-sans);
-        font-size: var(--text-body);
-        line-height: var(--text-body--line-height);
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
         font-weight: 600;
         color: var(--color-ink);
     }

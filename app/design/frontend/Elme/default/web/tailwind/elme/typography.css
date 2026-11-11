@@ -7,8 +7,8 @@
 @layer base {
     body {
         font-family: var(--font-sans);
-        font-size: var(--text-body);
-        line-height: var(--text-body--line-height);
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
     }
 
     /* Plain element selectors: :where() would lose to Tailwind preflight's `h1 { font-size: inherit }` */
@@ -58,8 +58,8 @@
 
     /* Nearest role = body; distinct from body via wider tracking */
     h5 {
-        font-size: var(--text-body);
-        line-height: var(--text-body--line-height);
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
         letter-spacing: 0.04em;
     }
 

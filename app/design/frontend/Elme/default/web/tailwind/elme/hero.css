@@ -202,7 +202,7 @@
         transition:
             opacity var(--transition-duration-fast) var(--ease-out-quart),
             translate var(--transition-duration-fast) var(--ease-out-quart),
-            background-color var(--transition-duration-fast) ease;
+            background-color var(--transition-duration-fast) var(--ease-out-quad);
     }
 
     .elme-hero__arrow--prev {
@@ -245,42 +245,42 @@
        text and button follow. Slide 1 is .is-current in the HTML, so it plays on load without JS. */
     @media (prefers-reduced-motion: no-preference) {
         .elme-hero__slide.is-current .elme-hero__img {
-            animation: elme-hero-settle 1600ms var(--ease-out-quint) both;
+            animation: elme-hero-settle var(--transition-duration-long) var(--ease-out-quint) both;
         }
 
         .elme-hero__slide.is-current .elme-hero__drift {
-            animation: elme-hero-drift 14s linear 1600ms both;
+            animation: elme-hero-drift 14s linear var(--transition-duration-long) both;
         }
 
         .elme-hero__slide.is-current .elme-hero__line > span {
-            animation: elme-hero-line 400ms var(--ease-out-quint) both;
+            animation: elme-hero-line var(--transition-duration-slow) var(--ease-out-quint) both;
             animation-delay: 60ms;
         }
 
         .elme-hero__slide.is-current .elme-hero__line:nth-child(2) > span {
-            animation-delay: 120ms;
+            animation-delay: var(--transition-duration-micro);
         }
 
         .elme-hero__slide.is-current .elme-hero__line:nth-child(3) > span {
-            animation-delay: 180ms;
+            animation-delay: var(--transition-duration-fast);
         }
 
         .elme-hero__slide.is-current .elme-hero__line:nth-child(n + 4) > span {
-            animation-delay: 240ms;
+            animation-delay: var(--transition-duration-base);
         }
 
         .elme-hero__slide.is-current .elme-hero__rise {
-            animation: elme-hero-rise 280ms var(--ease-out-quint) 180ms both;
+            animation: elme-hero-rise var(--transition-duration-slow) var(--ease-out-quint) var(--transition-duration-fast) both;
         }
 
         .elme-hero__slide.is-current .elme-hero__rise + .elme-hero__rise {
-            animation-delay: 180ms;
+            animation-delay: var(--transition-duration-fast);
         }
     }
 
     @media (prefers-reduced-motion: reduce) {
         .elme-hero__slide.is-current .elme-hero__copy {
-            animation: elme-fade var(--transition-duration-slow) ease both;
+            animation: elme-fade var(--transition-duration-slow) var(--ease-out-quad) both;
         }
     }
 }
