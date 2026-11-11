@@ -27,6 +27,11 @@
         border: 0;
     }
 
+    /* Alpine root: no box of its own, its children lay out inside .elme-select */
+    .elme-select__ui {
+        display: contents;
+    }
+
     .elme-select__control {
         display: none;
     }
@@ -98,11 +103,25 @@
     }
 
     .elme-select__value {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
         flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .elme-select__value-text {
         min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+
+    /* Longest option label sets the width of a content-sized control */
+    .elme-select__sizer {
+        block-size: 0;
+        overflow: hidden;
+        visibility: hidden;
+        white-space: pre;
     }
 
     .elme-select__value.is-placeholder {
