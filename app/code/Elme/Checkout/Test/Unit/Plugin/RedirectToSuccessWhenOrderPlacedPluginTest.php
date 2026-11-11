@@ -12,8 +12,10 @@ use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Quote\Model\Quote;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 
+#[AllowMockObjectsWithoutExpectations]
 class RedirectToSuccessWhenOrderPlacedPluginTest extends TestCase
 {
     public function testEmptyCartWithSessionOrderRedirectsToSuccess(): void

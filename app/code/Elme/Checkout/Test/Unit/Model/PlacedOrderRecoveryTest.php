@@ -10,9 +10,11 @@ use Magento\Checkout\Model\Session\SuccessValidator;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\UrlInterface;
 use Magento\Sales\Model\Order;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
+#[AllowMockObjectsWithoutExpectations]
 class PlacedOrderRecoveryTest extends TestCase
 {
     private CheckoutSession&MockObject $checkoutSession;

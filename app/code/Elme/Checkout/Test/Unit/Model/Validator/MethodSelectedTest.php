@@ -10,18 +10,21 @@ use Elme\Checkout\Model\Method\QuoteShippingMethod;
 use Elme\Checkout\Model\Validator\DeliveryMethodSelected;
 use Elme\Checkout\Model\Validator\PaymentMethodSelected;
 use Magento\Quote\Model\Quote;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\TestCase;
 
+#[AllowMockObjectsWithoutExpectations]
 class MethodSelectedTest extends TestCase
 {
     /**
      * @param string[] $selected What the quote has before and after the refresh
      * @param float[] $prices The same for the saved delivery price
+     * @param string $message
      */
     #[DataProvider('refusedDelivery')]
-    public function testDeliveryIsRefused(array $selected, array $prices): void
+    public function testDeliveryIsRefused(array $selected, array $prices, string $message): void
     {
         $shippingMethod = $this->createMock(QuoteShippingMethod::class);
         $shippingMethod->expects($this->once())->method('refresh');
@@ -33,24 +36,42 @@ class MethodSelectedTest extends TestCase
             $this->fail('Expected a refusal');
         } catch (CheckoutInputException $exception) {
             $this->assertSame(QuoteShippingMethod::SECTION, $exception->getSection());
+            $this->assertSame($message, (string) $exception->getMessage());
         }
     }
 
     public static function refusedDelivery(): array
     {
         return [
-            'nothing chosen' => [['', ''], [0.0, 0.0]],
-            'carrier gone' => [['flatrate_flatrate', ''], [10.0, 0.0]],
-            'other rate swapped in' => [['flatrate_flatrate', 'tablerate_bestway'], [10.0, 20.0]],
-            'new price' => [['flatrate_flatrate', 'flatrate_flatrate'], [10.0, 15.0]],
+            'nothing chosen' => [
+                ['', ''],
+                [0.0, 0.0],
+                'Please choose a delivery method.',
+            ],
+            'carrier gone' => [
+                ['flatrate_flatrate', ''],
+                [10.0, 0.0],
+                'Your delivery method is no longer available. Please choose another one.',
+            ],
+            'other rate swapped in' => [
+                ['flatrate_flatrate', 'tablerate_bestway'],
+                [10.0, 20.0],
+                'Your delivery options have changed. Please check them and place your order again.',
+            ],
+            'new price' => [
+                ['flatrate_flatrate', 'flatrate_flatrate'],
+                [10.0, 15.0],
+                'Your delivery options have changed. Please check them and place your order again.',
+            ],
         ];
     }
 
     /**
      * @param string[] $selected What the quote has before and after the refresh
+     * @param string $message
      */
     #[DataProvider('refusedPayment')]
-    public function testPaymentIsRefused(array $selected): void
+    public function testPaymentIsRefused(array $selected, string $message): void
     {
         $paymentMethod = $this->createMock(QuotePaymentMethod::class);
         $paymentMethod->expects($this->once())->method('refresh');
@@ -61,15 +82,25 @@ class MethodSelectedTest extends TestCase
             $this->fail('Expected a refusal');
         } catch (CheckoutInputException $exception) {
             $this->assertSame(QuotePaymentMethod::SECTION, $exception->getSection());
+            $this->assertSame($message, (string) $exception->getMessage());
         }
     }
 
     public static function refusedPayment(): array
     {
         return [
-            'nothing chosen' => [['', '']],
-            'method gone' => [['checkmo', '']],
-            'other method swapped in' => [['checkmo', 'banktransfer']],
+            'nothing chosen' => [
+                ['', ''],
+                'Please choose a payment method.',
+            ],
+            'method gone' => [
+                ['checkmo', ''],
+                'Your payment method is no longer available. Please choose another one.',
+            ],
+            'other method swapped in' => [
+                ['checkmo', 'banktransfer'],
+                'Your payment options have changed. Please check them and place your order again.',
+            ],
         ];
     }
 

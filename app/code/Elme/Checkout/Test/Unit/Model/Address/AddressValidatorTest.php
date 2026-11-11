@@ -10,8 +10,10 @@ use Magento\Framework\Exception\InputException;
 use Magento\Framework\Phrase;
 use Magento\Quote\Model\Address\Validator\AddressAttributeValidatorInterface;
 use Magento\Quote\Model\Quote\Address;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 
+#[AllowMockObjectsWithoutExpectations]
 class AddressValidatorTest extends TestCase
 {
     public function testMagentoErrorsLandOnTheirFormFields(): void

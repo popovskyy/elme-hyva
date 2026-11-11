@@ -90,6 +90,19 @@ class AddressBook
         return $this->addressRepository->save($address);
     }
 
+    /**
+     * Removes a book entry that belongs to this customer. Used when a checkout save fails after the book was written.
+     *
+     * @param int $customerId
+     * @param int $addressId
+     * @return void
+     * @throws NoSuchEntityException When the address is gone or belongs to someone else
+     */
+    public function delete(int $customerId, int $addressId): void
+    {
+        $this->addressRepository->delete($this->getAddress($customerId, $addressId));
+    }
+
     private function findDefault(int $customerId, int $addressId): ?AddressInterface
     {
         if (!$addressId) {

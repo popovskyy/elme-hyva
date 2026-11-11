@@ -23,6 +23,10 @@
 !/bin
 !/bin/clinotty
 
+# PHPUnit Allure config when the suite is run from the repo root (see elme-qa / BE unit tests).
+!/allure
+!/allure/allure.config.php
+
 !/docker-compose.yml
 !/magento-docker
 !/magento-docker/**

@@ -11,9 +11,11 @@ use Magento\Framework\DataObject;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address as QuoteAddress;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
+#[AllowMockObjectsWithoutExpectations]
 class QuoteDetailsTest extends TestCase
 {
     private CartRepositoryInterface&MockObject $cartRepository;
