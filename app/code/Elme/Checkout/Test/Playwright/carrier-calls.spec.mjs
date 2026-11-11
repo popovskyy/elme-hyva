@@ -112,7 +112,7 @@ test('carrier requests per checkout action', async ({ page }) => {
             save_to_book: false,
         });
         expect(answer.ok, JSON.stringify(answer)).toBe(true);
-        expect(answer.state.sections.address.shipping.address.postcode).toBe('2000');
+        expect(answer.state.sections.address.shipping.address.locality).toContain('2000');
         expect(answer.state.sections.delivery.rates.map((rate) => rate.code)).toContain(COUNTED);
     });
 

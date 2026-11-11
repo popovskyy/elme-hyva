@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Elme\Checkout\Model\Address;
 
 use Elme\Checkout\Exception\CheckoutInputException;
+use Elme\Checkout\Model\Method\ShippingRatesFreshness;
 use Magento\Customer\Api\Data\AddressInterface as CustomerAddress;
 use Magento\Directory\Model\RegionFactory;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -50,7 +51,8 @@ class QuoteAddresses
         private readonly QuoteAddressFactory $quoteAddressFactory,
         private readonly RegionFactory $regionFactory,
         private readonly CartRepositoryInterface $cartRepository,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly ShippingRatesFreshness $ratesFreshness
     ) {
     }
 
@@ -155,6 +157,8 @@ class QuoteAddresses
     private function save(Quote $quote): void
     {
         $quote->setTotalsCollectedFlag(false)->collectTotals();
+        // collectTotals above asked the carriers when collect_shipping_rates was set; keep SaveHandler from asking again
+        $this->ratesFreshness->mark();
         $this->cartRepository->save($quote);
     }
 

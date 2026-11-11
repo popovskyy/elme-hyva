@@ -8,4 +8,8 @@
         <plugin name="elme_checkout_redirect_to_success_when_order_placed"
                 type="Elme\Checkout\Plugin\RedirectToSuccessWhenOrderPlacedPlugin"/>
     </type>
+    <type name="Magento\Quote\Model\ShippingAddressManagementInterface">
+        <plugin name="elme_checkout_reuse_fresh_shipping_rates"
+                type="Elme\Checkout\Plugin\ReuseFreshShippingRatesPlugin"/>
+    </type>
 </config>

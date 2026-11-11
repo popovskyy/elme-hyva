@@ -9,6 +9,7 @@ use Elme\Checkout\Model\Address\AddressBook;
 use Elme\Checkout\Model\Address\AddressFormatter;
 use Elme\Checkout\Model\Address\AddressValidator;
 use Elme\Checkout\Model\Address\QuoteAddresses;
+use Elme\Checkout\Model\Method\ShippingRatesFreshness;
 use Magento\Customer\Api\Data\AddressInterface as CustomerAddress;
 use Magento\Directory\Model\RegionFactory;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -228,7 +229,8 @@ class QuoteAddressesTest extends TestCase
             $factory,
             $this->createStub(RegionFactory::class),
             $this->cartRepository,
-            $logger ?? $this->createStub(LoggerInterface::class)
+            $logger ?? $this->createStub(LoggerInterface::class),
+            new ShippingRatesFreshness()
         );
     }
 

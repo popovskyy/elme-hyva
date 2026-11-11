@@ -120,9 +120,14 @@ Country is fixed to AU: `general/country/allow` in `etc/config.xml`, `QuoteAddre
 `Model/Method/QuoteShippingMethod` and `QuotePaymentMethod` are the only writers of the quote's methods;
 `Model/Section/DeliveryProvider` and `PaymentProvider` read them.
 
-- **Every state checks the methods again** (`refresh()` in `getState()`): a method that is gone is cleared, a single rate
+- **Every state checks the methods again** (`refresh()` in `buildState()`): a method that is gone is cleared, a single rate
   or method is chosen for the customer, and a new price of the chosen rate is saved. So an address or cart change needs
   no code of its own. Nothing is saved when nothing changed.
+- **One carrier request per action:** mutating actions build the state from the same quote they changed and pass a
+  rates-fresh marker so `refresh()` reuses the rates already on the address. Page load asks the carriers once. Payment,
+  details and billing do not ask. Core's quote `SaveHandler` would ask again through `ShippingAddressManagement::assign()`
+  setting `collect_shipping_rates`; `ShippingRatesFreshness` plus `ReuseFreshShippingRatesPlugin` stop that when rates
+  are already fresh. `write()` never sets `collect_shipping_rates` for a method-only change.
 - **A new carrier needs no change here:** rates come from the active Magento carriers. A rate that only carries an error
   (a carrier's "show method if not applicable") is not on offer.
 - **Rates go through `collectTotals()`:** the shipping total gives the address the qty and weight carriers charge by, and
@@ -132,6 +137,10 @@ Country is fixed to AU: `general/country/allow` in `etc/config.xml`, `QuoteAddre
 - **Locks:** Delivery needs a delivery address, Payment also needs a delivery method. The server says why in `locked` and
   refuses the action.
 - **Place order:** `Model/Validator/DeliveryMethodSelected` and `PaymentMethodSelected` are the first two validators.
+- **Counting test carrier:** `Model/Carrier/RateCounter` (`carriers/elme_rate_counter`, off by default) logs one line per
+  `collectRates` to `var/log/elme_checkout_carrier.log`. Switch on with
+  `bin/magento config:set carriers/elme_rate_counter/active 1`. Its price is `carriers/elme_rate_counter/price` so a
+  price change between page load and Place order is easy to try. Playwright: `Test/Playwright/carrier-calls.spec.mjs`.
 
 Add a payment method with its own fields: a block in `elme.checkout.section.payment` with the method code as its alias.
 The template has one root element and runs inside the method loop, with `method` and the `isChecked` and `pick` of
@@ -155,8 +164,10 @@ Core's `QuoteManagement` sets the checkout session's last-order data, and `etc/f
 - **One order per quote:** the store's `placing` flag stops double clicks in the browser. On the server a lock covers the
   validators and the order, and the quote is read again from the database inside it. Core's own lock is not enough: the
   validators can save the quote, and a save from a request that loaded it earlier would make a placed cart active again.
-- **Nothing changes behind the customer's back:** the validators refresh the methods, and a method or delivery price that
-  changed refuses the order, so the customer sees the new choice first. The answer carries the new state.
+- **Nothing changes behind the customer's back:** `DeliveryMethodSelected` calls `refresh()` without the rates-fresh
+  marker so the carriers are asked once more; a method or delivery price that changed refuses the order with "Your
+  delivery options have changed", so the customer sees the new choice first. The answer carries the new state. Core
+  `placeOrder` may collect totals again; together that is at most two carrier requests for Place order.
 - **The checkout page is the only way to order:** the validators run in `CheckoutManagement`, so
   `Plugin/RefuseApiOrderPlugin` refuses `CartManagementInterface::placeOrder()` for customers and guests in REST, SOAP and
   GraphQL. Admin and integration tokens stay allowed. Guests have no access to these APIs at all, see `Elme_LoginOnly`.

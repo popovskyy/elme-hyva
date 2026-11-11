@@ -10,10 +10,12 @@ use Elme\Checkout\Model\Address\QuoteAddresses;
 use Elme\Checkout\Model\Details\QuoteDetails;
 use Elme\Checkout\Model\Method\QuotePaymentMethod;
 use Elme\Checkout\Model\Method\QuoteShippingMethod;
+use Elme\Checkout\Model\Method\ShippingRatesFreshness;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Lock\LockManagerInterface;
 use Magento\Quote\Api\CartManagementInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteFactory;
 
 class CheckoutManagement implements CheckoutManagementInterface
@@ -31,18 +33,14 @@ class CheckoutManagement implements CheckoutManagementInterface
         private readonly LockManagerInterface $lockManager,
         private readonly QuoteFactory $quoteFactory,
         private readonly QuoteDetails $quoteDetails,
-        private readonly PlacedOrderRecovery $placedOrderRecovery
+        private readonly PlacedOrderRecovery $placedOrderRecovery,
+        private readonly ShippingRatesFreshness $ratesFreshness
     ) {
     }
 
     public function getState(int $cartId): CheckoutStateInterface
     {
-        $quote = $this->cartRepository->getActive($cartId);
-        $this->quoteAddresses->initialize($quote);
-        $this->shippingMethod->refresh($quote);
-        $this->paymentMethod->refresh($quote);
-
-        return $this->stateBuilder->build($quote);
+        return $this->buildState($this->cartRepository->getActive($cartId), false);
     }
 
     public function setShippingAddress(int $cartId, int|array $address, bool $saveToBook = false): CheckoutStateInterface
@@ -54,35 +52,39 @@ class CheckoutManagement implements CheckoutManagementInterface
             $this->quoteAddresses->selectShipping($quote, $address);
         }
 
-        return $this->getState($cartId);
+        return $this->buildState($quote, true);
     }
 
     public function setBillingAddress(int $cartId, int $addressId): CheckoutStateInterface
     {
-        $this->quoteAddresses->selectBilling($this->cartRepository->getActive($cartId), $addressId);
+        $quote = $this->cartRepository->getActive($cartId);
+        $this->quoteAddresses->selectBilling($quote, $addressId);
 
-        return $this->getState($cartId);
+        return $this->buildState($quote, true);
     }
 
     public function setShippingMethod(int $cartId, string $carrierCode, string $methodCode): CheckoutStateInterface
     {
-        $this->shippingMethod->select($this->cartRepository->getActive($cartId), $carrierCode, $methodCode);
+        $quote = $this->cartRepository->getActive($cartId);
+        $this->shippingMethod->select($quote, $carrierCode, $methodCode);
 
-        return $this->getState($cartId);
+        return $this->buildState($quote, true);
     }
 
     public function setPaymentMethod(int $cartId, string $method): CheckoutStateInterface
     {
-        $this->paymentMethod->select($this->cartRepository->getActive($cartId), $method);
+        $quote = $this->cartRepository->getActive($cartId);
+        $this->paymentMethod->select($quote, $method);
 
-        return $this->getState($cartId);
+        return $this->buildState($quote, true);
     }
 
     public function saveDetails(int $cartId, array $details): CheckoutStateInterface
     {
-        $this->quoteDetails->save($this->cartRepository->getActive($cartId), $details);
+        $quote = $this->cartRepository->getActive($cartId);
+        $this->quoteDetails->save($quote, $details);
 
-        return $this->getState($cartId);
+        return $this->buildState($quote, true);
     }
 
     /**
@@ -117,5 +119,19 @@ class CheckoutManagement implements CheckoutManagementInterface
         } finally {
             $this->lockManager->unlock($lockName);
         }
+    }
+
+    /**
+     * Builds the state from the quote the action just changed. When $ratesFresh is true the carriers already answered
+     * in this request (or rates on the address are still valid); refresh() reuses them. Page load passes false so the
+     * carriers are asked once, unless initialize() already collected and marked them fresh.
+     */
+    private function buildState(Quote $quote, bool $ratesFresh): CheckoutStateInterface
+    {
+        $this->quoteAddresses->initialize($quote);
+        $this->shippingMethod->refresh($quote, $ratesFresh || $this->ratesFreshness->isFresh());
+        $this->paymentMethod->refresh($quote);
+
+        return $this->stateBuilder->build($quote);
     }
 }

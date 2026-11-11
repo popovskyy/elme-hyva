@@ -85,4 +85,14 @@ class MethodSelectedTest extends TestCase
         (new DeliveryMethodSelected($shippingMethod))->validate($this->createStub(Quote::class));
         (new PaymentMethodSelected($paymentMethod))->validate($this->createStub(Quote::class));
     }
+
+    public function testDeliveryValidatorAsksTheCarriersThroughRefresh(): void
+    {
+        $shippingMethod = $this->createMock(QuoteShippingMethod::class);
+        $shippingMethod->method('getSelected')->willReturn('flatrate_flatrate');
+        $shippingMethod->method('getSavedPrice')->willReturn(10.0);
+        $shippingMethod->expects($this->once())->method('refresh')->with($this->isInstanceOf(Quote::class));
+
+        (new DeliveryMethodSelected($shippingMethod))->validate($this->createStub(Quote::class));
+    }
 }

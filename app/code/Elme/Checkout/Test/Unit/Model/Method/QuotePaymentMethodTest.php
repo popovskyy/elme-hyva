@@ -7,6 +7,7 @@ namespace Elme\Checkout\Test\Unit\Model\Method;
 use Elme\Checkout\Exception\CheckoutInputException;
 use Elme\Checkout\Model\Method\QuotePaymentMethod;
 use Elme\Checkout\Model\Method\QuoteShippingMethod;
+use Elme\Checkout\Model\Method\ShippingRatesFreshness;
 use Magento\Framework\Phrase;
 use Magento\Payment\Model\MethodInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
@@ -123,7 +124,8 @@ class QuotePaymentMethodTest extends TestCase
             $this->management,
             $shippingMethod,
             $this->cartRepository,
-            $this->createStub(LoggerInterface::class)
+            $this->createStub(LoggerInterface::class),
+            new ShippingRatesFreshness()
         );
 
         $this->assertNotNull($service->getLockReason($this->quote));
@@ -190,7 +192,8 @@ class QuotePaymentMethodTest extends TestCase
             $this->management,
             $this->shippingMethod,
             $this->cartRepository,
-            $logger ?? $this->createStub(LoggerInterface::class)
+            $logger ?? $this->createStub(LoggerInterface::class),
+            new ShippingRatesFreshness()
         );
     }
 }
