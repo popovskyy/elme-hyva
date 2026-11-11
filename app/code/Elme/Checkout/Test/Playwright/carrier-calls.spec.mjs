@@ -7,7 +7,8 @@ import { expect, test } from '@playwright/test';
 // (Model/Carrier/RateCounter) is switched on for this file and writes one line per request to
 // var/log/elme_checkout_carrier.log; the actions are posted the way the page posts them.
 
-const EMAIL = 'e2e-checkout@example.com';
+// FE-79: uses place-order customer; keep off Roman's manual account (e2e-checkout@example.com)
+const EMAIL = 'e2e-placeorder@example.com';
 const PASSWORD = 'E2eCheckout!2026';
 const PRODUCT_URL = '/e2e-checkout-product.html';
 const COUNTER = 'elme_rate_counter';

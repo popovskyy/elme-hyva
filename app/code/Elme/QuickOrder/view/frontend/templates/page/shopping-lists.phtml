@@ -243,7 +243,8 @@ $quickOrderUrl = $block->getUrl('quick_order');
                     window.dispatchEvent(new CustomEvent('elme:saved-lists-changed', {
                         detail: {source: 'shopping-lists'}
                     }));
-                    document.body.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+                    // Hyva private-content listens on window (not body); without this the section stays stale
+                    window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
                 } catch (e) {
                     window.dispatchEvent(new CustomEvent('elme-toast', {
                         detail: {type: 'error', text: (e && e.message) || deleteFailed}
