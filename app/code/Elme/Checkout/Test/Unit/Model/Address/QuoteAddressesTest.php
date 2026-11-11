@@ -68,13 +68,25 @@ class QuoteAddressesTest extends TestCase
         $this->assertTrue($this->shipping->getCollectShippingRates());
     }
 
-    public function testNoDefaultBillingFollowsDelivery(): void
+    public function testNoDefaultAddressesLeavesNamesEmpty(): void
+    {
+        $this->addressBook->method('getDefaultShipping')->willReturn(null);
+        $this->addressBook->method('getDefaultBilling')->willReturn(null);
+
+        $this->service()->initialize($this->quote);
+
+        $this->assertNull($this->shipping->getFirstname());
+        $this->assertNull($this->billing->getFirstname());
+    }
+
+    public function testDefaultShippingOnlyFollowsDeliveryOntoBilling(): void
     {
         $this->addressBook->method('getDefaultShipping')->willReturn($this->saved(1));
         $this->addressBook->method('getDefaultBilling')->willReturn(null);
 
         $this->service()->initialize($this->quote);
 
+        $this->assertSame(1, $this->shipping->getCustomerAddressId());
         $this->assertSame(1, $this->shipping->getSameAsBilling());
         $this->assertSame(1, $this->billing->getData('customer_address_id'));
         $this->assertSame('Saved', $this->billing->getData('firstname'));
@@ -128,6 +140,52 @@ class QuoteAddressesTest extends TestCase
 
         $this->assertNull($this->shipping->getCustomerAddressId());
         $this->assertSame('Copy', $this->shipping->getFirstname());
+    }
+
+    public function testSavedAddressChangedInTheAccountIsRefreshed(): void
+    {
+        $this->shipping->addData(['firstname' => 'Old', 'customer_address_id' => 5, 'same_as_billing' => 0]);
+        $this->billing->addData(['firstname' => 'Billing']);
+        $this->addressBook->method('getAddress')->willReturn($this->saved(5));
+        $this->cartRepository->expects($this->once())->method('save');
+
+        $formatter = $this->createStub(AddressFormatter::class);
+        $formatter->method('fromCustomerAddress')->willReturn(['line' => 'new']);
+        $formatter->method('fromQuoteAddress')->willReturn(['line' => 'old']);
+
+        $factory = $this->createStub(AddressFactory::class);
+        $factory->method('create')->willReturnCallback(fn (): QuoteAddress => $this->quoteAddress());
+
+        $service = new QuoteAddresses(
+            $this->addressBook,
+            $this->validator,
+            $formatter,
+            $factory,
+            $this->createStub(RegionFactory::class),
+            $this->cartRepository,
+            $this->createStub(LoggerInterface::class),
+            new ShippingRatesFreshness()
+        );
+        $service->initialize($this->quote);
+
+        $this->assertSame('Saved', $this->shipping->getFirstname());
+        $this->assertSame(5, $this->shipping->getCustomerAddressId());
+    }
+
+    public function testIncompleteSavedAddressIsRefused(): void
+    {
+        $this->addressBook->method('getAddress')->willReturn($this->saved(9));
+        $this->validator->method('getErrors')->willReturn(['postcode' => 'Enter a 4-digit postcode.']);
+        $this->cartRepository->expects($this->never())->method('save');
+
+        try {
+            $this->service()->selectShipping($this->quote, 9);
+            $this->fail('Expected a CheckoutInputException');
+        } catch (CheckoutInputException $exception) {
+            $this->assertSame(QuoteAddresses::SECTION, $exception->getSection());
+            $this->assertStringContainsString('incomplete', strtolower((string) $exception->getMessage()));
+        }
+        $this->assertNull($this->shipping->getFirstname());
     }
 
     public function testFailureDoesNotCostTheCustomerThePage(): void
@@ -215,6 +273,20 @@ class QuoteAddressesTest extends TestCase
         $this->service()->setNewShipping($this->quote, ['firstname' => 'Once'], false);
 
         $this->assertNull($this->shipping->getCustomerAddressId());
+    }
+
+    public function testSaveToBookIsRemovedWhenQuoteSaveFails(): void
+    {
+        $this->addressBook->expects($this->once())->method('add')->willReturn($this->saved(8));
+        $this->addressBook->expects($this->once())->method('delete')->with(self::CUSTOMER_ID, 8);
+        $this->cartRepository->method('save')->willThrowException(new \RuntimeException('Save failed'));
+
+        try {
+            $this->service()->setNewShipping($this->quote, ['firstname' => 'New', 'street_1' => '9 Road'], true);
+            $this->fail('Expected the quote save failure');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame('Save failed', $exception->getMessage());
+        }
     }
 
     private function service(?LoggerInterface $logger = null): QuoteAddresses

@@ -9,8 +9,10 @@ use Magento\Checkout\Model\Type\Onepage;
 use Magento\Framework\DataObject;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 
+#[AllowMockObjectsWithoutExpectations]
 class KeepQuoteAddressesPluginTest extends TestCase
 {
     public function testAddressPickedEarlierSurvivesInitCheckout(): void

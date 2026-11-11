@@ -9,10 +9,12 @@ use Elme\Checkout\Model\CheckoutState;
 use Elme\Checkout\Model\CheckoutStateFactory;
 use Elme\Checkout\Model\StateBuilder;
 use Magento\Quote\Api\Data\CartInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
+#[AllowMockObjectsWithoutExpectations]
 class StateBuilderTest extends TestCase
 {
     public function testSectionsFollowSortOrderNotPoolOrder(): void

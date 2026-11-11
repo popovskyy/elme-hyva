@@ -120,18 +120,38 @@ class QuoteAddresses
             );
         }
 
+        $customerId = (int) $quote->getCustomerId();
         $savedId = null;
         if ($saveToBook) {
-            $savedId = (int) $this->addressBook->add((int) $quote->getCustomerId(), $candidate)->getId();
+            $savedId = (int) $this->addressBook->add($customerId, $candidate)->getId();
         }
 
-        $shipping = $quote->getShippingAddress();
-        $this->fill($shipping, $fields);
-        $shipping->setCustomerAddressId($savedId)
-            ->setSaveInAddressBook(0)
-            ->setEmail($quote->getCustomerEmail());
+        try {
+            $shipping = $quote->getShippingAddress();
+            $this->fill($shipping, $fields);
+            $shipping->setCustomerAddressId($savedId)
+                ->setSaveInAddressBook(0)
+                ->setEmail($quote->getCustomerEmail());
 
-        $this->applyShippingChange($quote);
+            $this->applyShippingChange($quote);
+        } catch (Throwable $exception) {
+            if ($savedId) {
+                try {
+                    $this->addressBook->delete($customerId, $savedId);
+                } catch (Throwable $cleanup) {
+                    $this->logger->error(
+                        sprintf(
+                            'Checkout could not remove stray address book entry %d for customer %d: %s',
+                            $savedId,
+                            $customerId,
+                            $cleanup->getMessage()
+                        ),
+                        ['exception' => $cleanup]
+                    );
+                }
+            }
+            throw $exception;
+        }
     }
 
     /**

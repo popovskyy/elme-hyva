@@ -9,7 +9,6 @@ use Elme\Checkout\Model\Method\QuoteShippingMethod;
 use Elme\Checkout\Model\Method\ShippingRatesFreshness;
 use Magento\Framework\DataObject;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Api\Data\CartExtensionInterface;
 use Magento\Quote\Api\Data\ShippingAssignmentInterface;
 use Magento\Quote\Api\Data\ShippingInterface;
 use Magento\Quote\Api\Data\ShippingMethodInterface;
@@ -51,8 +50,20 @@ class QuoteShippingMethodTest extends TestCase
         $this->assignedShipping = $this->createMock(ShippingInterface::class);
         $assignment = $this->createStub(ShippingAssignmentInterface::class);
         $assignment->method('getShipping')->willReturn($this->assignedShipping);
-        $extension = $this->createStub(CartExtensionInterface::class);
-        $extension->method('getShippingAssignments')->willReturn([$assignment]);
+        // CartExtensionInterface is generated; unit tests must not depend on generated/code.
+        $extension = new class ($assignment) {
+            public function __construct(private ShippingAssignmentInterface $assignment)
+            {
+            }
+
+            /**
+             * @return ShippingAssignmentInterface[]
+             */
+            public function getShippingAssignments(): array
+            {
+                return [$this->assignment];
+            }
+        };
         $this->quote->method('getExtensionAttributes')->willReturn($extension);
     }
 

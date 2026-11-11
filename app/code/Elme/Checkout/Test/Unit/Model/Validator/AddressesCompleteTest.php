@@ -10,28 +10,42 @@ use Elme\Checkout\Model\Address\QuoteAddresses;
 use Elme\Checkout\Model\Validator\AddressesComplete;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\TestCase;
 
+#[AllowMockObjectsWithoutExpectations]
 class AddressesCompleteTest extends TestCase
 {
     public function testNoDeliveryAddressIsRefused(): void
     {
-        $this->assertRefused($this->quote($this->address(''), $this->address('Bill')), []);
+        $this->assertRefused(
+            $this->quote($this->address(''), $this->address('Bill')),
+            [],
+            'Please add a delivery address.'
+        );
     }
 
     public function testIncompleteDeliveryAddressIsRefused(): void
     {
         $shipping = $this->address('Ship');
 
-        $this->assertRefused($this->quote($shipping, $this->address('Bill')), [[$shipping, ['postcode' => 'Enter']]]);
+        $this->assertRefused(
+            $this->quote($shipping, $this->address('Bill')),
+            [[$shipping, ['postcode' => 'Enter']]],
+            'Your delivery address is missing some details. Please check it.'
+        );
     }
 
     public function testIncompleteBillingAddressIsRefused(): void
     {
         $billing = $this->address('Bill');
 
-        $this->assertRefused($this->quote($this->address('Ship'), $billing), [[$billing, ['city' => 'Enter']]]);
+        $this->assertRefused(
+            $this->quote($this->address('Ship'), $billing),
+            [[$billing, ['city' => 'Enter']]],
+            'Your billing address is missing some details. Please check it.'
+        );
     }
 
     #[DoesNotPerformAssertions]
@@ -46,8 +60,9 @@ class AddressesCompleteTest extends TestCase
     /**
      * @param Quote $quote
      * @param array $errors [address, errors]
+     * @param string $message
      */
-    private function assertRefused(Quote $quote, array $errors): void
+    private function assertRefused(Quote $quote, array $errors, string $message): void
     {
         $validator = $this->createStub(AddressValidator::class);
         $validator->method('getErrors')->willReturnCallback(static function (Address $address) use ($errors): array {
@@ -64,6 +79,7 @@ class AddressesCompleteTest extends TestCase
             $this->fail('Expected a refusal');
         } catch (CheckoutInputException $exception) {
             $this->assertSame(QuoteAddresses::SECTION, $exception->getSection());
+            $this->assertSame($message, (string) $exception->getMessage());
         }
     }
 

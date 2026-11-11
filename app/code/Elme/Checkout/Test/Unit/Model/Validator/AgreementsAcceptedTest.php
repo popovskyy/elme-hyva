@@ -8,9 +8,11 @@ use Elme\Checkout\Exception\CheckoutInputException;
 use Elme\Checkout\Model\Validator\AgreementsAccepted;
 use Magento\CheckoutAgreements\Model\AgreementsProvider;
 use Magento\Quote\Model\Quote;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\TestCase;
 
+#[AllowMockObjectsWithoutExpectations]
 class AgreementsAcceptedTest extends TestCase
 {
     public function testUntickedAgreementPointsAtItsCheckbox(): void
@@ -20,15 +22,20 @@ class AgreementsAcceptedTest extends TestCase
             $this->fail('Expected a refusal');
         } catch (CheckoutInputException $exception) {
             $this->assertSame(AgreementsAccepted::SECTION, $exception->getSection());
+            $this->assertSame('Please accept the terms and conditions.', (string) $exception->getMessage());
             $this->assertSame(['agreement_2'], array_keys($exception->getFieldErrors()));
         }
     }
 
     public function testNoInputRefusesARequiredAgreement(): void
     {
-        $this->expectException(CheckoutInputException::class);
-
-        $this->validator(['1'])->validate($this->createStub(Quote::class));
+        try {
+            $this->validator(['1'])->validate($this->createStub(Quote::class));
+            $this->fail('Expected a refusal');
+        } catch (CheckoutInputException $exception) {
+            $this->assertSame('Please accept the terms and conditions.', (string) $exception->getMessage());
+            $this->assertSame(['agreement_1'], array_keys($exception->getFieldErrors()));
+        }
     }
 
     #[DoesNotPerformAssertions]
