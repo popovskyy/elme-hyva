@@ -7,6 +7,9 @@
         <referenceContainer name="checkout.header.container" remove="true"/>
         <!-- Snowdog's inline plugin has no CSP hash, CSP is enforced here, and this page has no menu to collapse -->
         <referenceBlock name="alpine-plugin-collapse" remove="true"/>
+        <!-- default -> default_hyva still adds the menus; CSP is enforced here and the page has its own header -->
+        <referenceBlock name="elme.mega.panels" remove="true"/>
+        <referenceBlock name="elme.mobile.menu.dialog" remove="true"/>
         <!-- The steps carry the visible titles, as on the old checkout; the h1 stays for screen readers -->
         <referenceBlock name="page.main.title">
             <arguments>

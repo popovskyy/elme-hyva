@@ -183,12 +183,18 @@ use Magento\Framework\Escaper;
                 this.message = '';
                 this.errorSection = '';
 
+                // Place order talks to payment / ERP and may sit longer than a section save
+                const timeoutMs = action === 'placeorder' ? 60000 : 20000;
+                const controller = new AbortController();
+                const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+
                 try {
                     const response = await fetch(`${this.actionUrl}${action}`, {
                         method: 'POST',
                         credentials: 'same-origin',
                         headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
-                        body: new URLSearchParams({form_key: hyva.getFormKey(), data: JSON.stringify(data)})
+                        body: new URLSearchParams({form_key: hyva.getFormKey(), data: JSON.stringify(data)}),
+                        signal: controller.signal
                     });
                     const result = await response.json();
 
@@ -217,6 +223,7 @@ use Magento\Framework\Escaper;
                 } catch (error) {
                     this.message = '<?= $escaper->escapeJs(__('Something went wrong. Please try again.')) ?>';
                 } finally {
+                    window.clearTimeout(timer);
                     this.loading[sectionCode] = false;
                 }
 

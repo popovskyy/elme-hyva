@@ -17,4 +17,10 @@
                 type="Elme\Theme\Plugin\ReorderPlpAvailableOrdersPlugin"
                 sortOrder="20"/>
     </type>
+
+    <!-- FE-82: record script hashes while storefront still allows inline, for block_html CSP reuse -->
+    <type name="Hyva\Theme\ViewModel\HyvaCsp">
+        <plugin name="elme_theme_hyva_csp_inline_script"
+                type="Elme\Theme\Plugin\HyvaCspInlineScriptPlugin"/>
+    </type>
 </config>
