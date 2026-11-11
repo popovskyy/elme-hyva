@@ -176,15 +176,25 @@ test('REST and GraphQL refuse with the same message', async ({ page }) => {
 async function placeOrder(page) {
     await page.goto('/checkout');
     await expect(page.locator('[data-checkout-section="address"]')).toContainText('Deliver to:');
-    for (const radio of [
-        page.locator('input[name="delivery_method"][value="flatrate_flatrate"]'),
-        page.locator('[data-checkout-section="payment"] input[value="checkmo"]'),
-    ]) {
-        await expect(radio).toBeVisible();
-        if (!(await radio.isChecked())) {
-            await radio.check();
+    const deliveryRadio = page.locator('input[name="delivery_method"][value="flatrate_flatrate"]');
+    if (await deliveryRadio.count()) {
+        if (!(await deliveryRadio.isChecked())) {
+            await deliveryRadio.check();
         }
-        await expect(radio).toBeChecked();
+        await expect(deliveryRadio).toBeChecked();
+    } else {
+        await expect(page.locator('[data-checkout-section="delivery"] .elme-checkout-line__value')).toBeVisible();
+        await expect(page.locator('[data-checkout-section="delivery"].is-busy')).toHaveCount(0);
+    }
+    const paymentRadio = page.locator('[data-checkout-section="payment"] input[value="checkmo"]');
+    if (await paymentRadio.count()) {
+        if (!(await paymentRadio.isChecked())) {
+            await paymentRadio.check();
+        }
+        await expect(paymentRadio).toBeChecked();
+    } else {
+        await expect(page.locator('[data-checkout-section="payment"] .elme-checkout-line__value')).toBeVisible();
+        await expect(page.locator('[data-checkout-section="payment"].is-busy')).toHaveCount(0);
     }
     await page.locator('[data-checkout-section="agreements"] [data-place-order]').click();
     await expect(page).toHaveURL(/checkout\/onepage\/success/, { timeout: 60_000 });

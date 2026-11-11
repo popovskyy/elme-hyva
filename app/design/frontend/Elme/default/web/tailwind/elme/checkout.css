@@ -165,6 +165,7 @@
         }
     }
 
+    /* Sections first in the DOM (keyboard order); summary is pulled above them on phones only */
     .elme-checkout__sections {
         display: flex;
         flex-direction: column;
@@ -173,7 +174,6 @@
         padding-block: --spacing(8) --spacing(6);
 
         @variant lg {
-            order: 1;
             justify-self: end;
             width: 100%;
             max-width: --spacing(165);
@@ -189,6 +189,7 @@
 
     /* Sand band: full width under the header on phones, a column that bleeds to the right edge on desktop */
     .elme-checkout__summary-col {
+        order: -1;
         min-width: 0;
         margin-inline: calc(var(--container-gutter) * -1);
         background-color: var(--color-surface-muted);
@@ -198,7 +199,7 @@
         }
 
         @variant lg {
-            order: 2;
+            order: 0;
             margin-inline: 0;
             padding-block: --spacing(18) --spacing(14);
             padding-inline-start: --spacing(10);
@@ -489,21 +490,30 @@
     .elme-checkout-line__label {
         display: block;
         margin-block-end: --spacing(1);
-        color: var(--color-ink);
-        font-size: var(--text-copy-desktop);
-        line-height: var(--text-copy--line-height);
+        color: var(--color-ink-subtle);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
     }
 
     .elme-checkout-line__value {
         display: block;
-        color: var(--color-ink-subtle);
+        color: var(--color-ink);
         font-size: var(--text-copy);
         line-height: var(--text-copy--line-height);
+
+        @variant lg {
+            font-size: var(--text-copy-desktop);
+        }
     }
 
-    /* Old action links: small, semi-bold, underline on hover */
+    /* Old action links: small, semi-bold, underline on hover; hit area grows without shifting the text */
     .elme-checkout-link {
+        display: inline-flex;
         flex: none;
+        align-items: center;
+        min-height: --spacing(11);
+        margin-block: calc((--spacing(11) - 1em) / -2);
+        padding-block: calc((--spacing(11) - 1em) / 2);
         color: var(--color-ink);
         font-size: var(--text-copy);
         line-height: var(--text-copy--line-height);
@@ -512,6 +522,12 @@
         text-decoration: none;
         text-underline-offset: 0.2em;
         cursor: pointer;
+
+        @variant lg {
+            min-height: --spacing(6);
+            margin-block: calc((--spacing(6) - 1em) / -2);
+            padding-block: calc((--spacing(6) - 1em) / 2);
+        }
 
         @media (hover: hover) and (pointer: fine) {
             &:hover {
@@ -529,61 +545,75 @@
         text-decoration: underline;
     }
 
-    /* --- address form: underlined fields with the label inside, as on the old checkout --- */
+    /* --- address form: theme bordered fields (hyva.config.json form tokens) --- */
 
     .elme-checkout-form .field:not(.choice) {
-        position: relative;
         margin: 0;
     }
 
     .elme-checkout-form .field:not(.choice) > .label {
-        position: absolute;
-        top: --spacing(1.5);
-        left: 0;
-        z-index: 1;
-        margin: 0;
+        position: static;
+        margin: 0 0 --spacing(1.5);
         padding: 0;
         color: var(--color-ink-subtle);
         font-size: var(--text-label);
-        line-height: 1;
+        line-height: var(--text-label--line-height);
         font-weight: 600;
-        pointer-events: none;
+        pointer-events: auto;
+    }
+
+    /* Asterisk sits beside the label text, not floated above the field */
+    .elme-checkout-form .field.required > label::after {
+        top: 0;
+        color: var(--color-ink);
     }
 
     .elme-checkout-form :is(.form-input, .form-select) {
-        height: --spacing(13.5);
-        padding: --spacing(5.25) 0 0;
-        border-width: 0 0 1px;
-        border-color: var(--color-border);
-        border-radius: 0;
-        background-color: transparent;
-        color: var(--color-ink);
+        height: var(--form-height);
+        min-block-size: var(--form-height);
+        padding: var(--form-py) var(--form-px);
+        border: 1px solid var(--form-stroke);
+        border-radius: var(--form-radius);
+        background-color: var(--form-bg);
+        color: var(--form-color);
         box-shadow: none;
 
         &:focus {
-            border-color: var(--color-primary);
+            border-color: var(--form-active-color);
             outline: none;
             box-shadow: none;
         }
 
         &:focus-visible {
-            box-shadow: 0 1px 0 0 var(--color-primary);
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
         }
 
-        /* An invalid underlined field only turns its underline red (Hyva base draws a box outline), focused or not */
         &:is(:user-invalid, [aria-invalid="true"]) {
             border-color: var(--color-error-mark);
             outline: 0;
 
             &:focus-visible {
-                box-shadow: 0 1px 0 0 var(--color-error-mark);
+                outline: 2px solid var(--color-error-mark);
+                outline-offset: 2px;
             }
         }
     }
 
     .elme-checkout-form .form-select {
         padding-inline-end: --spacing(10);
-        background-position: right --spacing(1) bottom --spacing(2);
+        background-position: right var(--form-px) center;
+    }
+
+    /* Error line keeps its row height so neighbours do not jump when it appears */
+    .elme-checkout-form .field-error-message {
+        min-height: calc(var(--text-note--line-height) * 1em);
+        margin-block-start: --spacing(1);
+        animation: none;
+    }
+
+    .elme-checkout-form .field-error-message:not(:empty) {
+        animation: elme-checkout-error-in var(--transition-duration-fast) var(--ease-out-quint) both;
     }
 
     .elme-checkout .field-error-message {
@@ -727,12 +757,38 @@
 
     /* --- delivery instructions ---------------------------------------------- */
 
+    .elme-checkout-details__toggle {
+        display: inline-flex;
+        align-items: center;
+        min-height: --spacing(11);
+        margin-block: calc((--spacing(11) - 1em) / -2);
+        padding-block: calc((--spacing(11) - 1em) / 2);
+        border: 0;
+        background: none;
+        color: var(--color-ink);
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+        cursor: pointer;
+
+        @variant lg {
+            min-height: --spacing(6);
+            margin-block: calc((--spacing(6) - 1em) / -2);
+            padding-block: calc((--spacing(6) - 1em) / 2);
+        }
+    }
+
     .elme-checkout [data-checkout-section="details"] .form-textarea {
         display: block;
-        min-height: --spacing(47);
-        padding: --spacing(3.75);
-        border: 1px solid var(--color-border);
+        min-height: calc(var(--text-copy--line-height) * 3em + (var(--form-py) * 2));
+        padding: var(--form-py) var(--form-px);
+        border: 1px solid var(--form-stroke);
         border-radius: var(--form-radius);
+        background-color: var(--form-bg);
+        color: var(--form-color);
         resize: vertical;
     }
 
@@ -1035,7 +1091,7 @@
         border-radius: var(--form-radius);
     }
 
-    /* Desktop: "Return to cart" on the left, Place order on the right, as on the old shipping step */
+    /* Desktop: "Return to cart" on the left; total + Place order on the right */
     .elme-checkout-place {
         display: none;
         align-items: center;
@@ -1045,6 +1101,36 @@
         @variant lg {
             display: flex;
         }
+    }
+
+    .elme-checkout-place__side {
+        display: flex;
+        align-items: center;
+        gap: --spacing(5);
+        margin-inline-start: auto;
+    }
+
+    .elme-checkout-place__total {
+        margin: 0;
+        text-align: right;
+        line-height: 1.2;
+        color: var(--color-ink);
+    }
+
+    .elme-checkout-place__total-label {
+        display: block;
+        color: var(--color-ink-subtle);
+        font-size: var(--text-label);
+        line-height: var(--text-label--line-height);
+        font-weight: 400;
+    }
+
+    .elme-checkout-place__total-value {
+        display: block;
+        font-size: var(--text-h3);
+        line-height: var(--text-h3--line-height);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
     }
 
     .elme-checkout-place [data-place-order],
@@ -1060,6 +1146,33 @@
 
     .elme-checkout-bar .elme-checkout-place__icon {
         display: none;
+    }
+
+    /* Agreements "Read" dialog: keep the panel inside the viewport */
+    .elme-checkout-agreement-dialog {
+        width: 100%;
+        max-width: --spacing(168);
+        margin: auto;
+        padding: 0;
+        border: 0;
+        background-color: var(--color-surface);
+        color: var(--color-ink);
+
+        &::backdrop {
+            background-color: color-mix(in srgb, var(--color-ink) 50%, transparent);
+        }
+    }
+
+    .elme-checkout-agreement-dialog__panel {
+        display: flex;
+        max-height: 85vh;
+        flex-direction: column;
+        gap: --spacing(4);
+        padding: --spacing(4);
+
+        @variant lg {
+            padding: --spacing(6);
+        }
     }
 
     /* --- enter motion (steps + summary) ------------------------------------- */

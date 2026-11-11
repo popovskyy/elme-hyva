@@ -69,11 +69,8 @@
                                as="default"
                                template="Elme_Checkout::section/payment/method.phtml"/>
                     </block>
-                    <block name="elme.checkout.section.details" template="Elme_Checkout::section/details.phtml">
-                        <arguments>
-                            <argument name="number" xsi:type="number">4</argument>
-                        </arguments>
-                    </block>
+                    <!-- Optional: no step marker (FE-83), so it does not read as an unfinished required step -->
+                    <block name="elme.checkout.section.details" template="Elme_Checkout::section/details.phtml"/>
                     <block name="elme.checkout.place_order" template="Elme_Checkout::section/place-order.phtml">
                         <block name="elme.checkout.place_order.button"
                                as="button"

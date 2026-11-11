@@ -54,11 +54,11 @@ $agreements = $agreementsViewModel->getAgreements();
         </fieldset>
         <?php foreach ($agreements as $agreement): ?>
             <?php $agreementId = (int) $agreement['agreementId']; ?>
-            <dialog class="m-auto w-full max-w-2xl bg-surface p-0 text-ink backdrop:bg-ink/50"
+            <dialog class="elme-checkout-agreement-dialog"
                     id="elme-agreement-dialog-<?= $agreementId ?>"
                     aria-labelledby="elme-agreement-title-<?= $agreementId ?>"
                     @click="closeOnBackdrop">
-                <div class="flex max-h-[85vh] flex-col gap-4 p-4 lg:p-6">
+                <div class="elme-checkout-agreement-dialog__panel">
                     <h2 class="elme-checkout-section__title" id="elme-agreement-title-<?= $agreementId ?>">
                         <?= $escaper->escapeHtml(__('Terms and conditions')) ?>
                     </h2>
@@ -77,7 +77,13 @@ $agreements = $agreementsViewModel->getAgreements();
         <a class="elme-checkout-link" href="<?= $escaper->escapeUrl($block->getUrl('checkout/cart')) ?>">
             <?= $escaper->escapeHtml(__('Return to cart')) ?>
         </a>
-        <?= $block->getChildHtml('button') ?>
+        <div class="elme-checkout-place__side">
+            <p class="elme-checkout-place__total">
+                <span class="elme-checkout-place__total-label"><?= $escaper->escapeHtml(__('Order total')) ?></span>
+                <strong class="elme-checkout-place__total-value" x-text="grandTotal"></strong>
+            </p>
+            <?= $block->getChildHtml('button') ?>
+        </div>
     </div>
 </div>
 <script>
@@ -88,6 +94,9 @@ $agreements = $agreementsViewModel->getAgreements();
             },
             error() {
                 return this.store().sectionError('agreements');
+            },
+            grandTotal() {
+                return (this.store().section('summary') || {}).grand_total_formatted || '';
             },
             isAccepted() {
                 return this.store().isAgreementAccepted(this.$el.dataset.agreementId);

@@ -44,33 +44,53 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
         </a>
     </p>
 
-    <fieldset class="elme-checkout-section__body" x-show="hasRates" x-cloak>
-        <legend class="sr-only"><?= $escaper->escapeHtml(__('Delivery method')) ?></legend>
-        <div class="elme-checkout-options">
-            <template x-for="rate in rates" :key="rate.code">
-                <label class="elme-checkout-option">
-                    <input type="radio"
-                           class="elme-checkout-option__control"
-                           name="delivery_method"
-                           :value="rate.code"
-                           :checked="isChecked"
-                           @change="pick">
-                    <span class="elme-checkout-option__body">
-                        <span class="elme-checkout-option__title" x-text="rate.carrier_title"></span>
-                        <span class="block" x-text="rate.method_title"></span>
-                    </span>
-                    <span class="elme-checkout-option__price">
-                        <span class="elme-checkout-option__price-value" x-text="rate.price_formatted"></span>
-                        <span class="elme-checkout-option__price-note"><?= $escaper->escapeHtml(__('ex GST')) ?></span>
-                    </span>
-                </label>
-            </template>
+    <template x-if="hasOneRate">
+        <div class="elme-checkout-section__body">
+            <div class="elme-checkout-line">
+                <p class="min-w-0">
+                    <span class="elme-checkout-line__label"><?= $escaper->escapeHtml(__('Delivery:')) ?></span>
+                    <span class="elme-checkout-line__value" x-text="soleRateLine"></span>
+                </p>
+            </div>
         </div>
-    </fieldset>
+    </template>
+
+    <template x-if="hasManyRates">
+        <fieldset class="elme-checkout-section__body">
+            <legend class="sr-only"><?= $escaper->escapeHtml(__('Delivery method')) ?></legend>
+            <div class="elme-checkout-options">
+                <template x-for="rate in rates" :key="rate.code">
+                    <label class="elme-checkout-option">
+                        <input type="radio"
+                               class="elme-checkout-option__control"
+                               name="delivery_method"
+                               :value="rate.code"
+                               :checked="isChecked"
+                               @change="pick">
+                        <span class="elme-checkout-option__body">
+                            <span class="elme-checkout-option__title" x-text="rate.carrier_title"></span>
+                            <span class="block" x-text="rate.method_title"></span>
+                        </span>
+                        <span class="elme-checkout-option__price">
+                            <span class="elme-checkout-option__price-value" x-text="rate.price_formatted"></span>
+                            <span class="elme-checkout-option__price-note"><?= $escaper->escapeHtml(__('ex GST')) ?></span>
+                        </span>
+                    </label>
+                </template>
+            </div>
+        </fieldset>
+    </template>
 </section>
 <script>
     function elmeCheckoutDelivery() {
         return {
+            init() {
+                this.$watch(
+                    () => (this.store().section('delivery') || {}).rates,
+                    () => this.ensureSolePick()
+                );
+                this.ensureSolePick();
+            },
             store() {
                 return Alpine.store('elmeCheckout');
             },
@@ -93,7 +113,7 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
                 return this.isBusy() ? 'true' : 'false';
             },
             stepClass() {
-                return {'is-done': Boolean(this.data().selected)};
+                return {'is-done': Boolean(this.data().selected) || this.hasOneRate()};
             },
             busyClass() {
                 return {'is-busy': this.isBusy()};
@@ -101,8 +121,37 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
             hasRates() {
                 return this.rates().length > 0;
             },
+            hasOneRate() {
+                return this.rates().length === 1;
+            },
+            hasManyRates() {
+                return this.rates().length > 1;
+            },
             hasNoRates() {
                 return Boolean(this.store().section('delivery')) && !this.locked() && !this.hasRates();
+            },
+            soleRateLine() {
+                const rate = this.rates()[0];
+                if (!rate) {
+                    return '';
+                }
+                const title = rate.method_title || rate.carrier_title || '';
+                return title
+                    + ', '
+                    + (rate.price_formatted || '')
+                    + ' <?= $escaper->escapeJs(__('ex GST')) ?>';
+            },
+            ensureSolePick() {
+                if (!this.hasOneRate() || this.data().selected || this.store().pickedCode('delivery')) {
+                    return;
+                }
+                const rate = this.rates()[0];
+                this.store().pick(
+                    'shippingmethod',
+                    rate.code,
+                    {carrier_code: rate.carrier_code, method_code: rate.method_code},
+                    'delivery'
+                );
             },
             isChecked() {
                 return this.rate.code === (this.store().pickedCode('delivery') ?? this.data().selected);
