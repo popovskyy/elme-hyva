@@ -11,6 +11,7 @@ use Elme\Checkout\Model\Details\QuoteDetails;
 use Elme\Checkout\Model\Method\QuotePaymentMethod;
 use Elme\Checkout\Model\Method\QuoteShippingMethod;
 use Elme\Checkout\Model\PlaceOrderValidatorPool;
+use Elme\Checkout\Model\PlacedOrderRecovery;
 use Elme\Checkout\Model\StateBuilder;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Lock\LockManagerInterface;
@@ -28,6 +29,7 @@ class CheckoutManagementPlaceOrderTest extends TestCase
     private LockManagerInterface&MockObject $lockManager;
     private CartManagementInterface&MockObject $cartManagement;
     private PlaceOrderValidatorPool&MockObject $validators;
+    private PlacedOrderRecovery&MockObject $placedOrderRecovery;
     private Quote&MockObject $freshQuote;
     private CheckoutManagement $management;
 
@@ -36,6 +38,7 @@ class CheckoutManagementPlaceOrderTest extends TestCase
         $this->lockManager = $this->createMock(LockManagerInterface::class);
         $this->cartManagement = $this->createMock(CartManagementInterface::class);
         $this->validators = $this->createMock(PlaceOrderValidatorPool::class);
+        $this->placedOrderRecovery = $this->createMock(PlacedOrderRecovery::class);
 
         $this->freshQuote = $this->createMock(Quote::class);
         $this->freshQuote->method('loadActive')->with(self::CART_ID)->willReturnSelf();
@@ -55,7 +58,8 @@ class CheckoutManagementPlaceOrderTest extends TestCase
             $this->cartManagement,
             $this->lockManager,
             $quoteFactory,
-            $this->createStub(QuoteDetails::class)
+            $this->createStub(QuoteDetails::class),
+            $this->placedOrderRecovery
         );
     }
 
@@ -87,12 +91,25 @@ class CheckoutManagementPlaceOrderTest extends TestCase
         $this->lockManager->method('lock')->willReturn(true);
         $this->lockManager->expects($this->once())->method('unlock');
         $this->freshQuote->method('getId')->willReturn(null);
+        $this->placedOrderRecovery->method('getOrderIdForCart')->with(self::CART_ID)->willReturn(null);
         $this->validators->expects($this->never())->method('validate');
         $this->cartManagement->expects($this->never())->method('placeOrder');
 
         $this->expectException(LocalizedException::class);
 
         $this->management->placeOrder(self::CART_ID);
+    }
+
+    public function testQuoteThatIsAlreadyAnOrderReturnsSessionOrderWhenItBelongsToTheCart(): void
+    {
+        $this->lockManager->method('lock')->willReturn(true);
+        $this->lockManager->expects($this->once())->method('unlock');
+        $this->freshQuote->method('getId')->willReturn(null);
+        $this->placedOrderRecovery->method('getOrderIdForCart')->with(self::CART_ID)->willReturn(42);
+        $this->validators->expects($this->never())->method('validate');
+        $this->cartManagement->expects($this->never())->method('placeOrder');
+
+        $this->assertSame(42, $this->management->placeOrder(self::CART_ID));
     }
 
     public function testFailedValidatorStopsTheOrderAndReleasesTheLock(): void

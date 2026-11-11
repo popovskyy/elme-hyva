@@ -89,6 +89,9 @@ try {
     echo "no cart to clear\n";
 }
 
+// Header badge reads Quick Order cart_list, not the Magento quote
+$om->get(\Elme\QuickOrder\Model\CartList::class)->clear((int) $customer->getId());
+
 require __DIR__ . '/seed-qty-rules.php';
 
 echo json_encode(['sku' => E2E_SKU, 'email' => E2E_EMAIL, 'password' => E2E_PASSWORD]), "\n";

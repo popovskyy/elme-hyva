@@ -4,4 +4,8 @@
     <type name="Magento\Checkout\Model\Type\Onepage">
         <plugin name="elme_checkout_keep_quote_addresses" type="Elme\Checkout\Plugin\KeepQuoteAddressesPlugin"/>
     </type>
+    <type name="Magento\Checkout\Controller\Index\Index">
+        <plugin name="elme_checkout_redirect_to_success_when_order_placed"
+                type="Elme\Checkout\Plugin\RedirectToSuccessWhenOrderPlacedPlugin"/>
+    </type>
 </config>
