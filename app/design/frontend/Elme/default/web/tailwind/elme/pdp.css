@@ -76,10 +76,10 @@
             justify-content: space-between;
             gap: --spacing(4);
             padding-block: --spacing(3);
-            border-top: 1px solid var(--color-divider);
+            border-top: 1px solid var(--color-border);
 
             &:last-child {
-                border-bottom: 1px solid var(--color-divider);
+                border-bottom: 1px solid var(--color-border);
             }
         }
 
@@ -184,10 +184,10 @@
 
     /* ---------- detail sections (accordion in the info column) ---------- */
     .elme-pdp__section {
-        border-top: 1px solid var(--color-divider);
+        border-top: 1px solid var(--color-border);
 
         &:last-child {
-            border-bottom: 1px solid var(--color-divider);
+            border-bottom: 1px solid var(--color-border);
         }
 
         summary {

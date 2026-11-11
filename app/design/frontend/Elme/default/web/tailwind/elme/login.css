@@ -251,7 +251,7 @@
             content: "";
             flex: 1;
             height: 1px;
-            background: var(--color-divider);
+            background: var(--color-border);
         }
     }
 
@@ -414,7 +414,7 @@
         display: grid;
         gap: --spacing(4);
         padding-top: --spacing(7);
-        border-top: 1px solid var(--color-divider);
+        border-top: 1px solid var(--color-border);
     }
 
     /* section title: "01  Personal Information" */
@@ -483,7 +483,7 @@
         gap: --spacing(3);
         margin-top: --spacing(2);
         padding-top: --spacing(7);
-        border-top-color: var(--color-divider);
+        border-top-color: var(--color-border);
 
         .primary .btn {
             width: 100%;

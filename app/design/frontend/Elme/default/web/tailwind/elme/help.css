@@ -192,7 +192,7 @@
         gap: --spacing(2);
         min-height: --spacing(11);
         padding: --spacing(2) --spacing(4) --spacing(2) --spacing(3);
-        border: 1px solid var(--color-border-light);
+        border: 1px solid var(--color-border);
         background-color: var(--color-surface);
         color: var(--color-ink);
         font-size: var(--text-note);
@@ -242,7 +242,7 @@
     @variant lg {
         .elme-help-nav {
             padding: --spacing(5) --spacing(3) --spacing(3);
-            border: 1px solid var(--color-border-light);
+            border: 1px solid var(--color-border);
             background-color: var(--color-surface);
         }
 
@@ -419,7 +419,7 @@
     .elme-help-toc {
         margin: --spacing(6) 0 0;
         padding: --spacing(5);
-        border: 1px solid var(--color-border-light);
+        border: 1px solid var(--color-border);
         background-color: var(--color-surface);
     }
 
@@ -499,7 +499,7 @@
     .elme-help-body h2 {
         margin-block: --spacing(10) --spacing(3);
         padding-top: --spacing(8);
-        border-top: 1px solid var(--color-divider);
+        border-top: 1px solid var(--color-border);
         font-family: var(--font-heading);
         font-size: var(--text-h2);
         line-height: var(--text-h2--line-height);

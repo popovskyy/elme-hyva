@@ -55,7 +55,7 @@
         }
 
         &:disabled {
-            border-color: var(--color-border-light);
+            border-color: var(--color-border);
             color: var(--color-placeholder);
             cursor: not-allowed;
         }

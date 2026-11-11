@@ -398,7 +398,7 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
 <?php $hyvaCsp->registerInlineScript() ?>
 
 <div id="header"
-     class="elme-header<?= $isLoggedIn ? ' elme-header--signed-in' : '' ?> relative z-30 w-full border-b border-divider bg-surface"
+     class="elme-header<?= $isLoggedIn ? ' elme-header--signed-in' : '' ?> relative z-30 w-full border-b border-border bg-surface"
      x-data="initHeader"
      @private-content-loaded.window="getData"
      @elme-qo-count.window="setQoCount"
@@ -535,7 +535,7 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
     <!-- Search panel below xl -->
     <div
         id="search-content"
-        class="xl:hidden absolute z-10 inset-x-0 top-full w-full border-t border-divider shadow-sm bg-surface"
+        class="xl:hidden absolute z-10 inset-x-0 top-full w-full border-t border-border shadow-sm bg-surface"
         x-cloak
         x-show="searchOpen"
         @click.outside="searchClose"

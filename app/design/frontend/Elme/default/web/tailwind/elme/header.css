@@ -58,7 +58,7 @@
     .page-header.is-stuck .elme-header {
         border-bottom-color: transparent;
         box-shadow:
-            0 1px 0 var(--color-divider),
+            0 1px 0 var(--color-border),
             0 8px 20px -12px color-mix(in oklab, var(--color-ink) 40%, transparent);
     }
 
@@ -284,7 +284,7 @@
 
         .delimiter {
             margin-block: --spacing(2);
-            border-color: var(--color-divider);
+            border-color: var(--color-border);
         }
     }
 

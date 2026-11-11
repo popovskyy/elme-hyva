@@ -81,7 +81,7 @@ $stockistUrl = $cataloguesVm->getStockistUrl();
                     ?>
                     <li class="elme-virtual-catalogues__card min-w-0">
                         <article class="grid gap-4" aria-labelledby="<?= $escaper->escapeHtmlAttr($titleId) ?>">
-                            <div class="elme-virtual-catalogues__cover relative overflow-hidden bg-cool-light">
+                            <div class="elme-virtual-catalogues__cover relative overflow-hidden bg-surface-muted">
                                 <img src="<?= $escaper->escapeUrl($item['image']['src']) ?>"
                                      alt="<?= $escaper->escapeHtmlAttr($item['image_alt']) ?>"
                                      width="<?= (int) $item['image']['width'] ?>"
@@ -151,7 +151,7 @@ $stockistUrl = $cataloguesVm->getStockistUrl();
                     <div class="relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden
                                 rounded-sm bg-surface shadow-lg"
                          @click.outside="close">
-                        <div class="flex items-center justify-between gap-4 border-b border-divider px-4 py-3">
+                        <div class="flex items-center justify-between gap-4 border-b border-border px-4 py-3">
                             <p class="m-0 font-heading text-h3 lg:text-h3-desktop" x-text="title"></p>
                             <button type="button"
                                     class="btn btn-secondary min-h-11 px-3"
@@ -160,7 +160,7 @@ $stockistUrl = $cataloguesVm->getStockistUrl();
                                 <?= $escaper->escapeHtml(__('Close')) ?>
                             </button>
                         </div>
-                        <div class="relative min-h-[60vh] w-full bg-cool-light">
+                        <div class="relative min-h-[60vh] w-full bg-surface-muted">
                             <iframe class="absolute inset-0 h-full w-full border-0"
                                     title="<?= $escaper->escapeHtmlAttr(__('Catalogue flipbook')) ?>"
                                     :src="iframeSrc"

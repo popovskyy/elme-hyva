@@ -28,7 +28,7 @@
 
     .elme-location__hours th,
     .elme-location__hours td {
-        border-block-end: 1px solid var(--color-divider);
+        border-block-end: 1px solid var(--color-border);
     }
 
     .elme-location__hours tr:last-child th,

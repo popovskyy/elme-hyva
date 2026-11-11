@@ -1,7 +1,8 @@
 {
   "notice": [
     "This is a complementary config file for Tailwind v4 and is not a replacement for the Tailwind v3 config file.",
-    "For usage, see the docs: https://docs.hyva.io/hyva-themes/working-with-tailwindcss/using-hyva-modules/"
+    "For usage, see the docs: https://docs.hyva.io/hyva-themes/working-with-tailwindcss/using-hyva-modules/",
+    "UX-15: primary and ink share #3A3935 — primary = action fill, ink = text. Soft line = color.border; strong line = form.stroke."
   ],
   "tailwind": {
     "include": [
@@ -51,19 +52,15 @@
         "accent": "#98A8BB",
         "accent-dark": "#68839C",
         "ink": "#3A3935",
-        "ink-muted": "#676F78",
-        "ink-subtle": "#6D7074",
+        "ink-muted": "#605E55",
+        "ink-subtle": "#6F6D64",
         "link-hover": "#5F6E67",
         "page": "#F5F4EF",
         "surface": "#FFFFFF",
-        "surface-muted": "#F8F8F8",
+        "surface-muted": "#F1F0EA",
         "sand-light": "#E1DBD1",
-        "sand-faint": "#FAF9F4",
-        "cool-light": "#ECEFF1",
-        "border": "#CAC9C9",
-        "border-light": "#D3D6D9",
-        "divider": "#DCDCDC",
-        "placeholder": "#646D76",
+        "border": "#D8D5CE",
+        "placeholder": "#64625A",
         "success": "#00BC37",
         "success-light": "#C5EAD6",
         "olive": "#647455",

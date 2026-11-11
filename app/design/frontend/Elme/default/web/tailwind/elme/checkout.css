@@ -31,7 +31,7 @@
     /* --- chrome ------------------------------------------------------------- */
 
     .elme-checkout-header {
-        border-block-end: 1px solid var(--color-cool-light);
+        border-block-end: 1px solid var(--color-surface-muted);
         background-color: var(--color-surface);
     }
 
@@ -67,7 +67,7 @@
 
     .elme-checkout-footer {
         margin-block-start: auto;
-        border-block-start: 1px solid var(--color-border-light);
+        border-block-start: 1px solid var(--color-border);
         background-color: var(--color-page);
     }
 
@@ -191,7 +191,7 @@
     .elme-checkout__summary-col {
         min-width: 0;
         margin-inline: calc(var(--container-gutter) * -1);
-        background-color: var(--color-sand-faint);
+        background-color: var(--color-surface-muted);
 
         @variant md {
             margin-inline: calc(var(--container-gutter-desktop) * -1);
@@ -202,7 +202,7 @@
             margin-inline: 0;
             padding-block: --spacing(18) --spacing(14);
             padding-inline-start: --spacing(10);
-            box-shadow: 0 0 0 100vmax var(--color-sand-faint);
+            box-shadow: 0 0 0 100vmax var(--color-surface-muted);
             clip-path: inset(0 -100vmax 0 0);
         }
 
@@ -350,7 +350,7 @@
         align-items: center;
         gap: --spacing(4);
         padding: --spacing(5) --spacing(4);
-        border: 1px solid var(--color-border-light);
+        border: 1px solid var(--color-border);
         border-radius: var(--form-radius);
         background-color: var(--color-surface);
         color: var(--color-ink);
@@ -649,7 +649,7 @@
         align-items: center;
         gap: --spacing(3);
         padding: --spacing(4) --spacing(5);
-        border-block-end: 1px solid var(--color-divider);
+        border-block-end: 1px solid var(--color-border);
 
         @variant md {
             padding: --spacing(5) --spacing(6);
@@ -710,7 +710,7 @@
         justify-content: flex-end;
         gap: --spacing(5);
         padding: --spacing(4) --spacing(5) max(--spacing(5), env(safe-area-inset-bottom));
-        border-block-start: 1px solid var(--color-divider);
+        border-block-start: 1px solid var(--color-border);
 
         @variant md {
             padding: --spacing(4) --spacing(6);
@@ -989,7 +989,7 @@
         padding-inline: var(--container-gutter);
         padding-block: --spacing(3);
         padding-block-end: max(--spacing(3), env(safe-area-inset-bottom));
-        border-block-start: 1px solid var(--color-border-light);
+        border-block-start: 1px solid var(--color-border);
         background-color: color-mix(in srgb, var(--color-surface) 94%, transparent);
         backdrop-filter: blur(8px);
         animation: elme-checkout-bar-in var(--transition-duration-base) var(--ease-out-quint) both;
@@ -1031,7 +1031,7 @@
 
     .elme-checkout-agreements__box {
         padding: --spacing(4);
-        border: 1px solid var(--color-border-light);
+        border: 1px solid var(--color-border);
         border-radius: var(--form-radius);
     }
 

@@ -75,7 +75,7 @@ $guestLabel = __('Log in/Sign up');
         <nav
             id="customer-menu-panel"
             class="elme-account-menu absolute end-0 top-full z-40 mt-2 w-56 py-2
-                   bg-surface border border-divider shadow-lg"
+                   bg-surface border border-border shadow-lg"
             aria-label="<?= $escaper->escapeHtmlAttr(__('My Account')) ?>"
             x-show="open"
             x-transition:enter="transition ease-out duration-150"
@@ -86,7 +86,7 @@ $guestLabel = __('Log in/Sign up');
             x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
             x-cloak
         >
-            <p class="px-4 pt-1 pb-2 mb-2 border-b border-divider text-note text-ink-muted" x-show="hasName">
+            <p class="px-4 pt-1 pb-2 mb-2 border-b border-border text-note text-ink-muted" x-show="hasName">
                 <?= $escaper->escapeHtml(__('Signed in as')) ?>
                 <span class="block text-body text-ink font-medium truncate" x-text="fullName"></span>
             </p>
