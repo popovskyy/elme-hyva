@@ -39,6 +39,14 @@ class LoginOnly implements ArgumentInterface
         return $this->urlBuilder->getUrl('customer/account/login');
     }
 
+    /**
+     * Trade account application (FE-36 registration). Used by the PDP guest buy box "Apply here".
+     */
+    public function getRegisterUrl(): string
+    {
+        return $this->urlBuilder->getUrl('customer/account/create');
+    }
+
     public function getPricesUrl(): string
     {
         return $this->urlBuilder->getUrl('elme_customer_price/prices');
