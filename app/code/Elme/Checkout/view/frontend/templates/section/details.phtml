@@ -30,11 +30,22 @@ $instructionsField = OrderDetailsInterface::DELIVERY_INSTRUCTIONS;
                 class="elme-checkout-details__toggle"
                 x-show="isClosed"
                 x-cloak
+                x-transition:enter="transition ease-out-quint duration-200 motion-reduce:duration-0"
+                x-transition:enter-start="opacity-0"
+                x-transition:leave="transition ease-out-quint duration-150 motion-reduce:duration-0"
+                x-transition:leave-end="opacity-0"
                 @click="expand">
             <?= $escaper->escapeHtml(__('Add delivery instructions')) ?>
         </button>
 
-        <div class="field" x-show="isOpen" x-cloak x-ref="instructionsField">
+        <div class="field"
+             x-show="isOpen"
+             x-cloak
+             x-ref="instructionsField"
+             x-transition:enter="transition ease-out-quint duration-200 motion-reduce:duration-0"
+             x-transition:enter-start="opacity-0 -translate-y-1 motion-reduce:translate-y-0"
+             x-transition:leave="transition ease-out-quint duration-150 motion-reduce:duration-0"
+             x-transition:leave-end="opacity-0 -translate-y-1 motion-reduce:translate-y-0">
             <label class="label sr-only" for="elme-checkout-instructions">
                 <?= $escaper->escapeHtml(__('Delivery instructions')) ?>
             </label>

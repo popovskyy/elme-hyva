@@ -6,6 +6,7 @@ namespace Elme\Checkout\Model\Address;
 
 use Magento\Customer\Api\Data\AddressInterface;
 use Magento\Quote\Model\Quote\Address as QuoteAddress;
+use Magento\Sales\Model\Order\Address as OrderAddress;
 
 /**
  * One shape for a saved address and a quote address, as the checkout shows them.
@@ -35,6 +36,24 @@ class AddressFormatter
      * @return array<string, string>
      */
     public function fromQuoteAddress(QuoteAddress $address): array
+    {
+        return $this->format(
+            (string) $address->getFirstname(),
+            (string) $address->getLastname(),
+            (string) $address->getCompany(),
+            $address->getStreet() ?: [],
+            (string) $address->getCity(),
+            (string) $address->getRegionCode(),
+            (string) $address->getPostcode(),
+            (string) $address->getTelephone()
+        );
+    }
+
+    /**
+     * @param OrderAddress $address
+     * @return array<string, string>
+     */
+    public function fromOrderAddress(OrderAddress $address): array
     {
         return $this->format(
             (string) $address->getFirstname(),
