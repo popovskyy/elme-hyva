@@ -37,5 +37,5 @@
     --color-fg: var(--color-ink);
     --color-fg-secondary: var(--color-ink-muted);
     --color-bg: var(--color-page);
-    --form-error-color: var(--color-error-strong);
+    --form-error-color: var(--color-error-text);
 }

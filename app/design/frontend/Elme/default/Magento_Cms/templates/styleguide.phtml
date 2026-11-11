@@ -513,12 +513,56 @@ for ($i = 1; $i <= 40; $i++) {
         <?= /* @noEscape */ $styleguide->getPagerHtml($layout) ?>
     </section>
 
+    <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-status">
+        <h2 id="sg-status" class="mb-2"><?= $escaper->escapeHtml(__('Status colours')) ?></h2>
+        <p class="max-w-2xl mb-6 text-ink-subtle">
+            <?= $escaper->escapeHtml(__(
+                'One family of four states (success, warning, error, info), each with ground, mark and text. '
+                . 'Promo is sale only. Olive is brand only.'
+            )) ?>
+        </p>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 max-w-5xl mb-8" role="presentation">
+            <?php
+            $statusGroups = [
+                'success' => [__('Success'), 'bg-success-ground', 'bg-success-mark', 'text-success-text'],
+                'warning' => [__('Warning'), 'bg-warning-ground', 'bg-warning-mark', 'text-warning-text'],
+                'error' => [__('Error'), 'bg-error-ground', 'bg-error-mark', 'text-error-text'],
+                'info' => [__('Info'), 'bg-info-ground', 'bg-info-mark', 'text-info-text'],
+            ];
+            foreach ($statusGroups as $key => [$label, $ground, $mark, $text]):
+                ?>
+                <div class="border border-border p-4 <?= /* @noEscape */ $ground ?>">
+                    <p class="m-0 mb-3 text-label uppercase tracking-wide <?= /* @noEscape */ $text ?>">
+                        <?= $escaper->escapeHtml($label) ?>
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <span class="inline-block size-6 shrink-0 <?= /* @noEscape */ $mark ?>"
+                              aria-hidden="true"></span>
+                        <span class="text-copy font-medium <?= /* @noEscape */ $text ?>">
+                            <?= $escaper->escapeHtml(__('Status text on ground')) ?>
+                        </span>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Form field error (uses error-text)')) ?></p>
+        <div class="field required field-error max-w-md mb-2">
+            <label class="label" for="sg-status-field-error"><?= $escaper->escapeHtml(__('Purchase order')) ?></label>
+            <input id="sg-status-field-error" type="text" class="form-input w-full" value="PO"
+                   aria-invalid="true" aria-describedby="sg-status-field-error-msg" required>
+            <ul class="messages" id="sg-status-field-error-msg">
+                <li><?= $escaper->escapeHtml(__('Enter the full purchase order number.')) ?></li>
+            </ul>
+        </div>
+    </section>
+
     <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-messages" x-data="initElmeStyleguideFeedback">
         <h2 id="sg-messages" class="mb-2"><?= $escaper->escapeHtml(__('Messages and toasts')) ?></h2>
         <p class="max-w-2xl mb-6 text-ink-subtle">
             <?= $escaper->escapeHtml(__(
                 'Page messages sit in the content column under the header (never over it). '
-                . 'Toasts float under --elme-header-row-bottom and auto-dismiss. Screen readers get role=alert / aria-live.'
+                . 'Toasts float under --elme-header-row-bottom and auto-dismiss. Screen readers get role=alert / aria-live. '
+                . 'Notice maps to the info status set.'
             )) ?>
         </p>
         <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Static types')) ?></p>
@@ -537,7 +581,7 @@ for ($i = 1; $i <= 40; $i++) {
                     <?= /* @noEscape */ $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
                 </button>
             </div>
-            <div class="message notice" role="status">
+            <div class="message notice info" role="status">
                 <span class="message__badge" aria-hidden="true"></span>
                 <span class="message__text"><?= $escaper->escapeHtml(__('Add $120.00 more to place your order.')) ?></span>
                 <button type="button" class="message__close" aria-label="<?= $escaper->escapeHtmlAttr(__('Close message')) ?>">

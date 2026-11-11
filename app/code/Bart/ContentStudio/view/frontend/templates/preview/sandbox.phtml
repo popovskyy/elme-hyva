@@ -13,7 +13,7 @@ $expiresAt = $block->getExpiresAt();
       // The outer bar only centres; it lets clicks through to the page. ?>
 <div class="pointer-events-none fixed inset-x-4 bottom-4 z-50 flex justify-center">
     <aside class="pointer-events-auto flex min-w-0 items-center gap-2 rounded-full bg-primary px-4 py-2
-                  text-note text-on-primary shadow-lg [&.is-expired]:bg-error-strong"
+                  text-note text-on-primary shadow-lg [&.is-expired]:bg-error-text"
            aria-label="<?= $escaper->escapeHtmlAttr(__('Draft preview')) ?>">
         <span class="size-2 shrink-0 animate-pulse rounded-full bg-secondary motion-reduce:animate-none"
               aria-hidden="true"></span>

@@ -175,11 +175,11 @@
     }
 
     .elme-cart__stock.is-in {
-        color: var(--color-olive);
+        color: var(--color-success-text);
     }
 
     .elme-cart__stock.is-low {
-        color: var(--color-toast-warning-mark);
+        color: var(--color-warning-text);
     }
 
     .elme-cart__dot {
@@ -191,7 +191,7 @@
     }
 
     .elme-cart__message {
-        color: var(--color-error);
+        color: var(--color-error-text);
     }
 
     .elme-cart__actions {
@@ -400,7 +400,7 @@
 
     .elme-cart__error {
         margin: 0 0 --spacing(4);
-        color: var(--color-error);
+        color: var(--color-error-text);
     }
 
     .elme-cart__loading {
@@ -473,7 +473,7 @@
     .elme-cart__field-error {
         flex-basis: 100%;
         margin: 0;
-        color: var(--color-error);
+        color: var(--color-error-text);
         font-size: var(--text-note);
         line-height: var(--text-note--line-height);
 

@@ -263,7 +263,7 @@
     }
 
     .elme-lp__new .form-input[aria-invalid="true"] {
-        border-color: var(--color-toast-error-mark);
+        border-color: var(--color-error-mark);
     }
 
     .elme-lp__error {
@@ -271,7 +271,7 @@
         min-height: --spacing(4);
         margin: --spacing(1.5) 0 0;
         font-size: var(--text-note);
-        color: var(--color-toast-error-mark);
+        color: var(--color-error-text);
     }
 
     .elme-lp-lock {

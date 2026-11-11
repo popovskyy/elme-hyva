@@ -57,8 +57,8 @@ $recaptcha = $block->getData('viewModelRecaptcha');
                    class="elme-newsletter__input block w-full m-0 pt-5 pb-4 pl-0 pr-12
                           bg-transparent border-0 border-b border-secondary rounded-none
                           text-copy leading-5 tracking-wide text-ink placeholder:text-ink-subtle
-                          outline-0 focus:border-primary aria-invalid:border-error-strong
-                          aria-invalid:focus:border-error-strong"
+                          outline-0 focus:border-primary aria-invalid:border-error-mark
+                          aria-invalid:focus:border-error-mark"
                    placeholder="<?= $escaper->escapeHtmlAttr(__('Enter your email')) ?>"
                    aria-describedby="footer-newsletter-text footer-newsletter-status"
                    :aria-invalid="isInvalid"
@@ -106,8 +106,8 @@ $recaptcha = $block->getData('viewModelRecaptcha');
             },
             statusClass() {
                 return {
-                    'text-error-strong': this.status === 'invalid' || this.status === 'error',
-                    'text-olive': this.status === 'success'
+                    'text-error-text': this.status === 'invalid' || this.status === 'error',
+                    'text-success-text': this.status === 'success'
                 };
             },
             clearError() {

@@ -1,5 +1,6 @@
 /**
  * Elme badges: product flags (Sale, New) and stock labels (in stock, low, out of stock, made to order).
+ * Sale uses promo (sale only, never error). Stock dots use the status mark tokens (UX-16).
  * Usage: <span class="badge badge-sale">Sale</span>
  */
 
@@ -52,15 +53,15 @@
 }
 
 @utility badge-stock-in {
-    --badge-dot: var(--color-success);
+    --badge-dot: var(--color-success-mark);
 }
 
 @utility badge-stock-low {
-    --badge-dot: var(--color-warning);
+    --badge-dot: var(--color-warning-mark);
 }
 
 @utility badge-stock-out {
-    --badge-dot: var(--color-error);
+    --badge-dot: var(--color-error-mark);
 }
 
 @utility badge-stock-order {
