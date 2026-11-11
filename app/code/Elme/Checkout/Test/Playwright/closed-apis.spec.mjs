@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
-const EMAIL = 'e2e-checkout@example.com';
+// FE-79: shared with place-order; Roman's manual account is e2e-checkout@example.com
+const EMAIL = 'e2e-placeorder@example.com';
 const PASSWORD = 'E2eCheckout!2026';
 const PRICE_QUERY = '{products(search:"e2e",pageSize:1){items{sku price_range{minimum_price{final_price{value}}}}}}';
 

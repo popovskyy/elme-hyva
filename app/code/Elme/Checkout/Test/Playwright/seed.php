@@ -2,8 +2,13 @@
 
 declare(strict_types=1);
 
-// Test data of the checkout e2e test: a product, a customer with a saved address and an empty cart. Safe to re-run.
-// Local only, in the PHP container; global-setup.mjs runs it before the tests.
+// Test data for checkout e2e. Safe to re-run. Local only; global-setup.mjs runs it before the tests.
+//
+// Accounts (FE-79):
+// - e2e-checkout@example.com  — Roman's manual storefront account. Seed keeps it; never clears its cart.
+// - e2e-placeorder@example.com — place-order, carrier-calls, closed-apis. Cart cleared every run.
+// - e2e-qty@example.com        — qty-rules, heart, shopping-lists, quick-order-cart, header-counters
+//                                (seed-qty-rules.php).
 
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
@@ -15,6 +20,7 @@ use Magento\Customer\Api\AddressRepositoryInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\AddressInterfaceFactory;
 use Magento\Customer\Api\Data\CustomerInterfaceFactory;
+use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Framework\App\Bootstrap;
 use Magento\Framework\App\State;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -25,8 +31,11 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 const E2E_SKU = 'E2E-CHECKOUT';
-const E2E_EMAIL = 'e2e-checkout@example.com';
 const E2E_PASSWORD = 'E2eCheckout!2026';
+/** Roman's manual test account — do not clear cart_list or deactivate the quote. */
+const E2E_MANUAL_EMAIL = 'e2e-checkout@example.com';
+/** Specs that place orders or need a clean cart. */
+const E2E_PLACEORDER_EMAIL = 'e2e-placeorder@example.com';
 
 require '/var/www/html/app/bootstrap.php';
 
@@ -49,7 +58,7 @@ $product->setStoreId(0)->setName('E2E checkout product')->setPrice(100)->setWeig
     ->setWebsiteIds([$websiteId])->setTaxClassId(2)->setUrlKey('e2e-checkout-product');
 $saved = $products->save($product);
 
-$sourceItem =$om->get(SourceItemInterfaceFactory::class)->create();
+$sourceItem = $om->get(SourceItemInterfaceFactory::class)->create();
 $sourceItem->setSourceCode('default');
 $sourceItem->setSku(E2E_SKU);
 $sourceItem->setQuantity(10000);
@@ -62,36 +71,72 @@ $stockItem->setQty(10000);
 $stockRegistry->updateStockItemBySku(E2E_SKU, $stockItem);
 
 $customers = $om->get(CustomerRepositoryInterface::class);
-try {
-    $customer = $customers->get(E2E_EMAIL, $websiteId);
-} catch (NoSuchEntityException) {
-    $customer = $om->get(CustomerInterfaceFactory::class)->create();
-    $customer->setWebsiteId($websiteId)->setStoreId(1)->setEmail(E2E_EMAIL)->setFirstname('E2E')->setLastname('Checkout');
-    $customer = $om->get(AccountManagementInterface::class)->createAccount($customer, E2E_PASSWORD);
-}
-
-if (!$customer->getAddresses()) {
-    $address = $om->get(AddressInterfaceFactory::class)->create();
-    $address->setCustomerId($customer->getId())->setFirstname('E2E')->setLastname('Checkout')
-        ->setCompany('Elme E2E')->setStreet(['1 Test Street'])->setCity('Melbourne')->setPostcode('3000')
-        ->setCountryId('AU')->setRegionId(
-            (int) $om->get(\Magento\Directory\Model\RegionFactory::class)->create()->loadByCode('VIC', 'AU')->getId()
-        )->setTelephone('0312345678')->setIsDefaultShipping(true)->setIsDefaultBilling(true);
-    $om->get(AddressRepositoryInterface::class)->save($address);
-}
-
+$accountManagement = $om->get(AccountManagementInterface::class);
+$addressFactory = $om->get(AddressInterfaceFactory::class);
+$addressRepository = $om->get(AddressRepositoryInterface::class);
+$customerFactory = $om->get(CustomerInterfaceFactory::class);
+$regionId = (int) $om->get(\Magento\Directory\Model\RegionFactory::class)->create()->loadByCode('VIC', 'AU')->getId();
 $quotes = $om->get(CartRepositoryInterface::class);
-try {
-    $quote = $quotes->getActiveForCustomer((int) $customer->getId());
-    $quote->setIsActive(false);
-    $quotes->save($quote);
-} catch (NoSuchEntityException) {
-    echo "no cart to clear\n";
-}
+$cartList = $om->get(\Elme\QuickOrder\Model\CartList::class);
 
-// Header badge reads Quick Order cart_list, not the Magento quote
-$om->get(\Elme\QuickOrder\Model\CartList::class)->clear((int) $customer->getId());
+$ensureCustomer = static function (
+    string $email,
+    string $firstname,
+    string $lastname
+) use (
+    $customers,
+    $accountManagement,
+    $customerFactory,
+    $addressFactory,
+    $addressRepository,
+    $websiteId,
+    $regionId
+): CustomerInterface {
+    try {
+        $customer = $customers->get($email, $websiteId);
+    } catch (NoSuchEntityException) {
+        $customer = $customerFactory->create();
+        $customer->setWebsiteId($websiteId)->setStoreId(1)->setEmail($email)
+            ->setFirstname($firstname)->setLastname($lastname);
+        $customer = $accountManagement->createAccount($customer, E2E_PASSWORD);
+    }
+
+    if (!$customer->getAddresses()) {
+        $address = $addressFactory->create();
+        $address->setCustomerId($customer->getId())->setFirstname($firstname)->setLastname($lastname)
+            ->setCompany('Elme E2E')->setStreet(['1 Test Street'])->setCity('Melbourne')->setPostcode('3000')
+            ->setCountryId('AU')->setRegionId($regionId)->setTelephone('0312345678')
+            ->setIsDefaultShipping(true)->setIsDefaultBilling(true);
+        $addressRepository->save($address);
+        $customer = $customers->get($email, $websiteId);
+    }
+
+    return $customer;
+};
+
+$clearCart = static function (CustomerInterface $customer) use ($quotes, $cartList): void {
+    try {
+        $quote = $quotes->getActiveForCustomer((int) $customer->getId());
+        $quote->setIsActive(false);
+        $quotes->save($quote);
+    } catch (NoSuchEntityException) {
+        echo "no quote to clear for {$customer->getEmail()}\n";
+    }
+    $cartList->clear((int) $customer->getId());
+};
+
+// Keep Roman's manual account available; do not touch its cart.
+$ensureCustomer(E2E_MANUAL_EMAIL, 'E2E', 'Checkout');
+
+// Specs that place orders / need a clean cart.
+$placeCustomer = $ensureCustomer(E2E_PLACEORDER_EMAIL, 'E2E', 'Placeorder');
+$clearCart($placeCustomer);
 
 require __DIR__ . '/seed-qty-rules.php';
 
-echo json_encode(['sku' => E2E_SKU, 'email' => E2E_EMAIL, 'password' => E2E_PASSWORD]), "\n";
+echo json_encode([
+    'sku' => E2E_SKU,
+    'manual_email' => E2E_MANUAL_EMAIL,
+    'email' => E2E_PLACEORDER_EMAIL,
+    'password' => E2E_PASSWORD,
+]), "\n";

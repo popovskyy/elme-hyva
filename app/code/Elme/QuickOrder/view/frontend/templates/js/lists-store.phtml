@@ -75,6 +75,29 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             emit(reason || 'sync');
         }
 
+        function cachedListsItemCount() {
+            try {
+                const storage = hyva.getBrowserStorage && hyva.getBrowserStorage();
+                if (!storage) {
+                    return null;
+                }
+                const data = JSON.parse(storage.getItem('mage-cache-storage') || '{}') || {};
+                const section = data.quick_order;
+                return section ? (parseInt(section.lists_item_count, 10) || 0) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Live getall vs section cache left by another device/tab
+        function syncSectionIfListsCountDiffers() {
+            const cached = cachedListsItemCount();
+            if (cached === null || cached === count()) {
+                return;
+            }
+            window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+        }
+
         function fetchAll() {
             if (!loading) {
                 loading = fetch(GET_URL, {
@@ -84,6 +107,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                 }).then((response) => response.json()).then((json) => {
                     if (json && json.success) {
                         setFromServer(json.lists);
+                        syncSectionIfListsCountDiffers();
                     }
                 }).catch((e) => console.error(e)).finally(() => {
                     loading = null;
@@ -233,6 +257,10 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                 fetchAll();
             }
         });
+
+        // FE-79: every page verifies lists against the server (other device / tab) and rewrites the section
+        // when lists_item_count in mage-cache-storage is wrong
+        fetchAll();
     })();
 
     (function () {

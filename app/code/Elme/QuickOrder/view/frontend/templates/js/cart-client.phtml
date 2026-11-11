@@ -45,9 +45,48 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
         let editsSinceSend = 0;
         // the last edit a successful save carried (each save sends the whole cart)
         let savedEdits = 0;
+        // FE-79: age of the last private-content load (for tab focus / bfcache refresh)
+        let sectionLoadedAt = 0;
+        const SECTION_STALE_MS = 2 * 60 * 1000;
+
+        function cartCount() {
+            return cart ? cart.items.reduce((sum, item) => sum + item.qty, 0) : 0;
+        }
+
+        function cachedQuickOrder() {
+            try {
+                const storage = hyva.getBrowserStorage && hyva.getBrowserStorage();
+                if (!storage) {
+                    return null;
+                }
+                const data = JSON.parse(storage.getItem('mage-cache-storage') || '{}') || {};
+                return data.quick_order || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Live cart from this browser vs section cache left by another device/tab/order
+        function syncSectionIfCountDiffers() {
+            const section = cachedQuickOrder();
+            if (!section) {
+                return;
+            }
+            const cached = parseInt(section.summary_count, 10) || 0;
+            if (cached !== cartCount()) {
+                window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+            }
+        }
+
+        function refreshSectionIfStale() {
+            if (!sectionLoadedAt || (Date.now() - sectionLoadedAt) < SECTION_STALE_MS) {
+                return;
+            }
+            window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+        }
 
         function emit() {
-            const count = cart ? cart.items.reduce((sum, item) => sum + item.qty, 0) : 0;
+            const count = cartCount();
             // a copy: listeners keep it in their own (reactive) state, the client keeps changing its own
             window.dispatchEvent(new CustomEvent('elme-qo-cart', {
                 detail: {
@@ -84,6 +123,8 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                 cart = data.cart;
                 errors = {};
                 emit();
+                // rewrite mage-cache-storage when another session emptied or filled the cart
+                syncSectionIfCountDiffers();
                 return cart;
             });
             return loading;
@@ -197,6 +238,28 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             }).catch(() => {});
         });
 
+        window.addEventListener('private-content-loaded', () => {
+            sectionLoadedAt = Date.now();
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                refreshSectionIfStale();
+            }
+        });
+
+        // bfcache back button: JS state is restored, including a possibly stale section age
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) {
+                refreshSectionIfStale();
+            }
+        });
+
+        // Playwright (FE-79): pretend the section is older than SECTION_STALE_MS
+        window.elmeForceSectionStale = function () {
+            sectionLoadedAt = Date.now() - SECTION_STALE_MS - 1;
+        };
+
         window.elmeQuickOrderCart = {
             load: load,
             setQty: setQty,
@@ -206,6 +269,10 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                 return cart;
             }
         };
+
+        // FE-79: every logged-in page compares the live cart with mage-cache-storage (other device / order /
+        // e2e). Updates the badge via elme-qo-count and rewrites the section when the counts differ.
+        load().catch(() => {});
     })();
 </script>
 <?php $hyvaCsp->registerInlineScript() ?>

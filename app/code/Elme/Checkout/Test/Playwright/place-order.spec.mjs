@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
-const EMAIL = 'e2e-checkout@example.com';
+// FE-79: place-order clears cart_list; keep off Roman's manual account (e2e-checkout@example.com)
+const EMAIL = 'e2e-placeorder@example.com';
 const PASSWORD = 'E2eCheckout!2026';
 const PRODUCT_URL = '/e2e-checkout-product.html';
 const MAILPIT = process.env.MAILPIT_URL || 'http://localhost:8028';
