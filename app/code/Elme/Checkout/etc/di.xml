@@ -61,6 +61,26 @@
         </arguments>
     </type>
 
+    <!-- The counting test carrier writes its own log, so the carrier requests of an action can be counted -->
+    <virtualType name="Elme\Checkout\Logger\CarrierHandler" type="Magento\Framework\Logger\Handler\Base">
+        <arguments>
+            <argument name="fileName" xsi:type="string">/var/log/elme_checkout_carrier.log</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Elme\Checkout\Logger\CarrierLogger" type="Magento\Framework\Logger\Monolog">
+        <arguments>
+            <argument name="name" xsi:type="string">elme_checkout_carrier</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="file" xsi:type="object">Elme\Checkout\Logger\CarrierHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <type name="Elme\Checkout\Model\Carrier\RateCounter">
+        <arguments>
+            <argument name="counterLogger" xsi:type="object">Elme\Checkout\Logger\CarrierLogger</argument>
+        </arguments>
+    </type>
+
     <!-- Total segments with their own row block in checkout_index_index.xml; others use the generic row -->
     <type name="Elme\Checkout\Model\Section\TotalsMapper">
         <arguments>
