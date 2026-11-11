@@ -144,9 +144,9 @@
     .elme-checkout__message {
         margin-block: --spacing(4) 0;
         padding: --spacing(4);
-        border: 1px solid var(--color-error-strong);
-        background-color: color-mix(in srgb, var(--color-error-light) 55%, var(--color-surface));
-        color: var(--color-error-strong);
+        border: 1px solid var(--color-error-mark);
+        background-color: var(--color-error-ground);
+        color: var(--color-error-text);
         font-size: var(--text-copy);
         line-height: var(--text-copy--line-height);
         scroll-margin-block-start: --spacing(4);
@@ -293,7 +293,7 @@
 
     .elme-checkout-section__error {
         margin-block-start: --spacing(4);
-        color: var(--color-error-strong);
+        color: var(--color-error-text);
         font-size: var(--text-copy);
         line-height: var(--text-copy--line-height);
         animation: elme-checkout-error-in var(--transition-duration-fast) var(--ease-out-quint) both;
@@ -572,11 +572,11 @@
 
         /* An invalid underlined field only turns its underline red (Hyva base draws a box outline), focused or not */
         &:is(:user-invalid, [aria-invalid="true"]) {
-            border-color: var(--color-error);
+            border-color: var(--color-error-mark);
             outline: 0;
 
             &:focus-visible {
-                box-shadow: 0 1px 0 0 var(--color-error);
+                box-shadow: 0 1px 0 0 var(--color-error-mark);
             }
         }
     }
@@ -591,11 +591,11 @@
     }
 
     .elme-checkout :is(.form-input, .form-textarea, .form-select)[aria-invalid="true"] {
-        border-color: var(--color-error);
+        border-color: var(--color-error-mark);
     }
 
     .elme-checkout :is(.form-checkbox, .form-radio, input[type="checkbox"], input[type="radio"])[aria-invalid="true"] {
-        outline: 2px solid var(--color-error);
+        outline: 2px solid var(--color-error-mark);
         outline-offset: 2px;
     }
 

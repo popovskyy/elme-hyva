@@ -226,12 +226,12 @@
             }
         }
 
-        /* Elme: 13px validation note; the darker red keeps the text readable on the page background */
+        /* Elme: 13px validation note; status error-text clears 4.5:1 on the page ground */
         &.field-error .messages,
         .field-error-message {
             max-width: fit-content;
             margin-block-start: --spacing(1);
-            color: var(--color-error-strong);
+            color: var(--color-error-text);
             font-size: var(--text-note);
             line-height: var(--text-note--line-height);
         }
@@ -242,7 +242,7 @@
             &::after {
                 position: relative;
                 top: --spacing(-1);
-                color: var(--color-error);
+                color: var(--color-error-mark);
                 font-size: var(--text-label);
                 line-height: var(--text-label--line-height);
             }

@@ -22,14 +22,14 @@
  */
 .btn-danger {
     --btn-spinner-color: var(--color-on-primary);
-    --btn-stroke: var(--color-error-strong);
-    --btn-bg: var(--color-error-strong);
+    --btn-stroke: var(--color-error-text);
+    --btn-bg: var(--color-error-text);
     --btn-color: var(--color-on-primary);
     --btn-ripple: color-mix(in srgb, var(--color-on-primary) 40%, transparent);
-    --btn-hover-stroke: var(--color-toast-error-mark);
-    --btn-hover-bg: var(--color-toast-error-mark);
+    --btn-hover-stroke: var(--color-error-mark);
+    --btn-hover-bg: var(--color-error-mark);
     --btn-hover-color: var(--color-on-primary);
-    --btn-active-stroke: var(--color-error-strong);
-    --btn-active-bg: var(--color-error-strong);
+    --btn-active-stroke: var(--color-error-text);
+    --btn-active-bg: var(--color-error-text);
     --btn-active-color: var(--color-on-primary);
 }

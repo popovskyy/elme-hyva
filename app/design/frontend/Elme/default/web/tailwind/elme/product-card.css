@@ -100,11 +100,11 @@
     }
 
     .elme-card__stock--in {
-        color: var(--color-olive);
+        color: var(--color-success-text);
     }
 
     .elme-card__stock--low {
-        color: var(--color-toast-warning-mark);
+        color: var(--color-warning-text);
     }
 
     .elme-card__moq {

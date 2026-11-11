@@ -30,15 +30,12 @@ https://www.elmeliving.com/ on 2026-10-21. "Uses" = occurrences in the `Bart/el`
 | `border-light` | `#D3D6D9` | `@jl-form-radio-outer-border-color`, grey9 | radios, light borders |
 | `divider` | `#DCDCDC` | `@_hr-border-color` | `<hr>` |
 | `placeholder` | `#646D76` | `@form-element-input-placeholder__color` (darkened for AA) | placeholders, disabled text |
-| `success` / `success-light` | `#00BC37` / `#C5EAD6` | `@jl-message-success-color`, `@jl-background-color-green` | success messages |
-| `olive` | `#647455` | `@jl-background-color-green2` | |
-| `warning` | `#F2B20C` | `@jl-low-stock-status` | Low Stock label |
-| `error` / `error-strong` / `error-light` | `#FF5942` / `#CA280A` / `#FFC3B8` | `@jl-error-color`, red3, red1 | validation, required `*`; form error uses error-strong |
-| `promo` | `#CB4867` | `@jl-background-color-purple` | sale / promo badge |
-| `toast-success-mark` | `#5D6C4F` | toast badge on toast-success | message / toast mark |
-| `toast-error-mark` | `#A5473B` | toast badge on toast-error | message / toast mark |
-| `toast-warning-mark` | `#7A5F34` | toast badge on toast-warning | message / toast mark |
-| `toast-help-mark` | `#4E6579` | toast badge on toast-help | message / toast mark |
+| `olive` | `#647455` | `@jl-background-color-green2` | brand accent only (not status) |
+| `success-ground` / `success-mark` / `success-text` | `#E2E8DB` / `#5D6C4F` / `#4A5740` | former toast-success set | status success |
+| `warning-ground` / `warning-mark` / `warning-text` | `#EEE6D6` / `#7A5F34` / `#5C4726` | former toast-warning set | status warning / low stock |
+| `error-ground` / `error-mark` / `error-text` | `#F1DDD5` / `#A5473B` / `#8A3A30` | former toast-error set | status error / validation |
+| `info-ground` / `info-mark` / `info-text` | `#E1E7EC` / `#4E6579` / `#3E5161` | former toast-help set | status info / notice |
+| `promo` | `#CB4867` | `@jl-background-color-purple` | sale badge only (never error) |
 
 ## Typography
 

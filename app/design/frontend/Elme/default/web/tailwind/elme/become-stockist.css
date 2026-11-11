@@ -159,7 +159,7 @@
         inline-size: --spacing(6);
         block-size: --spacing(6);
         border-radius: calc(infinity * 1px);
-        background: var(--color-toast-success);
+        background: var(--color-success-ground);
         color: var(--color-olive);
 
         svg {

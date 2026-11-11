@@ -2,7 +2,8 @@
   "notice": [
     "This is a complementary config file for Tailwind v4 and is not a replacement for the Tailwind v3 config file.",
     "For usage, see the docs: https://docs.hyva.io/hyva-themes/working-with-tailwindcss/using-hyva-modules/",
-    "UX-15: primary and ink share #3A3935 — primary = action fill, ink = text. Soft line = color.border; strong line = form.stroke."
+    "UX-15: primary and ink share #3A3935 — primary = action fill, ink = text. Soft line = color.border; strong line = form.stroke.",
+    "UX-16: status = success|warning|error|info, each with ground / mark / text (from the old toast set). Olive is brand only. Promo #CB4867 is sale only, never error."
   ],
   "tailwind": {
     "include": [
@@ -61,23 +62,20 @@
         "sand-light": "#E1DBD1",
         "border": "#D8D5CE",
         "placeholder": "#64625A",
-        "success": "#00BC37",
-        "success-light": "#C5EAD6",
         "olive": "#647455",
-        "warning": "#F2B20C",
-        "warning-light": "#FDDCC7",
-        "error": "#FF5942",
-        "error-strong": "#CA280A",
-        "error-light": "#FFC3B8",
-        "promo": "#CB4867",
-        "toast-success": "#E2E8DB",
-        "toast-success-mark": "#5D6C4F",
-        "toast-error": "#F1DDD5",
-        "toast-error-mark": "#A5473B",
-        "toast-warning": "#EEE6D6",
-        "toast-warning-mark": "#7A5F34",
-        "toast-help": "#E1E7EC",
-        "toast-help-mark": "#4E6579"
+        "success-ground": "#E2E8DB",
+        "success-mark": "#5D6C4F",
+        "success-text": "#4A5740",
+        "warning-ground": "#EEE6D6",
+        "warning-mark": "#7A5F34",
+        "warning-text": "#5C4726",
+        "error-ground": "#F1DDD5",
+        "error-mark": "#A5473B",
+        "error-text": "#8A3A30",
+        "info-ground": "#E1E7EC",
+        "info-mark": "#4E6579",
+        "info-text": "#3E5161",
+        "promo": "#CB4867"
       },
       "text": {
         "display": "2.25rem",

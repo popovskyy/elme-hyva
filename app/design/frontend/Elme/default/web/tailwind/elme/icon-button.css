@@ -56,11 +56,11 @@
     }
 
     .elme-ib--danger:hover:not(:disabled) {
-        background: var(--color-toast-error);
-        color: var(--color-error-strong);
+        background: var(--color-error-ground);
+        color: var(--color-error-text);
     }
 
     .elme-ib--line.elme-ib--danger:hover:not(:disabled) {
-        border-color: var(--color-error-strong);
+        border-color: var(--color-error-mark);
     }
 }
