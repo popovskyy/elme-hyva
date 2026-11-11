@@ -393,7 +393,9 @@
         }
     }
 
-    .elme-gallery__arrow {
+    /* A white tile so the arrow reads on a dark photo too. Two classes: icon-button.css comes later and its
+       transparent .elme-ib background would win over one. */
+    .elme-gallery__nav .elme-gallery__arrow {
         background: var(--color-surface);
         pointer-events: auto;
 
