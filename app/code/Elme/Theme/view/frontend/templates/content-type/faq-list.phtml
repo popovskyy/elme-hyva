@@ -38,7 +38,7 @@ $headingId = 'faq-list-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdenti
 <section class="elme-faq-list mb-10 grid gap-6 text-ink lg:mb-15 lg:grid-cols-12 lg:gap-10"
          aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
     <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-        class="m-0 text-title-section lg:col-span-4 lg:text-title-section-desktop">
+        class="m-0 text-display lg:col-span-4 lg:text-display-desktop">
         <?= $escaper->escapeHtml($heading) ?>
     </h2>
     <div class="border-t border-border lg:col-span-8">
@@ -48,7 +48,7 @@ $headingId = 'faq-list-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdenti
                 <summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-5
                                 [&::-webkit-details-marker]:hidden hover:text-link-hover
                                 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">
-                    <h3 class="m-0 text-h5 font-normal lg:text-h5-desktop">
+                    <h3 class="m-0 text-h4 font-normal lg:text-h4-desktop">
                         <?= $escaper->escapeHtml($item['question']) ?>
                     </h3>
                     <?= $lucideIcons->chevronDownHtml(

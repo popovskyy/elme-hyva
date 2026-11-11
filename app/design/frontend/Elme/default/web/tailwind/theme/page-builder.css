@@ -95,8 +95,8 @@ body:where(:not([class*="-full-width"], .page-layout-banner-breadcrumbs)) {
             a.tab-title {
                 cursor: pointer;
                 display: block;
-                font-size: var(--text-sm);
-                line-height: var(--text-sm--line-height);
+                font-size: var(--text-copy);
+                line-height: var(--text-copy--line-height);
                 font-weight: var(--font-weight-semibold);
                 position: relative;
                 vertical-align: middle;

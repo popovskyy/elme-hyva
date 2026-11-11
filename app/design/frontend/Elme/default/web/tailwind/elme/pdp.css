@@ -68,7 +68,7 @@
 
         @variant lg {
             font-size: var(--text-copy-desktop);
-            line-height: var(--text-copy-desktop--line-height);
+            line-height: var(--text-copy--line-height);
         }
 
         > div {
@@ -99,15 +99,15 @@
         text-wrap: balance;
 
         @variant lg {
-            font-size: var(--text-title-section-desktop);
-            line-height: var(--text-title-section-desktop--line-height);
+            font-size: var(--text-display-desktop);
+            line-height: var(--text-display--line-height);
         }
     }
 
     .elme-pdp__subtitle {
         margin-top: calc(--spacing(2) * -1);
-        font-size: var(--text-base);
-        line-height: var(--text-base--line-height);
+        font-size: var(--text-body);
+        line-height: var(--text-body--line-height);
         color: var(--color-ink-muted);
     }
 
@@ -136,7 +136,7 @@
         @variant lg {
             -webkit-line-clamp: 6;
             font-size: var(--text-copy-desktop);
-            line-height: var(--text-copy-desktop--line-height);
+            line-height: var(--text-copy--line-height);
         }
 
         > :last-child {
@@ -221,8 +221,8 @@
         h2 {
             margin: 0;
             font-family: var(--font-sans);
-            font-size: var(--text-base);
-            line-height: var(--text-base--line-height);
+            font-size: var(--text-body);
+            line-height: var(--text-body--line-height);
             font-weight: 500;
         }
     }
@@ -234,7 +234,7 @@
 
         @variant lg {
             font-size: var(--text-copy-desktop);
-            line-height: var(--text-copy-desktop--line-height);
+            line-height: var(--text-copy--line-height);
         }
     }
 

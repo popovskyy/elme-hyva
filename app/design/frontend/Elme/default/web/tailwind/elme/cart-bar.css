@@ -55,7 +55,7 @@
     .elme-cart__bar-amount {
         color: var(--color-ink);
         font-size: var(--text-h4);
-        line-height: var(--text-base--line-height);
+        line-height: var(--text-body--line-height);
         font-weight: 600;
     }
 

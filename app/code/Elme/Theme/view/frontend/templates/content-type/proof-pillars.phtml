@@ -39,14 +39,14 @@ $headingId = 'proof-pillars-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getI
     <div class="flex flex-col justify-center px-5 text-left
                 lg:w-1/2 lg:max-w-160 lg:pr-5 lg:pl-18">
         <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-            class="mb-6 text-title-section text-ink lg:mb-8 lg:text-title-section-desktop">
+            class="mb-6 text-display text-ink lg:mb-8 lg:text-display-desktop">
             <?= $escaper->escapeHtml($heading) ?>
         </h2>
         <ul class="m-0 list-none p-0">
             <?php foreach ($items as $item): ?>
                 <li class="border-b border-border py-5 first:pt-0 last:border-b-0 last:pb-0
                            lg:py-5.5 lg:last:pb-0">
-                    <h3 class="mb-2 text-h5 font-normal text-ink lg:text-h5-desktop">
+                    <h3 class="mb-2 text-h4 font-normal text-ink lg:text-h4-desktop">
                         <?= $escaper->escapeHtml($item['title']) ?>
                     </h3>
                     <?php if ($item['text'] !== ''): ?>

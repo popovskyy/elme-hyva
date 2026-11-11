@@ -37,7 +37,7 @@ if (!$productId) {
         <span class="final-price">
             <span class="price" x-text="finalPrice"></span>
             <?php if ($block->getData('show_tax_label')): ?>
-                <span class="text-sm text-ink-muted"><?= $escaper->escapeHtml(__('ex. GST')) ?></span>
+                <span class="text-copy text-ink-muted"><?= $escaper->escapeHtml(__('ex. GST')) ?></span>
             <?php endif; ?>
         </span>
     </template>

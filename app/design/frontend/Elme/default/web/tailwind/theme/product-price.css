@@ -1,6 +1,6 @@
 .price-box {
     & .price {
-        font-size: var(--price-font-size, var(--text-base));
+        font-size: var(--price-font-size, var(--text-body));
         font-weight: var(--price-font-weight, bolder);
     }
 

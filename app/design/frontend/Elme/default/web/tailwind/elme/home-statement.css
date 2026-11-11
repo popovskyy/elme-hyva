@@ -6,12 +6,12 @@
 @layer components {
     .elme-welcome-cta__heading {
         max-width: 16ch;
-        font-size: var(--text-title-section);
-        line-height: var(--text-title-section--line-height);
+        font-size: var(--text-display);
+        line-height: var(--text-display--line-height);
 
         @variant md {
-            font-size: var(--text-title-section-desktop);
-            line-height: var(--text-title-section-desktop--line-height);
+            font-size: var(--text-display-desktop);
+            line-height: var(--text-display--line-height);
         }
 
         /* Wide enough for two lines: "Wholesale artificial flowers, plants / and home decor…" */

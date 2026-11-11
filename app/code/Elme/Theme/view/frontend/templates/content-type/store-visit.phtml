@@ -45,7 +45,7 @@ $iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
     <div class="grid gap-8 border border-border bg-surface p-5 text-ink md:p-8 lg:grid-cols-12 lg:gap-10 lg:p-10">
         <div class="lg:col-span-5 xl:col-span-4">
             <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-                class="mb-3 text-title-section lg:text-title-section-desktop">
+                class="mb-3 text-display lg:text-display-desktop">
                 <?= $escaper->escapeHtml($heading) ?>
             </h2>
             <p class="mb-3 font-heading text-h3 text-ink lg:text-h3-desktop"><?= $escaper->escapeHtml($storeName) ?></p>
@@ -64,7 +64,7 @@ $iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
 
         <div class="grid gap-8 md:grid-cols-3 md:gap-6 lg:col-span-7 lg:gap-8 xl:col-span-8">
             <div>
-                <h3 class="mb-3 flex items-center gap-2 text-h5 font-normal lg:text-h5-desktop">
+                <h3 class="mb-3 flex items-center gap-2 text-h4 font-normal lg:text-h4-desktop">
                     <?= $lucideIcons->mapPinHtml('shrink-0 text-olive', 18, 18, $iconAttrs) ?>
                     <?= $escaper->escapeHtml(__('Address')) ?>
                 </h3>
@@ -85,7 +85,7 @@ $iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
             </div>
 
             <div>
-                <h3 class="mb-3 flex items-center gap-2 text-h5 font-normal lg:text-h5-desktop">
+                <h3 class="mb-3 flex items-center gap-2 text-h4 font-normal lg:text-h4-desktop">
                     <?= $lucideIcons->phoneHtml('shrink-0 text-olive', 18, 18, $iconAttrs) ?>
                     <?= $escaper->escapeHtml(__('Phone')) ?>
                 </h3>
@@ -97,7 +97,7 @@ $iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
 
             <?php if ($hours): ?>
                 <div>
-                    <h3 class="mb-3 flex items-center gap-2 text-h5 font-normal lg:text-h5-desktop">
+                    <h3 class="mb-3 flex items-center gap-2 text-h4 font-normal lg:text-h4-desktop">
                         <?= $lucideIcons->clockHtml('shrink-0 text-olive', 18, 18, $iconAttrs) ?>
                         <?= $escaper->escapeHtml(__('Opening hours')) ?>
                     </h3>

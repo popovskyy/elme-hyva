@@ -47,7 +47,7 @@
                 <argument name="logo_alt" xsi:type="string">Elme Living</argument>
             </arguments>
         </referenceBlock>
-        <!-- Page titles take the Elme h1 style from elme.css instead of Hyvä's text-3xl font-bold -->
+        <!-- Page titles take the Elme h1 style from elme.css instead of Hyvä's text-h1 font-bold -->
         <!-- FE-04: layouts whose CMS banner/hero holds the H1 do not render the page title at all (see title.phtml) -->
         <referenceBlock name="page.main.title">
             <arguments>

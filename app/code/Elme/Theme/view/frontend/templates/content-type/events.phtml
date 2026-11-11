@@ -37,8 +37,8 @@ $ctaLabel = $eventsVm->getCtaLabel();
 
     <section aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
         <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-            class="mb-6 text-center font-heading text-title-section font-normal text-balance text-ink
-                   lg:mb-10 lg:text-title-section-desktop">
+            class="mb-6 text-center font-heading text-display font-normal text-balance text-ink
+                   lg:mb-10 lg:text-display-desktop">
             <?= $escaper->escapeHtml($eventsVm->getHeading($content)) ?>
         </h2>
 
@@ -54,7 +54,7 @@ $ctaLabel = $eventsVm->getCtaLabel();
                                          lg:text-h1-desktop">
                                 <?= $escaper->escapeHtml($event['day']) ?>
                             </span>
-                            <span class="mt-1 text-nav uppercase tracking-wide text-ink-muted">
+                            <span class="mt-1 text-copy uppercase tracking-wide text-ink-muted">
                                 <?= $escaper->escapeHtml($event['month']) ?>
                             </span>
                         </div>
@@ -65,7 +65,7 @@ $ctaLabel = $eventsVm->getCtaLabel();
                                     <?= $escaper->escapeHtml($event['name']) ?>
                                 </h3>
                                 <?php if ($event['on_now']): ?>
-                                    <span class="text-nav font-bold uppercase tracking-wide text-olive">
+                                    <span class="text-copy font-bold uppercase tracking-wide text-olive">
                                         <?= $escaper->escapeHtml(__('On now')) ?>
                                     </span>
                                 <?php endif; ?>

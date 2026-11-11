@@ -11,12 +11,12 @@
 
         :where(h2) {
             margin-block: --spacing(10) --spacing(3);
-            font-size: var(--text-title-section);
-            line-height: var(--text-title-section--line-height);
+            font-size: var(--text-display);
+            line-height: var(--text-display--line-height);
 
             @variant lg {
-                font-size: var(--text-title-section-desktop);
-                line-height: var(--text-title-section-desktop--line-height);
+                font-size: var(--text-display-desktop);
+                line-height: var(--text-display--line-height);
             }
         }
 
@@ -30,7 +30,7 @@
 
             @variant lg {
                 font-size: var(--text-copy-desktop);
-                line-height: var(--text-copy-desktop--line-height);
+                line-height: var(--text-copy--line-height);
             }
         }
 

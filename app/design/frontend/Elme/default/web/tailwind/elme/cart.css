@@ -132,7 +132,7 @@
 
         @variant lg {
             font-size: var(--text-copy-desktop);
-            line-height: var(--text-copy-desktop--line-height);
+            line-height: var(--text-copy--line-height);
         }
 
         &:hover {
@@ -284,7 +284,7 @@
             grid-column: 4;
             align-self: center;
             font-size: var(--text-copy-desktop);
-            line-height: var(--text-copy-desktop--line-height);
+            line-height: var(--text-copy--line-height);
         }
     }
 
@@ -358,7 +358,7 @@
     .elme-cart__money-total dd {
         color: var(--color-ink);
         font-size: var(--text-copy-desktop);
-        line-height: var(--text-copy-desktop--line-height);
+        line-height: var(--text-copy--line-height);
         font-weight: 600;
     }
 

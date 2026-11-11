@@ -39,7 +39,7 @@ $iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
     <form class="elme-locator__search mb-4 flex flex-col gap-3 md:flex-row md:items-end"
           @submit.prevent="search">
         <div class="min-w-0 flex-1">
-            <label for="elme-locator-query" class="mb-1.5 block text-sm font-medium text-ink">
+            <label for="elme-locator-query" class="mb-1.5 block text-copy font-medium text-ink">
                 <?= $escaper->escapeHtml(__('Suburb or postcode')) ?>
             </label>
             <input id="elme-locator-query"
@@ -74,7 +74,7 @@ $iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
        aria-live="polite"></p>
 
     <div class="elme-locator__filters mb-6">
-        <span class="mb-2 block text-sm font-medium text-ink" id="elme-locator-state-label">
+        <span class="mb-2 block text-copy font-medium text-ink" id="elme-locator-state-label">
             <?= $escaper->escapeHtml(__('Filter by state:')) ?>
         </span>
         <ul class="m-0 flex list-none flex-wrap gap-2 p-0"
@@ -83,7 +83,7 @@ $iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
             <?php foreach ($states as $state): ?>
                 <li>
                     <button type="button"
-                            class="rounded border border-border bg-surface px-3 py-2 text-sm text-ink transition hover:border-ink"
+                            class="rounded border border-border bg-surface px-3 py-2 text-copy text-ink transition hover:border-ink"
                             :class="stateFilterClass"
                             data-state="<?= $escaper->escapeHtmlAttr($state) ?>"
                             @click="setStateFilter"
@@ -105,7 +105,7 @@ $iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
                         x-show="isCardVisible"
                         :class="cardHighlightClass"
                         @click="selectCard">
-                        <p class="mb-1 text-xs font-medium uppercase tracking-wide text-olive">
+                        <p class="mb-1 text-label font-medium uppercase tracking-wide text-olive">
                             <?= $escaper->escapeHtml($card['type_label']) ?>
                             <?php if (!empty($card['is_trade_only'])): ?>
                                 <span class="ml-1 text-ink-muted"><span aria-hidden="true">&middot;</span> <?= $escaper->escapeHtml(__('TRADE ONLY')) ?></span>
@@ -121,11 +121,11 @@ $iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
                             <?= $escaper->escapeHtml($card['address_line']) ?>
                         </address>
                         <?php if ($card['description'] !== ''): ?>
-                            <p class="mb-2 text-sm text-ink-muted text-pretty">
+                            <p class="mb-2 text-copy text-ink-muted text-pretty">
                                 <?= $escaper->escapeHtml($card['description']) ?>
                             </p>
                         <?php endif; ?>
-                        <dl class="mb-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm text-ink">
+                        <dl class="mb-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-copy text-ink">
                             <dt class="text-ink-muted"><?= $escaper->escapeHtml(__('Today')) ?></dt>
                             <dd class="m-0"
                                 data-url-key="<?= $escaper->escapeHtmlAttr($card['url_key']) ?>"

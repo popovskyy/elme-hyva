@@ -7,8 +7,8 @@
         --menu-promo-width: 260px;
         position: relative;
         z-index: 40;
-        font-size: var(--text-base);
-        line-height: var(--text-base--line-height);
+        font-size: var(--text-body);
+        line-height: var(--text-body--line-height);
     }
 
     .main-menu.navigation .main-menu__list {
@@ -39,7 +39,7 @@
         gap: --spacing(1);
         padding: --spacing(2) --spacing(1.5);
         color: var(--color-ink);
-        font-size: var(--text-base);
+        font-size: var(--text-body);
         font-weight: 400;
         line-height: 1.4;
         text-transform: capitalize;
@@ -231,7 +231,7 @@
         display: block;
         padding-block: --spacing(1);
         color: var(--color-ink);
-        font-size: var(--text-nav);
+        font-size: var(--text-copy);
         font-weight: 400;
         line-height: 1.45;
         text-decoration: none;
@@ -498,8 +498,9 @@
 
     @variant lg {
         .main-menu.navigation .main-menu__link {
-            /* 15px labels and tighter padding than production; base size from 2xl. Search is an icon below xl. */
-            font-size: var(--text-nav);
+            /* Copy size + tight pad through 2xl so rem growth (browser text 20px) still leaves
+               room for the xl search field at 1280/1440. Body size and roomier pad from 3xl. */
+            font-size: var(--text-copy);
             padding-inline: --spacing(1.5);
             gap: --spacing(1);
         }
@@ -509,7 +510,6 @@
         }
     }
 
-    /* Cap mid-desktop padding so the search field keeps its room at 1280/1440. Roomier from 2xl. */
     @variant xl {
         .main-menu.navigation .main-menu__link {
             padding-inline: --spacing(1.5);
@@ -519,14 +519,15 @@
 
     @variant 2xl {
         .main-menu.navigation .main-menu__link {
-            font-size: var(--text-base);
-            padding-inline: --spacing(2.5);
+            font-size: var(--text-copy);
+            padding-inline: --spacing(1.5);
             gap: --spacing(1);
         }
     }
 
     @variant 3xl {
         .main-menu.navigation .main-menu__link {
+            font-size: var(--text-body);
             padding-inline: --spacing(5);
             gap: --spacing(1.5);
         }

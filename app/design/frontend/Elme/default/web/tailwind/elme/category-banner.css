@@ -25,8 +25,8 @@
         margin: 0;
         font-family: var(--font-heading);
         font-weight: 400;
-        font-size: var(--text-banner-title);
-        line-height: var(--text-banner-title--line-height);
+        font-size: var(--text-display);
+        line-height: var(--text-display--line-height);
         color: var(--color-primary);
     }
 
@@ -64,8 +64,8 @@
 
     @variant lg {
         .category-banner__title h1 {
-            font-size: var(--text-banner-title-desktop);
-            line-height: var(--text-banner-title-desktop--line-height);
+            font-size: var(--text-display-desktop);
+            line-height: var(--text-display--line-height);
         }
     }
 }

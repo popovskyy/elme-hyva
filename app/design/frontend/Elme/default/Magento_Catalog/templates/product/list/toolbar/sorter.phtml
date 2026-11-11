@@ -26,7 +26,7 @@ $sorterId = 'sorter-' . uniqid();
 ?>
 <div class="toolbar-sorter sorter flex items-center order-1 col-span-4 sm:col-span-5
         md:col-span-2 lg:col-span-5 justify-end gap-2">
-    <label class="inline-flex items-center gap-2 text-sm text-ink" for="<?= $escaper->escapeHtmlAttr($sorterId) ?>">
+    <label class="inline-flex items-center gap-2 text-copy text-ink" for="<?= $escaper->escapeHtmlAttr($sorterId) ?>">
         <span class="whitespace-nowrap"><?= $escaper->escapeHtml(__('Sort by')) ?></span>
         <select id="<?= $escaper->escapeHtmlAttr($sorterId) ?>"
                 data-role="sorter"

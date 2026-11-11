@@ -88,7 +88,7 @@ $guestLabel = __('Log in/Sign up');
         >
             <p class="px-4 pt-1 pb-2 mb-2 border-b border-divider text-note text-ink-muted" x-show="hasName">
                 <?= $escaper->escapeHtml(__('Signed in as')) ?>
-                <span class="block text-base text-ink font-medium truncate" x-text="fullName"></span>
+                <span class="block text-body text-ink font-medium truncate" x-text="fullName"></span>
             </p>
             <?= $block->getChildHtml('header.customer.logged.in.links') ?>
         </nav>

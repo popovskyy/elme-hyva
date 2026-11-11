@@ -24,8 +24,8 @@
         margin: 0;
         font-family: var(--font-heading);
         font-weight: 400;
-        font-size: var(--text-title-section);
-        line-height: var(--text-title-section--line-height);
+        font-size: var(--text-display);
+        line-height: var(--text-display--line-height);
         color: var(--color-ink);
         text-wrap: balance;
 
@@ -53,7 +53,7 @@
 
         @variant md {
             font-size: var(--text-copy-desktop);
-            line-height: var(--text-copy-desktop--line-height);
+            line-height: var(--text-copy--line-height);
         }
     }
 
@@ -75,8 +75,8 @@
         margin: 0;
         font-family: var(--font-heading);
         font-weight: 400;
-        font-size: var(--text-title-section);
-        line-height: var(--text-title-section--line-height);
+        font-size: var(--text-display);
+        line-height: var(--text-display--line-height);
         color: inherit;
     }
 
@@ -110,9 +110,9 @@
     .elme-need-assistance__value {
         display: block;
         margin-top: --spacing(1);
-        font-size: var(--text-base);
+        font-size: var(--text-body);
         font-weight: 400;
-        line-height: var(--text-base--line-height);
+        line-height: var(--text-body--line-height);
         color: var(--color-ink);
         overflow-wrap: anywhere;
     }

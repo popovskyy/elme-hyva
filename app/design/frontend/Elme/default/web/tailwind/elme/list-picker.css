@@ -192,7 +192,7 @@
     .elme-lp__name {
         flex: 1;
         min-width: 0;
-        font-size: var(--text-nav);
+        font-size: var(--text-copy);
         line-height: --spacing(5);
         overflow-wrap: anywhere;
     }

@@ -14,7 +14,7 @@ use Magento\Framework\Escaper;
 /** @var Escaper $escaper */
 /** @var LocaleFormatter $localeFormatter */
 ?>
-<p class="toolbar-amount text-sm leading-5 text-ink-subtle order-3 sm:order-2 md:order-3
+<p class="toolbar-amount text-copy leading-5 text-ink-subtle order-3 sm:order-2 md:order-3
     lg:order-2 col-span-2 gap-x-1" id="toolbar-amount<?= $block->getIsBottom() ? '-bottom' : '' ?>">
     <?php if ($block->getLastPageNum() > 1): ?>
         <?= $escaper->escapeHtml(

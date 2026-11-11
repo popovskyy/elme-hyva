@@ -18,10 +18,10 @@
 
     /* Two lines of name always take two lines, so SKU, price and buttons line up across a row. */
     .elme-card__name {
-        min-height: calc(2 * var(--text-copy--line-height));
+        min-height: calc(2 * var(--text-copy) * var(--text-copy--line-height));
 
         @variant lg {
-            min-height: calc(2 * var(--text-copy-desktop--line-height));
+            min-height: calc(2 * var(--text-copy-desktop) * var(--text-copy--line-height));
         }
     }
 

@@ -348,13 +348,13 @@
 .btn-size-lg {
     padding-inline: --spacing(10);
     padding-block: --spacing(4);
-    font-size: var(--text-lg);
-    line-height: var(--text-lg--line-height);
+    font-size: var(--text-h3);
+    line-height: var(--text-h3--line-height);
 }
 
 .btn-size-sm {
     padding-inline: --spacing(2);
     padding-block: --spacing(2);
-    font-size: var(--text-sm);
-    line-height: var(--text-sm--line-height);
+    font-size: var(--text-copy);
+    line-height: var(--text-copy--line-height);
 }
