@@ -16,6 +16,7 @@
         "magento/module-tax": "*",
         "elme/module-checkout": "*",
         "elme/module-login-only": "*",
+        "elme/module-minimum-order": "*",
         "elme/module-qty-rules": "*",
         "elme/module-theme": "*"
     },

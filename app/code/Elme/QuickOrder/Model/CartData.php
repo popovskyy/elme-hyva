@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace Elme\QuickOrder\Model;
 
+use Elme\MinimumOrder\Model\MinimumOrderValue;
 use Elme\QtyRules\Model\QtyRules;
 use Elme\Theme\ViewModel\ProductTile;
 use Magento\Catalog\Helper\Image;
 use Magento\Catalog\Model\Product;
+use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Customer\Api\Data\CustomerInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Tax\Api\TaxCalculationInterface;
 
@@ -26,7 +31,9 @@ class CartData
         private readonly QtyRules $qtyRules,
         private readonly PriceCurrencyInterface $priceCurrency,
         private readonly TaxCalculationInterface $taxCalculation,
-        private readonly Image $imageHelper
+        private readonly Image $imageHelper,
+        private readonly MinimumOrderValue $minimumOrderValue,
+        private readonly CustomerRepositoryInterface $customerRepository
     ) {
     }
 
@@ -64,12 +71,16 @@ class CartData
         }
         $subtotal = round($subtotal, 2);
         $gst = round($gst, 2);
+        $customer = $this->getCustomer($customerId);
+        $minimumOrder = $this->minimumOrderValue->evaluate($subtotal, $customer);
+        $rowsOk = $items && !array_filter($lines, static fn (CartLine $line): bool => !$line->isAvailable());
 
         return [
             'items' => $items,
             'summary_count' => $summaryCount,
             'items_count' => count($items),
-            'can_checkout' => $items && !array_filter($lines, static fn (CartLine $line): bool => !$line->isAvailable()),
+            'can_checkout' => $rowsOk && $minimumOrder['met'],
+            'minimum_order' => $minimumOrder,
             'totals' => [
                 'subtotal' => $subtotal,
                 'gst' => $gst,
@@ -79,6 +90,15 @@ class CartData
                 'total_formatted' => $this->format($subtotal + $gst),
             ],
         ];
+    }
+
+    private function getCustomer(int $customerId): ?CustomerInterface
+    {
+        try {
+            return $this->customerRepository->getById($customerId);
+        } catch (NoSuchEntityException | LocalizedException) {
+            return null;
+        }
     }
 
     /**
