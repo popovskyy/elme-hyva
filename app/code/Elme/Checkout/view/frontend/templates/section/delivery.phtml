@@ -135,11 +135,14 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
                 if (!rate) {
                     return '';
                 }
-                const title = rate.method_title || rate.carrier_title || '';
-                return title
-                    + ', '
-                    + (rate.price_formatted || '')
-                    + ' <?= $escaper->escapeJs(__('ex GST')) ?>';
+                // Carrier and method, as on the radio cards ("Flat Rate, Fixed"); one of them when the other is empty or the same
+                const titles = [rate.carrier_title, rate.method_title].filter(Boolean);
+                const name = [...new Set(titles)].join(', ');
+                const price = rate.price_formatted
+                    ? rate.price_formatted + ' <?= $escaper->escapeJs(__('ex GST')) ?>'
+                    : '';
+
+                return [name, price].filter(Boolean).join(' - ');
             },
             ensureSolePick() {
                 if (!this.hasOneRate() || this.data().selected || this.store().pickedCode('delivery')) {
