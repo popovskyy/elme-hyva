@@ -265,8 +265,8 @@
             display: block;
             padding: --spacing(2) --spacing(4);
             color: var(--color-ink);
-            font-size: var(--text-nav);
-            line-height: var(--text-base--line-height);
+            font-size: var(--text-copy);
+            line-height: var(--text-body--line-height);
             text-decoration: none;
             transition: background-color 150ms ease-out, padding 150ms ease-out;
 

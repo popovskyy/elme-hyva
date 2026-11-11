@@ -46,7 +46,7 @@
         gap: --spacing(1.5);
         margin: 0;
         color: var(--color-ink);
-        font-size: var(--text-breadcrumbs);
+        font-size: var(--text-note);
         line-height: 1.2;
     }
 
@@ -441,15 +441,15 @@
         min-width: 0;
         color: var(--color-ink-muted);
         font-size: var(--text-copy-desktop);
-        line-height: var(--text-copy-desktop--line-height);
+        line-height: var(--text-copy--line-height);
     }
 
     .elme-checkout-option__title {
         display: block;
         margin-block-end: --spacing(1);
         color: var(--color-ink);
-        font-size: var(--text-base);
-        line-height: var(--text-base--line-height);
+        font-size: var(--text-body);
+        line-height: var(--text-body--line-height);
     }
 
     .elme-checkout-option__meta {
@@ -462,7 +462,7 @@
         text-align: right;
         color: var(--color-ink);
         font-size: var(--text-copy-desktop);
-        line-height: var(--text-copy-desktop--line-height);
+        line-height: var(--text-copy--line-height);
     }
 
     .elme-checkout-option__price-value {
@@ -491,14 +491,14 @@
         margin-block-end: --spacing(1);
         color: var(--color-ink);
         font-size: var(--text-copy-desktop);
-        line-height: var(--text-copy-desktop--line-height);
+        line-height: var(--text-copy--line-height);
     }
 
     .elme-checkout-line__value {
         display: block;
         color: var(--color-ink-subtle);
         font-size: var(--text-copy);
-        line-height: var(--text-copy-desktop--line-height);
+        line-height: var(--text-copy--line-height);
     }
 
     /* Old action links: small, semi-bold, underline on hover */
@@ -813,7 +813,7 @@
 
     .elme-checkout-summary__toggle-total {
         margin-inline-start: auto;
-        font-size: var(--text-base);
+        font-size: var(--text-body);
         font-weight: 700;
         font-variant-numeric: tabular-nums;
     }
@@ -910,15 +910,15 @@
     .elme-checkout-summary__name {
         margin-block-end: --spacing(2);
         color: var(--color-ink);
-        font-size: var(--text-base);
-        line-height: var(--text-h5--line-height);
+        font-size: var(--text-body);
+        line-height: var(--text-body--line-height);
     }
 
     .elme-checkout-summary__price {
         flex: none;
         color: var(--color-ink);
         font-size: var(--text-copy-desktop);
-        line-height: var(--text-base--line-height);
+        line-height: var(--text-body--line-height);
         font-weight: 700;
         font-variant-numeric: tabular-nums;
     }
@@ -946,7 +946,7 @@
         padding-block: --spacing(1.5);
         color: var(--color-ink);
         font-size: var(--text-copy-desktop);
-        line-height: var(--text-copy-desktop--line-height);
+        line-height: var(--text-copy--line-height);
 
         dd {
             margin: 0;

@@ -48,7 +48,7 @@ if (($content['look'] ?? '') === 'cards'):
          aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
     <div class="elme-showroom-cards__head">
         <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-            class="text-title-section text-balance font-heading font-normal text-ink lg:text-title-section-desktop">
+            class="text-display text-balance font-heading font-normal text-ink lg:text-display-desktop">
             <?= $escaper->escapeHtml($heading) ?>
         </h2>
         <?php if ($seeAll !== null): ?>
@@ -94,7 +94,7 @@ endif;
     <div class="elme-catalogue-covers__inner">
         <div class="grid content-start justify-items-start gap-4 lg:gap-5">
             <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-                class="text-title-section text-balance font-heading font-normal text-ink lg:text-title-section-desktop">
+                class="text-display text-balance font-heading font-normal text-ink lg:text-display-desktop">
                 <?= $escaper->escapeHtml($heading) ?>
             </h2>
             <?php if ($intro !== ''): ?>

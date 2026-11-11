@@ -45,11 +45,11 @@ $trackId = $sectionId . '-track';
 >
     <div class="mb-4 flex flex-wrap items-end justify-between gap-3 px-5 md:px-10 lg:mb-6">
         <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-            class="m-0 text-title-section text-ink lg:text-title-section-desktop">
+            class="m-0 text-display text-ink lg:text-display-desktop">
             <?= $escaper->escapeHtml(__('Recently viewed products')) ?>
         </h2>
         <button type="button"
-                class="text-sm text-ink-muted underline underline-offset-4 hover:text-ink
+                class="text-copy text-ink-muted underline underline-offset-4 hover:text-ink
                        focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
                 @click="clearAll">
             <?= $escaper->escapeHtml(__('Clear all')) ?>

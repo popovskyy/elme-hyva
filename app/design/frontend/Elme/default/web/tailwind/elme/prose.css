@@ -1,7 +1,7 @@
 /*
  * CMS / Page Builder content is wrapped in .prose, which sets its own heading scale (3em, 2em, ... at 600),
- * 500-weight links and 1em/1rem flow. Elme CMS content uses the base typography (typography.css) and the old
- * Luma spacing (h1 0/24, h2 18/24, h3 18/12, h4-h6 24/24, p 0/12, lists 0/18 with 12px between items).
+ * 500-weight links and 1em/1rem flow. Elme CMS content reverts to the role scale in typography.css
+ * (display/h1-h4/body/copy/note/label) and keeps Luma-like spacing.
  */
 @utility prose {
     --text-flow: 0 --spacing(3);
@@ -10,6 +10,9 @@
     --table-stroke: var(--color-border-light);
     --table-bg: transparent;
     --table-color: var(--color-ink);
+    /* Body measure inside CMS: inherit role body size/LH from typography.css */
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
 
     :where(h1, h2, h3, h4, h5, h6) {
         color: revert-layer;
@@ -17,6 +20,8 @@
         font-size: revert-layer;
         font-weight: revert-layer;
         line-height: revert-layer;
+        letter-spacing: revert-layer;
+        text-transform: revert-layer;
     }
 
     :where(h1) {

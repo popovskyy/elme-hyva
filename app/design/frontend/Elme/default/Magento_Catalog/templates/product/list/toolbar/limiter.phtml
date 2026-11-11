@@ -19,7 +19,7 @@ $limiterId = 'limiter-' . uniqid();
 <?php if (count($availableLimitOptions) > 1): ?>
     <div class="field limiter flex items-center order-3 sm:order-2 md:order-3 lg:order-2 col-span-2 justify-end">
         <div class="control">
-            <label class="inline-flex items-center gap-2 text-sm text-ink label" for="<?= $escaper->escapeHtmlAttr($limiterId) ?>">
+            <label class="inline-flex items-center gap-2 text-copy text-ink label" for="<?= $escaper->escapeHtmlAttr($limiterId) ?>">
                 <span class="whitespace-nowrap">
                     <?= $escaper->escapeHtml((string) __('Show')) ?>
                 </span>

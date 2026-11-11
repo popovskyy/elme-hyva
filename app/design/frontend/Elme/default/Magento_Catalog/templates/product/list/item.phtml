@@ -216,7 +216,7 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
         <div class="elme-card__actions mt-auto grid gap-2 pt-3 <?= $showStepper ? '2xl:grid-cols-[auto_1fr]' : '' ?>">
             <?php if ($isProductGroupedOrBundle): ?>
                 <a href="<?= $escaper->escapeUrl($productUrl) ?>"
-                   class="btn btn-primary w-full text-sm"
+                   class="btn btn-primary w-full text-copy"
                    aria-label="<?= $escaper->escapeHtmlAttr(__('Configure %1 on the product page', $productName)) ?>"
                 >
                     <?= $escaper->escapeHtml(__('Configure')) ?>
@@ -266,7 +266,7 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
                 <?php endif; ?>
                 <?php /* FE-70: btn-atc = AJAX add with the animated sending / Added states (elme/atc-button.phtml) */ ?>
                 <button type="submit"
-                        class="btn btn-primary btn-atc elme-card__atc w-full text-sm"
+                        class="btn btn-primary btn-atc elme-card__atc w-full text-copy"
                         aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Cart') . ' ' . $productName) ?>"
                         data-addto="cart"
                 >

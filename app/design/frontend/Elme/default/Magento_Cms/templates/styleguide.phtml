@@ -59,6 +59,49 @@ for ($i = 1; $i <= 40; $i++) {
         )) ?>
     </p>
 
+    <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-type">
+        <h2 id="sg-type" class="mb-6"><?= $escaper->escapeHtml(__('Type scale')) ?></h2>
+        <p class="max-w-2xl mb-6 text-ink-subtle">
+            <?= $escaper->escapeHtml(__(
+                'Nine role tokens (rem). Desktop sizes apply from the lg breakpoint. '
+                . 'h5 and h6 are not size tokens: they reuse body and copy with tracking.'
+            )) ?>
+        </p>
+        <div class="grid gap-4 max-w-3xl">
+            <p class="m-0 font-heading font-normal text-display lg:text-display-desktop text-ink">
+                <?= $escaper->escapeHtml(__('Display — hero and section titles')) ?>
+            </p>
+            <p class="m-0 font-heading font-normal text-h1 lg:text-h1-desktop text-ink">
+                <?= $escaper->escapeHtml(__('Heading 1')) ?>
+            </p>
+            <p class="m-0 font-heading font-normal text-h2 lg:text-h2-desktop text-ink">
+                <?= $escaper->escapeHtml(__('Heading 2')) ?>
+            </p>
+            <p class="m-0 font-heading font-normal text-h3 lg:text-h3-desktop text-ink">
+                <?= $escaper->escapeHtml(__('Heading 3')) ?>
+            </p>
+            <p class="m-0 font-heading font-normal text-h4 lg:text-h4-desktop text-ink">
+                <?= $escaper->escapeHtml(__('Heading 4')) ?>
+            </p>
+            <p class="m-0 text-body text-ink">
+                <?= $escaper->escapeHtml(__('Body — default copy, line-height 1.5')) ?>
+            </p>
+            <p class="m-0 text-copy lg:text-copy-desktop text-ink">
+                <?= $escaper->escapeHtml(__('Copy — secondary text and UI labels')) ?>
+            </p>
+            <p class="m-0 text-note text-ink-muted">
+                <?= $escaper->escapeHtml(__('Note — breadcrumbs, meta, helpers')) ?>
+            </p>
+            <p class="m-0 text-label uppercase tracking-wide text-ink-subtle">
+                <?= $escaper->escapeHtml(__('Label — badges and overlines')) ?>
+            </p>
+        </div>
+        <div class="mt-8 max-w-3xl space-y-2">
+            <h5 class="m-0"><?= $escaper->escapeHtml(__('Native h5 (body size, wider tracking)')) ?></h5>
+            <h6 class="m-0"><?= $escaper->escapeHtml(__('Native h6 (copy size, uppercase)')) ?></h6>
+        </div>
+    </section>
+
     <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-buttons">
         <h2 id="sg-buttons" class="mb-6"><?= $escaper->escapeHtml(__('Buttons')) ?></h2>
         <p class="max-w-2xl mb-6 text-ink-subtle">

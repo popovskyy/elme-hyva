@@ -110,7 +110,7 @@
         text-wrap: balance;
 
         @variant lg {
-            font-size: var(--text-title-section-desktop);
+            font-size: var(--text-display-desktop);
             line-height: 1.12;
         }
     }
@@ -151,12 +151,12 @@
         margin: 0;
         font-family: var(--font-heading);
         font-weight: 400;
-        font-size: var(--text-title-section);
+        font-size: var(--text-display);
         line-height: 1.1;
         color: var(--color-ink);
 
         @variant lg {
-            font-size: var(--text-title-section-desktop);
+            font-size: var(--text-display-desktop);
         }
     }
 

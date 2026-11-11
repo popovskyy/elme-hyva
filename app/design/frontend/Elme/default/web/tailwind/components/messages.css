@@ -35,9 +35,9 @@
         background-color: var(--message-bg);
         box-shadow: 0 --spacing(2) --spacing(6) color-mix(in srgb, var(--color-ink) 10%, transparent);
         color: var(--color-ink);
-        font-size: var(--text-base);
+        font-size: var(--text-body);
         font-weight: 500;
-        line-height: var(--text-base--line-height);
+        line-height: var(--text-body--line-height);
         transition: opacity var(--transition-duration-fast) var(--ease-out-cubic);
 
         @starting-style {

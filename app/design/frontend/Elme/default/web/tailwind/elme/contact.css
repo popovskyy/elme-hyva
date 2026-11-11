@@ -31,7 +31,7 @@
 
     .elme-contact__shortcuts-label {
         margin: 0 0 --spacing(3);
-        font-size: var(--text-nav);
+        font-size: var(--text-copy);
         line-height: --spacing(5);
         letter-spacing: 0.04em;
         text-transform: uppercase;
@@ -55,7 +55,7 @@
         border: 1px solid var(--color-border);
         background: var(--color-surface);
         color: var(--color-ink);
-        font-size: var(--text-nav);
+        font-size: var(--text-copy);
         line-height: --spacing(5);
         text-decoration: none;
         transition:

@@ -120,17 +120,12 @@
     }
 
     .elme-hero__heading {
-        font-size: var(--text-title-section);
-        line-height: var(--text-title-section--line-height);
+        font-size: var(--text-display);
+        line-height: var(--text-display--line-height);
 
         @variant md {
-            font-size: var(--text-title-section-desktop);
-            line-height: var(--text-title-section-desktop--line-height);
-        }
-
-        @variant xl {
-            font-size: var(--text-h1-desktop);
-            line-height: 1.07;
+            font-size: var(--text-display-desktop);
+            line-height: var(--text-display--line-height);
         }
     }
 

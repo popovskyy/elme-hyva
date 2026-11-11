@@ -55,7 +55,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
 >
     <div class="elme-instagram-slider__intro px-5 text-center md:px-10">
         <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-            class="mb-3 text-title-section text-ink lg:mb-4 lg:text-title-section-desktop">
+            class="mb-3 text-display text-ink lg:mb-4 lg:text-display-desktop">
             <?= $escaper->escapeHtml($heading) ?>
         </h2>
 
@@ -71,7 +71,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
 
         <div class="mb-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 lg:mb-8">
             <?php if ($invite !== ''): ?>
-                <p class="m-0 text-sm text-ink-muted"><?= $escaper->escapeHtml($invite) ?></p>
+                <p class="m-0 text-copy text-ink-muted"><?= $escaper->escapeHtml($invite) ?></p>
             <?php endif; ?>
             <a href="<?= $escaper->escapeUrl($profileUrl) ?>"
                class="btn btn-secondary"
@@ -149,8 +149,8 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                                         ease-out-cubic motion-safe:group-hover:scale-[1.03]">
                         </span>
                         <span class="elme-instagram-slider__meta mt-3 flex min-h-12 flex-col gap-1 text-left">
-                            <span class="text-sm font-bold text-ink"><?= $escaper->escapeHtml($creditLine) ?></span>
-                            <span class="inline-flex flex-wrap items-center gap-2 text-sm text-ink-muted">
+                            <span class="text-copy font-bold text-ink"><?= $escaper->escapeHtml($creditLine) ?></span>
+                            <span class="inline-flex flex-wrap items-center gap-2 text-copy text-ink-muted">
                                 <span class="inline-flex items-center gap-1">
                                     <?= $escaper->escapeHtml($post['action_label']) ?>
                                     <?php if ($post['external']): ?>
@@ -158,7 +158,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                                     <?php endif; ?>
                                 </span>
                                 <?php if ($post['sku_count'] > 0): ?>
-                                    <span class="elme-instagram-slider__chip rounded-sm bg-sand px-2 py-0.5 text-xs text-ink">
+                                    <span class="elme-instagram-slider__chip rounded-sm bg-sand px-2 py-0.5 text-label text-ink">
                                         <?= $escaper->escapeHtml(
                                             $post['sku_count'] === 1
                                                 ? __('1 product')

@@ -71,7 +71,7 @@ $links = [
             <?= $auth && ($auth === 'customer') !== $isLoggedIn ? 'hidden' : '' ?>>
             <a href="<?= $escaper->escapeUrl($link['url']) ?>"
                class="elme-mobile-menu__footer-link flex items-center gap-3 min-h-11 px-5 py-3
-                      text-base text-ink no-underline hover:text-ink
+                      text-body text-ink no-underline hover:text-ink
                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
                       focus-visible:outline-primary">
                 <?= $lucideIcons->renderHtml($link['icon'], 'shrink-0 text-ink-muted', 20, 20, ['aria-hidden' => 'true']) ?>

@@ -1,13 +1,14 @@
 /**
- * Elme Living base typography (old Bart/el _typography.less).
- * Values come from hyva.config.json (tokens.values: colours, type scale; fonts).
+ * Elme Living base typography.
+ * Roles from hyva.config.json tokens.values.text (scale UX-14 option 1).
+ * h5/h6 are not separate size tokens: they reuse body/copy and differ by tracking.
  */
 
 @layer base {
     body {
         font-family: var(--font-sans);
-        font-size: var(--text-base);
-        line-height: var(--text-base--line-height);
+        font-size: var(--text-body);
+        line-height: var(--text-body--line-height);
     }
 
     /* Plain element selectors: :where() would lose to Tailwind preflight's `h1 { font-size: inherit }` */
@@ -19,10 +20,13 @@
         color: var(--color-ink);
     }
 
-    /* Production keeps h1, h4-h6 at one size; only h2/h3 grow at desktop (Overdose od-extend/_typography.less) */
     h1 {
         font-size: var(--text-h1);
         line-height: var(--text-h1--line-height);
+
+        @variant lg {
+            font-size: var(--text-h1-desktop);
+        }
     }
 
     h2 {
@@ -46,16 +50,29 @@
     h4 {
         font-size: var(--text-h4);
         line-height: var(--text-h4--line-height);
+
+        @variant lg {
+            font-size: var(--text-h4-desktop);
+        }
     }
 
+    /* Nearest role = body; distinct from body via wider tracking */
     h5 {
-        font-size: var(--text-h5);
-        line-height: var(--text-h5--line-height);
+        font-size: var(--text-body);
+        line-height: var(--text-body--line-height);
+        letter-spacing: 0.04em;
     }
 
+    /* Nearest role = copy; distinct via uppercase + wider tracking */
     h6 {
-        font-size: var(--text-h6);
-        line-height: var(--text-h6--line-height);
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+
+        @variant lg {
+            font-size: var(--text-copy-desktop);
+        }
     }
 
     p {

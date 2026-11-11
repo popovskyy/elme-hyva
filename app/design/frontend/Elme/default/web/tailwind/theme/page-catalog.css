@@ -38,7 +38,7 @@
 
     /* Drop when the price-box is used for the bundle option price */
     .price-container {
-        font-size: var(--price-font-size, var(--text-base));
+        font-size: var(--price-font-size, var(--text-body));
         font-weight: var(--price-font-weight, bolder);
     }
 

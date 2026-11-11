@@ -122,7 +122,7 @@
     /* the scrim name is set for 340px tiles; phone grid tiles are ~170px wide */
     .elme-category-tiles--grid .elme-category-tiles__name {
         padding: --spacing(6) --spacing(3) --spacing(2.5);
-        font-size: var(--text-h5-desktop);
+        font-size: var(--text-h4-desktop);
 
         @variant md {
             padding: --spacing(9) --spacing(4) --spacing(3.5);

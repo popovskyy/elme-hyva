@@ -5,15 +5,9 @@
  */
 @layer components {
     .elme-become-stockist .elme-become-stockist__lead {
-        font-size: var(--text-h5-desktop);
-        line-height: 1.5;
+        font-size: var(--text-body);
+        line-height: var(--text-body--line-height);
         color: var(--color-ink);
-    }
-
-    @variant md {
-        .elme-become-stockist .elme-become-stockist__lead {
-            font-size: var(--text-h4);
-        }
     }
 
     /* How it works: three numbered steps on a hairline, no boxes */
@@ -56,7 +50,7 @@
     .elme-become-stockist__step-num {
         display: block;
         font-family: var(--font-heading);
-        font-size: var(--text-title-section);
+        font-size: var(--text-display);
         line-height: 1;
         font-weight: 400;
         color: var(--color-olive);
@@ -71,8 +65,8 @@
     .elme-become-stockist.elme-help-body .elme-become-stockist__step-title {
         margin: 0 0 --spacing(1.5);
         font-family: var(--font-sans);
-        font-size: var(--text-h5);
-        line-height: var(--text-h5--line-height);
+        font-size: var(--text-body);
+        line-height: var(--text-body--line-height);
         font-weight: 600;
         color: var(--color-ink);
     }
@@ -114,7 +108,7 @@
         }
 
         .elme-become-stockist__step-num {
-            font-size: var(--text-title-section-desktop);
+            font-size: var(--text-display-desktop);
         }
 
         .elme-become-stockist__step-body {
@@ -135,8 +129,8 @@
         padding-top: 0;
         border-top: 0;
         font-family: var(--font-sans);
-        font-size: var(--text-h5-desktop);
-        line-height: var(--text-h5-desktop--line-height);
+        font-size: var(--text-h4-desktop);
+        line-height: var(--text-h4--line-height);
         font-weight: 600;
     }
 
@@ -238,8 +232,8 @@
 
     @variant md {
         .elme-become-stockist.elme-help-body .elme-become-stockist__step-title {
-            font-size: var(--text-h5-desktop);
-            line-height: var(--text-h5-desktop--line-height);
+            font-size: var(--text-h4-desktop);
+            line-height: var(--text-h4--line-height);
         }
 
         .elme-become-stockist__step-text,
