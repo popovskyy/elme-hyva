@@ -27,6 +27,7 @@ $homeUrl = $block->getBaseUrl();
          x-data="initElmeQuickOrderCartPage"
          @elme-qo-cart.window="onCart"
          :class="savingClass">
+    <h1 class="elme-cart__title"><?= $escaper->escapeHtml(__('Your cart')) ?></h1>
     <div class="elme-cart__loading" x-show="isLoading" aria-busy="true">
         <p class="sr-only"><?= $escaper->escapeHtml(__('Loading your cart...')) ?></p>
         <div class="elme-cart__bone" aria-hidden="true">
@@ -166,12 +167,19 @@ $homeUrl = $block->getBaseUrl();
                     <dd><span class="elme-cart__tick" x-ref="summaryTotal" x-text="totals.total_formatted"></span></dd>
                 </div>
             </dl>
+            <div class="elme-cart__mov" role="status" x-show="showMinimumOrder" x-cloak>
+                <p class="elme-cart__mov-text" x-text="minimumOrderHint"></p>
+                <div class="elme-cart__mov-track" aria-hidden="true">
+                    <span class="elme-cart__mov-bar" :style="minimumOrderBarStyle"></span>
+                </div>
+            </div>
             <div class="elme-cart__summary-cta">
                 <button type="button"
                         class="btn btn-primary w-full justify-center"
                         @click="goToCheckout"
                         :disabled="cannotCheckout"
-                        :aria-busy="checkoutBusy">
+                        :aria-busy="checkoutBusy"
+                        :title="checkoutTitle">
                     <?= $escaper->escapeHtml(__('Proceed to checkout')) ?>
                 </button>
                 <?= $block->getChildHtml('save-status', false) ?>
@@ -194,7 +202,8 @@ $homeUrl = $block->getBaseUrl();
                 class="btn btn-primary"
                 @click="goToCheckout"
                 :disabled="cannotCheckout"
-                :aria-busy="checkoutBusy">
+                :aria-busy="checkoutBusy"
+                :title="checkoutTitle">
             <?= $escaper->escapeHtml(__('Proceed to checkout')) ?>
         </button>
     </div>
@@ -314,6 +323,31 @@ $homeUrl = $block->getBaseUrl();
             },
             checkoutBusy() {
                 return this.leaving ? 'true' : false;
+            },
+            showMinimumOrder() {
+                const mov = this.cart && this.cart.minimum_order;
+                return Boolean(mov && mov.enabled && !mov.met);
+            },
+            minimumOrderHint() {
+                const mov = this.cart && this.cart.minimum_order;
+                if (!mov) {
+                    return '';
+                }
+                return hyva.str(
+                    '<?= $escaper->escapeJs(__('Add %1 more to place your order.')) ?>',
+                    mov.remaining_formatted
+                );
+            },
+            minimumOrderBarStyle() {
+                const mov = this.cart && this.cart.minimum_order;
+                if (!mov || !mov.minimum) {
+                    return 'width: 0%';
+                }
+                const pct = Math.max(0, Math.min(100, Math.round((mov.subtotal / mov.minimum) * 100)));
+                return 'width: ' + pct + '%';
+            },
+            checkoutTitle() {
+                return this.showMinimumOrder() ? this.minimumOrderHint() : '';
             },
             savingClass() {
                 return this.saving ? 'is-saving' : '';

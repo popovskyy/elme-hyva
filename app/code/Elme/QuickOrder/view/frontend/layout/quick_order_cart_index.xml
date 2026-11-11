@@ -3,7 +3,13 @@
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <!-- FE-75: Remove asks first, then the row turns to dust -->
     <update handle="elme_remove_confirm"/>
+    <head>
+        <!-- FE-33 SEO: private cart document; robots also set in Controller\Cart\Index -->
+        <meta name="robots" content="noindex, nofollow"/>
+    </head>
     <body>
+        <!-- One H1 in the template ("Your cart"); title stays Cart -->
+        <referenceBlock name="page.main.title" remove="true"/>
         <referenceContainer name="content">
             <!-- Per customer, with a form key: never in the full page cache -->
             <block name="elme.quick-order.cart" template="Elme_QuickOrder::cart/page.phtml" cacheable="false">

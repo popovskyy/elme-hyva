@@ -14,6 +14,7 @@
             <module name="Hyva_Theme"/>
             <module name="Elme_Checkout"/>
             <module name="Elme_LoginOnly"/>
+            <module name="Elme_MinimumOrder"/>
             <module name="Elme_QtyRules"/>
             <module name="Elme_Theme"/>
         </sequence>

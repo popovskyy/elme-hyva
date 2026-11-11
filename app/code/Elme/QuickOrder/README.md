@@ -17,7 +17,7 @@ and qty are stored: name, image, price, stock and MOQ are read live, so catalogu
 | `Model\CartList` | Reads and writes a list as `sku => qty` |
 | `Model\CartLines` | The one place that reads live row data: product, customer price (`CustomerPriceProviderInterface`), stock, MOQ (`Elme_QtyRules`) and why a row cannot be ordered now |
 | `Model\CartEditor` | Every change: `add()` (add to cart) and `save()` (replace or merge). New or changed qty is checked; a refused row keeps its old qty |
-| `Model\CartData` | The cart as JSON for the browser, with subtotal, GST and total from the server (ex GST prices) |
+| `Model\CartData` | The cart as JSON for the browser, with subtotal, GST, total (ex GST prices), `minimum_order` (BE-08) and `can_checkout` (rows available and MOV met) |
 | `Model\QuoteBuilder` | Rebuilds the quote from `cart_list` |
 | `CustomerData\QuickOrder` | Section `quick_order`: `summary_count` (sum of qty, the header badge), `items_count`, `lists_item_count` and `lists` (`[{id, name, item_count, skus}]`, for the hearts) |
 
@@ -28,19 +28,20 @@ and qty are stored: name, image, price, stock and MOQ are read live, so catalogu
   JSON, the result is in the messages section. A configurable stores the chosen simple product's sku; no qty is the
   MOQ.
 - **Endpoints**, all login only, `no-store`, never a 200 on an error, guests get 401:
-  - `GET /quick-order/cart/get`: `{success, cart: {items, totals, summary_count, items_count, can_checkout}}`
+  - `GET /quick-order/cart/get`: `{success, cart: {items, totals, summary_count, items_count, can_checkout, minimum_order}}`
   - `POST /quick-order/cart/save`, JSON `{form_key, mode: "replace"|"merge", items: [{sku, qty}]}`:
     `{success, errors: {sku: message}, cart}`
   - `POST /quick-order/cart/availability`, JSON `{form_key, items}` (max 40): `{success, availability: {sku: {...}}}`
 - **Browser**: `templates/js/cart-client.phtml` (on every page for logged-in customers) is `window.elmeQuickOrderCart`:
   `load()`, `setQty()` (saved 1 s after the last edit, the whole cart in one request), `remove()`, `flush()`. It
-  dispatches `elme-qo-cart` and `elme-qo-count`. The header panel (FE-32) and the cart page (FE-33) build on it;
-  `templates/cart/page.phtml` is the plain page until FE-33.
-- **Cart page**: `/checkout/cart` redirects to `/quick-order/cart` (`Observer\RedirectCartPage`).
+  dispatches `elme-qo-cart` and `elme-qo-count`. The header panel (FE-32) and the cart page (FE-33) build on it.
+- **Cart page** (`/quick-order/cart`, FE-33): item table, MOV notice, totals (no freight), Proceed to checkout,
+  empty state. `/checkout/cart` redirects here (`Observer\RedirectCartPage`). Head is `noindex, nofollow` with a
+  self canonical. No coupon field here (Roman: checkout only; quote exists only after `/checkout` opens).
 - **Checkout**: one rule. `Plugin\RebuildQuoteOnCheckoutPlugin` rebuilds the quote from `cart_list` every time
   `/checkout` opens. Refused rows send the customer back to the cart page with their reason. No merge, no
-  "hydrate if empty", no skip flag. Elme_Checkout then works on the quote as before. `Model\Validator\QuoteMatchesCart`
-  refuses place order when the cart changed since checkout opened (another tab).
+  "hydrate if empty", no skip flag. Elme_Checkout then works on the quote as before (coupon on checkout).
+  `Model\Validator\QuoteMatchesCart` refuses place order when the cart changed since checkout opened (another tab).
 - **After the order**: `Observer\ClearCartAfterOrder` empties `cart_list` on `sales_model_service_quote_submit_success`.
   A failed payment or an abandoned checkout keeps it.
 
@@ -77,7 +78,7 @@ request. Opening a list into the Quick Order page is FE-40 / FE-44.
 ## Not here yet
 
 - Reorder (`/sales/order/reorder`) still fills the quote, which `/checkout` replaces with `cart_list`: BE-14.
-- Coupon: applied in checkout on the quote, as on the old site.
+- Coupon UI: checkout only (Roman on FE-33 / D14). Cart has no coupon field.
 
 ## Tests
 
