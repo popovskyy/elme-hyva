@@ -15,6 +15,14 @@ const magento = (...args) => execFileSync(
     { stdio: 'pipe' },
 ).toString();
 
+const banVarnish = () => {
+    try {
+        execFileSync('docker', ['exec', 'elme_varnish', 'varnishadm', 'ban', 'req.url ~ .'], { stdio: 'pipe' });
+    } catch (e) {
+        // local stack without Varnish
+    }
+};
+
 async function login(page) {
     await page.goto('/customer/account/login');
     await page.locator('#email').fill(EMAIL);
@@ -25,21 +33,16 @@ async function login(page) {
 
 const formKey = async (page) => (await page.context().cookies()).find((cookie) => cookie.name === 'form_key').value;
 
-const post = (page, path, data) => page.evaluate(async ([url, body]) => (await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-    body: JSON.stringify({ form_key: hyva.getFormKey(), ...body }),
-})).json(), [path, data]);
-
-const getAll = (page) => page.evaluate(async () => (await fetch('/quick-order/list/getall', {
-    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-    cache: 'no-store',
-})).json());
-
-const saveCart = async (page, items, mode = 'replace') => (await page.request.post('/quick-order/cart/save', {
-    data: { form_key: await formKey(page), mode, items },
+const post = async (page, path, data) => (await page.request.post(path, {
+    data: { form_key: await formKey(page), ...data },
     headers: { 'X-Requested-With': 'XMLHttpRequest' },
 })).json();
+
+const getAll = async (page) => (await page.request.get('/quick-order/list/getall', {
+    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+})).json();
+
+const saveCart = async (page, items, mode = 'replace') => post(page, '/quick-order/cart/save', { mode, items });
 
 const cartBadge = (page) => page.locator('#menu-cart-icon .elme-header__badge');
 const listsBadge = (page) => page.locator('.elme-header__lists-btn .elme-header__roll-in');
@@ -96,7 +99,12 @@ async function runMatrix(page, browser, label) {
         mode: 'merge',
         items: [{ sku: SKU, qty: 1 }],
     })).success).toBe(true);
+    // API save does not bump this tab's private_content_version; reload the section then the page
     await page.evaluate(() => window.dispatchEvent(new CustomEvent('reload-customer-section-data')));
+    await page.waitForFunction(() => {
+        const data = JSON.parse(hyva.getBrowserStorage().getItem('mage-cache-storage') || '{}') || {};
+        return (parseInt(data.quick_order?.lists_item_count, 10) || 0) === 1;
+    }, null, { timeout: 15_000 });
     await page.goto(PLP);
     await expectListsBadge(page, 1);
 
@@ -110,11 +118,19 @@ async function runMatrix(page, browser, label) {
 
     // --- second browser changes cart + lists; first recovers ---
     expect((await saveCart(page, [{ sku: SKU, qty: 3 }], 'replace')).success).toBe(true);
+    // create is empty-only; add the SKU in a second save
+    expect((await post(page, '/quick-order/list/save', { name: LIST, mode: 'create', items: [] })).success).toBe(true);
     expect((await post(page, '/quick-order/list/save', {
         name: LIST,
-        mode: 'create',
+        mode: 'merge',
         items: [{ sku: SKU, qty: 1 }],
     })).success).toBe(true);
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent('reload-customer-section-data')));
+    await page.waitForFunction(() => {
+        const data = JSON.parse(hyva.getBrowserStorage().getItem('mage-cache-storage') || '{}') || {};
+        return (parseInt(data.quick_order?.lists_item_count, 10) || 0) === 1
+            && (parseInt(data.quick_order?.summary_count, 10) || 0) === 3;
+    }, null, { timeout: 15_000 });
     await page.goto('/');
     await expectCartBadge(page, 3);
     await expectListsBadge(page, 1);
@@ -225,6 +241,7 @@ for (const fullPageOn of [true, false]) {
         test.beforeAll(() => {
             magento(fullPageOn ? 'cache:enable' : 'cache:disable', 'full_page');
             magento('cache:flush', 'full_page');
+            banVarnish();
         });
 
         test(`header counters matrix (${fullPageOn ? 'Varnish/FPC on' : 'FPC off'})`, async ({ page, browser }) => {

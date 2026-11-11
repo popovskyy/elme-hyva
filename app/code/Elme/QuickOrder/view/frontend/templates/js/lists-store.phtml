@@ -95,6 +95,18 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             if (cached === null || cached === count()) {
                 return;
             }
+            if (typeof window.elmeForceSectionReload === 'function') {
+                window.elmeForceSectionReload();
+                return;
+            }
+            try {
+                const storage = hyva.getBrowserStorage && hyva.getBrowserStorage();
+                if (storage) {
+                    storage.removeItem('mage-cache-storage');
+                }
+            } catch (e) {
+                // ignore
+            }
             window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
         }
 

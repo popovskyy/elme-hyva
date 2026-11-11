@@ -66,6 +66,21 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             }
         }
 
+        // Hyva loadSectionData only hits the server when private_content_version differs; a cart change on
+        // another device does not bump this browser's cookie. Drop the cached section so reload fetches.
+        function forceSectionReload() {
+            try {
+                const storage = hyva.getBrowserStorage && hyva.getBrowserStorage();
+                if (storage) {
+                    storage.removeItem('mage-cache-storage');
+                }
+            } catch (e) {
+                // ignore
+            }
+            window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+        }
+        window.elmeForceSectionReload = forceSectionReload;
+
         // Live cart from this browser vs section cache left by another device/tab/order
         function syncSectionIfCountDiffers() {
             const section = cachedQuickOrder();
@@ -74,7 +89,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             }
             const cached = parseInt(section.summary_count, 10) || 0;
             if (cached !== cartCount()) {
-                window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+                forceSectionReload();
             }
         }
 
@@ -82,7 +97,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             if (!sectionLoadedAt || (Date.now() - sectionLoadedAt) < SECTION_STALE_MS) {
                 return;
             }
-            window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+            forceSectionReload();
         }
 
         function emit() {
