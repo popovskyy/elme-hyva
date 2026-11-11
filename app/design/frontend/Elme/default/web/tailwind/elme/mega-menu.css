@@ -498,7 +498,8 @@
 
     @variant lg {
         .main-menu.navigation .main-menu__link {
-            /* 15px labels and tighter padding than production; base size from 2xl. Search is an icon below xl. */
+            /* Copy size + tight pad through 2xl so rem growth (browser text 20px) still leaves
+               room for the xl search field at 1280/1440. Body size and roomier pad from 3xl. */
             font-size: var(--text-copy);
             padding-inline: --spacing(1.5);
             gap: --spacing(1);
@@ -509,7 +510,6 @@
         }
     }
 
-    /* Cap mid-desktop padding so the search field keeps its room at 1280/1440. Roomier from 2xl. */
     @variant xl {
         .main-menu.navigation .main-menu__link {
             padding-inline: --spacing(1.5);
@@ -519,14 +519,15 @@
 
     @variant 2xl {
         .main-menu.navigation .main-menu__link {
-            font-size: var(--text-body);
-            padding-inline: --spacing(2.5);
+            font-size: var(--text-copy);
+            padding-inline: --spacing(1.5);
             gap: --spacing(1);
         }
     }
 
     @variant 3xl {
         .main-menu.navigation .main-menu__link {
+            font-size: var(--text-body);
             padding-inline: --spacing(5);
             gap: --spacing(1.5);
         }
