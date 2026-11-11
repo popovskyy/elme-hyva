@@ -66,7 +66,7 @@ abstract class AbstractAction implements HttpPostActionInterface, CsrfAwareActio
         try {
             $quote = $this->checkoutSession->getQuote();
             if (!$quote->getId() || !$quote->hasItems()) {
-                return $this->failure(409, (string) __('Your cart is empty.'), [
+                return $this->resolveEmptyCart() ?? $this->failure(409, (string) __('Your cart is empty.'), [
                     'redirect' => $this->urlBuilder->getUrl('checkout/cart'),
                 ]);
             }
@@ -88,6 +88,23 @@ abstract class AbstractAction implements HttpPostActionInterface, CsrfAwareActio
             $this->logger->error($exception->getMessage(), ['exception' => $exception]);
             return $this->failure(500, (string) __('Something went wrong. Please try again.'));
         }
+    }
+
+    /**
+     * When the cart is empty: null keeps the 409, a result finishes the request (e.g. success after a lost answer).
+     */
+    protected function resolveEmptyCart(): ?JsonResult
+    {
+        return null;
+    }
+
+    /**
+     * @param string $path
+     * @return JsonResult
+     */
+    protected function redirectTo(string $path): JsonResult
+    {
+        return $this->result(200, ['ok' => true, 'redirect' => $this->urlBuilder->getUrl($path)]);
     }
 
     /**

@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Elme\Checkout\Controller\Action;
 
 use Elme\Checkout\Api\CheckoutManagementInterface;
+use Elme\Checkout\Model\PlacedOrderRecovery;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Customer\Model\Url as CustomerUrl;
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Controller\Result\Json as JsonResult;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Data\Form\FormKey\Validator as FormKeyValidator;
 use Magento\Framework\Exception\LocalizedException;
@@ -31,7 +33,8 @@ class PlaceOrder extends AbstractAction
         Json $json,
         LoggerInterface $logger,
         FormKeyValidator $formKeyValidator,
-        private readonly CheckoutManagementInterface $checkoutManagement
+        private readonly CheckoutManagementInterface $checkoutManagement,
+        private readonly PlacedOrderRecovery $placedOrderRecovery
     ) {
         parent::__construct(
             $request,
@@ -56,6 +59,16 @@ class PlaceOrder extends AbstractAction
         $this->checkoutManagement->placeOrder($cartId, $this->getPayload());
 
         return ['redirect' => $this->urlBuilder->getUrl('checkout/onepage/success')];
+    }
+
+    /**
+     * Cart already converted and the session still holds that order: send the customer to the success page.
+     */
+    protected function resolveEmptyCart(): ?JsonResult
+    {
+        return $this->placedOrderRecovery->getSuccessUrl() !== null
+            ? $this->redirectTo('checkout/onepage/success')
+            : null;
     }
 
     /**

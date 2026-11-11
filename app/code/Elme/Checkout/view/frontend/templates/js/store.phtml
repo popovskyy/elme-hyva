@@ -73,8 +73,9 @@ use Magento\Framework\Escaper;
              * @returns {Promise<boolean>} true when the server accepted the change
              */
             call(action, data = {}, sectionCode = '') {
-                // A change after Place order would land on a cart that is an order by then
-                if (this.placing && action !== 'placeorder') {
+                // A change after Place order would land on a cart that is an order by then.
+                // state is allowed while placing: recovery after a lost place-order answer.
+                if (this.placing && action !== 'placeorder' && action !== 'state') {
                     return Promise.resolve(false);
                 }
 
@@ -137,7 +138,21 @@ use Magento\Framework\Escaper;
                 const checks = await Promise.all(this.beforePlaceOrderChecks.map((check) => check()));
                 if (checks.every(Boolean)) {
                     const agreements = Object.keys(this.acceptedAgreements).filter((id) => this.acceptedAgreements[id]);
-                    await this.call('placeorder', {agreements}, 'placeorder');
+                    const placed = await this.call('placeorder', {agreements}, 'placeorder');
+                    // Answer lost after the order was created: state redirects to success when the session has it
+                    if (!placed && !this.leaving) {
+                        const message = this.message;
+                        const fieldErrors = this.fieldErrors;
+                        const sectionErrors = this.sectionErrors;
+                        const errorSection = this.errorSection;
+                        await this.call('state');
+                        if (!this.leaving) {
+                            this.message = message;
+                            this.fieldErrors = fieldErrors;
+                            this.sectionErrors = sectionErrors;
+                            this.errorSection = errorSection;
+                        }
+                    }
                 }
 
                 if (!this.leaving) {

@@ -30,7 +30,8 @@ class CheckoutManagement implements CheckoutManagementInterface
         private readonly CartManagementInterface $cartManagement,
         private readonly LockManagerInterface $lockManager,
         private readonly QuoteFactory $quoteFactory,
-        private readonly QuoteDetails $quoteDetails
+        private readonly QuoteDetails $quoteDetails,
+        private readonly PlacedOrderRecovery $placedOrderRecovery
     ) {
     }
 
@@ -102,6 +103,10 @@ class CheckoutManagement implements CheckoutManagementInterface
             $current->setSharedStoreIds(['*']);
             $current->loadActive($cartId);
             if (!$current->getId()) {
+                $orderId = $this->placedOrderRecovery->getOrderIdForCart($cartId);
+                if ($orderId !== null) {
+                    return $orderId;
+                }
                 throw new LocalizedException(__('This order has already been placed.'));
             }
 
