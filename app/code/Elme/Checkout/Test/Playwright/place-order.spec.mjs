@@ -25,15 +25,27 @@ async function openCheckout(page) {
 }
 
 async function chooseMethods(page) {
-    for (const radio of [
-        page.locator('input[name="delivery_method"][value="flatrate_flatrate"]'),
-        page.locator('[data-checkout-section="payment"] input[value="checkmo"]'),
-    ]) {
-        await expect(radio).toBeVisible();
-        if (!(await radio.isChecked())) {
-            await radio.check();
+    // One available option is a done line (FE-83); two or more stay radio cards
+    const deliveryRadio = page.locator('input[name="delivery_method"][value="flatrate_flatrate"]');
+    if (await deliveryRadio.count()) {
+        if (!(await deliveryRadio.isChecked())) {
+            await deliveryRadio.check();
         }
-        await expect(radio).toBeChecked();
+        await expect(deliveryRadio).toBeChecked();
+    } else {
+        await expect(page.locator('[data-checkout-section="delivery"] .elme-checkout-line__value')).toBeVisible();
+        await expect(page.locator('[data-checkout-section="delivery"].is-busy')).toHaveCount(0);
+    }
+
+    const paymentRadio = page.locator('[data-checkout-section="payment"] input[value="checkmo"]');
+    if (await paymentRadio.count()) {
+        if (!(await paymentRadio.isChecked())) {
+            await paymentRadio.check();
+        }
+        await expect(paymentRadio).toBeChecked();
+    } else {
+        await expect(page.locator('[data-checkout-section="payment"] .elme-checkout-line__value')).toBeVisible();
+        await expect(page.locator('[data-checkout-section="payment"].is-busy')).toHaveCount(0);
     }
 }
 

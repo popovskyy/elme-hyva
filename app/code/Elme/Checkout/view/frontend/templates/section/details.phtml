@@ -17,25 +17,31 @@ $instructionsField = OrderDetailsInterface::DELIVERY_INSTRUCTIONS;
          data-checkout-section="details"
          x-data="elmeCheckoutDetails">
     <div class="elme-checkout-section__head">
-        <span class="elme-checkout-section__step" aria-hidden="true">
-            <span class="elme-checkout-section__step-number"><?= (int) $block->getData('number') ?></span>
-        </span>
-        <h2 class="elme-checkout-section__title">
-            <label for="elme-checkout-instructions">
-                <?= $escaper->escapeHtml(__('Delivery instructions')) ?>
-                <span class="elme-checkout-section__optional"><?= $escaper->escapeHtml(__('(optional)')) ?></span>
-            </label>
+        <h2 class="elme-checkout-section__title" id="elme-checkout-instructions-heading">
+            <?= $escaper->escapeHtml(__('Delivery instructions')) ?>
+            <span class="elme-checkout-section__optional"><?= $escaper->escapeHtml(__('(optional)')) ?></span>
         </h2>
     </div>
 
     <p class="elme-checkout-section__error" role="alert" x-show="error" x-cloak x-text="error"></p>
 
     <div class="elme-checkout-section__body">
-        <div class="field">
+        <button type="button"
+                class="elme-checkout-details__toggle"
+                x-show="isClosed"
+                x-cloak
+                @click="expand">
+            <?= $escaper->escapeHtml(__('Add delivery instructions')) ?>
+        </button>
+
+        <div class="field" x-show="isOpen" x-cloak x-ref="instructionsField">
+            <label class="label sr-only" for="elme-checkout-instructions">
+                <?= $escaper->escapeHtml(__('Delivery instructions')) ?>
+            </label>
             <textarea id="elme-checkout-instructions"
                       class="form-textarea w-full"
                       name="<?= /* @noEscape */ $instructionsField ?>"
-                      rows="4"
+                      rows="3"
                       maxlength="<?= (int) OrderDetailsInterface::DELIVERY_INSTRUCTIONS_MAX_LENGTH ?>"
                       placeholder="<?= $escaper->escapeHtmlAttr(__('e.g. Please place package at front door.')) ?>"
                       aria-describedby="elme-checkout-instructions-error elme-checkout-instructions-counter elme-checkout-instructions-saving"
@@ -70,10 +76,12 @@ $instructionsField = OrderDetailsInterface::DELIVERY_INSTRUCTIONS;
 
         return {
             values: {},
+            open: false,
             saveTimer: null,
 
             init() {
                 this.values = {...this.saved()};
+                this.open = Boolean((this.values['<?= /* @noEscape */ $instructionsField ?>'] || '').trim());
                 // Place order goes first through here: the last change may be waiting for its timer, and iOS keeps the
                 // focus in the field when a button is tapped, so there may be no blur
                 this.store().onBeforePlaceOrder(() => this.save('enqueue'));
@@ -103,8 +111,28 @@ $instructionsField = OrderDetailsInterface::DELIVERY_INSTRUCTIONS;
             isBusy() {
                 return this.store().isLoading('details');
             },
+            isOpen() {
+                return this.open;
+            },
+            isClosed() {
+                return !this.open;
+            },
             counter() {
                 return `${this.value().length} / ${this.$el.dataset.max}`;
+            },
+            expand() {
+                this.open = true;
+                this.focusWhenShown(() => this.$refs.instructionsField?.querySelector('textarea'));
+            },
+            focusWhenShown(element, framesLeft = 20) {
+                requestAnimationFrame(() => {
+                    const target = element();
+                    if (target?.getClientRects().length) {
+                        target.focus();
+                    } else if (framesLeft > 0) {
+                        this.focusWhenShown(element, framesLeft - 1);
+                    }
+                });
             },
             change() {
                 this.values[this.field()] = this.$el.value;

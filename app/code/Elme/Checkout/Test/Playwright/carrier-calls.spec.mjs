@@ -169,10 +169,15 @@ test('a delivery price that changed before Place order refuses the order once', 
     await expect(counted).toBeChecked();
     await expect(deliverySection(page)).toContainText(`$${PRICE}`);
     const payment = page.locator('[data-checkout-section="payment"] input[value="checkmo"]');
-    if (!(await payment.isChecked())) {
-        await payment.check();
+    if (await payment.count()) {
+        if (!(await payment.isChecked())) {
+            await payment.check();
+        }
+        await expect(payment).toBeChecked();
+    } else {
+        await expect(page.locator('[data-checkout-section="payment"] .elme-checkout-line__value')).toBeVisible();
+        await expect(page.locator('[data-checkout-section="payment"].is-busy')).toHaveCount(0);
     }
-    await expect(payment).toBeChecked();
 
     configure({ price: '15.00' });
     try {
