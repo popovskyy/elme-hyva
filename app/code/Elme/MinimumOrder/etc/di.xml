@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Elme\Checkout\Model\PlaceOrderValidatorPool">
+        <arguments>
+            <argument name="validators" xsi:type="array">
+                <item name="minimum_order_value" xsi:type="object">Elme\MinimumOrder\Model\Validator\MinimumOrderValue</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

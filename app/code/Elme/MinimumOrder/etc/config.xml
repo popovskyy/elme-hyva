@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <sales>
+            <minimum_order>
+                <!-- Elme: per-customer attribute overrides amount; empty attribute uses this default -->
+                <active>1</active>
+                <amount>500</amount>
+                <tax_including>0</tax_including>
+            </minimum_order>
+        </sales>
+    </default>
+</config>
