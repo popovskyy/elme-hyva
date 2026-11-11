@@ -50,7 +50,7 @@
 
         @variant lg {
             gap: 0;
-            border-block-start: 1px solid var(--color-divider);
+            border-block-start: 1px solid var(--color-border);
         }
     }
 
@@ -89,7 +89,7 @@
         display: grid;
         gap: --spacing(3.5);
         padding: --spacing(4);
-        border: 1px solid var(--color-divider);
+        border: 1px solid var(--color-border);
         background: var(--color-surface);
 
         @variant lg {
@@ -102,7 +102,7 @@
             transition: background-color var(--transition-duration-fast) var(--ease-out-quad);
 
             &:hover {
-                background: var(--color-sand-faint);
+                background: var(--color-surface-muted);
             }
         }
 
@@ -177,7 +177,7 @@
         width: --spacing(14);
         height: --spacing(14);
         overflow: hidden;
-        border: 1px solid var(--color-divider);
+        border: 1px solid var(--color-border);
         background: var(--color-surface);
         color: var(--color-placeholder);
 
@@ -199,7 +199,7 @@
     }
 
     .elme-sl__thumb--more {
-        background: var(--color-sand-faint);
+        background: var(--color-surface-muted);
         color: var(--color-ink-muted);
         font-size: var(--text-note);
         line-height: var(--text-note--line-height);
@@ -224,7 +224,7 @@
 
     .elme-sl__bone {
         height: --spacing(46);
-        border: 1px solid var(--color-divider);
+        border: 1px solid var(--color-border);
         background: var(--color-surface-muted);
 
         @variant lg {
@@ -240,7 +240,7 @@
     /* Empty state: one calm box, a reason to make a list and the way to do it */
     .elme-sl__empty {
         padding: --spacing(10) --spacing(6);
-        border: 1px solid var(--color-divider);
+        border: 1px solid var(--color-border);
         background: var(--color-surface);
         text-align: center;
 

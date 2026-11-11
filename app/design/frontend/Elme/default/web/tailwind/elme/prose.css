@@ -7,7 +7,7 @@
     --text-flow: 0 --spacing(3);
     --link-color: var(--color-ink);
     --link-weight: 400;
-    --table-stroke: var(--color-border-light);
+    --table-stroke: var(--color-border);
     --table-bg: transparent;
     --table-color: var(--color-ink);
     /* Body measure inside CMS: inherit role body size/LH from typography.css */
@@ -51,7 +51,7 @@
 
     :where(hr) {
         margin-block: --spacing(4);
-        border-color: var(--color-divider);
+        border-color: var(--color-border);
     }
 
     /* A link styled as .btn keeps the button's label colour and weight, not the prose link ones */

@@ -38,7 +38,7 @@
         gap: --spacing(4);
         margin-block-end: --spacing(4);
         padding-block-end: --spacing(4);
-        border-block-end: 1px solid var(--color-divider);
+        border-block-end: 1px solid var(--color-border);
     }
 
     .elme-modal__title {
@@ -117,7 +117,7 @@
         gap: --spacing(3);
         padding-block: --spacing(4);
         padding-inline: --spacing(5);
-        border-block-end: 1px solid var(--color-divider);
+        border-block-end: 1px solid var(--color-border);
         flex-shrink: 0;
     }
 
@@ -139,7 +139,7 @@
     .elme-drawer__footer {
         flex-shrink: 0;
         padding: --spacing(5);
-        border-block-start: 1px solid var(--color-divider);
+        border-block-start: 1px solid var(--color-border);
     }
 
     /* Full-page / panel spinner */

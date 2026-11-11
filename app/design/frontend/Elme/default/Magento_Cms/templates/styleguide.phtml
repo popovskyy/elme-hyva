@@ -43,7 +43,7 @@ $buttons = [
     'btn-outline' => __('Outline'),
     'btn-link' => __('Link'),
 ];
-$sectionClass = 'py-8 border-t border-divider';
+$sectionClass = 'py-8 border-t border-border';
 $captionClass = 'mb-2 text-label uppercase tracking-wide text-ink-subtle';
 $skuOptions = [];
 for ($i = 1; $i <= 40; $i++) {
@@ -579,7 +579,7 @@ for ($i = 1; $i <= 40; $i++) {
         <div class="grid gap-8 lg:grid-cols-2">
             <div>
                 <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Spinner')) ?></p>
-                <div class="elme-loader py-8 border border-divider">
+                <div class="elme-loader py-8 border border-border">
                     <span class="elme-spinner elme-spinner--lg" aria-hidden="true"></span>
                     <span><?= $escaper->escapeHtml(__('Loading…')) ?></span>
                 </div>
@@ -619,7 +619,7 @@ for ($i = 1; $i <= 40; $i++) {
 
     <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-empty">
         <h2 id="sg-empty" class="mb-6"><?= $escaper->escapeHtml(__('Empty state')) ?></h2>
-        <div class="border border-divider">
+        <div class="border border-border">
             <?= /* @noEscape */ $styleguide->getEmptyStateHtml($layout, [
                 'title' => __('Your cart is empty'),
                 'text' => __('Browse the catalogue to add products for your next order.'),

@@ -23,7 +23,7 @@
         gap: --spacing(4);
         margin: --spacing(6) calc(var(--container-gutter) * -1) 0;
         padding: --spacing(3) var(--container-gutter) calc(--spacing(3) + env(safe-area-inset-bottom));
-        border-block-start: 1px solid var(--color-divider);
+        border-block-start: 1px solid var(--color-border);
         background: var(--color-surface);
         box-shadow: 0 calc(var(--spacing) * -1.5) --spacing(4) color-mix(in srgb, var(--color-ink) 6%, transparent);
 
@@ -139,7 +139,7 @@
     }
 
     .elme-cart .elme-qty__btn:active:not(:disabled) {
-        background: var(--color-sand-faint);
+        background: var(--color-surface-muted);
     }
 }
 

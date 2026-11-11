@@ -120,7 +120,7 @@
     .elme-become-stockist__facts {
         margin-block: --spacing(4) --spacing(8);
         padding: --spacing(6) --spacing(5);
-        border: 1px solid var(--color-border-light);
+        border: 1px solid var(--color-border);
         background-color: var(--color-surface);
     }
 

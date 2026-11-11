@@ -35,7 +35,7 @@
     .elme-cart__head {
         display: none;
         padding-block-end: --spacing(3);
-        border-block-end: 1px solid var(--color-divider);
+        border-block-end: 1px solid var(--color-border);
         color: var(--color-ink-muted);
         font-size: var(--text-label);
         line-height: var(--text-label--line-height);
@@ -67,7 +67,7 @@
 
     .elme-cart__line {
         padding-block: --spacing(4);
-        border-block-end: 1px solid var(--color-divider);
+        border-block-end: 1px solid var(--color-border);
         animation: elme-cart-in var(--transition-duration-base) var(--ease-out-quart) both;
 
         @variant lg {
@@ -88,7 +88,7 @@
         display: block;
         aspect-ratio: 1;
         overflow: hidden;
-        border: 1px solid var(--color-divider);
+        border: 1px solid var(--color-border);
         background: var(--color-surface);
         align-self: start;
 
@@ -299,7 +299,7 @@
         flex-direction: column;
         gap: --spacing(4);
         padding: --spacing(6);
-        border: 1px solid var(--color-divider);
+        border: 1px solid var(--color-border);
         background: var(--color-surface);
 
         @variant lg {
@@ -329,7 +329,7 @@
         gap: --spacing(2.5);
         margin: 0;
         padding-block: --spacing(4);
-        border-block: 1px solid var(--color-divider);
+        border-block: 1px solid var(--color-border);
     }
 
     .elme-cart__money div {
@@ -377,7 +377,7 @@
 
     .elme-cart__empty {
         padding: --spacing(10) --spacing(6);
-        border: 1px solid var(--color-divider);
+        border: 1px solid var(--color-border);
         background: var(--color-surface);
         text-align: center;
 
@@ -412,7 +412,7 @@
         grid-template-columns: --spacing(22) minmax(0, 1fr);
         gap: --spacing(4);
         padding-block: --spacing(5);
-        border-block-end: 1px solid var(--color-divider);
+        border-block-end: 1px solid var(--color-border);
         animation: elme-cart-pulse 1.2s ease-in-out infinite;
 
         @variant lg {
