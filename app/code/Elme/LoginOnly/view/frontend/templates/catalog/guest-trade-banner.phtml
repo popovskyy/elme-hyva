@@ -1,0 +1,48 @@
+<?php
+/**
+ * UX-02: slim guest banner on PLP and search — wholesale + Log in / Apply, three facts.
+ * Wired only through HideForLoggedIn so logged-in customers never get the HTML.
+ */
+
+declare(strict_types=1);
+
+use Elme\LoginOnly\ViewModel\LoginOnly;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+
+$facts = [
+    (string) __('ABN required'),
+    (string) __('Minimum order applies'),
+    (string) __('Delivery Australia-wide'),
+];
+?>
+<aside class="elme-guest-trade"
+       aria-label="<?= $escaper->escapeHtmlAttr(__('Trade account')) ?>">
+    <p class="elme-guest-trade__lead">
+        <?= $escaper->escapeHtml(__('Wholesale prices for registered retailers')) ?>
+        <span class="elme-guest-trade__sep" aria-hidden="true">—</span>
+        <a href="<?= $escaper->escapeUrl($loginOnly->getLoginUrl()) ?>"
+           class="elme-guest-trade__link"
+           data-elme-sign-in>
+            <?= $escaper->escapeHtml(__('Log in')) ?>
+        </a>
+        <span class="elme-guest-trade__slash" aria-hidden="true">/</span>
+        <a href="<?= $escaper->escapeUrl($loginOnly->getBecomeStockistUrl()) ?>"
+           class="elme-guest-trade__link">
+            <?= $escaper->escapeHtml(__('Apply for a trade account')) ?>
+        </a>
+    </p>
+    <ul class="elme-guest-trade__facts">
+        <?php foreach ($facts as $fact): ?>
+            <li><?= $escaper->escapeHtml($fact) ?></li>
+        <?php endforeach; ?>
+    </ul>
+</aside>

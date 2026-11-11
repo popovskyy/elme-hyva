@@ -26,6 +26,11 @@
                     </arguments>
                 </block>
             </block>
+            <!-- UX-02: guest trade path; HideForLoggedIn keeps the HTML off logged-in FPC -->
+            <block class="Elme\LoginOnly\Block\HideForLoggedIn"
+                   name="category.guest.trade.banner"
+                   template="Elme_LoginOnly::catalog/guest-trade-banner.phtml"
+                   after="category.banner"/>
         </referenceContainer>
 
         <referenceBlock name="catalog.compare.sidebar" remove="true"/>

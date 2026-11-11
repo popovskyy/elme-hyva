@@ -47,6 +47,14 @@ class LoginOnly implements ArgumentInterface
         return $this->urlBuilder->getUrl('customer/account/create');
     }
 
+    /**
+     * Become a Stockist page (FE-67). Target of the UX-02 PLP/search "Apply for a trade account" link.
+     */
+    public function getBecomeStockistUrl(): string
+    {
+        return $this->urlBuilder->getDirectUrl('become-a-stockist');
+    }
+
     public function getPricesUrl(): string
     {
         return $this->urlBuilder->getUrl('elme_customer_price/prices');

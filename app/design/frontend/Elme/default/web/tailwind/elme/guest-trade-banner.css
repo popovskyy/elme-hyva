@@ -1,0 +1,85 @@
+/*
+ * UX-02: slim guest trade banner on PLP and search (not shown when logged in).
+ */
+@layer components {
+    .elme-guest-trade {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(2);
+        margin-block: --spacing(4) --spacing(3);
+        padding: --spacing(3) --spacing(4);
+        border: 1px solid var(--color-border);
+        background: color-mix(in oklab, var(--color-olive) 6%, var(--color-surface));
+        color: var(--color-ink);
+    }
+
+    .elme-guest-trade__lead {
+        margin: 0;
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        font-weight: 500;
+    }
+
+    .elme-guest-trade__sep,
+    .elme-guest-trade__slash {
+        margin-inline: --spacing(1);
+        color: var(--color-ink-muted);
+        font-weight: 400;
+    }
+
+    .elme-guest-trade__link {
+        color: var(--color-ink);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+
+        &:hover {
+            color: var(--color-link-hover);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
+        }
+    }
+
+    .elme-guest-trade__facts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: --spacing(1) --spacing(4);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        color: var(--color-ink-muted);
+    }
+
+    .elme-guest-trade__facts li {
+        display: inline-flex;
+        align-items: center;
+        gap: --spacing(1.5);
+        margin: 0;
+    }
+
+    .elme-guest-trade__facts li::before {
+        content: "";
+        display: block;
+        width: --spacing(1);
+        height: --spacing(1);
+        border-radius: 9999px;
+        background: var(--color-olive);
+        flex-shrink: 0;
+    }
+
+    @variant lg {
+        .elme-guest-trade {
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: --spacing(3) --spacing(6);
+            margin-block: --spacing(5) --spacing(4);
+            padding-block: --spacing(2.5);
+        }
+    }
+}

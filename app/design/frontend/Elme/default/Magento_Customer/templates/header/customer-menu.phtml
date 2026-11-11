@@ -1,8 +1,8 @@
 <?php
 /**
  * FE-06: account control in the header. FE-07: icon only below lg (label stays the accessible name).
- * Guest → login (UX-02 owns the wording: change $guestLabel only). Logged in: first name from private
- * content + account menu. The name is never baked into FPC HTML.
+ * UX-02: guest label is "Trade login" (same href as desktop; icon + accessible name on mobile).
+ * Logged in: first name from private content + account menu. The name is never baked into FPC HTML.
  */
 
 declare(strict_types=1);
@@ -24,7 +24,7 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
 
 $loggedIn = $block->customerLoggedIn();
 $loginUrl = $block->getUrl('customer/account/login');
-$guestLabel = __('Log in/Sign up');
+$guestLabel = __('Trade login');
 ?>
 
 <?php if (!$loggedIn): ?>
