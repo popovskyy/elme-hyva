@@ -20,7 +20,7 @@
         --elme-heart-size: --spacing(4.5);
         width: var(--elme-heart-size);
         height: var(--elme-heart-size);
-        transition: transform 100ms var(--ease-out-quad);
+        transition: transform var(--transition-duration-micro) var(--ease-out-quad);
 
         & svg {
             position: absolute;
@@ -98,24 +98,24 @@
     /* save: spring 0.85 > 1.2 > 1, a ring and seven dots behind it */
     [data-elme-heart].is-saving {
         & .elme-heart__icon {
-            animation: elme-heart-pop 380ms;
+            animation: elme-heart-pop var(--transition-duration-slow);
         }
 
         & .elme-heart__ring {
-            animation: elme-heart-ring 460ms var(--ease-out-quart);
+            animation: elme-heart-ring var(--transition-duration-slow) var(--ease-out-quart);
         }
 
         & .elme-heart__dots i {
-            animation: elme-heart-dot 520ms var(--ease-out-quart) 60ms backwards;
+            animation: elme-heart-dot var(--transition-duration-slow) var(--ease-out-quart) 60ms backwards;
         }
     }
 
     [data-elme-heart].is-removing .elme-heart__icon {
-        animation: elme-heart-shrink 220ms var(--ease-out-quart);
+        animation: elme-heart-shrink var(--transition-duration-base) var(--ease-out-quart);
     }
 
     [data-elme-heart].is-failing .elme-heart__icon {
-        animation: elme-heart-shake 320ms var(--ease-out-quad);
+        animation: elme-heart-shake var(--transition-duration-slow) var(--ease-out-quad);
     }
 
     @keyframes elme-heart-pop {
@@ -173,7 +173,7 @@
         z-index: 60;
         pointer-events: none;
         color: var(--color-primary);
-        animation: elme-heart-fly-x 620ms var(--ease-in-out-cubic) forwards;
+        animation: elme-heart-fly-x var(--transition-duration-long) var(--ease-in-out-cubic) forwards;
 
         & svg {
             display: block;
@@ -181,7 +181,7 @@
             height: --spacing(4);
             margin: --spacing(-2) 0 0 --spacing(-2);
             opacity: 1;
-            animation: elme-heart-fly-s 620ms var(--ease-in-out-cubic) forwards;
+            animation: elme-heart-fly-s var(--transition-duration-long) var(--ease-in-out-cubic) forwards;
         }
 
         & path {
@@ -191,7 +191,7 @@
     }
 
     .elme-heart-fly__y {
-        animation: elme-heart-fly-y 620ms var(--ease-out-quart) forwards;
+        animation: elme-heart-fly-y var(--transition-duration-long) var(--ease-out-quart) forwards;
     }
 
     @keyframes elme-heart-fly-x {
@@ -212,7 +212,7 @@
 
     /* where the heart lands: the header lists icon squashes, its number rolls up */
     .elme-header__icon.is-squashed {
-        animation: elme-heart-squash 360ms var(--ease-out-quart);
+        animation: elme-heart-squash var(--transition-duration-slow) var(--ease-out-quart);
     }
 
     @keyframes elme-heart-squash {

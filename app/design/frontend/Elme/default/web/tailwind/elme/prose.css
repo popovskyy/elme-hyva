@@ -11,8 +11,8 @@
     --table-bg: transparent;
     --table-color: var(--color-ink);
     /* Body measure inside CMS: inherit role body size/LH from typography.css */
-    font-size: var(--text-body);
-    line-height: var(--text-body--line-height);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
 
     :where(h1, h2, h3, h4, h5, h6) {
         color: revert-layer;

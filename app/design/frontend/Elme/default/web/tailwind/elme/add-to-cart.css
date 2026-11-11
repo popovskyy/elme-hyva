@@ -9,10 +9,10 @@
  * calm. MIN_SENDING_MS in atc-button.phtml must stay at least --atc-slide + --atc-drop.
  */
 .btn-atc {
-    --atc-slide: 520ms;
-    --atc-drop: 1100ms;
-    --atc-exit: 460ms;
-    --atc-fade: 300ms;
+    --atc-slide: var(--transition-duration-long);
+    --atc-drop: var(--transition-duration-long);
+    --atc-exit: var(--transition-duration-slow);
+    --atc-fade: var(--transition-duration-slow);
     position: relative;
     overflow: hidden;
 
@@ -98,8 +98,8 @@
         opacity: 1;
         translate: 0 0;
         transition:
-            translate var(--atc-slide) var(--ease-out-quart) 160ms,
-            opacity var(--atc-fade) var(--ease-out-quad) 160ms;
+            translate var(--atc-slide) var(--ease-out-quart) var(--transition-duration-fast),
+            opacity var(--atc-fade) var(--ease-out-quad) var(--transition-duration-fast);
     }
 
     [data-atc-compact] & .btn-atc__done-label {

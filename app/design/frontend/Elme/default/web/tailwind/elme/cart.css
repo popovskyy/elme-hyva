@@ -413,7 +413,7 @@
         gap: --spacing(4);
         padding-block: --spacing(5);
         border-block-end: 1px solid var(--color-border);
-        animation: elme-cart-pulse 1.2s ease-in-out infinite;
+        animation: elme-cart-pulse 1.2s var(--ease-in-out-cubic) infinite;
 
         @variant lg {
             grid-template-columns: --spacing(24) minmax(0, 1fr);

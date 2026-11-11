@@ -55,7 +55,7 @@
     .elme-cart__bar-amount {
         color: var(--color-ink);
         font-size: var(--text-h4);
-        line-height: var(--text-body--line-height);
+        line-height: var(--text-base--line-height);
         font-weight: 600;
     }
 
@@ -88,7 +88,7 @@
             gap: --spacing(1.5);
             white-space: nowrap;
             opacity: 0;
-            transition: opacity 60ms linear;
+            transition: opacity var(--transition-duration-micro) linear;
         }
 
         svg {
@@ -111,7 +111,7 @@
 
     @media (prefers-reduced-motion: no-preference) {
         .elme-save-status__saving svg {
-            animation: elme-spin 800ms linear infinite;
+            animation: elme-spin var(--transition-duration-long) linear infinite;
         }
     }
 

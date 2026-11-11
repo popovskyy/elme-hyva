@@ -116,8 +116,8 @@
         background: transparent;
         color: var(--color-ink);
         font-family: var(--font-sans);
-        font-size: var(--text-body);
-        line-height: var(--text-body--line-height);
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
         font-weight: 500;
         text-align: left;
         cursor: pointer;
@@ -136,7 +136,7 @@
         display: inline-flex;
         flex-shrink: 0;
         margin-top: --spacing(0.5);
-        transition: transform 180ms ease-out;
+        transition: transform var(--transition-duration-fast) var(--ease-out-quad);
     }
 
     .elme-faq__chevron--open {

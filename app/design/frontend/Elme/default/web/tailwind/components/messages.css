@@ -36,10 +36,10 @@
         background-color: var(--message-bg);
         box-shadow: 0 --spacing(2) --spacing(6) color-mix(in srgb, var(--color-ink) 10%, transparent);
         color: var(--message-text);
-        font-size: var(--text-body);
+        font-size: var(--text-base);
         font-weight: 500;
-        line-height: var(--text-body--line-height);
-        transition: opacity var(--transition-duration-fast) var(--ease-out-cubic);
+        line-height: var(--text-base--line-height);
+        transition: opacity var(--transition-duration-fast) var(--ease-out-quad);
 
         @starting-style {
             opacity: 0;
@@ -199,7 +199,7 @@
     @media (prefers-reduced-motion: no-preference) {
         .elme-toast-stack .message {
             transition:
-                opacity var(--transition-duration-fast) var(--ease-out-cubic),
+                opacity var(--transition-duration-fast) var(--ease-out-quad),
                 translate var(--transition-duration-base) var(--ease-out-quint);
 
             @starting-style {

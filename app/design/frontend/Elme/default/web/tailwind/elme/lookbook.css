@@ -491,7 +491,7 @@
     }
 
     .elme-look-card--enter {
-        transition: transform 360ms var(--ease-out-quint);
+        transition: transform var(--transition-duration-slow) var(--ease-out-quint);
 
         @variant md {
             transition: opacity var(--transition-duration-fast) var(--ease-out-quad),
@@ -500,10 +500,10 @@
     }
 
     .elme-look-card--leave {
-        transition: transform 220ms var(--ease-out-quad);
+        transition: transform var(--transition-duration-base) var(--ease-out-quad);
 
         @variant md {
-            transition: opacity 140ms var(--ease-out-quad), transform 140ms var(--ease-out-quad);
+            transition: opacity var(--transition-duration-fast) var(--ease-out-quad), transform var(--transition-duration-fast) var(--ease-out-quad);
         }
     }
 

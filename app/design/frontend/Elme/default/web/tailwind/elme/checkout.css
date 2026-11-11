@@ -448,8 +448,8 @@
         display: block;
         margin-block-end: --spacing(1);
         color: var(--color-ink);
-        font-size: var(--text-body);
-        line-height: var(--text-body--line-height);
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
     }
 
     .elme-checkout-option__meta {
@@ -813,7 +813,7 @@
 
     .elme-checkout-summary__toggle-total {
         margin-inline-start: auto;
-        font-size: var(--text-body);
+        font-size: var(--text-base);
         font-weight: 700;
         font-variant-numeric: tabular-nums;
     }
@@ -830,7 +830,7 @@
     .elme-checkout-summary__panel {
         display: grid;
         grid-template-rows: 0fr;
-        transition: grid-template-rows var(--transition-duration-base) var(--ease-in-out-quart);
+        transition: grid-template-rows var(--transition-duration-base) var(--ease-in-out-cubic);
 
         @variant lg {
             display: block;
@@ -910,15 +910,15 @@
     .elme-checkout-summary__name {
         margin-block-end: --spacing(2);
         color: var(--color-ink);
-        font-size: var(--text-body);
-        line-height: var(--text-body--line-height);
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
     }
 
     .elme-checkout-summary__price {
         flex: none;
         color: var(--color-ink);
         font-size: var(--text-copy-desktop);
-        line-height: var(--text-body--line-height);
+        line-height: var(--text-base--line-height);
         font-weight: 700;
         font-variant-numeric: tabular-nums;
     }
@@ -1073,8 +1073,8 @@
         .elme-checkout__sections > [data-checkout-section]:nth-child(1) { animation-delay: 0ms; }
         .elme-checkout__sections > [data-checkout-section]:nth-child(2) { animation-delay: 40ms; }
         .elme-checkout__sections > [data-checkout-section]:nth-child(3) { animation-delay: 80ms; }
-        .elme-checkout__sections > [data-checkout-section]:nth-child(4) { animation-delay: 120ms; }
-        .elme-checkout__sections > [data-checkout-section]:nth-child(5) { animation-delay: 160ms; }
+        .elme-checkout__sections > [data-checkout-section]:nth-child(4) { animation-delay: var(--transition-duration-micro); }
+        .elme-checkout__sections > [data-checkout-section]:nth-child(5) { animation-delay: var(--transition-duration-fast); }
         .elme-checkout__summary-col > .elme-checkout-summary { animation-delay: 60ms; }
     }
 }

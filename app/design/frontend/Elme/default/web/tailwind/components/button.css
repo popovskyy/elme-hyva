@@ -36,7 +36,7 @@
         background-color var(--default-transition-duration) var(--default-transition-timing-function),
         border-color var(--default-transition-duration) var(--default-transition-timing-function),
         outline-color var(--default-transition-duration) var(--default-transition-timing-function),
-        scale 160ms var(--ease-out-quint);
+        scale var(--transition-duration-fast) var(--ease-out-quint);
 
     &:hover {
         border-color: var(--btn-hover-stroke, var(--btn-stroke));
@@ -106,7 +106,7 @@
             z-index: 2;
 
             @media (prefers-reduced-motion: reduce) {
-                animation: elme-spinner-pulse 1.4s ease-in-out infinite alternate;
+                animation: elme-spinner-pulse 1.4s var(--ease-in-out-cubic) infinite alternate;
             }
         }
     }
@@ -129,7 +129,7 @@
     transform: scale(0);
     pointer-events: none;
     z-index: 1;
-    animation: btn-ripple-out 620ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation: btn-ripple-out var(--transition-duration-long) var(--ease-out-quint) forwards;
 }
 
 @keyframes btn-ripple-out {
@@ -229,7 +229,7 @@
             transparent 100%
         );
         transform: translateX(-120%) skewX(-18deg);
-        transition: transform var(--transition-duration-slow) cubic-bezier(0.22, 1, 0.36, 1);
+        transition: transform var(--transition-duration-slow) var(--ease-out-quint);
         z-index: 0;
         pointer-events: none;
     }
@@ -287,7 +287,7 @@
             transparent 100%
         );
         transform: translateX(-120%) skewX(-18deg);
-        transition: transform var(--transition-duration-slow) cubic-bezier(0.22, 1, 0.36, 1);
+        transition: transform var(--transition-duration-slow) var(--ease-out-quint);
         z-index: 0;
         pointer-events: none;
         opacity: 0;

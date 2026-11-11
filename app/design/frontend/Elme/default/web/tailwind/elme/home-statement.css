@@ -151,7 +151,7 @@
         box-shadow: 0 calc(var(--spacing) * 5) calc(var(--spacing) * 10)
             color-mix(in oklab, var(--color-ink) 28%, transparent);
         transform: rotate(-3deg);
-        transition: transform 200ms var(--ease-out-quint);
+        transition: transform var(--transition-duration-fast) var(--ease-out-quint);
     }
 
     .elme-catalogue-covers__shelf li:nth-child(even) .elme-catalogue-covers__cover {
