@@ -6,9 +6,11 @@ namespace Elme\Checkout\Test\Unit\Model\Details;
 
 use Elme\Checkout\Exception\CheckoutInputException;
 use Elme\Checkout\Model\Details\QuoteDetails;
+use Elme\Checkout\Model\Method\ShippingRatesFreshness;
 use Magento\Framework\DataObject;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\Quote\Address as QuoteAddress;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -22,7 +24,7 @@ class QuoteDetailsTest extends TestCase
     protected function setUp(): void
     {
         $this->cartRepository = $this->createMock(CartRepositoryInterface::class);
-        $this->details = new QuoteDetails($this->cartRepository);
+        $this->details = new QuoteDetails($this->cartRepository, new ShippingRatesFreshness());
 
         $this->data = new DataObject();
         $this->quote = $this->createMock(Quote::class);
@@ -31,6 +33,7 @@ class QuoteDetailsTest extends TestCase
             $this->data->setData($key, $value);
             return $this->quote;
         });
+        $this->quote->method('getShippingAddress')->willReturn($this->createStub(QuoteAddress::class));
     }
 
     public function testSavesTrimmedValue(): void

@@ -47,6 +47,13 @@ class ProntoPriceProviderTest extends TestCase
         );
     }
 
+    public function testNoProductsGivesNoPricesAndLoadsNothing(): void
+    {
+        $this->pricedSkus->expects($this->never())->method('get');
+
+        $this->assertSame([], $this->provider->getPrices([], self::CUSTOMER_ID, self::GROUP_ID));
+    }
+
     public function testConfigurableCostsItsCheapestSimpleProduct(): void
     {
         $this->pricedSkus->method('get')->willReturn([5 => [3 => 'VASE-SAGE', 4 => 'VASE-SAND']]);

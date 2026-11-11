@@ -10,6 +10,7 @@ use Elme\Checkout\Model\CheckoutManagement;
 use Elme\Checkout\Model\Details\QuoteDetails;
 use Elme\Checkout\Model\Method\QuotePaymentMethod;
 use Elme\Checkout\Model\Method\QuoteShippingMethod;
+use Elme\Checkout\Model\Method\ShippingRatesFreshness;
 use Elme\Checkout\Model\PlaceOrderValidatorPool;
 use Elme\Checkout\Model\PlacedOrderRecovery;
 use Elme\Checkout\Model\StateBuilder;
@@ -59,7 +60,8 @@ class CheckoutManagementPlaceOrderTest extends TestCase
             $this->lockManager,
             $quoteFactory,
             $this->createStub(QuoteDetails::class),
-            $this->placedOrderRecovery
+            $this->placedOrderRecovery,
+            new ShippingRatesFreshness()
         );
     }
 

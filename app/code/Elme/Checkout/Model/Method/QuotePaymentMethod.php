@@ -36,7 +36,8 @@ class QuotePaymentMethod
         private readonly PaymentMethodManagementInterface $paymentMethodManagement,
         private readonly QuoteShippingMethod $shippingMethod,
         private readonly CartRepositoryInterface $cartRepository,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly ShippingRatesFreshness $ratesFreshness
     ) {
     }
 
@@ -137,6 +138,9 @@ class QuotePaymentMethod
         }
         $quote->getShippingAddress()->setPaymentMethod($code);
 
+        // Payment does not change delivery rates; a leftover collect_shipping_rates from a prior save must not ask
+        $this->ratesFreshness->mark();
+        $quote->getShippingAddress()->setCollectShippingRates(false);
         $quote->setTotalsCollectedFlag(false)->collectTotals();
         $this->cartRepository->save($quote);
     }

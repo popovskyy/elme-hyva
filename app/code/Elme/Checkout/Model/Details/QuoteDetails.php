@@ -6,6 +6,7 @@ namespace Elme\Checkout\Model\Details;
 
 use Elme\Checkout\Api\OrderDetailsInterface;
 use Elme\Checkout\Exception\CheckoutInputException;
+use Elme\Checkout\Model\Method\ShippingRatesFreshness;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
@@ -18,7 +19,8 @@ class QuoteDetails
     public const SECTION = 'details';
 
     public function __construct(
-        private readonly CartRepositoryInterface $cartRepository
+        private readonly CartRepositoryInterface $cartRepository,
+        private readonly ShippingRatesFreshness $ratesFreshness
     ) {
     }
 
@@ -46,6 +48,9 @@ class QuoteDetails
 
         if ($value !== (string) $quote->getData($field)) {
             $quote->setData($field, $value === '' ? null : $value);
+            // Details do not change delivery rates; stop SaveHandler's assign() from asking the carriers again
+            $this->ratesFreshness->mark();
+            $quote->getShippingAddress()->setCollectShippingRates(false);
             $this->cartRepository->save($quote);
         }
     }

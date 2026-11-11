@@ -40,7 +40,7 @@ class ProntoPriceProvider implements CustomerPriceProviderInterface
             $this->prices[$key] = ($this->prices[$key] ?? []) + $this->load($missing, $customerId, $customerGroupId);
         }
 
-        return array_filter(array_intersect_key($this->prices[$key], array_flip($productIds)));
+        return array_filter(array_intersect_key($this->prices[$key] ?? [], array_flip($productIds)));
     }
 
     /**

@@ -27,16 +27,18 @@ class QuoteShippingMethod
     public function __construct(
         private readonly ShippingMethodConverter $converter,
         private readonly CartRepositoryInterface $cartRepository,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly ShippingRatesFreshness $ratesFreshness
     ) {
     }
 
     /**
-     * Asks the carriers again and brings the chosen method in line: one that is gone is cleared, a single rate is chosen
-     * for the customer, and a new price is saved (the order takes the saved one). A carrier problem must not cost the
-     * customer the checkout page.
+     * Brings the chosen method in line: one that is gone is cleared, a single rate is chosen for the customer, and a
+     * new price is saved (the order takes the saved one). Pass $ratesFresh when this request already asked the
+     * carriers (address change, delivery pick, or initialize); page load and the place-order validator leave it false
+     * so the carriers are asked. A carrier problem must not cost the customer the checkout page.
      */
-    public function refresh(Quote $quote): void
+    public function refresh(Quote $quote, bool $ratesFresh = false): void
     {
         try {
             $shipping = $quote->getShippingAddress();
@@ -50,7 +52,9 @@ class QuoteShippingMethod
             }
 
             $savedPrice = (float) $shipping->getBaseShippingAmount();
-            $this->collectRates($quote);
+            if (!$ratesFresh) {
+                $this->collectRates($quote);
+            }
             $rates = $this->getRates($quote);
             foreach ($rates as $rate) {
                 if ($this->getCode($rate) === $current) {
@@ -155,8 +159,14 @@ class QuoteShippingMethod
     {
         $quote->getShippingAddress()->setCollectShippingRates(true);
         $quote->setTotalsCollectedFlag(false)->collectTotals();
+        $this->ratesFreshness->mark();
     }
 
+    /**
+     * Sets the chosen method and recalculates totals from the rates already on the address. Does not set
+     * collect_shipping_rates: a method-only change must not ask the carriers again (SaveHandler would, without the
+     * rates-fresh marker).
+     */
     private function write(Quote $quote, QuoteAddress $shipping, string $code): void
     {
         $shipping->setShippingMethod($code);
@@ -169,6 +179,8 @@ class QuoteShippingMethod
             $assignment->getShipping()->setMethod($code);
         }
 
+        $this->ratesFreshness->mark();
+        $shipping->setCollectShippingRates(false);
         $quote->setTotalsCollectedFlag(false)->collectTotals();
         $this->cartRepository->save($quote);
     }

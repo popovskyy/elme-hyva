@@ -6,6 +6,7 @@ namespace Elme\Checkout\Test\Unit\Model\Method;
 
 use Elme\Checkout\Exception\CheckoutInputException;
 use Elme\Checkout\Model\Method\QuoteShippingMethod;
+use Elme\Checkout\Model\Method\ShippingRatesFreshness;
 use Magento\Framework\DataObject;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartExtensionInterface;
@@ -63,6 +64,29 @@ class QuoteShippingMethodTest extends TestCase
         $this->service()->refresh($this->quote);
 
         $this->assertSame('flatrate_flatrate', $this->shipping->getShippingMethod());
+    }
+
+    public function testFreshRatesSkipAskingTheCarriers(): void
+    {
+        $this->shipping->setShippingMethod('flatrate_flatrate');
+        $this->givenRates(['flatrate_flatrate', 'freeshipping_freeshipping']);
+        $this->quote->expects($this->never())->method('collectTotals');
+        $this->cartRepository->expects($this->never())->method('save');
+
+        $this->service()->refresh($this->quote, true);
+
+        $this->assertSame('flatrate_flatrate', $this->shipping->getShippingMethod());
+    }
+
+    public function testSelectMarksRatesFreshSoALaterSaveDoesNotAskAgain(): void
+    {
+        $this->givenRates(['flatrate_flatrate', 'freeshipping_freeshipping']);
+        $freshness = new ShippingRatesFreshness();
+
+        $this->service(null, $freshness)->select($this->quote, 'freeshipping', 'freeshipping');
+
+        $this->assertTrue($freshness->isFresh());
+        $this->assertSame('freeshipping_freeshipping', $this->shipping->getShippingMethod());
     }
 
     public function testTwoRatesWaitForTheCustomer(): void
@@ -234,8 +258,10 @@ class QuoteShippingMethodTest extends TestCase
         $this->shipping->method('getGroupedAllShippingRates')->willReturn($rates);
     }
 
-    private function service(?LoggerInterface $logger = null): QuoteShippingMethod
-    {
+    private function service(
+        ?LoggerInterface $logger = null,
+        ?ShippingRatesFreshness $ratesFreshness = null
+    ): QuoteShippingMethod {
         $converter = $this->createStub(ShippingMethodConverter::class);
         $converter->method('modelToDataObject')->willReturnCallback(function (DataObject $rate) {
             $method = $this->createStub(ShippingMethodInterface::class);
@@ -250,7 +276,8 @@ class QuoteShippingMethodTest extends TestCase
         return new QuoteShippingMethod(
             $converter,
             $this->cartRepository,
-            $logger ?? $this->createStub(LoggerInterface::class)
+            $logger ?? $this->createStub(LoggerInterface::class),
+            $ratesFreshness ?? new ShippingRatesFreshness()
         );
     }
 }
