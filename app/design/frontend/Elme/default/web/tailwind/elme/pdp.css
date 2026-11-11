@@ -1,7 +1,8 @@
 /*
  * FE-25 product page: layout, gallery and fullscreen viewer.
+ * FE-26: guest buy box (.elme-pdp__guest) under the sign-in price line.
  * Templates: Magento_Catalog::product/product-detail-page.phtml, product/view/gallery.phtml,
- * product/view/product-info.phtml.
+ * product/view/product-info.phtml; Elme_LoginOnly::product/view/guest-buybox.phtml.
  *
  * Gallery: one square photo at a time (swipe, arrows from md). Under it a thumbnail strip below lg,
  * and from lg a two-column photo grid cut off behind "View gallery". Info column beside it from md,
@@ -170,6 +171,28 @@
             &:not(:has(> :not(input[type="hidden"]))) {
                 display: none;
             }
+        }
+    }
+
+    /* FE-26: guests — apply + login under "Sign in to see pricing" (old guest-user-wrapper) */
+    .elme-pdp__guest {
+        display: grid;
+        gap: --spacing(4);
+    }
+
+    .elme-pdp__guest-apply {
+        margin: 0;
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        color: var(--color-ink-muted);
+
+        @variant lg {
+            font-size: var(--text-copy-desktop);
+            line-height: var(--text-copy--line-height);
+        }
+
+        a {
+            color: inherit;
         }
     }
 

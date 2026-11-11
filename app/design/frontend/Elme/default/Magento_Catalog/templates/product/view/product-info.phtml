@@ -1,9 +1,9 @@
 <?php
 /**
  * Elme FE-25: product info column: name (the page H1), subtitle, SKU, stock line, the buy box, short
- * description, essentials, then the detail sections (accordion). The buy box here is Hyva's blocks
- * in one panel; FE-26 (guests) and FE-27 (customers) rebuild it and must keep btn-atc on the add to
- * cart button (FE-70).
+ * description, essentials, then the detail sections (accordion). FE-26 (guests): sign-in price +
+ * Apply here / Login (product.info.guest.buybox); qty and add to cart stay out of the HTML. FE-27
+ * (customers) rebuilds the logged-in buy box and must keep btn-atc on the add to cart button (FE-70).
  *
  * Every field may be empty (elme-product-data): subtitle and short description render nothing then.
  * From lg the buy box sits above the description (CSS order); the source order stays name, text, buy.
@@ -114,6 +114,8 @@ $essentials = array_filter([
         <div role="group" aria-label="<?= $escaper->escapeHtmlAttr(__('Price')) ?>">
             <?= $block->getChildHtml('product.info.price') ?>
         </div>
+
+        <?= $block->getChildHtml('product.info.guest.buybox') ?>
 
         <?php
         $buyControls = $product->isSaleable()
