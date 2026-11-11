@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!-- Heading lives in success.phtml (font-heading); print button went with the title block -->
+        <referenceBlock name="page.main.title" remove="true"/>
+        <!-- Trade accounts only: no guest "Create an account" after place order -->
+        <referenceBlock name="checkout.registration" remove="true"/>
+        <referenceBlock name="checkout.success">
+            <arguments>
+                <argument name="page_title" xsi:type="string" translate="true">Thanks for your order</argument>
+            </arguments>
+        </referenceBlock>
+    </body>
+</page>

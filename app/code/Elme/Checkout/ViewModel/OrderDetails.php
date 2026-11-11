@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Elme\Checkout\ViewModel;
 
 use Elme\Checkout\Api\OrderDetailsInterface;
-use Magento\Checkout\Model\Session\Proxy as CheckoutSession;
+use Elme\Checkout\Model\Address\AddressFormatter;
+use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Registry;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Sales\Model\Order;
@@ -18,17 +19,44 @@ class OrderDetails implements ArgumentInterface
 {
     public function __construct(
         private readonly Registry $registry,
-        private readonly CheckoutSession $checkoutSession
+        private readonly CheckoutSession $checkoutSession,
+        private readonly AddressFormatter $addressFormatter
     ) {
     }
 
     public function getDeliveryInstructions(): string
     {
-        return (string) $this->getOrder()->getData(OrderDetailsInterface::DELIVERY_INSTRUCTIONS);
+        return (string) ($this->getOrder()?->getData(OrderDetailsInterface::DELIVERY_INSTRUCTIONS) ?? '');
     }
 
-    private function getOrder(): Order
+    /**
+     * Structured delivery address for the success page, or null when the order has none.
+     *
+     * @return array{name: string, company: string, street: string, locality: string, telephone: string, line: string}|null
+     */
+    public function getShippingAddress(): ?array
     {
-        return $this->registry->registry('current_order') ?? $this->checkoutSession->getLastRealOrder();
+        $address = $this->getOrder()?->getShippingAddress();
+        if ($address === null) {
+            return null;
+        }
+
+        $formatted = $this->addressFormatter->fromOrderAddress($address);
+        if ($formatted['line'] === '') {
+            return null;
+        }
+
+        return $formatted;
+    }
+
+    private function getOrder(): ?Order
+    {
+        $current = $this->registry->registry('current_order');
+        if ($current instanceof Order && $current->getId()) {
+            return $current;
+        }
+
+        $last = $this->checkoutSession->getLastRealOrder();
+        return $last instanceof Order && $last->getId() ? $last : null;
     }
 }

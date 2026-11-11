@@ -46,9 +46,12 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
          class="elme-checkout-summary__panel"
          :class="panelClasses">
         <div class="elme-checkout-summary__panel-inner">
-            <p class="elme-checkout-section__error" role="alert" x-show="error" x-text="error"></p>
+            <p class="elme-checkout-section__error" role="alert" x-show="error" x-cloak x-text="error"></p>
+            <p class="elme-checkout-section__hint" x-show="isEmpty" x-cloak>
+                <?= $escaper->escapeHtml(__('Your cart is empty.')) ?>
+            </p>
 
-            <ul class="elme-checkout-summary__items">
+            <ul class="elme-checkout-summary__items" x-show="hasItems">
                 <template x-for="item in items" :key="item.id">
                     <li class="elme-checkout-summary__item">
                         <template x-if="hasImage">
@@ -112,6 +115,12 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
             },
             items() {
                 return this.summary().items || [];
+            },
+            hasItems() {
+                return this.items().length > 0;
+            },
+            isEmpty() {
+                return Boolean(this.summary().items) && this.items().length === 0;
             },
             totals() {
                 return this.summary().totals || [];

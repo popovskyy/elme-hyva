@@ -96,24 +96,38 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
             </div>
 
             <div class="elme-checkout-dialog__body">
-                <p class="elme-checkout-section__error mt-0 mb-4" role="alert" x-show="dialogError" x-text="dialogError"></p>
-                <div x-show="isShippingList" x-ref="shippingList">
+                <p class="elme-checkout-section__error mt-0 mb-4" role="alert" x-show="dialogError" x-cloak x-text="dialogError"></p>
+                <div x-show="isShippingList"
+                     x-ref="shippingList"
+                     x-transition:enter="transition ease-out-quint duration-200 motion-reduce:duration-0"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:leave="transition ease-out-quint duration-150 motion-reduce:duration-0"
+                     x-transition:leave-end="opacity-0">
                     <?= $block->getChildHtml('shipping_cards') ?>
                 </div>
-                <div x-show="isBillingList" x-ref="billingList">
+                <div x-show="isBillingList"
+                     x-ref="billingList"
+                     x-transition:enter="transition ease-out-quint duration-200 motion-reduce:duration-0"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:leave="transition ease-out-quint duration-150 motion-reduce:duration-0"
+                     x-transition:leave-end="opacity-0">
                     <?= $block->getChildHtml('billing_cards') ?>
                 </div>
-                <div x-show="isFormView">
+                <div x-show="isFormView"
+                     x-transition:enter="transition ease-out-quint duration-200 motion-reduce:duration-0"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:leave="transition ease-out-quint duration-150 motion-reduce:duration-0"
+                     x-transition:leave-end="opacity-0">
                     <?= $block->getChildHtml('form') ?>
                 </div>
             </div>
 
-            <div class="elme-checkout-dialog__foot" x-show="isListView">
+            <div class="elme-checkout-dialog__foot" x-show="isListView" x-cloak>
                 <button type="button" class="btn btn-primary" @click="closeDialog">
                     <?= $escaper->escapeHtml(__('Done')) ?>
                 </button>
             </div>
-            <div class="elme-checkout-dialog__foot" x-show="isFormView">
+            <div class="elme-checkout-dialog__foot" x-show="isFormView" x-cloak>
                 <button type="button" class="elme-checkout-link" @click="cancelForm">
                     <?= $escaper->escapeHtml(__('Cancel')) ?>
                 </button>
