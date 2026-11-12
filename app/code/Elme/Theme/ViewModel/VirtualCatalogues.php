@@ -17,7 +17,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Throwable;
 
 /**
- * Content Studio type `virtual_catalogues` (FE-50) + page JSON-LD / OG helpers.
+ * Content Studio type `virtual_catalogues` (FE-50 / FE-92) + page JSON-LD / OG helpers.
  *
  * Cover title + image are always guest-safe. Flipbook (`open_url`) and shop links are only returned
  * when the visitor is logged in (QA 0 / FPC varies by auth HTTP context).
@@ -28,9 +28,31 @@ class VirtualCatalogues implements ArgumentInterface
 
     public const ENTRY_IDENTIFIER = 'virtual-catalogues-list';
 
+    public const SPECIAL_OFFERS_PAGE_IDENTIFIER = 'virtual-special-offers-catalogue';
+
+    public const SPECIAL_OFFERS_ENTRY_IDENTIFIER = 'special-offers-catalogue';
+
     public const MAX_CATALOGUES = 12;
 
     public const IMAGE_SIZE = [620, 877];
+
+    /**
+     * CMS page identifier => Content Studio entry + schema labels.
+     *
+     * @var array<string, array{entry: string, breadcrumb: string, list_name: string}>
+     */
+    private const PAGES = [
+        self::PAGE_IDENTIFIER => [
+            'entry' => self::ENTRY_IDENTIFIER,
+            'breadcrumb' => 'Virtual Catalogues',
+            'list_name' => 'Elme Living virtual catalogues',
+        ],
+        self::SPECIAL_OFFERS_PAGE_IDENTIFIER => [
+            'entry' => self::SPECIAL_OFFERS_ENTRY_IDENTIFIER,
+            'breadcrumb' => 'Special Offers Catalogue',
+            'list_name' => 'Elme Living special offers catalogue',
+        ],
+    ];
 
     private ?string $mediaPath = null;
 
@@ -52,7 +74,7 @@ class VirtualCatalogues implements ArgumentInterface
     {
         $id = $identifier ?? (string) $this->cmsPage->getIdentifier();
 
-        return $id === self::PAGE_IDENTIFIER;
+        return isset(self::PAGES[$id]);
     }
 
     public function isLoggedIn(): bool
@@ -66,6 +88,16 @@ class VirtualCatalogues implements ArgumentInterface
     public function getIntro(array $content): string
     {
         return $this->text($content, 'intro');
+    }
+
+    /**
+     * Guest-only line (FE-92). Empty when unset; never shown to logged-in customers.
+     *
+     * @param array<string, mixed> $content
+     */
+    public function getGuestMessage(array $content): string
+    {
+        return $this->text($content, 'guest_message');
     }
 
     /**
@@ -133,11 +165,16 @@ class VirtualCatalogues implements ArgumentInterface
 
         $this->entryLoaded = true;
         $this->entryContent = [];
+        $entryId = $this->pageConfig()['entry'] ?? '';
+        if ($entryId === '') {
+            return $this->entryContent;
+        }
+
         $storeId = (int) $this->storeManager->getStore()->getId();
 
         foreach ([$storeId, Store::DEFAULT_STORE_ID] as $tryStoreId) {
             try {
-                $entry = $this->entryRepository->getByIdentifier(self::ENTRY_IDENTIFIER, $tryStoreId);
+                $entry = $this->entryRepository->getByIdentifier($entryId, $tryStoreId);
                 if ($entry->isActive()) {
                     $this->entryContent = $entry->getEntryData();
                     break;
@@ -223,7 +260,7 @@ class VirtualCatalogues implements ArgumentInterface
                     [
                         '@type' => 'ListItem',
                         'position' => 2,
-                        'item' => ['@id' => $pageUrl, 'name' => 'Virtual Catalogues'],
+                        'item' => ['@id' => $pageUrl, 'name' => $this->breadcrumbName()],
                     ],
                 ],
             ],
@@ -259,7 +296,7 @@ class VirtualCatalogues implements ArgumentInterface
             $graph[] = [
                 '@type' => 'ItemList',
                 '@id' => $pageUrl . '#catalogue-list',
-                'name' => 'Elme Living virtual catalogues',
+                'name' => $this->listName(),
                 'numberOfItems' => count($listElements),
                 'itemListElement' => $listElements,
             ];
@@ -325,8 +362,33 @@ class VirtualCatalogues implements ArgumentInterface
 
     private function canonicalUrl(): string
     {
+        $pageId = (string) $this->cmsPage->getIdentifier();
+        if (!isset(self::PAGES[$pageId])) {
+            $pageId = self::PAGE_IDENTIFIER;
+        }
+
         return rtrim((string) $this->storeManager->getStore()->getBaseUrl(), '/')
-            . '/' . self::PAGE_IDENTIFIER;
+            . '/' . $pageId;
+    }
+
+    /**
+     * @return array{entry: string, breadcrumb: string, list_name: string}|null
+     */
+    private function pageConfig(): ?array
+    {
+        $id = (string) $this->cmsPage->getIdentifier();
+
+        return self::PAGES[$id] ?? null;
+    }
+
+    private function breadcrumbName(): string
+    {
+        return $this->pageConfig()['breadcrumb'] ?? 'Virtual Catalogues';
+    }
+
+    private function listName(): string
+    {
+        return $this->pageConfig()['list_name'] ?? 'Elme Living virtual catalogues';
     }
 
     /**

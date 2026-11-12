@@ -1,8 +1,8 @@
 <?php
 /**
- * Content Studio type `virtual_catalogues` (FE-50). Cover cards always; flipbook/shop URLs only when
- * logged in (QA 0). Empty catalogues hide the grid (UX-01). Server-rendered; CSP Alpine viewer for
- * logged-in flipbooks (iframe src set on open — no blank Issuu frame).
+ * Content Studio type `virtual_catalogues` (FE-50 / FE-92). Cover cards always; flipbook/shop URLs
+ * only when logged in (QA 0). Empty catalogues hide the grid (UX-01). Server-rendered; CSP Alpine
+ * viewer for logged-in flipbooks (iframe src set on open — no blank Issuu frame).
  *
  * @var \Bart\ContentStudio\Block\Entry $block
  * @var \Magento\Framework\Escaper $escaper
@@ -24,6 +24,7 @@ if (!$cataloguesVm instanceof VirtualCatalogues) {
 $content = $block->getContent();
 $items = $cataloguesVm->getCatalogues($content);
 $intro = $cataloguesVm->getIntro($content);
+$guestMessage = $cataloguesVm->getGuestMessage($content);
 $isLoggedIn = $cataloguesVm->isLoggedIn();
 $hasCatalogues = $items !== [];
 
@@ -40,7 +41,12 @@ $stockistUrl = $cataloguesVm->getStockistUrl();
          class="elme-virtual-catalogues mb-12 text-ink lg:mb-16"
          <?php if ($hasCatalogues): ?>aria-label="<?= $escaper->escapeHtmlAttr(__('Virtual catalogues')) ?>"<?php endif; ?>>
 
-    <?php if ($intro !== ''): ?>
+    <?php if (!$isLoggedIn && $guestMessage !== ''): ?>
+        <p class="mb-8 text-center font-heading text-h3 font-medium text-pretty text-ink lg:mb-10
+                  lg:text-h3-desktop">
+            <?= $escaper->escapeHtml($guestMessage) ?>
+        </p>
+    <?php elseif ($intro !== ''): ?>
         <p class="mb-8 max-w-3xl text-copy text-pretty text-ink-muted lg:mb-10 lg:text-copy-desktop">
             <?= $escaper->escapeHtml($intro) ?>
         </p>
@@ -55,7 +61,7 @@ $stockistUrl = $cataloguesVm->getStockistUrl();
     <?php endif; ?>
 
     <?php if (!$isLoggedIn): ?>
-        <div class="mb-10 flex flex-col gap-3 sm:mb-12 sm:flex-row sm:flex-wrap">
+        <div class="mb-10 flex flex-col gap-3 sm:mb-12 sm:flex-row sm:flex-wrap<?= $guestMessage !== '' ? ' justify-center' : '' ?>">
             <a href="<?= $escaper->escapeUrl($loginUrl) ?>"
                data-elme-sign-in
                class="btn btn-primary sm:min-w-40">
