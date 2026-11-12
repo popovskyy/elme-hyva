@@ -1,0 +1,93 @@
+Attribute set today (id) = legacy_attribute_set_id,Attribute set today,Product type code (proposed),Products (prod),On EL,On JL,On SG,product_set values in this set (count),In C&C lists of N locations (staging),In delivery lists of N locations (staging),Shipment Service C&C min qty (by set id),Target set EL OS,Target set B2C,Action
+36,Sofa,sofa,16989,8204,16774,8,Sofa:16077 / -:773 / Sofa with Chaise:138 / Ottoman:1,6,5,,Product,Product,"Keep 1:1; Data Team to review product_set: Sofa with Chaise:138, Ottoman:1"
+129,Bed,bed,14639,3393,14619,14204,Bed:9588 / -:5051,9,5,,Product,Product,Keep 1:1
+39,Sofa Cover,sofa_cover,3737,1741,3731,197,Sofa Cover:3735 / Sofa:1 / -:1,43,5,,Product,Product,Keep 1:1; Data Team to review product_set: Sofa:1
+255,Artificial Plant,artificial_plant,2996,2484,477,400,-:1510 / Artificial Plant:1270 / Artificical Plant:216,45,5,2,Product,Product,Keep 1:1; Data Team to review product_set: Artificical Plant:216
+403,Sofa with Chaise,sofa_with_chaise,2984,1238,2984,0,Sofa with Chaise:2519 / -:373 / Sofa:92,6,1,,Product,Product,Keep 1:1; Data Team to review product_set: Sofa:92
+75,Bedhead,bedhead,2651,1331,2651,2651,Bedhead:2648 / -:3,29,5,,Product,Product,Keep 1:1
+240,Rug,rug,2335,222,2257,2249,Rug:1849 / -:277 / Oversized Rugs:209,44,5,2,Product,Product,Keep 1:1; Data Team to review product_set: Oversized Rugs:209
+183,Vase,vase,1952,1136,819,482,-:1318 / Vase:633 / Decor Accents:1,41,5,,Product,Product,Keep 1:1; Data Team to review product_set: Decor Accents:1
+30,Ottoman,ottoman,1285,714,1263,18,Ottoman:1027 / Sofa:212 / -:46,42,5,,Product,Product,Keep 1:1; Data Team to review product_set: Sofa:212
+18,Bed - Frame,bed_frame,1081,103,1066,1061,-:586 / Bed - Frame:495,9,5,,Product,Product,Keep 1:1
+201,Bed - Adjustable Base,bed_adjustable_base,1006,480,1006,1006,Bed:782 / -:157 / Bed - Adjustable Base:67,8,5,,Product,Product,Keep 1:1; Data Team to review product_set: Bed:782
+72,Bed - Cover,bed_cover,955,349,928,928,Bed - Cover:927 / -:27 / Bedhead - Cover:1,43,5,2,Product,Product,Keep 1:1; Data Team to review product_set: Bedhead - Cover:1
+243,Pots & Planters,pots_planters,695,452,246,128,-:475 / Pots & Planters:220,45,5,,Product,Product,Keep 1:1
+189,Sofa Bed,sofa_bed,649,59,649,513,-:326 / Sofa Bed:323,9,5,,Product,Product,Keep 1:1
+171,Decor Accents,decor_accents,632,413,218,174,-:407 / Decor Accents:225,41,5,1,Product,Product,Keep 1:1
+42,Armchair,armchair,630,334,569,285,Armchair:557 / -:66 / Swivel Chair:5 / Dining Chair:2,11,5,,Product,Product,"Keep 1:1; Data Team to review product_set: Swivel Chair:5, Dining Chair:2"
+384,Cushion,cushion,590,164,550,257,Cushion:545 / -:45,41,5,1,Product,Product,Keep 1:1
+117,Table - Dining,table_dining,460,240,368,1,Table - Dining:221 / -:189 / Table Dining:50,7,5,,Product,Product,Keep 1:1; Data Team to review product_set: Table Dining:50
+276,Lighting,lighting,460,128,369,342,Lighting:355 / -:105,44,5,2,Product,Product,Keep 1:1
+198,Bed - Base,bed_base,398,151,398,398,Bed - Base:388 / -:10,8,5,,Product,Product,Keep 1:1
+33,Ottoman Cover,ottoman_cover,385,185,385,1,Ottoman Cover:319 / Sofa Cover:66,43,5,,Product,Product,Keep 1:1; Data Team to review product_set: Sofa Cover:66
+132,Coffee Table,coffee_table,366,221,239,4,-:194 / Coffee Table:172,30,5,,Product,Product,Keep 1:1
+261,Sculpture,sculpture,345,214,131,57,-:292 / Sculpture:53,41,5,,Product,Product,Keep 1:1
+24,Wall Art,wall_art,307,223,84,68,-:176 / Wall Art:131,44,5,2,Product,Product,Keep 1:1
+105,Side Tables,side_tables,303,213,144,23,-:156 / Side Tables:145 / Table - Bedside:2,43,5,,Product,Product,Keep 1:1; Data Team to review product_set: Table - Bedside:2
+195,Blanket Box,blanket_box,207,88,206,199,Blanket Box:207,29,5,,Product,Product,Keep 1:1
+123,Wall Mirror,wall_mirror,148,42,114,100,Mirror:98 / -:50,44,5,2,Product,Product,Keep 1:1; Data Team to review product_set: Mirror:98
+339,Swivel Chair,swivel_chair,147,108,147,50,Swivel Chair:110 / Armchair:37,11,5,,Product,Product,Keep 1:1; Data Team to review product_set: Armchair:37
+225,Candle Holder,candle_holder,140,76,64,42,-:98 / Candle Holder:42,29,5,2,Product,Product,Keep 1:1
+90,Console Table,console_table,123,90,75,4,-:66 / Console Table:52 / Coffee Table:2 / Console:2,30,5,,Product,Product,"Keep 1:1; Data Team to review product_set: Coffee Table:2, Console:2"
+48,Dining Chair,dining_chair,108,65,108,4,Dining Chair:108,30,5,,Product,Product,Keep 1:1
+12,Table - Bedside,table_bedside,98,18,97,97,Table - Bedside:95 / Side Tables:3,42,6,,Product,Product,Keep 1:1; Data Team to review product_set: Side Tables:3
+267,Wall Clock,wall_clock,98,50,48,42,-:54 / Wall Clock:44,43,5,,Product,Product,Keep 1:1
+45,Armchair Cover,armchair_cover,95,64,95,15,Armchair Cover:95,43,5,,Product,Product,Keep 1:1
+234,Framed Painting,framed_painting,87,0,87,87,Framed Painting:87,43,5,,- (not on EL),Product,Keep 1:1
+342,Quilt,quilt,82,0,82,81,Quilt:78 / -:4,19,5,,- (not on EL),Product,Keep 1:1
+425,Mattress - King,mattress_king,82,3,82,82,Mattress:82,9,1,,Product,Mattress,Keep 1:1; Data Team to review product_set: Mattress:82
+294,Mattress Protector,mattress_protector,81,0,81,81,Mattress Protector:78 / -:3,23,5,,- (not on EL),Product,Keep 1:1
+434,Mattress - Boxed,mattress_boxed,73,0,73,73,Mattress:73,38,1,2,- (not on EL),Mattress,Keep 1:1; Data Team to review product_set: Mattress:73
+144,Bench,bench,69,39,68,47,Bench:62 / -:7,40,5,,Product,Product,Keep 1:1
+422,Mattress - Queen,mattress_queen,68,4,68,68,Mattress:68,9,1,,Product,Mattress,Keep 1:1; Data Team to review product_set: Mattress:68
+93,Dresser,dresser,66,6,66,65,Dresser:64 / -:2,7,5,,Product,Product,Keep 1:1
+431,Mattress - Single,mattress_single,66,0,66,66,Mattress:66,38,1,,- (not on EL),Mattress,Keep 1:1; Data Team to review product_set: Mattress:66
+324,Sheet Set,sheet_set,62,0,62,62,Sheet Set:56 / -:6,2,5,,- (not on EL),Product,Keep 1:1
+428,Mattress - King Single,mattress_king_single,60,3,60,60,Mattress:60,38,1,,Product,Mattress,Keep 1:1; Data Team to review product_set: Mattress:60
+111,TV Unit,tv_unit,59,33,45,0,TV Unit:46 / -:13,7,5,,Product,Product,Keep 1:1
+419,Mattress - Double,mattress_double,56,0,56,56,Mattress:56,38,1,,- (not on EL),Mattress,Keep 1:1; Data Team to review product_set: Mattress:56
+249,Baskets & Hampers,baskets_hampers,55,11,44,44,Baskets & Hampers:44 / -:11,41,5,,Product,Product,Keep 1:1
+15,Tallboy,tallboy,54,2,54,54,Tallboy:49 / -:5,7,5,,Product,Product,Keep 1:1
+57,Mattress,mattress,54,45,9,9,-:35 / Mattress:19,23,5,,Product,Mattress,Keep 1:1
+96,Buffet,buffet,49,26,42,0,Buffet:43 / -:6,7,5,,Product,Product,Keep 1:1
+162,Throw,throw,43,22,41,41,Throw:41 / -:2,41,5,1,Product,Product,Keep 1:1
+135,Console,console,40,18,28,0,-:23 / Console:17,30,5,,Product,Product,Keep 1:1
+207,Candle,candle,35,0,35,35,Candle:35,29,5,2,- (not on EL),Product,Keep 1:1
+291,Framed Canvas,framed_canvas,34,0,34,30,Framed Canvas:34,43,5,,- (not on EL),Product,Keep 1:1
+192,Stool,stool,33,13,21,2,-:17 / Stool:16,41,5,,Product,Product,Keep 1:1
+285,Room Diffuser,room_diffuser,33,0,33,33,Room Diffuser:33,41,5,2,- (not on EL),Product,Keep 1:1
+21,Framed Print,framed_print,30,0,30,30,Framed Print:30,43,5,,- (not on EL),Product,Keep 1:1
+437,Oversized Rugs,oversized_rugs,26,21,23,23,Oversized Rugs:26,0,1,,Product,Product,Keep 1:1
+366,Bed - Adjustable Ensemble,bed_adjustable_ensemble,22,0,22,22,Bed - Adjustable Ensemble:19 / -:3,8,5,,- (not on EL),Product,Keep 1:1
+415,Dresser Mirror,dresser_mirror,21,2,21,21,Mirror:18 / Dresser:3,9,1,,Product,Product,"Keep 1:1; Data Team to review product_set: Mirror:18, Dresser:3"
+412,Floor Mirror,floor_mirror,19,13,19,19,Mirror:19,30,1,,Product,Product,Keep 1:1; Data Team to review product_set: Mirror:19
+78,Bedhead - Cover,bedhead_cover,17,0,17,17,Bedhead - Cover:17,41,5,,- (not on EL),Product,Keep 1:1
+357,Furniture Care,furniture_care,17,0,14,14,Furniture Care:11 / -:6,45,5,2,- (not on EL),Product,Keep 1:1
+333,Counter Stool,counter_stool,16,9,16,0,Counter Stool:16,42,5,,Product,Product,Keep 1:1
+4,Default,default,15,2,10,3,Default:10 / -:5,41,6,,-,-,"Reclassify the 15 products (Data Team, Q-193)"
+297,Pillow,pillow,15,0,15,15,Pillow:14 / -:1,20,5,,- (not on EL),Product,Keep 1:1
+108,Sideboard,sideboard,14,13,1,0,-:10 / Sideboard:4,7,5,,Product,Product,Keep 1:1
+114,Bookcase,bookcase,14,5,12,0,Bookcase:10 / -:4,9,5,,Product,Product,Keep 1:1
+165,Pouf,pouf,13,4,13,13,Pouf:13,44,5,,Product,Product,Keep 1:1
+351,Product Warranty,product_warranty,13,1,13,5,Product Warranty:13,45,5,2,-,Service,Keep 1:1
+288,Hand & Body Cream,hand_body_cream,10,0,10,10,Hand & Body Cream:10,25,5,,- (not on EL),Product,Keep 1:1
+406,Corner Sofa,corner_sofa,10,0,10,0,-:6 / Corner Sofa:4,8,1,,- (not on EL),Product,Keep 1:1
+120,Bar Cabinet,bar_cabinet,7,1,6,0,Bar Cabinet:4 / -:3,8,5,,Product,Product,Keep 1:1
+409,Banner,-,7,1,5,1,-:7,8,1,,-,-,Not a product type: PLP banners move to Search Service merchandising
+336,Occasional Chair,occasional_chair,5,1,5,2,Occasional Chair:5,10,5,,Product,Product,Keep 1:1
+99,Desk,desk,4,0,4,0,Desk:4,9,5,,- (not on EL),Product,Keep 1:1
+153,Underbed Drawer,underbed_drawer,4,0,4,4,Underbed Drawer:4,10,5,,- (not on EL),Product,Keep 1:1
+180,Bar Cart,bar_cart,2,2,0,0,-:2,43,5,,Product,Product,Keep 1:1
+381,Dining Chair Cover,dining_chair_cover,2,0,2,0,Dining Chair Cover:2,30,5,,- (not on EL),Product,Keep 1:1
+156,Bar Stool,bar_stool,1,0,1,0,Bar Stool:1,43,5,,- (not on EL),Product,Keep 1:1
+54,Chair Cover,chair_cover,0,0,0,0,,43,5,,Product,Product,"Keep: no products today, but referenced by C&C lists of 43 locations"
+69,Cushion Cover,cushion_cover,0,0,0,0,,18,5,1,Product,Product,"Keep: no products today, but referenced by C&C lists of 18 locations"
+159,Wine Rack,wine_rack,0,0,0,0,,1,5,,Product,Product,"Keep: no products today, but referenced by C&C lists of 1 locations"
+177,Coat Rack,coat_rack,0,0,0,0,,43,5,,Product,Product,"Keep: no products today, but referenced by C&C lists of 43 locations"
+231,Nested Tables,nested_tables,0,0,0,0,,31,5,,Product,Product,"Keep: no products today, but referenced by C&C lists of 31 locations"
+306,Pillowcase,pillowcase,0,0,0,0,,19,5,,Product,Product,"Keep: no products today, but referenced by C&C lists of 19 locations"
+312,Quilt Cover Set,quilt_cover_set,0,0,0,0,,19,5,,Product,Product,"Keep: no products today, but referenced by C&C lists of 19 locations"
+315,Fitted Sheet,fitted_sheet,0,0,0,0,,18,5,,Product,Product,"Keep: no products today, but referenced by C&C lists of 18 locations"
+318,Coverlet,coverlet,0,0,0,0,,21,5,,Product,Product,"Keep: no products today, but referenced by C&C lists of 21 locations"
+321,Pillowcase Pair,pillowcase_pair,0,0,0,0,,19,5,,Product,Product,"Keep: no products today, but referenced by C&C lists of 19 locations"
+418,Demo,-,0,0,0,0,,0,1,,-,-,Not created: no products

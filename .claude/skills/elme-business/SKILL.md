@@ -96,6 +96,9 @@ what the customer must see; the MSI sources are the old implementation.
   products grouped by `colour_super_sku`, and clicking a colour navigates to the sibling product
   (Bart_ConfigurableByAttribute). An earlier staging snapshot gave about 8,300 products and 147
   configurables; tickets that quote it describe that snapshot.
+- Target (replatform, 12 Nov 2026): no configurable products. Every variant is a simple product
+  grouped by `family_code` over all axes, filters come from the Search Service (see
+  `elme-product-data`).
 - Search and listings on the old site: Algolia (+ Algolia Recommend widgets: frequently bought
   together, trending, related - `ElmeLiving_AlgoliaRecommend`), Aheadworks layered navigation, Mirasvit
   SEO. Dropship partner range is off on Elme.

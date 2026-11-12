@@ -547,7 +547,7 @@ Production PDP: gallery left, info right (badge, name, SKU, stock, short descrip
 
 ### FE-28 Configurable products (colour / size)
 
-**Scope:** colour and size swatches; clicking a swatch goes to the sibling product page (swatch = navigation, not an in-page switch). Prod, 15 Oct 2026: colour is not a configurable axis, colour variants are separate products grouped by `colour_super_sku`; the 2,024 configurables vary by size, chaise side or comfort (see `elme-product-data`). The earlier figure of 147 configurables came from a staging snapshot. Swatches on PLP cards too.
+**Scope:** colour and size swatches; clicking a swatch goes to the sibling product page (swatch = navigation, not an in-page switch). Prod, 15 Oct 2026: colour is not a configurable axis, colour variants are separate products grouped by `colour_super_sku`; the 2,024 configurables vary by size, chaise side or comfort (see `elme-product-data`). The earlier figure of 147 configurables came from a staging snapshot. Swatches on PLP cards too. Target model (replatform, 12 Nov 2026): no configurable products at all; every variant is a simple product, `family_code` groups the family over every axis, `family_axes` gives the axis order, `family_sort_order` the member order. Build the swatches on that, not on configurable children.
 
 **Ref:** `Bart/el/Bart_ConfigurableByAttribute/templates/product/options.phtml`, `product/listing/options.phtml`, `Overdose_ConfigurableByAttribute`
 
