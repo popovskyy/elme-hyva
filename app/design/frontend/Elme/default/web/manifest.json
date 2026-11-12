@@ -1,0 +1,30 @@
+{
+  "name": "Elme Living",
+  "short_name": "Elme",
+  "description": "Elme Living trade storefront",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#3A3935",
+  "background_color": "#F5F4EF",
+  "icons": [
+    {
+      "src": "Magento_Theme/favicon/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "Magento_Theme/favicon/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "Magento_Theme/favicon/android-chrome-512x512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
