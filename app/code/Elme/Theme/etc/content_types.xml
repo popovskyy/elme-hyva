@@ -672,5 +672,46 @@
         </field>
     </type>
 
+    <!-- Collaboration / campaign landing (FE-89): banner, intro, optional lifestyle collage,
+         then a Shop the look grid of products picked by SKU on the shared FE-19 card.
+         One entry per collab so the next campaign needs no code. -->
+    <type code="collaboration"
+          label="Collaboration / Shop the Look"
+          standalone="true"
+          group="pages"
+          icon="image-text"
+          description="Campaign landing: optional banner, title and intro, lifestyle image, then a Shop the look product grid. Products are picked by SKU and render on the shared product card."
+          template="Elme_Theme::content-type/collaboration.phtml"
+          version="1">
+
+        <field name="banner_desktop" type="image" label="Banner (desktop)" recommended="1920x700"
+               description="Optional top banner for desktop. Leave empty when the lifestyle collage below is the hero (as on Three Birds)."/>
+        <field name="banner_mobile" type="image" label="Banner (mobile)" recommended="900x480" width="half"
+               description="Optional. Shown under md instead of the desktop banner. Leave empty to use the desktop banner on phones."/>
+        <field name="banner_alt" type="text" label="Banner alt text" maxlength="160" width="half"
+               description="What the banner shows. Empty only if decorative."/>
+
+        <field name="heading" type="text" label="Title" required="true" maxlength="100"
+               description="Centered page title under the banner, e.g. THREE BIRDS RENOVATIONS MAISON SOLEIL. This is the page H1 when is_page_title is on."/>
+        <field name="is_page_title" type="boolean" label="Title is the page H1" default="1"
+               description="Turn on when this entry is the main body of the CMS page and nothing else has the H1."/>
+        <field name="intro" type="textarea" label="Intro" maxlength="800"
+               description="One or two plain sentences under the title. Wholesale voice: what the collab is and what to shop."/>
+
+        <field name="collage" type="image" label="Lifestyle collage" recommended="1125x2705"
+               description="Optional tall photo / collage under the intro (production Three Birds). Leave empty for text-only intros."/>
+        <field name="collage_alt" type="text" label="Collage alt text" maxlength="160"
+               description="What the collage shows. Defaults to the title."/>
+
+        <field name="section_heading" type="text" label="Grid heading" maxlength="60" default="Shop the look"
+               description="Centered H2 above the product grid, e.g. Shop the look."/>
+
+        <field name="products" type="repeater" label="Products" label_field="sku" max="60" required="true"
+               description="Shop the look grid. Order here is order on the page. Missing, disabled or not-visible SKUs are skipped.">
+            <field name="sku" type="text" label="Product SKU" required="true" maxlength="64"
+                   description="Magento SKU. Resolved on the server for the shared product card (name, image, price, PDP)."/>
+        </field>
+    </type>
+
 
 </content_types>

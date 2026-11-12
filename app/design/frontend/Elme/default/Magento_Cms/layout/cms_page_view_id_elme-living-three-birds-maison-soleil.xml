@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-89: Three Birds Maison Soleil collaboration landing.
+ * catalog_list_item loads the shared product card renderer (no compare / wishlist).
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="catalog_list_item"/>
+    <update handle="elme_content_page_seo"/>
+    <body>
+        <referenceBlock name="page.main.title" remove="true"/>
+    </body>
+</page>

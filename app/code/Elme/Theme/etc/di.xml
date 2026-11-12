@@ -22,6 +22,7 @@
                 <item name="vacancies" xsi:type="object">Elme\Theme\ViewModel\Vacancies</item>
                 <item name="team" xsi:type="object">Elme\Theme\ViewModel\Team</item>
                 <item name="events" xsi:type="object">Elme\Theme\ViewModel\Events</item>
+                <item name="collaboration" xsi:type="object">Elme\Theme\ViewModel\Collaboration</item>
             </argument>
         </arguments>
     </type>

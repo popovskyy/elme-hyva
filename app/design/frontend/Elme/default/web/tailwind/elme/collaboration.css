@@ -1,0 +1,15 @@
+/**
+ * FE-89: Collaboration / Shop the look landing (Content Studio type `collaboration`).
+ * Grid uses the shared FE-19 card; spacing matches production Page Builder products grid.
+ */
+@layer components {
+    .elme-collaboration__grid > .product-item {
+        margin: 0;
+        width: 100%;
+        max-width: none;
+    }
+
+    .elme-collaboration__grid .elme-card {
+        height: 100%;
+    }
+}
