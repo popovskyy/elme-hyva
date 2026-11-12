@@ -34,6 +34,10 @@
                 <public_api_key>TMvimz</public_api_key>
                 <!-- D7: 1 = load Klaviyo onsite forms/popup; 0 = tracking company_id only -->
                 <forms_enabled>1</forms_enabled>
+                <!-- FE-91: production onsite embed WJGDrH (URL-targeted; optional mount) -->
+                <outlet_embed_form_id>WJGDrH</outlet_embed_form_id>
+                <!-- FE-91: Outlet Sign Ups list — Magento form posts via Client Subscriptions API -->
+                <outlet_list_id>TNqMx7</outlet_list_id>
             </klaviyo>
             <zendesk>
                 <enabled>1</enabled>

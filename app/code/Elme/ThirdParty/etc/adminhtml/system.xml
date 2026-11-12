@@ -54,6 +54,16 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Off = company script for tracking only; footer newsletter stays Magento (FE-11).</comment>
                 </field>
+                <field id="outlet_embed_form_id" translate="label comment" type="text" sortOrder="40"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Outlet signup embed form id (FE-91)</label>
+                    <comment>Optional Klaviyo onsite form id (production WJGDrH). Page form uses the list id below.</comment>
+                </field>
+                <field id="outlet_list_id" translate="label comment" type="text" sortOrder="50"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Outlet signup list id (FE-91)</label>
+                    <comment>Klaviyo list for /elme-outlet-signup Client API signup. Production: TNqMx7 (Outlet Sign Ups).</comment>
+                </field>
             </group>
             <group id="zendesk" translate="label" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Zendesk chat</label>

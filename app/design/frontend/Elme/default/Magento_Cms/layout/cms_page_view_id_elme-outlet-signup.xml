@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-91: /elme-outlet-signup — Client API form to Klaviyo Outlet Sign Ups list (ThirdParty config).
+ * Company script is already deferred in Elme_ThirdParty (FE-54).
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="elme_content_page_seo"/>
+    <body>
+        <referenceBlock name="page.main.title">
+            <arguments>
+                <argument name="css_class" xsi:type="string">elme-outlet-signup__title mb-4 md:mb-6</argument>
+            </arguments>
+        </referenceBlock>
+
+        <referenceContainer name="content">
+            <block name="elme.outlet.klaviyo.signup"
+                   template="Magento_Cms::outlet/klaviyo-signup.phtml"
+                   after="cms_page"/>
+        </referenceContainer>
+    </body>
+</page>
