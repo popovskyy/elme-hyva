@@ -1,0 +1,120 @@
+<?php
+/**
+ * Content Studio type `collaboration` (FE-89): campaign landing with banner, intro, lifestyle
+ * collage and a Shop the look grid of SKU-picked products on the shared FE-19 card.
+ *
+ * @var \Bart\ContentStudio\Block\Entry $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\Collaboration;
+use Hyva\Theme\ViewModel\ProductListItem;
+use Magento\Catalog\Block\Product\ListProduct;
+use Magento\Catalog\Block\Product\ReviewRendererInterface;
+
+$content = $block->getContent();
+/** @var Collaboration|null $collaboration */
+$collaboration = $block->getTypeViewModel();
+if (!$collaboration instanceof Collaboration) {
+    return;
+}
+
+$heading = $collaboration->getHeading($content);
+$products = $collaboration->getProducts($content);
+if ($heading === '' && $products === []) {
+    return;
+}
+
+$intro = $collaboration->getIntro($content);
+$sectionHeading = $collaboration->getSectionHeading($content);
+$bannerDesktop = $collaboration->getBannerDesktop($content);
+$bannerMobile = $collaboration->getBannerMobile($content);
+$collage = $collaboration->getCollage($content);
+$isPageTitle = $collaboration->isPageTitle($content);
+$headingTag = $isPageTitle ? 'h1' : 'h2';
+$uid = 'elme-collab-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
+
+$productListItem = $viewModels->require(ProductListItem::class);
+$listParentName = 'elme.collaboration.list.' . preg_replace('/[^a-z0-9_]/i', '_', $block->getIdentifier());
+$listParent = $block->getLayout()->getBlock($listParentName);
+if (!$listParent instanceof ListProduct) {
+    $listParent = $block->getLayout()->createBlock(ListProduct::class, $listParentName);
+}
+?>
+<section class="elme-collaboration -mx-(--entry-bleed) mb-10 lg:mb-16"
+         aria-labelledby="<?= $escaper->escapeHtmlAttr($uid . '-title') ?>">
+    <?php if ($bannerDesktop !== null): ?>
+        <div class="elme-collaboration__banner mb-8 md:mb-10 lg:mb-12">
+            <picture>
+                <?php if ($bannerMobile !== null && $bannerMobile['src'] !== $bannerDesktop['src']): ?>
+                    <source media="(max-width: 767px)"
+                            srcset="<?= $escaper->escapeUrl($bannerMobile['src']) ?>">
+                <?php endif; ?>
+                <img src="<?= $escaper->escapeUrl($bannerDesktop['src']) ?>"
+                     alt="<?= $escaper->escapeHtmlAttr($bannerDesktop['alt']) ?>"
+                     width="<?= (int) $bannerDesktop['width'] ?>"
+                     height="<?= (int) $bannerDesktop['height'] ?>"
+                     loading="eager"
+                     decoding="async"
+                     class="block h-auto w-full">
+            </picture>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($heading !== '' || $intro !== ''): ?>
+        <div class="elme-collaboration__intro mx-auto mb-8 max-w-3xl px-5 text-center md:mb-10 lg:mb-12">
+            <?php if ($heading !== ''): ?>
+                <<?= /* @noEscape */ $headingTag ?>
+                    id="<?= $escaper->escapeHtmlAttr($uid . '-title') ?>"
+                    class="font-heading text-h1 font-normal text-ink lg:text-h1-desktop">
+                    <?= $escaper->escapeHtml($heading) ?>
+                </<?= /* @noEscape */ $headingTag ?>>
+            <?php endif; ?>
+            <?php if ($intro !== ''): ?>
+                <p class="mt-4 text-copy text-ink-muted lg:mt-5 lg:text-copy-desktop">
+                    <?= nl2br($escaper->escapeHtml($intro), false) ?>
+                </p>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($collage !== null): ?>
+        <div class="elme-collaboration__collage mx-auto mb-8 max-w-5xl px-5 md:mb-10 lg:mb-12 lg:px-10">
+            <img src="<?= $escaper->escapeUrl($collage['src']) ?>"
+                 alt="<?= $escaper->escapeHtmlAttr($collage['alt']) ?>"
+                 width="<?= (int) $collage['width'] ?>"
+                 height="<?= (int) $collage['height'] ?>"
+                 loading="lazy"
+                 decoding="async"
+                 class="block h-auto w-full">
+        </div>
+    <?php endif; ?>
+
+    <?php if ($products !== []): ?>
+        <div class="elme-collaboration__shop px-5 lg:px-8">
+            <h2 id="<?= $escaper->escapeHtmlAttr($uid . '-shop') ?>"
+                class="mb-6 text-center font-heading text-h2 font-normal text-ink md:mb-8 lg:mb-10 lg:text-h2-desktop">
+                <?= $escaper->escapeHtml($sectionHeading) ?>
+            </h2>
+            <ol class="elme-collaboration__grid product-items widget-product-grid m-0 grid list-none
+                       grid-cols-2 gap-3 p-0 md:grid-cols-3 md:gap-4 lg:grid-cols-4 lg:gap-3.5"
+                aria-labelledby="<?= $escaper->escapeHtmlAttr($uid . '-shop') ?>">
+                <?php foreach ($products as $product): ?>
+                    <li class="item product product-item list-none">
+                        <?= /* @noEscape */ $productListItem->getItemHtml(
+                            $product,
+                            $listParent,
+                            'grid',
+                            ReviewRendererInterface::SHORT_VIEW,
+                            'category_page_grid',
+                            false
+                        ) ?>
+                    </li>
+                <?php endforeach; ?>
+            </ol>
+        </div>
+    <?php endif; ?>
+</section>
