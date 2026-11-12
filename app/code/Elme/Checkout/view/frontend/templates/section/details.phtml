@@ -1,0 +1,191 @@
+<?php
+
+declare(strict_types=1);
+
+use Elme\Checkout\Api\OrderDetailsInterface;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+
+$instructionsField = OrderDetailsInterface::DELIVERY_INSTRUCTIONS;
+?>
+<section class="elme-checkout-section scroll-mt-4"
+         data-checkout-section="details"
+         x-data="elmeCheckoutDetails">
+    <div class="elme-checkout-section__head">
+        <h2 class="elme-checkout-section__title" id="elme-checkout-instructions-heading">
+            <?= $escaper->escapeHtml(__('Delivery instructions')) ?>
+            <span class="elme-checkout-section__optional"><?= $escaper->escapeHtml(__('(optional)')) ?></span>
+        </h2>
+    </div>
+
+    <p class="elme-checkout-section__error" role="alert" x-show="error" x-cloak x-text="error"></p>
+
+    <div class="elme-checkout-section__body">
+        <button type="button"
+                class="elme-checkout-details__toggle"
+                x-show="isClosed"
+                x-cloak
+                x-transition:enter="transition ease-out-quint duration-200 motion-reduce:duration-0"
+                x-transition:enter-start="opacity-0"
+                x-transition:leave="transition ease-out-quint duration-150 motion-reduce:duration-0"
+                x-transition:leave-end="opacity-0"
+                @click="expand">
+            <?= $escaper->escapeHtml(__('Add delivery instructions')) ?>
+        </button>
+
+        <div class="field"
+             x-show="isOpen"
+             x-cloak
+             x-ref="instructionsField"
+             x-transition:enter="transition ease-out-quint duration-200 motion-reduce:duration-0"
+             x-transition:enter-start="opacity-0 -translate-y-1 motion-reduce:translate-y-0"
+             x-transition:leave="transition ease-out-quint duration-150 motion-reduce:duration-0"
+             x-transition:leave-end="opacity-0 -translate-y-1 motion-reduce:translate-y-0">
+            <label class="label sr-only" for="elme-checkout-instructions">
+                <?= $escaper->escapeHtml(__('Delivery instructions')) ?>
+            </label>
+            <textarea id="elme-checkout-instructions"
+                      class="form-textarea w-full"
+                      name="<?= /* @noEscape */ $instructionsField ?>"
+                      rows="3"
+                      maxlength="<?= (int) OrderDetailsInterface::DELIVERY_INSTRUCTIONS_MAX_LENGTH ?>"
+                      placeholder="<?= $escaper->escapeHtmlAttr(__('e.g. Please place package at front door.')) ?>"
+                      aria-describedby="elme-checkout-instructions-error elme-checkout-instructions-counter elme-checkout-instructions-saving"
+                      data-field="<?= /* @noEscape */ $instructionsField ?>"
+                      :value="value"
+                      :aria-invalid="fieldInvalid"
+                      @input="change"
+                      @blur="leave"></textarea>
+            <p id="elme-checkout-instructions-error"
+               class="field-error-message"
+               data-field="<?= /* @noEscape */ $instructionsField ?>"
+               x-show="fieldError"
+               x-cloak
+               x-text="fieldError"></p>
+            <p id="elme-checkout-instructions-saving"
+               class="elme-checkout-details__saving"
+               x-show="isBusy"
+               x-cloak>
+                <?= $escaper->escapeHtml(__('Saving…')) ?>
+            </p>
+            <p id="elme-checkout-instructions-counter"
+               class="elme-checkout-details__counter"
+               data-field="<?= /* @noEscape */ $instructionsField ?>"
+               data-max="<?= (int) OrderDetailsInterface::DELIVERY_INSTRUCTIONS_MAX_LENGTH ?>"
+               x-text="counter"></p>
+        </div>
+    </div>
+</section>
+<script>
+    function elmeCheckoutDetails() {
+        const SAVE_AFTER_MS = 800;
+
+        return {
+            values: {},
+            open: false,
+            saveTimer: null,
+
+            init() {
+                this.values = {...this.saved()};
+                this.open = Boolean((this.values['<?= /* @noEscape */ $instructionsField ?>'] || '').trim());
+                // Place order goes first through here: the last change may be waiting for its timer, and iOS keeps the
+                // focus in the field when a button is tapped, so there may be no blur
+                this.store().onBeforePlaceOrder(() => this.save('enqueue'));
+            },
+            store() {
+                return Alpine.store('elmeCheckout');
+            },
+            saved() {
+                return this.store().section('details') || {};
+            },
+            field() {
+                return this.$el.dataset.field;
+            },
+            value() {
+                return this.values[this.field()] || '';
+            },
+            error() {
+                const hasFieldError = Object.keys(this.values).some((field) => this.store().fieldError(field));
+                return hasFieldError ? '' : this.store().sectionError('details');
+            },
+            fieldError() {
+                return this.store().fieldError(this.field());
+            },
+            fieldInvalid() {
+                return this.fieldError() ? 'true' : 'false';
+            },
+            isBusy() {
+                return this.store().isLoading('details');
+            },
+            isOpen() {
+                return this.open;
+            },
+            isClosed() {
+                return !this.open;
+            },
+            counter() {
+                return `${this.value().length} / ${this.$el.dataset.max}`;
+            },
+            expand() {
+                this.open = true;
+                this.focusWhenShown(() => this.$refs.instructionsField?.querySelector('textarea'));
+            },
+            focusWhenShown(element, framesLeft = 20) {
+                requestAnimationFrame(() => {
+                    const target = element();
+                    if (target?.getClientRects().length) {
+                        target.focus();
+                    } else if (framesLeft > 0) {
+                        this.focusWhenShown(element, framesLeft - 1);
+                    }
+                });
+            },
+            change() {
+                this.values[this.field()] = this.$el.value;
+                this.store().clearFieldError(this.field());
+                clearTimeout(this.saveTimer);
+                this.saveTimer = setTimeout(() => this.save(), SAVE_AFTER_MS);
+            },
+            leave() {
+                this.save();
+            },
+
+            /**
+             * @param {string} send "call" is refused once the order is being placed, "enqueue" goes before the order
+             * @returns {Promise<boolean>} true when the server has what the fields say
+             */
+            async save(send = 'call') {
+                clearTimeout(this.saveTimer);
+
+                const sent = {...this.values};
+                const saved = this.saved();
+                const isChanged = Object.keys(sent).some((field) => sent[field].trim() !== saved[field]);
+                if (isChanged && !(await this.store()[send]('details', sent, 'details'))) {
+                    return false;
+                }
+
+                this.tidy(sent);
+                return true;
+            },
+
+            /**
+             * Shows what was saved (trimmed), except in the field being typed in or changed in the meantime.
+             */
+            tidy(sent) {
+                const saved = this.saved();
+                Object.keys(sent).forEach((field) => {
+                    if (document.activeElement?.dataset.field !== field && this.values[field] === sent[field]) {
+                        this.values[field] = saved[field];
+                    }
+                });
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('elmeCheckoutDetails', elmeCheckoutDetails), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

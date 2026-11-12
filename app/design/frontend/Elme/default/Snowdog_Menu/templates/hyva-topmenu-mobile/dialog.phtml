@@ -1,0 +1,361 @@
+<?php
+/**
+ * FE-09 mobile drawer, printed at the end of the body.
+ * The header only has the button. This block renders the dialog itself so a
+ * cached header cannot drop it (a static bag is empty on a block-cache hit).
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Snowdog\Menu\Block\Menu;
+
+/** @var Menu $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$menu = $block->getMenu();
+if (!$menu) {
+    return;
+}
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+$menuClass = $menu->getCssClass() ?: 'main-menu';
+?>
+    <dialog id="elme-mobile-menu"
+            class="elme-mobile-menu"
+            x-data="initElmeMobileMenu"
+            x-bind="menuListeners"
+            @click="onDialogClick"
+            @cancel.prevent="closeMenu"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('Main menu')) ?>">
+        <div class="elme-mobile-menu__shell elme-drawer elme-drawer-start flex flex-col h-full min-h-0"
+             @click="stopShellClick"
+             role="document">
+            <div class="elme-mobile-menu__panels relative flex-1 min-h-0 overflow-clip">
+                <div class="elme-mobile-menu__panel elme-mobile-menu__panel--root is-active flex flex-col h-full"
+                     data-panel-id="root">
+                    <div class="elme-drawer__header shrink-0">
+                        <p class="elme-drawer__title" id="elme-mobile-menu-title">
+                            <?= $escaper->escapeHtml(__('Menu')) ?>
+                        </p>
+                        <button type="button"
+                                class="inline-flex items-center justify-center min-w-11 min-h-11 p-0
+                                       text-ink bg-transparent border-0
+                                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+                                       focus-visible:outline-primary"
+                                @click="closeMenu"
+                                aria-label="<?= $escaper->escapeHtmlAttr(__('Close menu')) ?>">
+                            <?= $lucideIcons->xHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
+                        </button>
+                    </div>
+
+                    <div class="elme-drawer__body flex-1 min-h-0 !pt-0 !px-0">
+                        <ul class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__list elme-mobile-menu__list">
+                            <?php foreach ($block->getNodes() as $node): ?>
+                                <?php
+                                $childrenLevel = $node->getLevel() + 1;
+                                $children = $block->getNodes($childrenLevel, $node);
+                                $node->setIsParent((bool) $children);
+                                $nodeId = (string) $node->getId();
+                                $titleRaw = (string) $node->getTitle();
+                                $cleanTitle = trim((string) preg_replace('/\{.*?\}/', '', $titleRaw));
+                                $extraClasses = trim((string) $node->getClasses());
+                                $parentClass = $children ? ' ' . $menuClass . '__item--parent' : '';
+                                $slug = strtolower((string) preg_replace(
+                                    '/[^a-z0-9]+/i',
+                                    '-',
+                                    $cleanTitle
+                                ));
+                                $itemClass = trim(
+                                    $menuClass . '__item' . $parentClass
+                                    . ($extraClasses ? ' ' . $extraClasses : '')
+                                    . ($slug ? ' ' . $slug : '')
+                                );
+                                ?>
+                                <li class="<?= $escaper->escapeHtmlAttr($itemClass) ?>"
+                                    data-node-id="<?= $escaper->escapeHtmlAttr($nodeId) ?>">
+                                    <?php if ($children): ?>
+                                        <button type="button"
+                                                class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__link elme-mobile-menu__row"
+                                                data-node-id="<?= $escaper->escapeHtmlAttr($nodeId) ?>"
+                                                @click="openPanel"
+                                                aria-haspopup="true">
+                                            <span class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__item-text">
+                                                <?= $escaper->escapeHtml($cleanTitle) ?>
+                                            </span>
+                                            <span class="elme-mobile-menu__chevron" aria-hidden="true">
+                                                <?= $lucideIcons->chevronRightHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                                            </span>
+                                        </button>
+                                        <?= /* @noEscape */ $block->renderSubmenu($children, $node, $childrenLevel) ?>
+                                    <?php else: ?>
+                                        <?= /* @noEscape */ $block->renderMenuNode($node) ?>
+                                    <?php endif; ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+
+                    <div class="elme-drawer__footer elme-mobile-menu__footer shrink-0">
+                        <?= $block->getChildHtml('mobile.menu.footer') ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </dialog>
+<script>
+    function initElmeMobileMenu() {
+        return {
+            open: false,
+            stack: [],
+            panelsReady: false,
+
+            menuListeners: {
+                ['@keydown.window.escape']() {
+                    if (!this.open) {
+                        return;
+                    }
+                    this.closeMenu();
+                },
+                ['@private-content-loaded.window']() {
+                    this.syncAuthLinks();
+                }
+            },
+
+            init() {
+                // Submenu panels are rendered inside root <li>s by Snowdog; reparent
+                // them as siblings so root can be inert without trapping its children.
+                const container = this.$root.querySelector('.elme-mobile-menu__panels');
+                if (container) {
+                    container.querySelectorAll(
+                        '.elme-mobile-menu__panel:not(.elme-mobile-menu__panel--root)'
+                    ).forEach((panel) => {
+                        container.appendChild(panel);
+                    });
+                }
+                this.panelsReady = true;
+                this.syncPanels();
+                this.$watch('$store.elmeMobileMenu.token', () => {
+                    if (Alpine.store('elmeMobileMenu').open) {
+                        this.openMenu();
+                    }
+                });
+            },
+
+            openMenu() {
+                this.open = true;
+                this.stack = [];
+                this.syncPanels();
+                const drawer = this.$root;
+                if (drawer && !drawer.open) {
+                    drawer.showModal();
+                }
+                document.documentElement.classList.add('elme-mobile-menu-open');
+                const show = () => {
+                    if (drawer) {
+                        drawer.classList.add('is-shown');
+                    }
+                };
+                if (this.motionMs() === 0) {
+                    show();
+                } else {
+                    requestAnimationFrame(show);
+                }
+                this.$nextTick(() => {
+                    if (drawer) {
+                        hyva.trapFocus(drawer);
+                    }
+                });
+            },
+
+            closeMenu() {
+                const drawer = this.$root;
+                if (this._closing) {
+                    return;
+                }
+                if (!this.open && !(drawer && drawer.open)) {
+                    return;
+                }
+                this.open = false;
+                if (drawer) {
+                    drawer.classList.remove('is-shown');
+                }
+                const finish = () => {
+                    this._closing = false;
+                    this.stack = [];
+                    this.syncPanels();
+                    document.documentElement.classList.remove('elme-mobile-menu-open');
+                    if (drawer && drawer.open) {
+                        drawer.close();
+                    }
+                    hyva.releaseFocus();
+                    Alpine.store('elmeMobileMenu').open = false;
+                    this.$nextTick(() => {
+                        const opener = document.querySelector('.elme-mobile-nav__burger');
+                        if (opener) {
+                            opener.focus();
+                        }
+                    });
+                };
+                this._closing = true;
+                if (this.motionMs() === 0) {
+                    finish();
+                } else {
+                    this._closeTimer = setTimeout(finish, this.motionMs() + 40);
+                }
+            },
+
+            onDialogClick() {
+                // Full-viewport dialog: clicks on the dimmed area (not the shell) close.
+                if (this.$event.target === this.$root) {
+                    this.closeMenu();
+                }
+            },
+
+            stopShellClick() {
+                this.$event.stopPropagation();
+            },
+
+            // Footer links per login state (mobile-footer.phtml data-elme-auth). The menu block is cached
+            // without the login state, so the customer section decides, not the server render.
+            syncAuthLinks() {
+                const data = this.$event.detail.data || {};
+                const customer = data.customer || {};
+                const state = customer.firstname || customer.fullname ? 'customer' : 'guest';
+                this.$root.querySelectorAll('[data-elme-auth]').forEach((el) => {
+                    el.hidden = el.dataset.elmeAuth !== state;
+                });
+            },
+
+            openPanel() {
+                const id = this.$el.dataset.nodeId;
+                if (!id) {
+                    return;
+                }
+                this.stack.push(id);
+                this.syncPanels();
+            },
+
+            goBack() {
+                if (!this.stack.length) {
+                    return;
+                }
+                this.stack.pop();
+                this.syncPanels();
+            },
+
+            motionMs() {
+                return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280;
+            },
+
+            setSubPanel(panel, open) {
+                if (panel._closeTimer) {
+                    clearTimeout(panel._closeTimer);
+                    panel._closeTimer = null;
+                }
+                const ms = this.motionMs();
+                if (open) {
+                    panel.hidden = false;
+                    const show = () => panel.classList.add('is-open');
+                    if (ms === 0) {
+                        show();
+                    } else {
+                        requestAnimationFrame(show);
+                    }
+                    return;
+                }
+                panel.classList.remove('is-open');
+                if (panel.hidden) {
+                    return;
+                }
+                const finish = () => {
+                    if (panel.classList.contains('is-open')) {
+                        return;
+                    }
+                    panel.hidden = true;
+                };
+                if (ms === 0) {
+                    finish();
+                } else {
+                    panel._closeTimer = setTimeout(finish, ms + 40);
+                }
+            },
+
+            // Chrome refuses aria-hidden / hidden on an ancestor that still contains
+            // focus. Move focus onto the panel that stays active before hiding the rest.
+            focusPanel(panel) {
+                const focusable = panel.querySelector(
+                    'button:not([disabled]), a[href]:not([tabindex="-1"])'
+                );
+                if (focusable) {
+                    // preventScroll: the incoming panel is still off to the right; a plain focus() would
+                    // scroll .elme-mobile-menu__panels and make the slide jump.
+                    focusable.focus({ preventScroll: true });
+                }
+            },
+
+            syncPanels() {
+                const stack = this.stack;
+                const top = stack.length ? stack[stack.length - 1] : null;
+                const panels = Array.from(this.$root.querySelectorAll('.elme-mobile-menu__panel'));
+                const next = panels.find((panel) => {
+                    const id = panel.getAttribute('data-panel-id');
+                    return top === null ? id === 'root' : id === top;
+                });
+                if (next) {
+                    next.hidden = false;
+                    next.inert = false;
+                    next.removeAttribute('aria-hidden');
+                    const active = document.activeElement;
+                    if (active && active !== document.body && !next.contains(active)
+                        && this.$root.contains(active)) {
+                        this.focusPanel(next);
+                    }
+                }
+                panels.forEach((panel) => {
+                    const id = panel.getAttribute('data-panel-id');
+                    const isRoot = id === 'root';
+                    const isTop = panel === next;
+                    const isAncestor = !isRoot && stack.indexOf(id) !== -1;
+                    panel.classList.toggle('is-active', isTop);
+                    if (isRoot) {
+                        panel.hidden = false;
+                        panel.classList.toggle('is-covered', top !== null);
+                    } else {
+                        this.setSubPanel(panel, isTop || isAncestor);
+                    }
+                    panel.inert = !isTop;
+                    if (isTop) {
+                        panel.removeAttribute('aria-hidden');
+                    } else {
+                        panel.setAttribute('aria-hidden', 'true');
+                    }
+                });
+            }
+        };
+    }
+
+    window.addEventListener(
+        'alpine:init',
+        () => {
+            Alpine.store('elmeMobileMenu', {
+                open: false,
+                token: 0,
+                ask() {
+                    this.open = true;
+                    this.token += 1;
+                }
+            });
+            Alpine.data('initElmeMobileMenu', initElmeMobileMenu);
+        },
+        {once: true}
+    );
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

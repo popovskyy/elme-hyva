@@ -9,7 +9,7 @@
         <link src="Magento_Theme::favicon/android-chrome-512x512.png" rel="icon" type="image/png" sizes="512x512"/>
         <link src="Magento_Theme::favicon/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
         <!-- Body text and the heading face (every page has an h1): other weights load on demand (font-display: swap + metric-matched fallback) -->
-        <font src="fonts/karla/Karla-Regular.woff2"/>
-        <font src="fonts/dm-serif-display/DMSerifDisplay-Regular.woff2"/>
+        <font src="fonts/figtree/Figtree-Regular.woff2"/>
+        <font src="fonts/figtree/Figtree-Medium.woff2"/>
     </head>
 </page>

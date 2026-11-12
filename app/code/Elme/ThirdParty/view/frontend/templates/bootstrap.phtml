@@ -5,7 +5,8 @@
  * - No sync scripts in <head>; load after interactive (idle / load+timeout / Hyvä
  *   init-external-scripts), never fetchpriority=high.
  * - Marketing (GTM, Klaviyo, Triple Whale): gated by consent_mode (default defer_only
- *   until a CMP / Privacy page lands). Chat (Zendesk): functional after interactive.
+ *   until a CMP / Privacy page lands). Chat (Zendesk): first interaction, or 12s
+ *   on a quiet visit, so it does not compete with the first paint.
  * - No JSON-LD / meta / heading injection (FE-55 owns SEO). Ecommerce stays in dataLayer.
  * - D7: Klaviyo forms toggle via config; footer newsletter remains Magento (FE-11).
  */
@@ -279,10 +280,26 @@ $bootstrapJson = $config->getBootstrapJson();
             return;
         }
         started = true;
-        startFunctional();
         if (hasMarketingConsent()) {
             startMarketing();
         }
+        armZendesk();
+    }
+
+    function armZendesk() {
+        var loaded = false;
+        function fire() {
+            if (loaded) {
+                return;
+            }
+            loaded = true;
+            startFunctional();
+        }
+        ['pointerdown', 'keydown', 'touchstart'].forEach(function (name) {
+            window.addEventListener(name, fire, {once: true, passive: true});
+        });
+        // Chat is not needed for the first paint. A quiet visit still gets it.
+        setTimeout(fire, 12000);
     }
 
     function armInteractive() {

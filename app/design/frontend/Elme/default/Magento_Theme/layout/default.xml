@@ -47,7 +47,7 @@
                 <argument name="logo_alt" xsi:type="string">Elme Living</argument>
             </arguments>
         </referenceBlock>
-        <!-- Page titles take the Elme h1 style from elme.css instead of Hyvä's text-3xl font-bold -->
+        <!-- Page titles take the Elme h1 style from elme.css instead of Hyvä's text-h1 font-bold -->
         <!-- FE-04: layouts whose CMS banner/hero holds the H1 do not render the page title at all (see title.phtml) -->
         <referenceBlock name="page.main.title">
             <arguments>
@@ -61,10 +61,11 @@
         <!-- FE-04: breadcrumbs live inside <main>, before the H1, on every layout; the skip link lands on the H1 -->
         <move element="breadcrumbs" destination="columns.top" before="-"/>
         <move element="skip_to_content.target" destination="columns.top" before="page.main.title"/>
-        <!-- FE-03: toast stack; FE-60: button ripple; FE-59: custom select -->
+        <!-- FE-03: toast stack; FE-60: button ripple; FE-59: custom select; FE-70: animated AJAX add to cart -->
         <referenceContainer name="before.body.end">
             <block name="elme.toast-stack" template="Magento_Theme::elme/toast-stack.phtml"/>
             <block name="elme.btn-ripple" template="Magento_Theme::elme/btn-ripple.phtml"/>
+            <block name="elme.atc-button" template="Magento_Theme::elme/atc-button.phtml"/>
             <block name="elme.select.js" template="Magento_Theme::elme/select-js.phtml"/>
         </referenceContainer>
 
@@ -87,5 +88,17 @@
         <referenceBlock name="footer-static-links" remove="true"/>
         <referenceBlock name="footer-cms-content" remove="true"/>
         <referenceBlock name="footer-copyright" remove="true"/>
+
+        <!-- Core wishlist, compare and product reviews. Custom replacements come later. -->
+        <referenceBlock name="catalog.compare.sidebar" remove="true"/>
+        <referenceBlock name="wishlist_sidebar" remove="true"/>
+        <referenceBlock name="customer-account-navigation-wish-list-link" remove="true"/>
+        <referenceBlock name="customer-account-navigation-product-reviews-link" remove="true"/>
+        <referenceBlock name="customer_account_dashboard_info1" remove="true"/>
+        <!-- No downloadable goods. Saved cards stay out until card payments (FE-38).
+             The core reorder box is not the B2B recently-ordered page (FE-43). -->
+        <referenceBlock name="customer-account-navigation-downloadable-products-link" remove="true"/>
+        <referenceBlock name="customer-account-navigation-my-credit-cards-link" remove="true"/>
+        <referenceBlock name="sale.reorder.sidebar" remove="true"/>
     </body>
 </page>

@@ -6,6 +6,8 @@
 
 Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), **Ref** (production URL and old code in m2-bart-group, theme `Bart/el`), **QA** (checks QA ticks off). A ticket goes to QA only when it also meets the Definition of Done.
 
+**Status** (Overview table): **Done** = merged into `main` from its own `Merge FE-xx` branch; **In review** = the code is in `main` but it was not merged as its own ticket or not yet checked on a running store (QA it, then set Done); **To do** = not started; **Split** = replaced by the tickets named in its title. Last synced with git history on 31 Oct 2026.
+
 **Definition of Done (every ticket)**
 
 - Matches production look at 390 px (mobile), 768 px (tablet), 1440 px and 1920 px (desktop); mobile-first, no horizontal scroll.
@@ -22,82 +24,84 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 
 | ID | Ticket | Epic | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| FE-01 | Design tokens, fonts, base typography | 0 Foundation | — | To do |
-| FE-02 | UI kit: buttons, form fields, qty stepper, badges, breadcrumbs, pager + style-guide page | 0 Foundation | FE-01 | To do |
-| FE-03 | Global feedback: messages/toasts, modal, drawer, loaders, empty states | 0 Foundation | FE-01 | To do |
-| FE-04 | Page layouts and container (1 column, 2 columns left, banner + breadcrumbs, full width) | 0 Foundation | FE-01 | To do |
-| FE-05 | Top bar (USP text, Become a Stockist, Inspiration) | 1 Header & nav | FE-02 | To do |
-| FE-06 | Header desktop + sticky header | 1 Header & nav | FE-02, FE-03 | To do |
-| FE-07 | Header mobile | 1 Header & nav | FE-06 | To do |
-| FE-08 | Mega menu desktop | 1 Header & nav | FE-06, D3 | To do |
-| FE-09 | Mobile menu drawer | 1 Header & nav | FE-07, FE-08 | To do |
-| FE-10 | Footer | 2 Footer & blocks | FE-02 | To do |
-| FE-11 | Newsletter subscribe (footer) + signup popup | 2 Footer & blocks | FE-02, FE-03, D7 | To do |
-| FE-12 | "As styled by you" Instagram slider block | 2 Footer & blocks | FE-02, D10 | To do |
-| FE-13 | Shared CMS blocks: "Our Difference", "Need assistance?" | 2 Footer & blocks | FE-02 | To do |
-| FE-14 | Homepage hero / banner slider | 3 Homepage | FE-04, FE-57 | To do |
-| FE-15 | Category tiles carousel | 3 Homepage | FE-02, FE-57 | To do |
-| FE-16 | Homepage content sections (Outlet promo, Curated Catalogues, Become a Stockist, Welcome) | 3 Homepage | FE-02, FE-14, FE-57 | To do |
+| FE-01 | Design tokens, fonts, base typography | 0 Foundation | — | Done |
+| FE-02 | UI kit: buttons, form fields, qty stepper, badges, breadcrumbs, pager + style-guide page | 0 Foundation | FE-01 | In review |
+| FE-03 | Global feedback: messages/toasts, modal, drawer, loaders, empty states | 0 Foundation | FE-01 | In review |
+| FE-04 | Page layouts and container (1 column, 2 columns left, banner + breadcrumbs, full width) | 0 Foundation | FE-01 | In review |
+| FE-05 | Top bar (USP text, Become a Stockist, Inspiration) | 1 Header & nav | FE-02 | Done |
+| FE-06 | Header desktop + sticky header | 1 Header & nav | FE-02, FE-03 | Done |
+| FE-07 | Header mobile | 1 Header & nav | FE-06 | Done |
+| FE-08 | Mega menu desktop | 1 Header & nav | FE-06, D3 | In review |
+| FE-09 | Mobile menu drawer | 1 Header & nav | FE-07, FE-08 | Done |
+| FE-10 | Footer | 2 Footer & blocks | FE-02 | Done |
+| FE-11 | Newsletter subscribe (footer) + signup popup | 2 Footer & blocks | FE-02, FE-03, D7 | Done |
+| FE-12 | "As styled by you" Instagram slider block | 2 Footer & blocks | FE-02, D10 | Done |
+| FE-13 | Shared CMS blocks: "Our Difference", "Need assistance?" | 2 Footer & blocks | FE-02 | Done |
+| FE-14 | Homepage hero / banner slider | 3 Homepage | FE-04, FE-57 | Done |
+| FE-15 | Category tiles carousel | 3 Homepage | FE-02, FE-57 | Done |
+| FE-16 | Homepage content sections (Outlet promo, Curated Catalogues, Become a Stockist, Welcome) | 3 Homepage | FE-02, FE-14, FE-57 | Done |
 | FE-17 | Product carousel widget (trending / new / related) | 3 Homepage | FE-19, D1 | To do |
 | FE-18 | Category page: banner, title, breadcrumbs, description | 4 PLP & search | FE-04 | To do |
-| FE-19 | Product card (shared tile) | 4 PLP & search | FE-02, FE-53 | To do |
+| FE-19 | Product card (shared tile) | 4 PLP & search | FE-02, FE-53 | Done |
 | FE-20 | PLP toolbar: sort, per page, pagination | 4 PLP & search | FE-18 | To do |
 | FE-21 | Layered navigation (filters) | 4 PLP & search | FE-18, D2 | To do |
 | FE-22 | Search autocomplete in header | 4 PLP & search | FE-06, D1 | To do |
 | FE-23 | Search results page + no-results state | 4 PLP & search | FE-19, FE-21, D1 | To do |
 | FE-24 | Recently viewed categories / products | 4 PLP & search | FE-19 | To do |
-| FE-25 | PDP layout + image gallery | 5 PDP | FE-04 | To do |
+| FE-25 | PDP layout + image gallery | 5 PDP | FE-04 | In review |
 | FE-26 | PDP buy box, logged out | 5 PDP | FE-25 | To do |
 | FE-27 | PDP buy box, logged in (price, MOQ, add to cart/wishlist, sticky bar) | 5 PDP | FE-25, FE-53, BE-06 | To do |
 | FE-28 | Configurable products: colour/size swatches to sibling products | 5 PDP | FE-27 | To do |
 | FE-29 | PDP details accordion + CMS blocks + FAQ modal | 5 PDP | FE-25 | To do |
 | FE-30 | PDP recommendations (frequently bought together, related) + recently viewed | 5 PDP | FE-17, FE-24 | To do |
 | FE-31 | PDP stock and delivery info (stock number, dock date, delivery estimate) | 5 PDP | FE-27, D6 | To do |
-| FE-32 | Mini-cart drawer | 6 Cart & checkout | FE-06, FE-03 | To do |
-| FE-33 | Cart page | 6 Cart & checkout | FE-02, FE-32 | To do |
+| FE-32 | Header cart panel (Quick Order cart, replaces the default mini-cart) | 6 Cart & checkout | FE-06, FE-03, BE-16 | To do |
+| FE-33 | Cart page (/quick-order/cart) | 6 Cart & checkout | FE-02, FE-32, BE-16 | To do |
 | FE-34 | Checkout look pass + order success page | 6 Cart & checkout | BE-04, BE-05 | To do |
-| FE-35 | Login, forgot password, reset password | 7 Account | FE-02 | To do |
-| FE-36 | Registration: "Apply for an account" (B2B, ABN) | 7 Account | FE-02 | To do |
+| FE-35 | Login, forgot password, reset password | 7 Account | FE-02 | In review |
+| FE-36 | Registration: "Apply for an account" (B2B, ABN) | 7 Account | FE-02 | In review |
 | FE-37 | Account layout, navigation (B2B/B2C), dashboard | 7 Account | FE-04 | To do |
 | FE-38 | Account info, password, newsletter (address book in FE-69) | 7 Account | FE-37 | To do |
 | FE-39 | Orders: history, order view, invoices/shipments, print (reorder + CSV in BE-14) | 7 Account | FE-37 | To do |
 | FE-40 | Quick Order page | 8 B2B | FE-02, FE-03, FE-53 | To do |
-| FE-41 | Quick Order mini-cart, "saved" toast, "Add to list" modal | 8 B2B | FE-40, FE-06 | To do |
+| FE-41 | "Saved" toast + "Add to list" modal | 8 B2B | FE-40, FE-06, FE-32 | To do |
 | FE-42 | Order templates (saved lists) | 8 B2B | FE-40 | To do |
 | FE-43 | Recently ordered page | 8 B2B | FE-37, FE-19 | To do |
 | FE-44 | Wishlist (ajax add + wishlist page) | 8 B2B | FE-19, FE-37 | To do |
-| FE-45 | Help page template with side nav | 9 CMS | FE-04 | To do |
-| FE-46 | Contact Us form | 9 CMS | FE-45 | To do |
-| FE-47 | FAQs accordion | 9 CMS | FE-45, FE-57 | To do |
+| FE-45 | Help page template with side nav | 9 CMS | FE-04 | Done |
+| FE-46 | Contact Us form | 9 CMS | FE-45 | Done |
+| FE-47 | FAQs accordion | 9 CMS | FE-45, FE-57 | Done |
 | FE-48 | Content pages: About, Careers, Outlet, Style Sourcebook, Meet the Team, Fairs & Events (split into FE-61...FE-67) | 9 CMS | FE-04, FE-57 | Split |
 | FE-49 | Shop the Looks / lookbook with product hotspots | 9 CMS | FE-19, FE-57 | To do |
-| FE-50 | Virtual Catalogues (login only) (Shoppable Instagram in FE-68) | 9 CMS | FE-53 | To do |
-| FE-51 | Showroom locator (list + location page) | 9 CMS | FE-04 | To do |
-| FE-52 | 404 page | 9 CMS | FE-04 | To do |
-| FE-53 | Login-only rules: price hiding, guest redirects, per-customer data | 10 Cross-cutting | — | To do |
-| FE-54 | Third-party scripts: Zendesk chat, Klaviyo, GTM/GA4, Triple Whale | 10 Cross-cutting | FE-01 | To do |
+| FE-50 | Virtual Catalogues (login only) (Shoppable Instagram in FE-68) | 9 CMS | FE-53 | Done |
+| FE-51 | Showroom locator (list + location page) | 9 CMS | FE-04 | In review |
+| FE-52 | 404 page | 9 CMS | FE-04 | Done |
+| FE-53 | Login-only rules: price hiding, guest redirects, per-customer data | 10 Cross-cutting | — | In review |
+| FE-54 | Third-party scripts: Zendesk chat, Klaviyo, GTM/GA4, Triple Whale | 10 Cross-cutting | FE-01 | Done |
 | FE-55 | SEO markup: structured data, breadcrumbs, meta, canonical | 10 Cross-cutting | FE-18, FE-25 | To do |
 | FE-56 | Final QA pass: devices, accessibility, performance, visual compare | 10 Cross-cutting | all | To do |
-| FE-57 | Content Studio for Open Source + Hyva, with a Page Builder content type | 0 Foundation | FE-01, FE-02, D11 | To do |
+| FE-57 | Content Studio for Open Source + Hyva, with a Page Builder content type | 0 Foundation | FE-01, FE-02, D11 | Done |
 | FE-58 | Theme preview image (media/preview.png) in Elme + Hyvä style | 0 Foundation | FE-01 | To do |
-| FE-61 | About us page | 9 CMS | FE-04, FE-57 | To do |
-| FE-62 | Career opportunities page | 9 CMS | FE-04, FE-57 | To do |
-| FE-63 | Outlet & clearance store page | 9 CMS | FE-04, FE-57 | To do |
-| FE-64 | Style Sourcebook page | 9 CMS | FE-04, FE-57 | To do |
-| FE-65 | Meet the Team page | 9 CMS | FE-04, FE-57 | To do |
-| FE-66 | Fairs & Events page | 9 CMS | FE-04, FE-57 | To do |
-| FE-67 | Become a Stockist page | 9 CMS | FE-04, FE-57, FE-16 | To do |
+| FE-61 | About us page | 9 CMS | FE-04, FE-57 | Done |
+| FE-62 | Career opportunities page | 9 CMS | FE-04, FE-57 | Done |
+| FE-63 | Outlet & clearance store page | 9 CMS | FE-04, FE-57 | Done |
+| FE-64 | Style Sourcebook page | 9 CMS | FE-04, FE-57 | Done |
+| FE-65 | Meet the Team page | 9 CMS | FE-04, FE-57 | Done |
+| FE-66 | Fairs & Events page | 9 CMS | FE-04, FE-57 | Done |
+| FE-67 | Become a Stockist page | 9 CMS | FE-04, FE-57, FE-16 | Done |
 | FE-68 | Shoppable Instagram page (split from FE-50) | 9 CMS | FE-12, D10 | To do |
 | FE-69 | Address book, same form as checkout (split from FE-38) | 7 Account | FE-37, BE-02 | To do |
+| FE-60 | Mobile header hides on scroll down, shows on scroll up (+ button ripple) | 1 Header & nav | FE-07 | Done |
+| FE-70 | Animated Add to Cart button (AJAX add, sending / Added states) | 0 Foundation | FE-02, FE-03 | Done |
 | UX-01 | No empty or broken blocks | 11 UX | FE-12, FE-16, FE-17 | To do |
 | UX-02 | Guest path to a trade account | 11 UX | FE-06, FE-07, FE-19, FE-26 | To do |
 | UX-03 | Products above the fold on mobile PLP | 11 UX | FE-18, FE-19, FE-20 | To do |
 | UX-04 | Filters quality | 11 UX | FE-21 | To do |
 | UX-05 | Search relevance | 11 UX | FE-22, FE-23, D1 | To do |
-| UX-06 | Chat button placement | 11 UX | FE-54 | To do |
+| UX-06 | Chat button placement | 11 UX | FE-54, FE-21, FE-27, FE-32 | To do |
 | UX-07 | Forms that autofill | 11 UX | FE-35, FE-36, FE-46 | To do |
-| UX-08 | Accessibility baseline | 11 UX | FE-02, FE-03, FE-56 | To do |
-| UX-09 | Performance budget | 11 UX | FE-08, FE-54, FE-56 | To do |
+| UX-08 | Accessibility baseline | 11 UX | FE-02, FE-03 | To do |
+| UX-09 | Performance budget | 11 UX | FE-08, FE-54 | To do |
 | UX-10 | Readable text | 11 UX | FE-10, FE-13, FE-15 | To do |
 | UX-11 | PDP essentials first | 11 UX | FE-25, FE-29 | To do |
 | UX-12 | Faster reordering for trade customers | 11 UX | FE-19, FE-32, FE-37, FE-40 | To do |
@@ -113,11 +117,12 @@ Most B2B pages need backend work the old site did in `ElmeLiving_*` modules. Eac
 | BE-08 | Minimum order value per customer (attribute, service, checkout validator) | FE-33, FE-40, UX-12 | BE-04 |
 | BE-09 | B2B account application backend: attributes, ABN check, emails, approval | FE-35, FE-36 | FE-53 |
 | BE-10 | Account credit: outstanding balance + "on account" payment method | FE-37 (balance widget) | BE-04 |
-| BE-11 | Quick Order backend: SKU search, availability, batch add to cart | FE-40 | BE-06, BE-07 |
-| BE-12 | Saved order lists (order templates) backend | FE-41, FE-42, FE-44 | BE-11 |
+| BE-11 | Quick Order backend: SKU search, availability, batch add to cart | FE-40 | BE-06, BE-07, BE-16 |
+| BE-12 | Saved order lists (order templates) backend | FE-41, FE-42, FE-44 | BE-11, BE-16 |
 | BE-13 | Recently ordered backend | FE-40, FE-43 | BE-06 |
 | BE-14 | Reorder (MOQ aware) and order CSV export | FE-39 buttons | BE-06, FE-39 |
 | BE-15 | Showroom locations data: module, admin, import | FE-51 | FE-04 |
+| BE-16 | Quick Order cart as the only cart (replaces default mini-cart and cart page) | FE-32, FE-33, FE-40, BE-11, BE-12 | BE-06, FE-53 |
 
 Data feeds from Pronto (prices, stock, balances, customers) are integration tickets that come later.
 
@@ -127,7 +132,7 @@ Everything else builds on these four. Ship them first, so other tickets reuse th
 
 ### FE-01 Design tokens, fonts, base typography
 
-**Scope:** colour palette, type scale (body 15/20 Karla, headings DM Serif Display), breakpoints, container up to 1920 px, square corners, form and button metrics in `hyva.config.json` → `tokens.values`; self-hosted fonts. Mostly done.
+**Scope:** colour palette, type scale (body 15/20; fonts changed on 11 Nov 2026 from Karla and DM Serif Display to Figtree for body and headings), breakpoints, container up to 1920 px, square corners, form and button metrics in `hyva.config.json` → `tokens.values`; self-hosted fonts. Mostly done.
 
 **Ref:** `Bart/el/web/css/source/variables/*`; computed styles on https://www.elmeliving.com/
 
@@ -231,6 +236,29 @@ Everything else builds on these four. Ship them first, so other tickets reuse th
 - [ ] Admin → Content → Design → Themes shows the new preview for Elme/default
 - [ ] Image is 400 × 277 px, crisp, under 150 KB
 - [ ] It reads as Elme at a glance (palette, type) and says it is the Hyvä build
+
+### FE-70 Animated Add to Cart button
+
+**Scope:** one add to cart button for PLP tiles and the PDP. Click: the normal button feedback (ripple, press) at once. Sending: the label fades, the cart slides to the centre and a dot keeps dropping into it until the server answers. Success, only after the server confirmed it: the cart leaves to the right, a check with "Added" comes in from the left, holds 2.2 s, then the button is back to "Add to Cart". Error: the button goes straight back and the message shows in the toast stack (FE-03). Square button in site colours (no pill). The button never changes size; icon-only buttons show only the check. Nothing is blocked: add many items in a row, requests run one after another so they never race on the quote; a second click on a button that is still sending is ignored. Reduced motion: no movement, the cart pulses. Out of scope: Quick Order, product image flying to the header cart.
+
+**How:** add the class `btn-atc` to the submit button of an add to cart form. `Magento_Theme::elme/atc-button.phtml` (one delegated listener, CSP-safe) posts the form with `X-Requested-With`, so `checkout/cart/add` answers JSON, reads the `messages` section for errors (so the page message bar does not repeat "You added …"), reloads section data for the mini-cart. CSS: `web/tailwind/elme/add-to-cart.css`. Wired on the PLP tile (`product/list/item.phtml`) and the PDP button (`product/view/addtocart.phtml`; "Update item" on cart configure keeps the normal post). FE-19 and FE-27 must keep `btn-atc` on their buttons. "Redirect to cart after adding" = Yes in admin still redirects after the success state.
+
+**Look:** variant 1 "Cart and dot" picked on 31 Oct 2026 (2 olive fill and 3 rolling label + count were rejected).
+
+**Ref:** Dribbble shot the ticket was made from (not checked: Dribbble showed a bot check); compare the sequence with the reference GIF/frames before QA sign-off.
+
+**QA:**
+
+- [ ] Sequence checked against the reference GIF/frames from the product owner
+- [ ] Logged in, PLP: Add to Cart shows sending, then "Added" for about 2.2 s, then back; mini-cart count goes up without a page reload
+- [ ] PDP (simple and configurable with options chosen): same, qty from the qty field is added
+- [ ] Configurable on PLP without a swatch chosen / qty above stock: button goes back, error toast with Magento's message, no "Added"
+- [ ] Expired form key (other tab logged out): button goes back, error toast, no "Added"
+- [ ] Click Add to Cart on five tiles quickly: every one ends in "Added", the cart has all five, no duplicates; double-click on one tile adds it once
+- [ ] Button width and height do not change in any state, desktop (label) and tablet (icon only)
+- [ ] No green "You added … to your shopping cart" bar under the header after an AJAX add
+- [ ] Screen reader hears "Added to cart"; errors are announced by the toast; focus stays on the button
+- [ ] OS "Reduce motion" on: no sliding, cart pulses while sending; no console errors or CSP violations
 
 ## Epic 1 — Header and navigation
 
@@ -397,7 +425,7 @@ Production category page: banner with title and breadcrumbs, a Filters button th
 
 ### FE-18 Category page header
 
-**Scope:** category banner (title + breadcrumbs left, image right on desktop; image on top on mobile), category description, layout without banner when the category has no image.
+**Scope:** category banner: a short photo band (lifestyle image, cropped, copy overlaid at the bottom left: breadcrumbs, the H1 and the description). A compact text header when the category has no image.
 
 **Ref:** `Bart/el/Overdose_CategoryBanner/templates/category/banner.phtml`, `banner_wrapper.phtml`
 
@@ -519,7 +547,7 @@ Production PDP: gallery left, info right (badge, name, SKU, stock, short descrip
 
 ### FE-28 Configurable products (colour / size)
 
-**Scope:** colour and size swatches; clicking a swatch goes to the sibling product page (Elme has 147 configurables; swatch = navigation, not an in-page switch). Swatches on PLP cards too.
+**Scope:** colour and size swatches; clicking a swatch goes to the sibling product page (swatch = navigation, not an in-page switch). Prod, 15 Oct 2026: colour is not a configurable axis, colour variants are separate products grouped by `colour_super_sku`; the 2,024 configurables vary by size, chaise side or comfort (see `elme-product-data`). The earlier figure of 147 configurables came from a staging snapshot. Swatches on PLP cards too.
 
 **Ref:** `Bart/el/Bart_ConfigurableByAttribute/templates/product/options.phtml`, `product/listing/options.phtml`, `Overdose_ConfigurableByAttribute`
 
@@ -578,7 +606,9 @@ Cart and checkout are login-only. Checkout is our own module `Elme_Checkout` on 
 
 Checkout features (delivery date calendar, account credit payment, Elme freight, minimum order value) come later as their own backend tickets on top of this module.
 
-### FE-32 Mini-cart drawer
+### FE-32 Header cart panel (Quick Order cart)
+
+**D14:** the cart is the Quick Order cart (BE-16), there is no default Magento mini-cart or cart page.
 
 **Scope:** drawer from the header cart icon: items (image, name, SKU, price ex. GST, qty stepper in MOQ multiples, remove), subtotal, "View cart" and "Checkout" buttons, empty state.
 
@@ -590,7 +620,9 @@ Checkout features (delivery date calendar, account credit payment, Elme freight,
 - [ ] Changing qty updates subtotal and header count; qty below MOQ is refused with a message
 - [ ] Remove asks no browser confirm dialog and updates totals
 
-### FE-33 Cart page
+### FE-33 Cart page (/quick-order/cart)
+
+**D14:** the cart is the Quick Order cart (BE-16), there is no default Magento mini-cart or cart page.
 
 **Scope:** item table (image, name, SKU, options, unit price, qty, row total, remove), update qty, MOQ messages, minimum order value notice ("Add $X more to place your order"), coupon code, totals (subtotal ex. GST, freight, GST, total), Proceed to checkout, empty cart page with a link back to shopping. No gift cards (Adobe Commerce only).
 
@@ -708,9 +740,9 @@ Quick Order is the core page for trade customers: they reorder by SKU. On the ol
 - [ ] Minimum order value remainder updates as rows change
 - [ ] 50 rows stay responsive (no lag typing qty)
 
-### FE-41 Quick Order mini-cart, saved toast, Add to list
+### FE-41 Saved toast, Add to list
 
-**Scope:** Quick Order cart icon + panel in the header; "Saved" toast after saving a list; "Add to list" modal from PDP and wishlist (pick an existing list or create one).
+**Scope:** "Saved" toast after saving a list; "Add to list" modal from PDP and wishlist (pick an existing list or create one).
 
 **Ref:** `Bart/el/ElmeLiving_QuickOrder/templates/minicart/qo-minicart.phtml`, `script/qo-saved-toast-js.phtml`, `add-to-list/modal.phtml`, `page/quick-order-cart.phtml`
 
@@ -762,6 +794,8 @@ All content is new; nothing is migrated from the old site. Plain text pages (T&C
 **Scope:** two-column layout with a side menu of help pages (Contact Us, Shipping & Returns, Terms & Conditions, Privacy Policy, FAQs, Become a Stockist); optional top banner. Side menu becomes a dropdown on mobile.
 
 **Ref:** production /shipping-and-returns, /privacy-policy (body classes `help-page`, `help-page-banner`); `Bart/el/Magento_VersionsCms/templates/hierarchy/menu.phtml`
+
+**Redesign (31 Oct 2026, help centre look):** trail and both columns centred in one frame (`--help-shell-max`), serif H1 with a sage rule. Below lg one column: the side menu is a swipeable row of chips above the title (current page scrolled into view) and "Need assistance?" moves under the content. From lg: sticky side column with a white "Help centre" menu card (icon per page, charcoal bar + filled icon on the current page, arrow on hover) and a charcoal "Need assistance?" card. Legal pages: serif H2 sections on hairlines, numbered "On this page" card in two columns, body text `ink-muted` (4.5:1 on the page colour). Become a Stockist: lead intro, numbered steps 01-03 on a hairline (no boxes), facts panel with check icons.
 
 **QA:**
 
@@ -1136,19 +1170,24 @@ Production audit on 22 Oct 2026, logged out, 1440 px and 390 px. Each ticket fix
 
 These decisions change the scope of the tickets named in **Affects**. Make them before those tickets start. Open Source has no Adobe Commerce features (dynamic banners, customer segments, content staging, gift cards), so nothing may depend on them.
 
+The ids D1...D15 belong to this file. The backend team's replatform documents (PIM data specification, Pronto item API) have their own decision log with the same numbers for other things: their D14 is "Avenue is not in the target", ours is the cart. Quote theirs as "replatform D14". Those documents describe the planned architecture (the PIM is not built yet); what they say about product data is in the `elme-product-data` skill.
+
 | # | Decision | Production today | Options | Affects |
 | --- | --- | --- | --- | --- |
-| D1 | Search and recommendations engine | Algolia InstantSearch + Algolia Recommend | Keep Algolia (Hyvä compat module) · native OpenSearch + Hyvä autocomplete, related/upsell from admin | FE-17, FE-22, FE-23, FE-30 |
+| D1 | Search and recommendations engine | Algolia InstantSearch + Algolia Recommend | Keep Algolia (Hyvä compat module) · native OpenSearch + Hyvä autocomplete, related/upsell from admin. Backend plan (9 Nov 2026, not built): a separate Search Service builds the index from Magento product data and Shipment Service stock (replatform D26); which engine the storefront talks to is still open | FE-17, FE-22, FE-23, FE-30 |
 | D2 | Layered navigation | Aheadworks Layered Navigation | Aheadworks + Hyvä compat · Hyvä native filters with our own ranges and chips | FE-21, FE-23 |
 | D3 | Menu source | Snowdog Menu (built in admin) | **Decided:** Snowdog Menu (`snowdog/module-menu` ≥2.24, native Hyvä templates; no separate compat module). Local patch for Symfony `execute(): int` on Magento 2.4.9. | FE-08, FE-09 |
 | D4 | Product reviews | Yotpo enabled, not visible to guests | Keep Yotpo · drop reviews | FE-25, FE-43 |
 | D5 | Lookbook hotspots | MGS Lookbook | **Decided:** Content Studio type `lookbook` (FE-57) | FE-49, FE-16 |
-| D6 | PDP stock / delivery data | Pronto stock, shipment service, Fusedship rates, showroom stock | Which of these exist on the new instance at launch | FE-31 |
+| D6 | PDP stock / delivery data | Pronto stock, shipment service, Fusedship rates, showroom stock | **Direction from the backend plan (9 Nov 2026, not built):** no stock data stored in Magento; stock label, quantity, dock date and ETA from a live request to the Shipment Service (Elme stock plus James Lane DC stock for shared items). Until that request exists the card and the PDP read the label from MSI (`Elme\Theme\ViewModel\ProductTile`); FE-31 replaces it. Open: what is available at launch | FE-31, FE-19, FE-25 |
 | D7 | Newsletter and signup popup | Klaviyo popup + footer form | Klaviyo forms · Magento newsletter + own popup | FE-11, FE-54 |
-| D8 | Product images | Cloudinary | Keep Cloudinary · native Magento images | FE-19, FE-25 |
+| D8 | Product images | Cloudinary | **Direction from the backend plan (9 Nov 2026):** Cloudinary stays the media store; the future PIM sends the reference, roles, alt text and order. Templates read images through the Magento gallery and image blocks only, so the URL source can change without touching them. Open: the Cloudinary module on this instance | FE-19, FE-25 |
 | D9 | Blog | Magefan Blog templates exist, /blog is 404 | Drop (recommended) · port | — |
 | D10 | Instagram feed | Overdose InstaFeed | Instagram API module · static images in CMS | FE-12, FE-50 |
 | D11 | CMS content | Adobe Page Builder + LESS classes | **Decided:** new content, no migration; Page Builder for plain text pages, own copy of Content Studio (Open Source + Hyva) for structured blocks, placed with its Page Builder content type or widget; no CMS Tailwind JIT | FE-14...16, FE-47...49, FE-57 |
 | D12 | Checkout | Luma checkout (Adobe Commerce) with Elme Knockout mixins | **Decided:** own module `Elme_Checkout` on Elme/default (one page, server-side state, CSP Alpine). Luma fallback checkout removed; no Hyva Checkout (paid licence per installation) | FE-34, BE-01...BE-05 |
+| D13 | Home page layout | Hero, statement, dark Outlet band, catalogues, collage, Our Difference, dark Need assistance band | **Decided (31 Oct 2026):** "Calm gallery": hero with the H1 (made taller on 2 Nov 2026: 4:5 on phones, at least 680px or 32vw on desktop, at most 75svh, so the photos show), intro with three trade facts, all categories in a grid, Outlet + Lookbook + Virtual Catalogues as three photo cards, Become a Stockist collage with button, Instagram; Our Difference only on About us; Need assistance? only in page content (About us, help pages, Outlet), not in the footer (removed 10 Nov 2026: production has no such footer row); motion only in the hero and the Become a Stockist collage (4 Nov 2026: scroll reveals removed from the other home sections; seeded by `SeedHomepageContentSections`) | FE-14...16, FE-12, FE-13 |
+| D14 | Cart | Custom Quick Order cart on a per-customer list, default mini-cart and cart page removed | **Decided (2 Nov 2026, chief engineer):** port it. The working cart is the list `cart_list` (sku + qty), edits save without touching the quote, and the quote is rebuilt from it when /checkout opens. Open: migration of saved lists, place of the coupon field | BE-16, FE-32, FE-33, FE-40...FE-44 |
+| D15 | Public APIs | Core anonymous REST and GraphQL open | **Decided (2 Nov 2026):** closed for guests, because they gave prices and placed guest orders on the login-only site. `Elme_LoginOnly` refuses anonymous REST and SOAP routes (only `/V1/integration/admin/token` stays open) and all guest GraphQL. `Elme_Checkout` refuses API orders from customers and guests, so the place-order validators cannot be skipped; admin and integration tokens stay allowed. A feature that needs a public route adds it to `allowedPaths` in `Elme_LoginOnly/etc/webapi_rest/di.xml` | FE-53, BE-08, payment webhooks |
 
 Out of scope for this list: transactional email templates, checkout features (delivery date calendar, account credit, freight) that come with their backend tickets, and writing the new CMS content.

@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * The renderer of a payment method without fields of its own. Runs inside the x-for of section/payment.phtml.
+ */
+?>
+<label class="elme-checkout-option">
+    <input type="radio"
+           class="elme-checkout-option__control"
+           name="payment_method"
+           :value="method.code"
+           :checked="isChecked"
+           @change="pick">
+    <span class="elme-checkout-option__body">
+        <span class="elme-checkout-option__title" x-text="method.title"></span>
+        <span class="elme-checkout-option__meta whitespace-pre-line" x-show="method.instructions" x-text="method.instructions"></span>
+    </span>
+</label>

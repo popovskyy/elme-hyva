@@ -24,7 +24,7 @@ if (in_array($pageLayout, $block->getData('skip_on_page_layouts') ?? [], true)) 
 }
 
 $headingTag = $block->getData('heading_tag') ?: 'h1';
-$cssClasses = $block->getCssClasses() ?? $block->getCssClass() ?? 'text-3xl font-bold mb-6';
+$cssClasses = $block->getCssClasses() ?? $block->getCssClass() ?? 'text-h1 font-normal mb-6';
 $wrapperCssClasses = $block->getWrapperCssClasses()
     ?? $block->getData('maybe_purged_tailwind_section_classes')
     ?? 'container flex flex-col md:flex-row flex-wrap';

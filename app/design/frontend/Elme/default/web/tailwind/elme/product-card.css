@@ -1,0 +1,169 @@
+/*
+ * FE-19 product card: Magento_Catalog::product/list/item.phtml (PLP, search, carousels, wishlist).
+ * White image tile, square, the photo fits inside it (products are cut out on white).
+ */
+@layer components {
+    .elme-card__media img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transition: scale var(--transition-duration-slow) var(--ease-out-quart);
+    }
+
+    @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+        .elme-card:hover .elme-card__media img {
+            scale: 1.04;
+        }
+    }
+
+    /* Two lines of name always take two lines, so SKU, price and buttons line up across a row. */
+    .elme-card__name {
+        min-height: calc(2 * var(--text-copy) * var(--text-copy--line-height));
+
+        @variant lg {
+            min-height: calc(2 * var(--text-copy-desktop) * var(--text-copy--line-height));
+        }
+    }
+
+    .elme-card__price {
+        min-height: --spacing(6);
+    }
+
+    .elme-card__badge {
+        padding: --spacing(1) --spacing(2);
+        font-size: var(--text-label);
+        line-height: var(--text-label--line-height);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--color-on-primary);
+    }
+
+    .elme-card__badge--sale {
+        background: var(--color-promo);
+    }
+
+    .elme-card__badge--new {
+        background: var(--color-olive);
+    }
+
+    /* FE-73: heart opens Add to Shopping List. Square, like the rest of the card. */
+    .elme-card__heart,
+    .elme-save {
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        width: --spacing(10);
+        height: --spacing(10);
+        color: var(--color-ink);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        cursor: pointer;
+        transition: color var(--transition-duration-fast) var(--ease-out-quad), background-color var(--transition-duration-fast) var(--ease-out-quad);
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
+        }
+    }
+
+    .elme-card__heart {
+        position: absolute;
+        top: --spacing(2);
+        inset-inline-end: --spacing(2);
+        z-index: 2;
+
+        @variant lg {
+            top: --spacing(3);
+            inset-inline-end: --spacing(3);
+        }
+    }
+
+    .elme-save {
+        width: --spacing(12);
+        height: auto;
+        align-self: stretch;
+        min-height: --spacing(12);
+    }
+
+    @media (hover: hover) {
+        .elme-card__heart:hover,
+        .elme-save:hover {
+            color: var(--color-primary);
+            background: var(--color-page);
+        }
+    }
+
+    /* One line reserved even when out of stock (no label), so a row of tiles stays level. */
+    .elme-card__stock {
+        min-height: var(--text-note--line-height);
+    }
+
+    .elme-card__stock--in {
+        color: var(--color-success-text);
+    }
+
+    .elme-card__stock--low {
+        color: var(--color-warning-text);
+    }
+
+    .elme-card__moq {
+        min-height: var(--text-note--line-height);
+    }
+
+    /* Qty stepper: − [qty] +, as tall as the button next to it. */
+    .elme-qty {
+        display: flex;
+        align-items: stretch;
+        min-height: --spacing(11);
+        border: 1px solid var(--color-border);
+        background: var(--color-surface);
+    }
+
+    .elme-qty__btn {
+        display: grid;
+        place-items: center;
+        width: --spacing(11);
+        flex-shrink: 0;
+        color: var(--color-ink);
+        cursor: pointer;
+        transition: background-color var(--transition-duration-fast) var(--ease-out-quad);
+
+        &:hover:not(:disabled) {
+            background: var(--color-surface-muted);
+        }
+
+        &:disabled {
+            color: var(--color-placeholder);
+            cursor: default;
+        }
+
+        &:focus-visible {
+            outline: --spacing(0.5) solid var(--color-ink);
+            outline-offset: calc(var(--spacing) * -0.5);
+        }
+    }
+
+    .elme-qty__input {
+        flex: 1 1 auto;
+        width: --spacing(12);
+        min-width: 0;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+        appearance: textfield;
+
+        &::-webkit-inner-spin-button,
+        &::-webkit-outer-spin-button {
+            appearance: none;
+            margin: 0;
+        }
+
+        &:focus-visible {
+            outline: --spacing(0.5) solid var(--color-ink);
+            outline-offset: calc(var(--spacing) * -0.5);
+        }
+    }
+}

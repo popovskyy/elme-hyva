@@ -1,5 +1,5 @@
 /*
- * FE-15 category tiles, look chosen from docs/design/category-tiles-options.html (variant 3):
+ * FE-15 category tiles, variant 3:
  * a 3:2 photo with the name on a short ink scrim. Phone tile 250px, wide tile 340px.
  */
 
@@ -46,7 +46,7 @@
         height: 100%;
         object-fit: cover;
         object-position: center 45%;
-        transition: transform var(--transition-duration-slow) var(--ease-out-cubic);
+        transition: transform var(--transition-duration-slow) var(--ease-out-quad);
     }
 
     .elme-category-tiles__name {
@@ -124,7 +124,7 @@
     }
 
     /* Arrows sit on the photo, so they stay out of the way until the row is hovered.
-       Enter is fast, leave is shorter; both ease out. Touch does not get the hover scale. */
+       Enter is fast, leave is shorter; both var(--ease-out-quad) out. Touch does not get the hover scale. */
     @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
         .elme-category-tiles__arrow {
             opacity: 0;

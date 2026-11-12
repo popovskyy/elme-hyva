@@ -1,282 +1,579 @@
 /*
- * FE-45 Help page shell: two-column layout, side nav (sticky desktop / disclosure mobile),
- * ~80-character prose measure, assistance strip under the menu.
+ * FE-45 Help pages (Contact Us, Shipping & Returns, FAQs, Become a Stockist, Terms, Privacy), help centre look.
+ *
+ * Shell: the trail and both columns sit in one centred frame (--help-shell-max) instead of hugging the left
+ * edge of a 1920px container; side column 240/288px, main column up to --help-content-max, running text
+ * capped at --help-main-max (~80 characters).
+ * Phones and tablets: one column; the side nav is a swipeable row of chips above the title and "Need assistance?"
+ * moves under the content (the side column is display: contents there, so its two parts become items of the page
+ * grid).
+ * lg+: a sticky side column, a white menu card with icons and a charcoal "Need assistance?" card.
  */
 @layer components {
+    .help-page #maincontent {
+        --container-max-width: var(--help-shell-max);
+    }
+
     .help-page .page-main {
-        margin-block: --spacing(7) --spacing(14);
+        margin-block: --spacing(6) --spacing(14);
     }
 
     @variant md {
         .help-page .page-main {
-            margin-block: --spacing(10) --spacing(16);
-        }
-    }
-
-    /* Main column: readable legal line length (~80ch / production 680px) */
-    .help-page.page-layout-2columns-left .column.main {
-        max-width: var(--help-main-max);
-    }
-
-    .help-page .column.main .prose,
-    .help-page .column.main [data-content-type='text'],
-    .help-page .column.main .elme-help-body {
-        max-width: var(--help-main-max);
-    }
-
-    /*
-     * Sticky side column while scrolling long Privacy / Terms.
-     * Hyva's 2-col grid uses two rows (main spans both; sidebar only row 1) so the sidebar
-     * containing block is ~content-tall and sticky never engages. Stretch the help sidebar
-     * across both rows so sticky can pin while the main column scrolls.
-     */
-    .elme-help__sidebar {
-        display: flex;
-        flex-direction: column;
-        gap: --spacing(4);
-    }
-
-    @variant md {
-        .help-page.page-layout-2columns-left .columns > .sidebar-main {
-            grid-row: 1 / span 2;
+            margin-block: --spacing(8) --spacing(20);
         }
     }
 
     @variant lg {
+        .help-page.page-layout-2columns-left .columns {
+            column-gap: --spacing(16);
+        }
+    }
+
+    .help-page.page-layout-2columns-left .column.main {
+        min-width: 0;
+        max-width: var(--help-content-max);
+    }
+
+    /* --- Title --------------------------------------------------------------------------------- */
+    .help-page .elme-help__title {
+        margin-bottom: 0;
+        font-family: var(--font-heading);
+        font-weight: 400;
+        font-size: var(--text-display);
+        line-height: var(--text-display--line-height);
+        color: var(--color-ink);
+        text-wrap: balance;
+    }
+
+    @variant md {
+        .help-page .elme-help__title {
+            font-size: var(--text-display-desktop);
+            line-height: var(--text-display--line-height);
+        }
+    }
+
+    /* short sage rule under the H1 (on the H1, so "On this page" comes after it) */
+    .help-page .elme-help__title::after {
+        content: "";
+        display: block;
+        inline-size: --spacing(12);
+        block-size: 2px;
+        margin-top: --spacing(4);
+        background: var(--color-secondary);
+    }
+
+    .help-page .elme-help__title-wrap {
+        display: block;
+        margin-bottom: --spacing(6);
+        padding: 0;
+    }
+
+    @variant md {
+        .help-page .elme-help__title::after {
+            margin-top: --spacing(5);
+        }
+
+        .help-page .elme-help__title-wrap {
+            margin-bottom: --spacing(8);
+        }
+    }
+
+    /* --- Side column --------------------------------------------------------------------------- */
+    .elme-help__sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(6);
+    }
+
+    /* Phones and tablets: one column, nav above the title, assistance after the content */
+    @variant max-lg {
+        .help-page .columns > .sidebar-main,
+        .help-page .elme-help__sidebar {
+            display: contents;
+        }
+
+        .help-page .elme-help-nav {
+            order: -1;
+            min-width: 0;
+        }
+
+        .help-page .elme-help__assistance {
+            order: 1;
+            margin-top: --spacing(6);
+        }
+    }
+
+    @variant lg {
+        /* Hyva's 2-col grid has two rows; let the side column span both so sticky can engage */
+        .help-page.page-layout-2columns-left .columns > .sidebar-main {
+            grid-row: 1 / span 2;
+        }
+
         .elme-help__sidebar {
             position: sticky;
-            /* Clear sticky header row (--elme-header-offset from header.phtml), same idea as .elme-sticky-below-header */
+            /* clear the sticky header row (--elme-header-offset from header.phtml) */
             top: calc(var(--elme-header-offset, 0px) + --spacing(6));
             align-self: start;
             z-index: 1;
         }
     }
 
-    /* Side nav */
-    .elme-help-nav__trigger {
-        display: flex;
-        width: 100%;
-        align-items: center;
-        justify-content: space-between;
-        gap: --spacing(3);
-        margin: 0 0 --spacing(2);
-        padding: --spacing(3.5) --spacing(4);
-        border: 1px solid var(--color-border);
-        border-radius: var(--form-radius);
-        background-color: var(--color-surface);
-        color: var(--color-ink);
-        font-family: var(--font-sans);
-        font-size: var(--text-note);
-        line-height: var(--text-note--line-height);
-        font-weight: 400;
-        text-align: left;
-        cursor: pointer;
+    /* --- Side nav: chips on phones ------------------------------------------------------------ */
+    .elme-help-nav__heading {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
     }
 
-    .elme-help-nav__trigger:focus-visible {
-        outline: 2px solid var(--color-ink);
-        outline-offset: 2px;
-    }
-
-    .elme-help-nav__chevron {
-        display: inline-flex;
-        flex-shrink: 0;
-        transition: transform 180ms ease-out;
-    }
-
-    .elme-help-nav__chevron--open {
-        transform: rotate(180deg);
-    }
-
-    .elme-help-nav__panel {
-        margin-bottom: --spacing(2);
-    }
-
-    .elme-help-nav__transition {
-        transition-property: opacity, transform;
-        transition-duration: 180ms;
-        transition-timing-function: ease-out;
-    }
-
-    .elme-help-nav__transition--closed {
-        opacity: 0;
-        transform: translateY(-0.25rem);
-    }
-
-    .elme-help-nav__transition--open {
-        opacity: 1;
-        transform: translateY(0);
+    .elme-help-nav__rail {
+        position: relative;
+        margin-inline: calc(var(--container-gutter) * -1);
     }
 
     .elme-help-nav__list {
-        list-style: none;
+        position: relative;
+        display: flex;
+        gap: --spacing(2);
         margin: 0;
-        padding: --spacing(2.5) 0;
-        background-color: var(--color-surface);
+        padding: --spacing(1) var(--container-gutter) --spacing(2);
+        list-style: none;
+        overflow-x: auto;
+        scroll-snap-type: x proximity;
+        scroll-padding-inline: var(--container-gutter);
+        scrollbar-width: none;
+        overscroll-behavior-x: contain;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
     }
 
-    .elme-help-nav__list--desktop {
-        padding: 0;
-        background: transparent;
+    /* edge fades only while there is more to scroll that way (menu.phtml toggles the classes) */
+    .elme-help-nav__rail::before,
+    .elme-help-nav__rail::after {
+        content: "";
+        position: absolute;
+        inset-block: 0;
+        z-index: 1;
+        inline-size: --spacing(8);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity var(--transition-duration-fast) var(--ease-out-quad);
+    }
+
+    .elme-help-nav__rail::before {
+        inset-inline-start: 0;
+        background: linear-gradient(to right, var(--color-page), transparent);
+    }
+
+    .elme-help-nav__rail::after {
+        inset-inline-end: 0;
+        background: linear-gradient(to left, var(--color-page), transparent);
+    }
+
+    .elme-help-nav__rail.is-scrollable-start::before,
+    .elme-help-nav__rail.is-scrollable-end::after {
+        opacity: 1;
     }
 
     .elme-help-nav__item {
+        flex: none;
         margin: 0;
+        scroll-snap-align: start;
     }
 
     .elme-help-nav__link {
-        display: block;
-        padding: --spacing(2.5) --spacing(3.5) --spacing(2);
+        display: inline-flex;
+        align-items: center;
+        gap: --spacing(2);
+        min-height: --spacing(11);
+        padding: --spacing(2) --spacing(4) --spacing(2) --spacing(3);
+        border: 1px solid var(--color-border);
+        background-color: var(--color-surface);
+        color: var(--color-ink);
         font-size: var(--text-note);
         line-height: var(--text-note--line-height);
-        font-weight: 400;
-        color: var(--color-ink);
+        font-weight: 500;
+        white-space: nowrap;
         text-decoration: none;
+        transition:
+            background-color var(--transition-duration-fast) var(--ease-out-quad),
+            border-color var(--transition-duration-fast) var(--ease-out-quad),
+            color var(--transition-duration-fast) var(--ease-out-quad);
+
+        &:hover {
+            border-color: var(--color-ink);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
+        }
+
+        &[aria-current="page"] {
+            border-color: var(--color-primary);
+            background-color: var(--color-primary);
+            color: var(--color-on-primary);
+        }
+    }
+
+    .elme-help-nav__icon {
+        display: inline-flex;
+        color: var(--color-olive);
+
+        [aria-current="page"] & {
+            color: var(--color-secondary);
+        }
+
+        svg {
+            stroke-width: 1.75;
+        }
+    }
+
+    .elme-help-nav__arrow {
+        display: none;
+    }
+
+    /* --- Side nav: menu card from lg --------------------------------------------------------- */
+    @variant lg {
+        .elme-help-nav {
+            padding: --spacing(5) --spacing(3) --spacing(3);
+            border: 1px solid var(--color-border);
+            background-color: var(--color-surface);
+        }
+
+        .elme-help-nav__heading {
+            position: static;
+            width: auto;
+            height: auto;
+            overflow: visible;
+            clip-path: none;
+            margin: 0 --spacing(3) --spacing(3);
+            font-family: var(--font-heading);
+            font-size: var(--text-h3-desktop);
+            line-height: 1.2;
+            color: var(--color-ink);
+        }
+
+        .elme-help-nav__rail {
+            margin-inline: 0;
+
+            &::before,
+            &::after {
+                content: none;
+            }
+        }
+
+        .elme-help-nav__list {
+            flex-direction: column;
+            gap: 0;
+            padding: 0;
+            overflow: visible;
+        }
+
+        .elme-help-nav__link {
+            position: relative;
+            display: flex;
+            width: 100%;
+            gap: --spacing(3);
+            min-height: --spacing(12);
+            padding: --spacing(2) --spacing(3);
+            border: 0;
+            background-color: transparent;
+            font-size: var(--text-copy-desktop);
+            line-height: var(--text-copy--line-height);
+            font-weight: 400;
+            white-space: normal;
+
+            /* charcoal bar on the current page */
+            &::before {
+                content: "";
+                position: absolute;
+                inset-block: --spacing(2);
+                inset-inline-start: calc(var(--spacing) * -3 - 1px);
+                inline-size: 2px;
+                background-color: var(--color-primary);
+                scale: 1 0;
+                transition: scale var(--transition-duration-base) var(--ease-out-quart);
+            }
+
+            &:hover {
+                background-color: var(--color-page);
+            }
+
+            &[aria-current="page"] {
+                background-color: var(--color-page);
+                color: var(--color-ink);
+                font-weight: 500;
+
+                &::before {
+                    scale: 1 1;
+                }
+            }
+        }
+
+        .elme-help-nav__icon {
+            flex: none;
+            display: grid;
+            place-items: center;
+            inline-size: --spacing(8);
+            block-size: --spacing(8);
+            background-color: var(--color-page);
+            color: var(--color-olive);
+            transition:
+                background-color var(--transition-duration-fast) var(--ease-out-quad),
+                color var(--transition-duration-fast) var(--ease-out-quad);
+
+            .elme-help-nav__link:hover & {
+                background-color: var(--color-sand-light);
+            }
+
+            [aria-current="page"] & {
+                background-color: var(--color-primary);
+                color: var(--color-on-primary);
+            }
+        }
+
+        .elme-help-nav__label {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .elme-help-nav__arrow {
+            display: inline-flex;
+            flex: none;
+            color: var(--color-ink-muted);
+            opacity: 0;
+            translate: --spacing(-1) 0;
+            transition:
+                opacity var(--transition-duration-fast) var(--ease-out-quad),
+                translate var(--transition-duration-base) var(--ease-out-quart);
+
+            .elme-help-nav__link:is(:hover, :focus-visible) & {
+                opacity: 1;
+                translate: 0 0;
+            }
+
+            [aria-current="page"] & {
+                opacity: 0;
+            }
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .elme-help-nav__link::before,
+        .elme-help-nav__arrow {
+            transition: none;
+        }
+    }
+
+    /* --- Need assistance? as a charcoal card. Same letterhead, light type on ink. ----------- */
+    .help-page .elme-help__assistance .elme-need-assistance {
+        margin-bottom: 0;
+        padding: --spacing(6) --spacing(5);
+        background-color: var(--color-ink);
+        color: var(--color-on-primary);
+    }
+
+    @variant md {
+        .help-page .elme-help__assistance .elme-need-assistance {
+            padding: --spacing(6);
+        }
+    }
+
+    .help-page .elme-help__assistance .elme-need-assistance__inner {
+        gap: --spacing(4);
+    }
+
+    .help-page .elme-help__assistance .elme-need-assistance__title {
+        font-size: var(--text-h3-desktop);
+        line-height: 1.2;
+        color: var(--color-on-primary);
+    }
+
+    .help-page .elme-help__assistance .elme-need-assistance__cells > li {
+        border-color: color-mix(in oklab, var(--color-on-primary) 22%, transparent);
+    }
+
+    .help-page .elme-help__assistance .elme-need-assistance__label {
+        color: color-mix(in oklab, var(--color-on-primary) 72%, transparent);
+    }
+
+    .help-page .elme-help__assistance .elme-need-assistance__value {
+        color: var(--color-on-primary);
+    }
+
+    .help-page .elme-help__assistance .elme-need-assistance__cell:is(:hover, :focus-visible) .elme-need-assistance__value {
+        color: var(--color-secondary);
+    }
+
+    .help-page .elme-help__assistance .elme-need-assistance__cell:focus-visible {
+        outline-color: var(--color-on-primary);
+    }
+
+    /* --- On this page (Terms, Privacy) ------------------------------------------------------- */
+    .elme-help-toc {
+        margin: --spacing(6) 0 0;
+        padding: --spacing(5);
+        border: 1px solid var(--color-border);
         background-color: var(--color-surface);
     }
 
-    .elme-help-nav__link:hover {
-        color: var(--color-link-hover);
-        text-decoration: underline;
-        text-underline-offset: 0.15em;
-    }
-
-    .elme-help-nav__link:focus-visible {
-        outline: 2px solid var(--color-ink);
-        outline-offset: 2px;
-    }
-
-    .elme-help-nav__link--current,
-    .elme-help-nav__item--current .elme-help-nav__link--current {
-        background-color: var(--color-page);
-        font-weight: 500;
-    }
-
-    @variant lg {
-        .elme-help-nav__list--desktop .elme-help-nav__link {
-            padding-inline: 0;
-            background: transparent;
-        }
-
-        .elme-help-nav__list--desktop .elme-help-nav__link--current {
-            background: transparent;
-            text-decoration: underline;
-            text-underline-offset: 0.2em;
-        }
-    }
-
-    /* Assistance strip under menu - bordered like production .cms-info on help pages */
-    .help-page .elme-help__assistance .elme-need-assistance {
-        margin-bottom: 0;
-    }
-
-    /* Small label title in the side column, like the On this page heading */
-    .help-page .elme-help__assistance .elme-need-assistance__title {
-        font-family: var(--font-sans);
-        font-size: var(--text-note);
-        line-height: var(--text-note--line-height);
-        font-weight: 600;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-    }
-
-    /* On this page */
-    .elme-help-toc {
-        margin: 0 0 --spacing(6);
-        padding: --spacing(4) 0 0;
-    }
-
     .elme-help-toc__heading {
-        margin: 0 0 --spacing(2);
+        margin: 0 0 --spacing(3);
         font-family: var(--font-sans);
-        font-size: var(--text-note);
-        line-height: var(--text-note--line-height);
+        font-size: var(--text-copy-desktop);
+        line-height: var(--text-copy--line-height);
         font-weight: 600;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
         color: var(--color-ink);
     }
 
     .elme-help-toc__list {
-        list-style: none;
         margin: 0;
         padding: 0;
-        display: flex;
-        flex-direction: column;
-        gap: --spacing(1.5);
+        list-style: none;
+        counter-reset: elme-toc;
+        display: grid;
+        gap: --spacing(1) --spacing(6);
+    }
+
+    @variant md {
+        .elme-help-toc {
+            padding: --spacing(6);
+        }
+
+        .elme-help-toc__list {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    .elme-help-toc__item {
+        counter-increment: elme-toc;
     }
 
     .elme-help-toc__link {
+        display: flex;
+        gap: --spacing(3);
+        padding-block: --spacing(1.5);
         font-size: var(--text-copy);
         line-height: var(--text-copy--line-height);
         color: var(--color-ink);
-        text-decoration: underline;
-        text-underline-offset: 0.15em;
+        text-decoration: none;
+
+        &::before {
+            content: counter(elme-toc, decimal-leading-zero);
+            flex: none;
+            min-width: 2ch;
+            color: var(--color-olive);
+            font-variant-numeric: tabular-nums;
+        }
+
+        &:hover {
+            text-decoration: underline;
+            text-underline-offset: 0.2em;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
+        }
     }
 
-    .elme-help-toc__link:hover {
-        color: var(--color-link-hover);
+    @variant md {
+        .elme-help-toc__link {
+            font-size: var(--text-copy-desktop);
+            line-height: var(--text-copy--line-height);
+        }
     }
 
-    .elme-help-toc__link:focus-visible {
-        outline: 2px solid var(--color-ink);
-        outline-offset: 2px;
+    /* --- Running text (seeded CMS copy) ------------------------------------------------------ */
+    .help-page .column.main :is(.prose, [data-content-type='text']),
+    .elme-help-body > :is(p, ul, ol, h2, h3) {
+        max-width: var(--help-main-max);
     }
 
-    /* Seeded help body: heading rhythm for long legal copy */
     .elme-help-body h2 {
-        margin-block: --spacing(7) --spacing(2);
-        font-family: var(--font-sans);
-        font-size: var(--text-h5);
-        line-height: var(--text-h5--line-height);
-        font-weight: 600;
+        margin-block: --spacing(10) --spacing(3);
+        padding-top: --spacing(8);
+        border-top: 1px solid var(--color-border);
+        font-family: var(--font-heading);
+        font-size: var(--text-h2);
+        line-height: var(--text-h2--line-height);
+        font-weight: 400;
         color: var(--color-ink);
-        scroll-margin-top: --spacing(6);
+        scroll-margin-top: calc(var(--elme-header-offset, 0px) + --spacing(6));
     }
 
     .elme-help-body h2:first-child {
         margin-top: 0;
+        padding-top: 0;
+        border-top: 0;
     }
 
     .elme-help-body h3 {
-        margin-block: --spacing(5) --spacing(2);
+        margin-block: --spacing(6) --spacing(2);
         font-family: var(--font-sans);
-        font-size: var(--text-h5);
-        line-height: var(--text-h5--line-height);
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
         font-weight: 600;
         color: var(--color-ink);
+    }
+
+    .elme-help-body h2 + h3 {
+        margin-top: --spacing(4);
     }
 
     .elme-help-body p {
         margin: 0 0 --spacing(3);
         font-size: var(--text-copy);
-        line-height: var(--text-copy--line-height);
-        color: var(--color-ink-subtle);
+        line-height: 1.6;
+        color: var(--color-ink-muted);
     }
 
     .elme-help-body ul {
         margin: 0 0 --spacing(4);
         padding-inline-start: --spacing(5);
-        color: var(--color-ink-subtle);
+        color: var(--color-ink-muted);
         font-size: var(--text-copy);
-        line-height: var(--text-copy--line-height);
+        line-height: 1.6;
     }
 
     .elme-help-body li + li {
         margin-block-start: --spacing(2);
     }
 
+    .elme-help-body li::marker {
+        color: var(--color-olive);
+    }
+
+    .elme-help-body a:not(.btn) {
+        color: var(--color-ink);
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+        text-decoration-color: var(--color-secondary);
+
+        &:hover {
+            text-decoration-color: currentColor;
+        }
+    }
+
     @variant md {
         .elme-help-body h2 {
-            font-size: var(--text-h5-desktop);
-            line-height: var(--text-h5-desktop--line-height);
-            margin-top: --spacing(8);
+            font-size: var(--text-h2-desktop);
+            line-height: 1.25;
+        }
+
+        .elme-help-body h3 {
+            font-size: var(--text-h4-desktop);
         }
 
         .elme-help-body p,
         .elme-help-body ul {
             font-size: var(--text-copy-desktop);
-            line-height: var(--text-copy-desktop--line-height);
         }
     }
 
@@ -295,6 +592,25 @@
         .help-page-banner .elme-help-banner {
             margin-inline: 0;
             margin-bottom: --spacing(7);
+        }
+    }
+}
+
+/*
+ * Help pages stay one column below lg. Unlayered on purpose: theme/page-layout.css sets the md two-column grid
+ * outside any layer, and a layered rule cannot beat it.
+ */
+@variant max-lg {
+    .help-page.page-layout-2columns-left {
+        --page-layout: minmax(0, 1fr);
+
+        .columns {
+            grid-template-rows: none;
+        }
+
+        .columns > .column.main {
+            grid-column-start: auto;
+            grid-row: auto;
         }
     }
 }

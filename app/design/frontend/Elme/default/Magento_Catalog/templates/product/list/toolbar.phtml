@@ -1,0 +1,207 @@
+<?php
+/**
+ * FE-20: PLP toolbar shell (sort / amount / pager / limiter).
+ * CSP-safe Alpine; scroll-to-grid on page changes (QA #1). No JSON-LD (FE-55).
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Catalog\Block\Product\ProductList\Toolbar;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var Toolbar $block */
+/** @var HyvaCsp $hyvaCsp */
+
+$additionalOptions = ['page' => 'p'];
+$toolbarOptionsJson = $block->getWidgetOptionsJson($additionalOptions);
+?>
+<?php if ($block->getCollection()->getSize()): ?>
+    <div x-data="initElmeProductListToolbar"
+         data-toolbar-options="<?= $escaper->escapeHtmlAttr($toolbarOptionsJson) ?>"
+         class="toolbar toolbar-products elme-plp-toolbar grid grid-cols-4 sm:grid-cols-8 md:grid-cols-4
+            lg:grid-cols-8 grid-flow-row gap-2 items-center min-h-10">
+        <?php if ($block->getIsBottom()): ?>
+            <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/amount.phtml')) ?>
+            <?= $block->getPagerHtml() ?>
+            <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/limiter.phtml')) ?>
+        <?php else: ?>
+            <?php if ($block->isExpanded()): ?>
+                <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/amount.phtml')) ?>
+                <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/sorter.phtml')) ?>
+            <?php endif ?>
+        <?php endif ?>
+    </div>
+    <?php // Register Alpine once on the top toolbar (rendered before the bottom one). ?>
+    <?php if (!$block->getIsBottom()): ?>
+<script>
+    function initElmeProductListToolbar() {
+        return {
+            options: {},
+
+            init() {
+                const raw = JSON.parse(this.$root.dataset.toolbarOptions || '{}');
+                this.options = raw.productListToolbarForm || {};
+                this.scrollToGridIfPaged();
+            },
+
+            getUrlParams() {
+                const decode = window.decodeURIComponent;
+                const urlPaths = this.options.url.split('?');
+                const urlParams = urlPaths[1] ? urlPaths[1].split('&') : [];
+                const params = {};
+                let parameters;
+                let i;
+
+                for (i = 0; i < urlParams.length; i++) {
+                    parameters = urlParams[i].split('=');
+                    params[decode(parameters[0])] = parameters[1] !== undefined
+                        ? decode(parameters[1].replace(/\+/g, '%20'))
+                        : '';
+                }
+
+                return params;
+            },
+
+            getCurrentLimit() {
+                return this.getUrlParams()[this.options.limit] || this.options.limitDefault;
+            },
+
+            getCurrentPage() {
+                return this.getUrlParams()[this.options.page] || 1;
+            },
+
+            changeUrl(paramName, paramValue, defaultValue) {
+                const urlPaths = this.options.url.split('?');
+                const baseUrl = urlPaths[0];
+                const paramData = this.getUrlParams();
+                const currentPage = this.getCurrentPage();
+                let newPage;
+
+                if (currentPage > 1 && paramName === this.options.limit) {
+                    newPage = Math.floor(this.getCurrentLimit() * (currentPage - 1) / paramValue) + 1;
+
+                    if (newPage > 1) {
+                        paramData[this.options.page] = newPage;
+                    } else {
+                        delete paramData[this.options.page];
+                    }
+                }
+
+                paramData[paramName] = paramValue;
+
+                if (this.options.post) {
+                    hyva.postForm({action: baseUrl, data: paramData, skipUenc: true});
+                    return;
+                }
+
+                if (paramValue === defaultValue.toString()) {
+                    delete paramData[paramName];
+                }
+
+                const query = Object.keys(paramData).length === 0
+                    ? ''
+                    : '?' + (new URLSearchParams(paramData));
+                location.href = baseUrl + query;
+            },
+
+            /**
+             * Price low/high are two select options that map to product_list_order=price + product_list_dir.
+             */
+            changeSortWithDir(order, dir) {
+                const urlPaths = this.options.url.split('?');
+                const baseUrl = urlPaths[0];
+                const paramData = this.getUrlParams();
+
+                paramData[this.options.order] = order;
+                paramData[this.options.direction] = dir;
+
+                if (order === this.options.orderDefault.toString()) {
+                    delete paramData[this.options.order];
+                }
+                if (dir === this.options.directionDefault.toString()) {
+                    delete paramData[this.options.direction];
+                }
+
+                if (this.options.post) {
+                    hyva.postForm({action: baseUrl, data: paramData, skipUenc: true});
+                    return;
+                }
+
+                const query = Object.keys(paramData).length === 0
+                    ? ''
+                    : '?' + (new URLSearchParams(paramData));
+                location.href = baseUrl + query;
+            },
+
+            onSortChange() {
+                const value = this.$event.target.value;
+                if (value === 'price_asc') {
+                    this.changeSortWithDir('price', 'asc');
+                    return;
+                }
+                if (value === 'price_desc') {
+                    this.changeSortWithDir('price', 'desc');
+                    return;
+                }
+                // Leaving a price sort: drop dir so it does not stick on name/sku/…
+                const paramData = this.getUrlParams();
+                if (paramData[this.options.direction]) {
+                    const urlPaths = this.options.url.split('?');
+                    const baseUrl = urlPaths[0];
+                    paramData[this.options.order] = value;
+                    delete paramData[this.options.direction];
+                    if (value === this.options.orderDefault.toString()) {
+                        delete paramData[this.options.order];
+                    }
+                    if (this.options.post) {
+                        hyva.postForm({action: baseUrl, data: paramData, skipUenc: true});
+                        return;
+                    }
+                    const query = Object.keys(paramData).length === 0
+                        ? ''
+                        : '?' + (new URLSearchParams(paramData));
+                    location.href = baseUrl + query;
+                    return;
+                }
+                this.changeUrl(this.options.order, value, this.options.orderDefault);
+            },
+
+            onLimitChange() {
+                const value = this.$event.target.value;
+                this.changeUrl(this.options.limit, value, this.options.limitDefault);
+            },
+
+            scrollToGridIfPaged() {
+                if (window.__elmePlpScrolledToGrid) {
+                    return;
+                }
+                const page = new URLSearchParams(window.location.search).get('p');
+                if (!page || page === '1') {
+                    return;
+                }
+                const grid = document.getElementById('product-list');
+                if (!grid) {
+                    return;
+                }
+                window.__elmePlpScrolledToGrid = true;
+                const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                this.$nextTick(() => {
+                    grid.scrollIntoView({
+                        behavior: reduceMotion ? 'auto' : 'smooth',
+                        block: 'start'
+                    });
+                });
+            }
+        };
+    }
+    window.addEventListener(
+        'alpine:init',
+        () => Alpine.data('initElmeProductListToolbar', initElmeProductListToolbar),
+        {once: true}
+    );
+</script>
+        <?php $hyvaCsp->registerInlineScript() ?>
+    <?php endif; ?>
+<?php endif ?>

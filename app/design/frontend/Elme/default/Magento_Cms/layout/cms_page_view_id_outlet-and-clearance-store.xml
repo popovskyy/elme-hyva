@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-63 Outlet & Clearance Store: content-page head (OG/Twitter) and one JSON-LD @graph with the
+ * FAQPage, the OutletStore (from the page's Visit us entry) and the BreadcrumbList. "Need assistance?"
+ * (FE-13) closes the page.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="elme_content_page_seo"/>
+    <body>
+        <referenceBlock name="content.page.jsonld" template="Magento_Cms::content-page/store-jsonld.phtml"/>
+
+        <referenceContainer name="content">
+            <block class="Magento\Cms\Block\Block"
+                   name="elme.need.assistance"
+                   after="-">
+                <arguments>
+                    <argument name="block_id" xsi:type="string">need_assistance</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

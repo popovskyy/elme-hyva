@@ -1,0 +1,613 @@
+<?php
+/**
+ * Content Studio type `lookbook` (FE-49, FE-77 look 1 "Editorial" of docs/design/shop-the-looks-looks.html).
+ *
+ * Each look: the photo at its own aspect ratio (two thirds on desktop, sides alternate) on its average colour
+ * while it loads, numbered pins, and next to it a sticky numbered product rail. A pin and its row light up
+ * together; either opens the product card: a popover next to the pin from md, a bottom sheet with a drag handle
+ * below md. Logged in: price ex GST (loaded after render, never in FPC), stock, MOQ stepper, FE-70 Add to Cart,
+ * FE-78 heart, a colour picker for configurables, and Add this look (names what it skipped). Guests: name,
+ * image, View product, Sign in to see pricing.
+ *
+ * Layout `gallery` (/shop-the-looks): intro, guest CTAs, room filter with counts and a cross-fade, every look.
+ * Layout `feature` (home Be Inspired): a section heading with a link and one look. Look: web/tailwind/elme/lookbook.css.
+ *
+ * @var \Bart\ContentStudio\Block\Entry $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Elme\LoginOnly\ViewModel\LoginOnly;
+use Elme\QtyRules\Model\QtyRules;
+use Elme\Theme\ViewModel\Lookbook;
+use Elme\Theme\ViewModel\ProductTile;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\View\Element\Template;
+
+$lookbook = $block->getTypeViewModel();
+if (!$lookbook instanceof Lookbook) {
+    return;
+}
+
+$content = $block->getContent();
+$isFeature = $lookbook->getLayout($content) === Lookbook::LAYOUT_FEATURE;
+$looks = $isFeature ? $lookbook->getFeatureLooks($content) : $lookbook->getLooks($content);
+if ($isFeature && $looks === []) {
+    return;
+}
+$intro = $lookbook->getIntro($content);
+$isLoggedIn = $lookbook->isLoggedIn();
+$hasLooks = $looks !== [];
+$rooms = $isFeature ? [] : $lookbook->getRoomFilters($looks);
+$heading = $lookbook->getHeading($content);
+$link = $lookbook->getLink($content);
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+/** @var QtyRules $qtyRules */
+$qtyRules = $viewModels->require(QtyRules::class);
+
+$sectionId = 'lookbook-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
+$loginUrl = $loginOnly->getLoginUrl();
+$stockistUrl = $lookbook->getStockistUrl();
+$formKeyHtml = $block->getBlockHtml('formkey');
+$lookTag = $isFeature ? 'h3' : 'h2';
+$cardTag = $isFeature ? 'h4' : 'h3';
+$lookCount = count($looks);
+$signInLink = sprintf(
+    '<a href="%s" class="font-bold underline underline-offset-2 hover:text-link-hover" data-elme-sign-in>%s</a>',
+    $escaper->escapeUrl($loginUrl),
+    $escaper->escapeHtml(__('Sign in'))
+);
+
+$heartHtml = static function (string $sku, string $name, string $extra = '') use ($escaper, $lucideIcons): string {
+    return '<button type="button" class="elme-look-heart" data-elme-qo-add-to-list data-elme-heart'
+        . ' data-sku="' . $escaper->escapeHtmlAttr($sku) . '"'
+        . ' data-product-name="' . $escaper->escapeHtmlAttr($name) . '"'
+        . ' data-label-add="' . $escaper->escapeHtmlAttr(__('Add to shopping list') . ' ' . $name) . '"'
+        . ' data-label-saved="' . $escaper->escapeHtmlAttr(__('Saved to shopping list') . ' ' . $name) . '"'
+        . ' aria-label="' . $escaper->escapeHtmlAttr(__('Add to shopping list') . ' ' . $name) . '"'
+        . ' aria-pressed="false" aria-haspopup="dialog" ' . $extra . '>'
+        . '<span class="elme-heart__ring" aria-hidden="true"></span>'
+        . '<span class="elme-heart__dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>'
+        . '<span class="elme-heart__icon" aria-hidden="true">'
+        . $lucideIcons->heartHtml('elme-heart__line', 18, 18, ['aria-hidden' => 'true'])
+        . $lucideIcons->heartHtml('elme-heart__fill', 18, 18, ['aria-hidden' => 'true'])
+        . '</span></button>';
+};
+?>
+<section id="<?= $escaper->escapeHtmlAttr($sectionId) ?>"
+         class="elme-lookbook elme-lookbook--<?= $isFeature ? 'feature' : 'gallery' ?> mb-12 text-ink lg:mb-16"
+         <?php if ($hasLooks): ?>
+             x-data="initLookbookGallery"
+         <?php endif; ?>
+         <?php if ($isFeature && $heading !== ''): ?>
+             aria-labelledby="<?= $escaper->escapeHtmlAttr($sectionId) ?>-heading"
+         <?php else: ?>
+             aria-label="<?= $escaper->escapeHtmlAttr(__('Shop the Looks gallery')) ?>"
+         <?php endif; ?>>
+
+    <?php if ($isFeature): ?>
+        <?php if ($heading !== '' || $link): ?>
+            <div class="mb-5 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 lg:mb-8">
+                <?php if ($heading !== ''): ?>
+                    <h2 id="<?= $escaper->escapeHtmlAttr($sectionId) ?>-heading"
+                        class="font-heading text-h1 font-normal text-ink lg:text-display-desktop">
+                        <?= $escaper->escapeHtml($heading) ?>
+                    </h2>
+                <?php endif; ?>
+                <?php if ($link): ?>
+                    <a href="<?= $escaper->escapeUrl($link['url']) ?>" class="elme-lookbook__more">
+                        <span><?= $escaper->escapeHtml($link['label']) ?></span>
+                        <?= $lucideIcons->arrowRightHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                    </a>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+    <?php else: ?>
+        <p class="mb-6 max-w-3xl text-copy text-pretty text-ink-muted lg:mb-8 lg:text-copy-desktop">
+            <?php if ($intro !== ''): ?>
+                <?= $escaper->escapeHtml($intro) ?>
+            <?php else: ?>
+                <?= $escaper->escapeHtml(__(
+                    'These are Elme Living wholesale styled looks for Australian retailers.'
+                    . ' Tap the numbers to see products in the scene, then sign in for your Pronto prices'
+                    . ' (ex GST). New retailers can apply for a trade account with an ABN;'
+                    . ' delivery and stock detail live on each product page.'
+                )) ?>
+            <?php endif; ?>
+        </p>
+
+        <?php if (!$isLoggedIn): ?>
+            <div class="mb-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap lg:mb-10">
+                <a href="<?= $escaper->escapeUrl($loginUrl) ?>"
+                   data-elme-sign-in
+                   class="btn btn-primary sm:min-w-40">
+                    <?= $escaper->escapeHtml(__('Trade login')) ?>
+                </a>
+                <a href="<?= $escaper->escapeUrl($stockistUrl) ?>"
+                   class="btn btn-secondary sm:min-w-54">
+                    <?= $escaper->escapeHtml(__('Apply for a trade account')) ?>
+                </a>
+            </div>
+        <?php endif; ?>
+
+        <?php if (count($rooms) > 1): ?>
+            <div class="elme-lookbook__rooms" role="group" aria-label="<?= $escaper->escapeHtmlAttr(__('Filter looks by room')) ?>">
+                <button type="button"
+                        class="elme-lookbook__chip"
+                        data-room=""
+                        data-status="<?= $escaper->escapeHtmlAttr(__('Showing all %1 looks', $lookCount)) ?>"
+                        aria-pressed="true"
+                        :aria-pressed="chipPressed"
+                        @click="setRoom">
+                    <?= $escaper->escapeHtml(__('All')) ?>
+                    <span class="elme-lookbook__count"><?= (int) $lookCount ?></span>
+                </button>
+                <?php foreach ($rooms as $room): ?>
+                    <button type="button"
+                            class="elme-lookbook__chip"
+                            data-room="<?= $escaper->escapeHtmlAttr($room['code']) ?>"
+                            data-status="<?= $escaper->escapeHtmlAttr(
+                                $room['count'] === 1
+                                    ? __('Showing 1 %1 look', $room['label'])
+                                    : __('Showing %1 %2 looks', $room['count'], $room['label'])
+                            ) ?>"
+                            aria-pressed="false"
+                            :aria-pressed="chipPressed"
+                            @click="setRoom">
+                        <?= $escaper->escapeHtml($room['label']) ?>
+                        <span class="elme-lookbook__count"><?= (int) $room['count'] ?></span>
+                    </button>
+                <?php endforeach; ?>
+            </div>
+            <p class="sr-only" role="status" x-text="status"></p>
+        <?php endif; ?>
+    <?php endif; ?>
+
+    <?php if ($hasLooks): ?>
+        <div class="elme-lookbook__gallery" :class="galleryClass">
+            <?php foreach ($looks as $lookIndex => $look): ?>
+                <?php
+                $lookId = $sectionId . '-look-' . $lookIndex;
+                $titleId = $lookId . '-title';
+                $isFirstLook = $lookIndex === 0 && !$isFeature;
+                $pins = $look['hotspots'];
+                $pinCount = count($pins);
+                $addable = count(array_filter($look['add_all'], static fn (array $item): bool => $item['reason'] === ''));
+                $tone = $look['tone'] !== '' ? '--elme-look-tone: ' . $look['tone'] . ';' : '';
+                ?>
+                <article id="<?= $escaper->escapeHtmlAttr($lookId) ?>"
+                         class="elme-look"
+                         data-room="<?= $escaper->escapeHtmlAttr($look['room']) ?>"
+                         data-look-index="<?= (int) $lookIndex ?>"
+                         :hidden="isLookHidden"
+                         x-data="initLookbookLook"
+                         @keydown.escape.window="onEscape"
+                         @resize.window.debounce.150ms="onResize"
+                         @lookbook-pin-open.window="onOtherOpen"
+                         @lookbook-close-pin.window="onCloseAll"
+                         aria-labelledby="<?= $escaper->escapeHtmlAttr($titleId) ?>">
+
+                    <div class="elme-look__media">
+                        <div class="elme-look__scene"
+                             style="aspect-ratio: <?= (int) $look['image']['width'] ?> / <?= (int) $look['image']['height'] ?>; <?= /* @noEscape */ $tone ?>">
+                            <img src="<?= $escaper->escapeUrl($look['image']['src']) ?>"
+                                 alt="<?= $escaper->escapeHtmlAttr($look['image_alt']) ?>"
+                                 width="<?= (int) $look['image']['width'] ?>"
+                                 height="<?= (int) $look['image']['height'] ?>"
+                                 <?php if ($isFirstLook): ?>
+                                     fetchpriority="high"
+                                 <?php else: ?>
+                                     loading="lazy"
+                                 <?php endif; ?>
+                                 decoding="async"
+                                 class="elme-look__img">
+
+                            <?php foreach ($pins as $pinIndex => $pin): ?>
+                                <button type="button"
+                                        class="elme-look-pin"
+                                        style="left: <?= /* @noEscape */ $pin['x'] ?>%; top: <?= /* @noEscape */ $pin['y'] ?>%;"
+                                        data-pin-index="<?= (int) $pinIndex ?>"
+                                        data-lookbook-trigger
+                                        :class="pinClass"
+                                        aria-expanded="false"
+                                        :aria-expanded="pinExpanded"
+                                        aria-haspopup="dialog"
+                                        aria-controls="<?= $escaper->escapeHtmlAttr($lookId . '-card-' . $pinIndex) ?>"
+                                        aria-label="<?= $escaper->escapeHtmlAttr(__('%1. %2', $pinIndex + 1, $pin['label'])) ?>"
+                                        @click="togglePin"
+                                        @mouseenter="light"
+                                        @mouseleave="unlight"
+                                        @focus="light"
+                                        @blur="unlight">
+                                    <span aria-hidden="true"><?= (int) $pinIndex + 1 ?></span>
+                                </button>
+                            <?php endforeach; ?>
+
+                            <?php foreach ($pins as $pinIndex => $pin): ?>
+                                <?php
+                                $cardId = $lookId . '-card-' . $pinIndex;
+                                $canAdd = $isLoggedIn && $pin['can_add'];
+                                $isConfigurable = $pin['type'] === 'configurable';
+                                $min = $qtyRules->formatQty((float) $pin['qty_min']);
+                                $step = $qtyRules->formatQty((float) $pin['qty_step']);
+                                $stockLevel = $pin['stock_level'] ?? null;
+                                $stockQty = $pin['stock_qty'];
+                                $chooseLabel = $isConfigurable
+                                    ? __('Choose a %1', mb_strtolower(implode(' and ', array_column($pin['attributes'], 'label'))))
+                                    : '';
+                                ?>
+                                <div class="elme-look-card"
+                                     id="<?= $escaper->escapeHtmlAttr($cardId) ?>"
+                                     role="dialog"
+                                     aria-labelledby="<?= $escaper->escapeHtmlAttr($cardId) ?>-title"
+                                     :aria-modal="ariaModal"
+                                     tabindex="-1"
+                                     data-pin-index="<?= (int) $pinIndex ?>"
+                                     x-show="isCardOpen"
+                                     x-cloak
+                                     x-transition:enter="elme-look-card--enter"
+                                     x-transition:enter-start="elme-look-card--from"
+                                     x-transition:enter-end="elme-look-card--to"
+                                     x-transition:leave="elme-look-card--leave"
+                                     x-transition:leave-start="elme-look-card--to"
+                                     x-transition:leave-end="elme-look-card--from"
+                                     @click.outside="onOutside">
+                                    <?php /* drag handle for touch; keyboard and screen readers use the close button */ ?>
+                                    <button type="button"
+                                            class="elme-look-card__handle"
+                                            tabindex="-1"
+                                            aria-hidden="true"
+                                            @click="onHandleClick"
+                                            @pointerdown="dragStart"
+                                            @pointermove="dragMove"
+                                            @pointerup="dragEnd"
+                                            @pointercancel="dragEnd"></button>
+                                    <button type="button"
+                                            class="elme-look-card__close"
+                                            aria-label="<?= $escaper->escapeHtmlAttr(__('Close')) ?>"
+                                            @click="closePin">
+                                        <?= $lucideIcons->xHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                                    </button>
+
+                                    <div class="elme-look-card__top">
+                                        <span class="elme-look-thumb elme-look-thumb--lg">
+                                            <?php if ($pin['image']['src'] !== ''): ?>
+                                                <img src="<?= $escaper->escapeUrl($pin['image']['src']) ?>"
+                                                     alt=""
+                                                     width="<?= (int) $pin['image']['width'] ?>"
+                                                     height="<?= (int) $pin['image']['height'] ?>"
+                                                     loading="lazy"
+                                                     decoding="async">
+                                            <?php endif; ?>
+                                        </span>
+                                        <div class="grid min-w-0 gap-1">
+                                            <div class="flex items-start gap-2">
+                                                <span class="elme-look-num" aria-hidden="true"><?= (int) $pinIndex + 1 ?></span>
+                                                <<?= /* @noEscape */ $cardTag ?> id="<?= $escaper->escapeHtmlAttr($cardId) ?>-title"
+                                                    class="elme-look-card__name">
+                                                    <?= $escaper->escapeHtml($pin['name']) ?>
+                                                </<?= /* @noEscape */ $cardTag ?>>
+                                            </div>
+                                            <?php if ($isLoggedIn): ?>
+                                                <p class="text-note text-ink-muted">
+                                                    <span class="sr-only"><?= $escaper->escapeHtml(__('SKU')) ?></span>
+                                                    <?= $escaper->escapeHtml($pin['sku']) ?>
+                                                </p>
+                                                <?php if (!$isConfigurable && $stockQty !== null && $stockQty > 0): ?>
+                                                    <p class="text-note text-ink-muted">
+                                                        <?= $escaper->escapeHtml(__('%1 in stock', $qtyRules->formatQty((float) $stockQty))) ?>
+                                                        <?php if ($stockLevel === ProductTile::STOCK_LOW): ?>
+                                                            &middot; <?= $escaper->escapeHtml(__('Low Stock')) ?>
+                                                        <?php endif; ?>
+                                                    </p>
+                                                <?php elseif (!$isConfigurable && $stockLevel): ?>
+                                                    <p class="text-note text-ink-muted">
+                                                        <?= $escaper->escapeHtml(
+                                                            $stockLevel === ProductTile::STOCK_IN ? __('In Stock') : __('Low Stock')
+                                                        ) ?>
+                                                    </p>
+                                                <?php elseif (!$pin['saleable']): ?>
+                                                    <p class="text-note text-ink-muted"><?= $escaper->escapeHtml(__('Out of stock')) ?></p>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+
+                                    <?php if ($canAdd): ?>
+                                        <form method="post"
+                                              action="<?= $escaper->escapeUrl($pin['add_url']) ?>"
+                                              class="product_addtocart_form elme-look-card__buy"
+                                              x-data="initLookbookBuy"
+                                              data-product-id="<?= (int) $pin['product_id'] ?>"
+                                              data-min="<?= $escaper->escapeHtmlAttr($min) ?>"
+                                              data-step="<?= $escaper->escapeHtmlAttr($step) ?>"
+                                              <?php if ($isConfigurable): ?>
+                                                  data-children="<?= $escaper->escapeHtmlAttr((string) json_encode($pin['children'])) ?>"
+                                                  data-choose-label="<?= $escaper->escapeHtmlAttr($chooseLabel) ?>"
+                                                  data-stock-text="<?= $escaper->escapeHtmlAttr(__('%1 in stock')) ?>"
+                                                  data-out-text="<?= $escaper->escapeHtmlAttr(__('Out of stock')) ?>"
+                                              <?php endif; ?>
+                                              data-atc-label="<?= $escaper->escapeHtmlAttr(__('Add to Cart')) ?>"
+                                              data-moq-text="<?= $escaper->escapeHtmlAttr(__('Minimum %1, sold in multiples of %2')) ?>">
+                                            <?= /* @noEscape */ $formKeyHtml ?>
+                                            <input type="hidden" name="product" value="<?= (int) $pin['product_id'] ?>">
+
+                                            <div class="price-box elme-look-card__price" aria-live="polite">
+                                                <span class="elme-skeleton h-5 w-24" x-show="isPriceLoading" aria-hidden="true"></span>
+                                                <span class="sr-only" x-show="isPriceLoading"><?= $escaper->escapeHtml(__('Loading your price')) ?></span>
+                                                <template x-if="isFromPrice">
+                                                    <span class="text-note text-ink-muted"><?= $escaper->escapeHtml(__('From')) ?></span>
+                                                </template>
+                                                <template x-if="hasDiscount">
+                                                    <span class="old-price">
+                                                        <span class="sr-only"><?= $escaper->escapeHtml(__('Regular Price')) ?></span>
+                                                        <span class="price" x-text="regularPrice"></span>
+                                                    </span>
+                                                </template>
+                                                <template x-if="isPriceReady">
+                                                    <span class="final-price">
+                                                        <span class="price" x-text="finalPrice"></span>
+                                                        <span class="text-note text-ink-muted"><?= $escaper->escapeHtml(__('ex. GST')) ?></span>
+                                                    </span>
+                                                </template>
+                                            </div>
+
+                                            <?php if ($isConfigurable): ?>
+                                                <?php foreach ($pin['attributes'] as $attribute): ?>
+                                                    <fieldset class="elme-look-opts">
+                                                        <legend class="mb-1.5 text-note text-ink-muted"><?= $escaper->escapeHtml($attribute['label']) ?></legend>
+                                                        <div class="flex flex-wrap gap-2">
+                                                            <?php foreach ($attribute['values'] as $value): ?>
+                                                                <label class="elme-look-opt">
+                                                                    <input type="radio"
+                                                                           class="sr-only"
+                                                                           name="super_attribute[<?= (int) $attribute['id'] ?>]"
+                                                                           value="<?= (int) $value['id'] ?>"
+                                                                           data-attribute-id="<?= (int) $attribute['id'] ?>"
+                                                                           :disabled="isOptionOff"
+                                                                           @change="onOption">
+                                                                    <?= $escaper->escapeHtml($value['label']) ?>
+                                                                </label>
+                                                            <?php endforeach; ?>
+                                                        </div>
+                                                    </fieldset>
+                                                <?php endforeach; ?>
+                                                <p class="text-note text-ink-muted" x-text="stockText"><?= $escaper->escapeHtml($chooseLabel) ?></p>
+                                            <?php endif; ?>
+
+                                            <div class="elme-look-card__row">
+                                                <div class="elme-qty">
+                                                    <button type="button"
+                                                            class="elme-qty__btn"
+                                                            @click="decrement"
+                                                            :disabled="isAtMin"
+                                                            aria-label="<?= $escaper->escapeHtmlAttr(__('Decrease quantity')) ?>">
+                                                        <?= $lucideIcons->minusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                                                    </button>
+                                                    <input type="number"
+                                                           name="qty"
+                                                           x-ref="input"
+                                                           value="<?= $escaper->escapeHtmlAttr($min) ?>"
+                                                           min="<?= $escaper->escapeHtmlAttr($min) ?>"
+                                                           step="<?= $escaper->escapeHtmlAttr($step) ?>"
+                                                           inputmode="numeric"
+                                                           class="elme-qty__input"
+                                                           aria-label="<?= $escaper->escapeHtmlAttr(__('Quantity of %1', $pin['name'])) ?>"
+                                                           aria-describedby="<?= $escaper->escapeHtmlAttr($cardId) ?>-moq"
+                                                           @change="normalize">
+                                                    <button type="button"
+                                                            class="elme-qty__btn"
+                                                            @click="increment"
+                                                            aria-label="<?= $escaper->escapeHtmlAttr(__('Increase quantity')) ?>">
+                                                        <?= $lucideIcons->plusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                                                    </button>
+                                                </div>
+                                                <?php /* FE-70: btn-atc = AJAX add with the animated sending / Added states */ ?>
+                                                <button type="submit"
+                                                        class="btn btn-primary btn-atc elme-look-card__atc"
+                                                        <?php if ($isConfigurable): ?>disabled<?php endif; ?>
+                                                        :disabled="isAtcOff"
+                                                        aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Cart') . ' ' . $pin['name']) ?>">
+                                                    <?= $lucideIcons->shoppingCartHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                                                    <span x-text="atcLabel"><?= $escaper->escapeHtml($isConfigurable ? $chooseLabel : __('Add to Cart')) ?></span>
+                                                </button>
+                                                <?php if ($isConfigurable): ?>
+                                                    <?= /* @noEscape */ $heartHtml('', $pin['name'], 'x-ref="heart" disabled :disabled="isHeartOff"') ?>
+                                                <?php else: ?>
+                                                    <?= /* @noEscape */ $heartHtml($pin['sku'], $pin['name']) ?>
+                                                <?php endif; ?>
+                                            </div>
+                                            <p id="<?= $escaper->escapeHtmlAttr($cardId) ?>-moq"
+                                               class="text-note text-ink-muted"
+                                               x-text="moqText"><?php if ((float) $pin['qty_step'] > 1 || (float) $pin['qty_min'] > 1): ?><?= $escaper->escapeHtml(__('Minimum %1, sold in multiples of %2', $min, $step)) ?><?php endif; ?></p>
+                                        </form>
+                                    <?php elseif ($isLoggedIn): ?>
+                                        <p class="text-copy text-ink-muted">
+                                            <?= $escaper->escapeHtml(
+                                                $pin['saleable']
+                                                    ? __('Choose the options on the product page.')
+                                                    : __('This product is out of stock right now.')
+                                            ) ?>
+                                        </p>
+                                    <?php else: ?>
+                                        <p class="elme-sign-in-price text-copy text-ink">
+                                            <?= /* @noEscape */ __('%1 to see pricing', $signInLink) ?>
+                                        </p>
+                                    <?php endif; ?>
+
+                                    <a href="<?= $escaper->escapeUrl($pin['url']) ?>" class="elme-look-card__view">
+                                        <?= $escaper->escapeHtml(__('View product')) ?>
+                                        <?= $lucideIcons->arrowRightHtml('', 14, 14, ['aria-hidden' => 'true']) ?>
+                                    </a>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+
+                    <div class="elme-look__aside">
+                        <header class="elme-look__head">
+                            <p class="text-note text-ink-muted">
+                                <?= $escaper->escapeHtml($look['room_label']) ?>
+                                &middot;
+                                <?= $escaper->escapeHtml($pinCount === 1 ? __('1 product') : __('%1 products', $pinCount)) ?>
+                            </p>
+                            <<?= /* @noEscape */ $lookTag ?> id="<?= $escaper->escapeHtmlAttr($titleId) ?>"
+                                class="font-heading text-h2 font-normal text-ink lg:text-h2-desktop">
+                                <?= $escaper->escapeHtml($look['title']) ?>
+                            </<?= /* @noEscape */ $lookTag ?>>
+                            <?php if ($look['description'] !== ''): ?>
+                                <p class="text-copy text-ink-muted lg:text-copy-desktop"><?= $escaper->escapeHtml($look['description']) ?></p>
+                            <?php endif; ?>
+                        </header>
+
+                        <div class="elme-look__rail">
+                            <ol class="elme-look__rows">
+                                <?php foreach ($pins as $pinIndex => $pin): ?>
+                                    <?php
+                                    $isConfigurable = $pin['type'] === 'configurable';
+                                    $moq = max((float) $pin['qty_min'], (float) $pin['qty_step']);
+                                    ?>
+                                    <li class="elme-look-row"
+                                        data-pin-index="<?= (int) $pinIndex ?>"
+                                        :class="rowClass"
+                                        @mouseenter="light"
+                                        @mouseleave="unlight">
+                                        <button type="button"
+                                                class="elme-look-row__main"
+                                                data-pin-index="<?= (int) $pinIndex ?>"
+                                                data-lookbook-trigger
+                                                aria-haspopup="dialog"
+                                                aria-controls="<?= $escaper->escapeHtmlAttr($lookId . '-card-' . $pinIndex) ?>"
+                                                @click="openFromRow"
+                                                @focus="light"
+                                                @blur="unlight">
+                                            <span class="elme-look-num" aria-hidden="true"><?= (int) $pinIndex + 1 ?></span>
+                                            <span class="elme-look-thumb">
+                                                <?php if ($pin['image']['src'] !== ''): ?>
+                                                    <img src="<?= $escaper->escapeUrl($pin['image']['src']) ?>"
+                                                         alt=""
+                                                         width="<?= (int) $pin['image']['width'] ?>"
+                                                         height="<?= (int) $pin['image']['height'] ?>"
+                                                         loading="lazy"
+                                                         decoding="async">
+                                                <?php endif; ?>
+                                            </span>
+                                            <span class="grid min-w-0 gap-0.5">
+                                                <span class="text-copy text-ink lg:text-copy-desktop">
+                                                    <span class="sr-only"><?= (int) $pinIndex + 1 ?>.</span>
+                                                    <?= $escaper->escapeHtml($pin['name']) ?>
+                                                </span>
+                                                <?php if ($isLoggedIn): ?>
+                                                    <span class="elme-look-row__meta">
+                                                        <span class="inline-flex items-baseline gap-1"
+                                                              x-data="initElmeCustomerPrice"
+                                                              data-product-id="<?= (int) $pin['product_id'] ?>">
+                                                            <span class="elme-skeleton h-4 w-16 self-center" x-show="isLoading" aria-hidden="true"></span>
+                                                            <template x-if="isReady">
+                                                                <span>
+                                                                    <?php if ($isConfigurable): ?>
+                                                                        <?= $escaper->escapeHtml(__('From')) ?>
+                                                                    <?php endif; ?>
+                                                                    <span class="font-bold text-ink tabular-nums" x-text="finalPrice"></span>
+                                                                    <?= $escaper->escapeHtml(__('ex. GST')) ?>
+                                                                </span>
+                                                            </template>
+                                                        </span>
+                                                        <?php if ($isConfigurable && $pin['attributes'] !== []): ?>
+                                                            <span aria-hidden="true">&middot;</span>
+                                                            <?php
+                                                            $values = array_column($pin['attributes'][0]['values'], 'label');
+                                                            $more = count($values) - 3;
+                                                            ?>
+                                                            <span>
+                                                                <?= $escaper->escapeHtml(implode(', ', array_slice($values, 0, 3))) ?>
+                                                                <?php if ($more > 0): ?>
+                                                                    <?= $escaper->escapeHtml(__('+%1 more', $more)) ?>
+                                                                <?php endif; ?>
+                                                            </span>
+                                                        <?php elseif ($moq > 1): ?>
+                                                            <span aria-hidden="true">&middot;</span>
+                                                            <span><?= $escaper->escapeHtml(__('MOQ %1', $qtyRules->formatQty($moq))) ?></span>
+                                                        <?php endif; ?>
+                                                        <?php if (!$pin['saleable']): ?>
+                                                            <span aria-hidden="true">&middot;</span>
+                                                            <span><?= $escaper->escapeHtml(__('Out of stock')) ?></span>
+                                                        <?php endif; ?>
+                                                    </span>
+                                                <?php else: ?>
+                                                    <span class="elme-look-row__meta"><?= $escaper->escapeHtml(__('Sign in to see pricing')) ?></span>
+                                                <?php endif; ?>
+                                            </span>
+                                        </button>
+                                        <?php if ($isLoggedIn && !$isConfigurable): ?>
+                                            <?= /* @noEscape */ $heartHtml($pin['sku'], $pin['name']) ?>
+                                        <?php endif; ?>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ol>
+
+                            <?php if ($isLoggedIn): ?>
+                                <button type="button"
+                                        class="btn btn-primary elme-look__add-all"
+                                        data-add-all-id="<?= $escaper->escapeHtmlAttr($sectionId) ?>-add-all"
+                                        data-adding-text="<?= $escaper->escapeHtmlAttr(__('Adding %1 of %2...')) ?>"
+                                        data-added-text="<?= $escaper->escapeHtmlAttr(__('Added %1 of %2:')) ?>"
+                                        data-none-text="<?= $escaper->escapeHtmlAttr(__('Nothing was added.')) ?>"
+                                        data-skipped-text="<?= $escaper->escapeHtmlAttr(__('Not added:')) ?>"
+                                        data-failed-text="<?= $escaper->escapeHtmlAttr(__('not added, try it on its own')) ?>"
+                                        :disabled="isAdding"
+                                        :aria-busy="isAdding"
+                                        @click="addLook">
+                                    <span x-text="addLookLabel"
+                                          data-label="<?= $escaper->escapeHtmlAttr(__('Add this look')) ?>"><?= $escaper->escapeHtml(__('Add this look')) ?></span>
+                                    <span class="elme-look__add-count"><?= $escaper->escapeHtml(
+                                        $addable === $pinCount
+                                            ? __('%1 items', $pinCount)
+                                            : __('%1 of %2 items', $addable, $pinCount)
+                                    ) ?></span>
+                                </button>
+                                <p class="elme-look__status" role="status" :class="statusClass">
+                                    <b x-text="statusLead"></b>
+                                    <span x-text="statusText"></span>
+                                </p>
+                            <?php else: ?>
+                                <a href="<?= $escaper->escapeUrl($loginUrl) ?>"
+                                   data-elme-sign-in
+                                   class="btn btn-secondary elme-look__add-all">
+                                    <?= $escaper->escapeHtml(__('Sign in to shop this look')) ?>
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="elme-look__scrim" x-show="isSheetOpen" x-cloak x-transition.opacity @click="closePin" aria-hidden="true"></div>
+                </article>
+            <?php endforeach; ?>
+        </div>
+
+        <?php if ($isLoggedIn): ?>
+            <script type="application/json" id="<?= $escaper->escapeHtmlAttr($sectionId) ?>-add-all">
+                <?= /* @noEscape */ json_encode(
+                    array_map(static fn (array $look): array => $look['add_all'], $looks),
+                    JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+                ) ?>
+            </script>
+        <?php endif; ?>
+        <?php /* the Alpine components once per page, also with the gallery and the home feature on one page */ ?>
+        <?php if (!$block->getLayout()->getBlock('elme.lookbook.js')): ?>
+            <?= $block->getLayout()
+                ->createBlock(Template::class, 'elme.lookbook.js')
+                ->setTemplate('Elme_Theme::content-type/lookbook-js.phtml')
+                ->toHtml() ?>
+        <?php endif; ?>
+    <?php endif; ?>
+</section>

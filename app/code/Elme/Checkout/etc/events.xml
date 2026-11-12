@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="sales_model_service_quote_submit_before">
+        <observer name="elme_checkout_copy_details_to_order" instance="Elme\Checkout\Observer\CopyDetailsToOrder"/>
+    </event>
+    <event name="email_order_set_template_vars_before">
+        <observer name="elme_checkout_add_details_to_order_email" instance="Elme\Checkout\Observer\AddDetailsToOrderEmail"/>
+    </event>
+</config>

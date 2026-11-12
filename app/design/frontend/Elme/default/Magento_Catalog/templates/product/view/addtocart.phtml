@@ -1,0 +1,76 @@
+<?php
+/**
+ * Hyvä Themes - https://hyva.io
+ * Copyright © Hyvä Themes. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+declare(strict_types=1);
+
+/**
+ * Elme: copy of Hyvä 1.5.3. FE-70: "Add to Cart" carries btn-atc (AJAX add + animated sending / Added
+ * states, see Magento_Theme::elme/atc-button.phtml). "Update item" (cart item configure) keeps the
+ * normal post, because updateItemOptions answers with a redirect. FE-27 rebuilds the buy box and must
+ * keep btn-atc on its add to cart button. The accessible name carries the product name, as on the tile.
+ */
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Hyva\Theme\ViewModel\ProductPage;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var ProductPage $productPage */
+$productPage = $viewModels->require(ProductPage::class);
+
+$isCartConfigure = (bool) $block->getData('is_cart_configure');
+$buttonLabel = $isCartConfigure
+    ? __('Update item')
+    : __('Add to Cart');
+$product = $productPage->getProduct();
+$ariaLabel = $isCartConfigure || !$product
+    ? (string) $buttonLabel
+    : $buttonLabel . ' ' . $product->getName();
+?>
+
+<?php if (!$isCartConfigure && $product): ?>
+<button type="button"
+        class="elme-save"
+        form="product_addtocart_form"
+        data-elme-qo-add-to-list
+        data-elme-heart
+        data-sku="<?= $escaper->escapeHtmlAttr($product->getSku()) ?>"
+        data-product-name="<?= $escaper->escapeHtmlAttr($product->getName()) ?>"
+        data-label-add="<?= $escaper->escapeHtmlAttr(__('Add to shopping list') . ' ' . $product->getName()) ?>"
+        data-label-saved="<?= $escaper->escapeHtmlAttr(__('Saved to shopping list') . ' ' . $product->getName()) ?>"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('Add to shopping list') . ' ' . $product->getName()) ?>"
+        aria-pressed="false"
+        aria-haspopup="dialog"
+>
+    <span class="elme-heart__ring" aria-hidden="true"></span>
+    <span class="elme-heart__dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="elme-heart__icon" aria-hidden="true">
+        <?= $lucideIcons->heartHtml('elme-heart__line', 22, 22, ['aria-hidden' => 'true']) ?>
+        <?= $lucideIcons->heartHtml('elme-heart__fill', 22, 22, ['aria-hidden' => 'true']) ?>
+    </span>
+</button>
+<?php endif; ?>
+<button
+    type="submit"
+    form="product_addtocart_form"
+    aria-label="<?= $escaper->escapeHtmlAttr($ariaLabel) ?>"
+    class="btn btn-primary<?= $isCartConfigure ? '' : ' btn-atc' ?>"
+    id="product-addtocart-button"
+    data-addto="cart"
+>
+    <?= $lucideIcons->shoppingCartHtml('', 24, 24, ['aria-hidden' => 'true']); ?>
+    <span class="hidden sm:block md:hidden lg:block"><?= $escaper->escapeHtml($buttonLabel) ?></span>
+</button>
+
+<?= $block->getChildHtml('', true) ?>

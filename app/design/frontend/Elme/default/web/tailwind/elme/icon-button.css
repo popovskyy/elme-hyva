@@ -1,0 +1,66 @@
+/*
+ * Icon button: a Lucide icon (1.5 stroke, 20px) in a 44px hit area, with hover, press and focus states.
+ * `--line` adds a border, `--danger` turns red on hover (delete, remove).
+ */
+
+@layer components {
+    .elme-ib {
+        display: inline-grid;
+        flex: none;
+        place-items: center;
+        width: --spacing(11);
+        height: --spacing(11);
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--color-ink);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition:
+            background-color var(--transition-duration-fast) var(--ease-out-quad),
+            border-color var(--transition-duration-fast) var(--ease-out-quad),
+            color var(--transition-duration-fast) var(--ease-out-quad),
+            scale var(--transition-duration-micro) var(--ease-out-quad);
+
+        svg {
+            width: --spacing(5);
+            height: --spacing(5);
+        }
+
+        &:hover:not(:disabled) {
+            background: var(--color-surface-muted);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+
+        &:disabled {
+            color: var(--color-placeholder);
+            cursor: default;
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            &:active:not(:disabled) {
+                scale: 0.94;
+            }
+        }
+    }
+
+    .elme-ib--line {
+        border-color: var(--color-border);
+
+        &:hover:not(:disabled) {
+            border-color: var(--color-primary);
+        }
+    }
+
+    .elme-ib--danger:hover:not(:disabled) {
+        background: var(--color-error-ground);
+        color: var(--color-error-text);
+    }
+
+    .elme-ib--line.elme-ib--danger:hover:not(:disabled) {
+        border-color: var(--color-error-mark);
+    }
+}

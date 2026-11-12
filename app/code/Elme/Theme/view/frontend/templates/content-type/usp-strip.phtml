@@ -3,9 +3,9 @@
  * Content Studio type `usp_strip` (etc/content_types.xml, FE-16): Become a Stockist benefits -
  * image left, heading + trade-fact rows + CTA right. Guests get Create An Account; logged-in
  * customers get My Account (same FPC split as HideForLoggedIn). Server-rendered.
- * With image_2 and image_3 the image becomes a three-photo collage ("Collage" in
- * docs/design/hero-wow-options.html): the photos fall into place when the section scrolls in
- * (Elme_Theme::home-motion.phtml, home-motion.css).
+ * With image_2 and image_3 the image becomes a three-photo collage. On the home page the photos
+ * fall into place once when the collage scrolls in
+ * (Magento_Theme::html/home-motion.phtml, web/tailwind/elme/home-motion.css).
  *
  * @var \Bart\ContentStudio\Block\Entry $block
  * @var \Magento\Framework\Escaper $escaper
@@ -25,6 +25,8 @@ $content = $block->getContent();
 $heading = $usp->getHeading($content);
 $image = $usp->getImage($content);
 $items = $usp->getItems($content);
+// show_items off (home Calm gallery): the facts are already in the welcome intro above
+$showItems = !array_key_exists('show_items', $content) || !empty($content['show_items']);
 $collage = $usp->getCollage($content);
 
 if ($heading === '' || $image === null || !$items) {
@@ -37,14 +39,18 @@ $guestButton = $usp->getGuestButton($content);
 /** @var LoginOnly $loginOnly */
 $loginOnly = $viewModels->require(LoginOnly::class);
 
+// Only swap to My Account when the entry configured a guest CTA. Empty button_label/link
+// (Become a Stockist page) keeps the strip buttonless so the page has one primary.
 $button = null;
-if ($loginOnly->isLoggedIn()) {
-    $button = [
-        'label' => (string)__('My Account'),
-        'link' => $block->getUrl('customer/account'),
-    ];
-} elseif ($guestButton !== null) {
-    $button = $guestButton;
+if ($guestButton !== null) {
+    if ($loginOnly->isLoggedIn()) {
+        $button = [
+            'label' => (string)__('My Account'),
+            'link' => $block->getUrl('customer/account'),
+        ];
+    } else {
+        $button = $guestButton;
+    }
 }
 
 $headingId = 'usp-strip-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
@@ -94,7 +100,7 @@ $hasImageLink = $guestButton !== null && !$loginOnly->isLoggedIn();
     <div class="flex flex-col justify-center px-5 text-center
                 lg:w-1/2 lg:max-w-160 lg:pr-5 lg:pl-18 lg:text-left">
         <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-            class="mb-4 text-title-section text-ink lg:mb-5.5 lg:text-title-section-desktop">
+            class="mb-4 text-display text-ink lg:mb-5.5 lg:text-display-desktop">
             <?= $escaper->escapeHtml($heading) ?>
         </h2>
         <?php if ($intro !== ''): ?>
@@ -103,11 +109,12 @@ $hasImageLink = $guestButton !== null && !$loginOnly->isLoggedIn();
             </p>
         <?php endif; ?>
 
+        <?php if ($showItems && $items): ?>
         <ul class="elme-usp-strip__items mb-8 list-none p-0 text-left lg:mb-10">
             <?php foreach ($items as $item): ?>
                 <li class="border-b border-border py-5 first:pt-0 last:border-b-0 last:pb-0
                            lg:py-5.5 lg:last:pb-0">
-                    <h3 class="mb-2 text-h5 font-normal text-ink lg:text-h5-desktop">
+                    <h3 class="mb-2 text-h4 font-normal text-ink lg:text-h4-desktop">
                         <?= $escaper->escapeHtml($item['title']) ?>
                     </h3>
                     <?php if ($item['text'] !== ''): ?>
@@ -118,6 +125,7 @@ $hasImageLink = $guestButton !== null && !$loginOnly->isLoggedIn();
                 </li>
             <?php endforeach; ?>
         </ul>
+        <?php endif; ?>
 
         <?php if ($button !== null): ?>
             <div>

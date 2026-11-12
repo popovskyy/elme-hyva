@@ -45,7 +45,7 @@ npm run watch        # or: elmeTailwind / dashboard "WATCH START"
 npm run build        # minified build of web/css/styles.css
 ```
 
-Design tokens (`tokens.values`) and fonts (Karla, DM Serif Display, self-hosted from `web/fonts/`) live in `web/tailwind/hyva.config.json`. Breakpoints: mobile < 768 · tablet `md:` 768 · desktop `lg:` 1025 · `xl:` 1280 · `2xl:` 1440 · `3xl:` 1920 (container max width 1920px).
+Design tokens (`tokens.values`) and fonts (Figtree for body and headings, self-hosted from `web/fonts/`) live in `web/tailwind/hyva.config.json`. Breakpoints: mobile < 768 · tablet `md:` 768 · desktop `lg:` 1025 · `xl:` 1280 · `2xl:` 1440 · `3xl:` 1920 (container max width 1920px).
 
 Checkout is our own module `Elme_Checkout` on Elme/default (decision D12 in `docs/frontend-tickets.md`); the Luma fallback checkout was removed.
 

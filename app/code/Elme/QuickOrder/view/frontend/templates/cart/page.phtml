@@ -1,0 +1,503 @@
+<?php
+/**
+ * Cart page on window.elmeQuickOrderCart. The save rules stay in the client and the server.
+ * FE-76: sticky summary on desktop, sticky bar with the total and Proceed to checkout below lg, save status in a
+ * fixed slot, row and total number tick (elme/cart.css, elme/cart-bar.css).
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+$homeUrl = $block->getBaseUrl();
+?>
+<section class="elme-cart"
+         x-data="initElmeQuickOrderCartPage"
+         @elme-qo-cart.window="onCart"
+         :class="savingClass">
+    <h1 class="elme-cart__title"><?= $escaper->escapeHtml(__('Your cart')) ?></h1>
+    <div class="elme-cart__loading" x-show="isLoading" aria-busy="true">
+        <p class="sr-only"><?= $escaper->escapeHtml(__('Loading your cart...')) ?></p>
+        <div class="elme-cart__bone" aria-hidden="true">
+            <span class="elme-cart__bone-photo"></span>
+            <span class="elme-cart__bone-copy">
+                <span class="elme-cart__bone-line"></span>
+                <span class="elme-cart__bone-line"></span>
+            </span>
+        </div>
+        <div class="elme-cart__bone" aria-hidden="true">
+            <span class="elme-cart__bone-photo"></span>
+            <span class="elme-cart__bone-copy">
+                <span class="elme-cart__bone-line"></span>
+                <span class="elme-cart__bone-line"></span>
+            </span>
+        </div>
+    </div>
+    <p class="elme-cart__error" role="alert" x-show="hasLoadError" x-text="loadError" x-cloak></p>
+
+    <div class="elme-cart__empty" x-show="isEmpty" x-cloak>
+        <?= $lucideIcons->shoppingCartHtml('', 40, 40, ['aria-hidden' => 'true']) ?>
+        <p><?= $escaper->escapeHtml(__('Your cart is empty.')) ?></p>
+        <div class="flex flex-col items-center gap-3">
+            <a class="btn btn-primary" href="<?= $escaper->escapeUrl($homeUrl) ?>">
+                <?= $escaper->escapeHtml(__('Continue shopping')) ?>
+            </a>
+            <a class="btn btn-link" href="<?= $escaper->escapeUrl($block->getUrl('quick_order/template')) ?>">
+                <?= $escaper->escapeHtml(__('Order from a shopping list')) ?>
+            </a>
+        </div>
+    </div>
+
+    <div class="elme-cart__layout" x-show="hasItems" x-cloak>
+        <div>
+            <div class="elme-cart__head">
+                <span class="elme-cart__head-product"><?= $escaper->escapeHtml(__('Product')) ?></span>
+                <span class="elme-cart__head-qty"><?= $escaper->escapeHtml(__('Qty')) ?></span>
+                <span class="elme-cart__head-total"><?= $escaper->escapeHtml(__('Total')) ?></span>
+            </div>
+            <ul>
+                <template x-for="item in items" :key="item.sku">
+                    <li class="elme-dust">
+                        <div>
+                            <div class="elme-cart__line">
+                                <a class="elme-cart__photo" :href="item.url" x-show="hasUrl" tabindex="-1" aria-hidden="true">
+                                    <img :src="item.image" :alt="item.name" width="96" height="96" loading="lazy">
+                                </a>
+                                <div class="elme-cart__photo" x-show="hasNoUrl" aria-hidden="true">
+                                    <img :src="item.image" alt="" width="96" height="96" loading="lazy">
+                                </div>
+
+                                <div class="elme-cart__info">
+                                    <a class="elme-cart__name" :href="item.url" x-show="hasUrl" x-text="item.name"></a>
+                                    <p class="elme-cart__name" x-show="hasNoUrl" x-text="item.name"></p>
+                                    <p class="elme-cart__sku" x-text="item.sku"></p>
+                                    <p class="elme-cart__stock" :class="stockClass" x-show="hasStockLabel">
+                                        <span class="elme-cart__dot" aria-hidden="true"></span>
+                                        <span x-text="stockLabel"></span>
+                                    </p>
+                                    <p class="elme-cart__unit" x-show="hasPrice">
+                                        <span x-text="unitPrice"></span>
+                                        <s class="elme-cart__was" x-show="hasDiscount" x-text="regularPrice"></s>
+                                    </p>
+                                    <p class="elme-cart__message" role="alert" x-show="hasMessage" x-text="item.message"></p>
+                                    <div class="elme-cart__actions">
+                                        <button type="button" class="elme-cart__textbtn elme-cart__remove-text" @click="removeItem">
+                                            <?= $escaper->escapeHtml(__('Remove')) ?>
+                                        </button>
+                                        <button type="button"
+                                                class="elme-cart__textbtn"
+                                                data-elme-qo-add-to-list
+                                                :data-sku="item.sku"
+                                                :data-qty="item.qty"
+                                                :data-product-name="item.name">
+                                            <?= $escaper->escapeHtml(__('Add to shopping list')) ?>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <p class="elme-cart__row-total"><span class="elme-cart__tick" x-text="rowTotal"></span></p>
+
+                                <div class="elme-cart__ctrl">
+                                    <div class="elme-cart__qty">
+                                        <div class="elme-qty">
+                                            <button type="button"
+                                                    class="elme-qty__btn"
+                                                    @click="decrement"
+                                                    :disabled="isAtMin"
+                                                    aria-label="<?= $escaper->escapeHtmlAttr(__('Decrease quantity')) ?>">
+                                                <?= $lucideIcons->minusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                                            </button>
+                                            <label class="sr-only" :for="qtyId"><?= $escaper->escapeHtml(__('Qty')) ?></label>
+                                            <input type="number"
+                                                   class="elme-qty__input"
+                                                   inputmode="numeric"
+                                                   :id="qtyId"
+                                                   :value="item.qty"
+                                                   :min="item.min"
+                                                   :step="item.step"
+                                                   @change="onQtyChange">
+                                            <button type="button"
+                                                    class="elme-qty__btn"
+                                                    @click="increment"
+                                                    aria-label="<?= $escaper->escapeHtmlAttr(__('Increase quantity')) ?>">
+                                                <?= $lucideIcons->plusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button type="button"
+                                            class="elme-ib elme-ib--danger elme-cart__trash"
+                                            @click="removeItem"
+                                            :aria-label="removeLabel">
+                                        <?= $lucideIcons->trash2Html('', 20, 20, ['aria-hidden' => 'true']) ?>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                </template>
+            </ul>
+        </div>
+
+        <aside class="elme-cart__summary">
+            <h2 class="elme-cart__summary-title"><?= $escaper->escapeHtml(__('Summary')) ?></h2>
+            <p class="elme-cart__summary-count" x-text="lineCountLabel"></p>
+            <dl class="elme-cart__money">
+                <div>
+                    <dt><?= $escaper->escapeHtml(__('Subtotal (ex GST)')) ?></dt>
+                    <dd x-text="totals.subtotal_formatted"></dd>
+                </div>
+                <div>
+                    <dt><?= $escaper->escapeHtml(__('GST')) ?></dt>
+                    <dd x-text="totals.gst_formatted"></dd>
+                </div>
+                <div class="elme-cart__money-total">
+                    <dt><?= $escaper->escapeHtml(__('Total (inc GST)')) ?></dt>
+                    <dd><span class="elme-cart__tick" x-ref="summaryTotal" x-text="totals.total_formatted"></span></dd>
+                </div>
+            </dl>
+            <div class="elme-cart__mov" role="status" x-show="showMinimumOrder" x-cloak>
+                <p class="elme-cart__mov-text" x-text="minimumOrderHint"></p>
+                <div class="elme-cart__mov-track" aria-hidden="true">
+                    <span class="elme-cart__mov-bar" :style="minimumOrderBarStyle"></span>
+                </div>
+            </div>
+            <div class="elme-cart__summary-cta">
+                <button type="button"
+                        class="btn btn-primary w-full justify-center"
+                        @click="goToCheckout"
+                        :disabled="cannotCheckout"
+                        :aria-busy="checkoutBusy"
+                        :title="checkoutTitle">
+                    <?= $escaper->escapeHtml(__('Proceed to checkout')) ?>
+                </button>
+                <?= $block->getChildHtml('save-status', false) ?>
+            </div>
+            <a class="elme-cart__continue" href="<?= $escaper->escapeUrl($homeUrl) ?>">
+                <?= $escaper->escapeHtml(__('Continue shopping')) ?>
+            </a>
+        </aside>
+    </div>
+
+    <div class="elme-cart__bar" x-show="hasItems" x-cloak>
+        <div class="elme-cart__bar-total">
+            <span class="elme-cart__bar-label"><?= $escaper->escapeHtml(__('Total (inc GST)')) ?></span>
+            <span class="elme-cart__bar-amount">
+                <span class="elme-cart__tick" x-ref="barTotal" x-text="totals.total_formatted"></span>
+            </span>
+            <?= $block->getChildHtml('save-status', false) ?>
+        </div>
+        <button type="button"
+                class="btn btn-primary"
+                @click="goToCheckout"
+                :disabled="cannotCheckout"
+                :aria-busy="checkoutBusy"
+                :title="checkoutTitle">
+            <?= $escaper->escapeHtml(__('Proceed to checkout')) ?>
+        </button>
+    </div>
+    <p class="sr-only" aria-live="polite" x-text="saveLabel"></p>
+    <p class="sr-only" role="status" x-text="announcement"></p>
+</section>
+<script>
+    function initElmeQuickOrderCartPage() {
+        // how long "Saved" stays before the status goes back to "All changes saved"
+        const SAVED_MS = 1400;
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+        let savedTimer = null;
+        // the last cart the client sent; rows on their way out (removing) stay in the page until they collapsed
+        let latest = null;
+
+        /** The new number slides in from below (up) or above (down); fast token, ease-out-quart. */
+        function tick(el, dir) {
+            if (!el || !el.animate || !dir || reduceMotion.matches) {
+                return;
+            }
+            const root = getComputedStyle(document.documentElement);
+            el.animate([
+                {transform: 'translateY(' + (dir > 0 ? '0.4em' : '-0.4em') + ')', opacity: 0},
+                {transform: 'none', opacity: 1}
+            ], {
+                duration: parseFloat(root.getPropertyValue('--transition-duration-fast')) || 180,
+                easing: root.getPropertyValue('--ease-out-quart').trim() || 'ease-out'
+            });
+        }
+
+        return {
+            cart: null,
+            totals: {},
+            saving: false,
+            justSaved: false,
+            leaving: false,
+            loadError: '',
+            // sku -> {item, index} of rows turning to dust
+            removing: {},
+            announcement: '',
+
+            init() {
+                window.elmeQuickOrderCart.load().catch((error) => {
+                    this.loadError = error.message;
+                });
+            },
+
+            onCart() {
+                const detail = this.$event.detail;
+                const wasSaving = this.saving;
+                latest = detail;
+                this.saving = detail.saving;
+
+                clearTimeout(savedTimer);
+                this.justSaved = false;
+                if (wasSaving && !this.saving && !Object.keys(detail.errors || {}).length) {
+                    this.justSaved = true;
+                    savedTimer = setTimeout(() => {
+                        this.justSaved = false;
+                    }, SAVED_MS);
+                }
+                this.render();
+            },
+
+            /** The client's cart, with the rows on their way out kept in place; totals wait for the collapse. */
+            render() {
+                if (!latest) {
+                    return;
+                }
+                let cart = latest.cart;
+                const leaving = Object.keys(this.removing);
+                if (cart && leaving.length) {
+                    const items = cart.items.slice();
+                    leaving.forEach((sku) => {
+                        if (!items.some((item) => item.sku === sku)) {
+                            const row = this.removing[sku];
+                            items.splice(Math.min(row.index, items.length), 0, row.item);
+                        }
+                    });
+                    cart = Object.assign({}, cart, {items: items});
+                }
+                this.cart = cart;
+                if (!leaving.length) {
+                    this.showTotals((cart && cart.totals) || {});
+                }
+            },
+
+            showTotals(totals) {
+                const before = Number(this.totals.total);
+                this.totals = totals;
+                const after = Number(totals.total);
+                if (before && after && before !== after) {
+                    this.$nextTick(() => {
+                        tick(this.$refs.barTotal, after > before ? 1 : -1);
+                        tick(this.$refs.summaryTotal, after > before ? 1 : -1);
+                    });
+                }
+            },
+
+            items() {
+                return this.cart ? this.cart.items : [];
+            },
+            isLoading() {
+                return !this.cart && !this.loadError;
+            },
+            hasLoadError() {
+                return Boolean(this.loadError);
+            },
+            isEmpty() {
+                return Boolean(this.cart) && !this.cart.items.length;
+            },
+            hasItems() {
+                return Boolean(this.cart) && this.cart.items.length > 0;
+            },
+            cannotCheckout() {
+                return this.saving || !this.cart || !this.cart.can_checkout;
+            },
+            checkoutBusy() {
+                return this.leaving ? 'true' : false;
+            },
+            showMinimumOrder() {
+                const mov = this.cart && this.cart.minimum_order;
+                return Boolean(mov && mov.enabled && !mov.met);
+            },
+            minimumOrderHint() {
+                const mov = this.cart && this.cart.minimum_order;
+                if (!mov) {
+                    return '';
+                }
+                return hyva.str(
+                    '<?= $escaper->escapeJs(__('Add %1 more to place your order.')) ?>',
+                    mov.remaining_formatted
+                );
+            },
+            minimumOrderBarStyle() {
+                const mov = this.cart && this.cart.minimum_order;
+                if (!mov || !mov.minimum) {
+                    return 'width: 0%';
+                }
+                const pct = Math.max(0, Math.min(100, Math.round((mov.subtotal / mov.minimum) * 100)));
+                return 'width: ' + pct + '%';
+            },
+            checkoutTitle() {
+                return this.showMinimumOrder() ? this.minimumOrderHint() : '';
+            },
+            savingClass() {
+                return this.saving ? 'is-saving' : '';
+            },
+            saveState() {
+                if (this.saving) {
+                    return 'saving';
+                }
+                return this.justSaved ? 'saved' : 'idle';
+            },
+            // the live region speaks only real changes, never the idle text
+            saveLabel() {
+                if (this.saving) {
+                    return '<?= $escaper->escapeJs(__('Saving...')) ?>';
+                }
+                return this.justSaved ? '<?= $escaper->escapeJs(__('Saved')) ?>' : '';
+            },
+            lineCountLabel() {
+                const count = this.items().length;
+                return count === 1
+                    ? '<?= $escaper->escapeJs(__('1 line')) ?>'
+                    : hyva.str('<?= $escaper->escapeJs(__('%1 lines')) ?>', count);
+            },
+
+            qtyId() {
+                return 'qo-qty-' + this.item.sku;
+            },
+            removeLabel() {
+                return hyva.str('<?= $escaper->escapeJs(__('Remove %1')) ?>', this.item.name);
+            },
+            hasUrl() {
+                return Boolean(this.item.url);
+            },
+            hasNoUrl() {
+                return !this.item.url;
+            },
+            hasStockLabel() {
+                return Boolean(this.item.stock && this.item.stock.qty_formatted);
+            },
+            stockClass() {
+                const level = this.item.stock && this.item.stock.level;
+                return level ? 'is-' + level : '';
+            },
+            stockLabel() {
+                return hyva.str('<?= $escaper->escapeJs(__('%1 in stock')) ?>', this.item.stock.qty_formatted);
+            },
+            hasPrice() {
+                return Boolean(this.item.price);
+            },
+            hasDiscount() {
+                return Boolean(this.item.price && this.item.price.has_discount);
+            },
+            unitPrice() {
+                return this.item.price
+                    ? hyva.str('<?= $escaper->escapeJs(__('%1 each, ex GST')) ?>', this.item.price.final_formatted)
+                    : '';
+            },
+            regularPrice() {
+                return this.item.price ? this.item.price.regular_formatted : '';
+            },
+            hasMessage() {
+                return Boolean(this.item.message);
+            },
+            // until the save answers, the row total follows the qty in the page
+            rowTotal() {
+                return this.item.price ? hyva.formatPrice(this.item.price.final * this.item.qty) : '';
+            },
+            isAtMin() {
+                return this.item.qty <= this.item.min;
+            },
+
+            /** Row total ticks as soon as the qty changes in the page. */
+            tickRow(from, dir) {
+                const row = from && from.closest('li');
+                this.$nextTick(() => tick(row && row.querySelector('.elme-cart__tick'), dir));
+            },
+
+            increment() {
+                this.tickRow(this.$event.currentTarget, 1);
+                window.elmeQuickOrderCart.setQty(this.item.sku, this.item.qty + this.item.step);
+            },
+            decrement() {
+                this.tickRow(this.$event.currentTarget, -1);
+                window.elmeQuickOrderCart.setQty(this.item.sku, Math.max(this.item.min, this.item.qty - this.item.step));
+            },
+            onQtyChange() {
+                const qty = hyva.safeParseNumber(this.$event.target.value);
+                this.tickRow(this.$event.target, qty > this.item.qty ? 1 : -1);
+                window.elmeQuickOrderCart.setQty(this.item.sku, qty);
+            },
+            /**
+             * Asks first. The delete goes to the server at once while the row turns to dust; the row leaves the
+             * list (and the totals change) after its gap has closed. A failed save brings the row back.
+             */
+            async removeItem() {
+                const trigger = this.$event.currentTarget;
+                const sku = this.item.sku;
+                const name = this.item.name;
+                if (this.removing[sku]) {
+                    return;
+                }
+                const confirmed = await window.elmeConfirm({
+                    title: hyva.str('<?= $escaper->escapeJs(__('Remove %1 from your cart?')) ?>', name),
+                    confirmLabel: '<?= $escaper->escapeJs(__('Remove')) ?>',
+                    trigger: trigger
+                });
+                const items = this.items();
+                const index = items.findIndex((item) => item.sku === sku);
+                if (!confirmed || index < 0 || this.removing[sku]) {
+                    return;
+                }
+                this.removing[sku] = {item: JSON.parse(JSON.stringify(items[index])), index: index};
+                const row = trigger.closest('.elme-cart__line');
+                const gone = window.elmeDust.dissolve(row);
+                window.elmeDust.focusNext(
+                    row,
+                    trigger.classList.contains('elme-cart__trash') ? '.elme-cart__trash' : '.elme-cart__remove-text',
+                    document.querySelector('h1')
+                );
+                const saved = window.elmeQuickOrderCart.remove(sku);
+                await gone;
+                const ok = await saved;
+                delete this.removing[sku];
+                this.render();
+                if (ok) {
+                    this.announcement = hyva.str('<?= $escaper->escapeJs(__('%1 removed from your cart.')) ?>', name);
+                } else {
+                    await window.elmeDust.restore(row, trigger);
+                }
+            },
+            async goToCheckout() {
+                if (this.leaving) {
+                    return;
+                }
+                this.leaving = true;
+                let going = false;
+                try {
+                    const cart = await window.elmeQuickOrderCart.flush();
+                    if (cart && cart.can_checkout) {
+                        going = true;
+                        window.location.assign('<?= $escaper->escapeJs($block->getUrl('checkout')) ?>');
+                    }
+                } finally {
+                    if (!going) {
+                        this.leaving = false;
+                    }
+                }
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeQuickOrderCartPage', initElmeQuickOrderCartPage), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

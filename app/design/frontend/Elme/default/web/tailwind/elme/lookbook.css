@@ -1,0 +1,760 @@
+/**
+ * FE-77 Shop the Looks, look 1 "Editorial" of docs/design/shop-the-looks-looks.html
+ * (Elme_Theme::content-type/lookbook.phtml, components in lookbook-js.phtml).
+ *
+ * Photo at its own aspect ratio on its average colour (--elme-look-tone) while it loads; numbered pins with a
+ * white ring, shadow and a soft pulse; a numbered product rail that sticks next to the photo from lg (sides
+ * alternate). The product card is a bottom sheet below md and a popover at the pin from md. Reduced motion: no
+ * pulse, no fades or slides, colours still change.
+ */
+@layer components {
+    /* section link of the feature layout (home Be Inspired) */
+    .elme-lookbook__more {
+        display: inline-flex;
+        align-items: center;
+        gap: --spacing(1.5);
+        font-size: var(--text-copy);
+        color: var(--color-ink);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        text-decoration-color: var(--color-border);
+        transition: color var(--transition-duration-fast) var(--ease-out-quad),
+            text-decoration-color var(--transition-duration-fast) var(--ease-out-quad);
+
+        & svg {
+            transition: transform var(--transition-duration-fast) var(--ease-out-quart);
+        }
+
+        @media (hover: hover) {
+            &:hover {
+                color: var(--color-olive);
+                text-decoration-color: currentColor;
+            }
+
+            &:hover svg {
+                transform: translateX(2px);
+            }
+        }
+    }
+
+    /* room filter: chips with counts, one row that scrolls on a phone */
+    .elme-lookbook__rooms {
+        display: flex;
+        gap: --spacing(2);
+        margin: 0 calc(var(--spacing) * -5) --spacing(8);
+        padding: 2px --spacing(5);
+        overflow-x: auto;
+        scrollbar-width: none;
+
+        @variant md {
+            flex-wrap: wrap;
+            margin-inline: 0;
+            padding-inline: 2px;
+            overflow: visible;
+        }
+
+        @variant lg {
+            margin-bottom: --spacing(4);
+        }
+    }
+
+    .elme-lookbook__chip {
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        gap: --spacing(2);
+        min-height: --spacing(11);
+        padding: 0 --spacing(4);
+        border: 1px solid var(--color-border);
+        background: var(--color-surface);
+        font-size: var(--text-copy);
+        color: var(--color-ink);
+        transition: background-color var(--transition-duration-fast) var(--ease-out-quad),
+            border-color var(--transition-duration-fast) var(--ease-out-quad),
+            color var(--transition-duration-fast) var(--ease-out-quad);
+
+        @media (hover: hover) {
+            &:hover {
+                border-color: var(--color-ink);
+            }
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
+        }
+
+        &[aria-pressed="true"] {
+            border-color: var(--color-ink);
+            background: var(--color-ink);
+            color: var(--color-on-primary);
+        }
+    }
+
+    .elme-lookbook__count {
+        font-size: var(--text-note);
+        color: var(--color-ink-muted);
+        font-variant-numeric: tabular-nums;
+        transition: color var(--transition-duration-fast) var(--ease-out-quad);
+
+        [aria-pressed="true"] > & {
+            color: var(--color-sand-light);
+        }
+    }
+
+    /* cross-fade: out quickly, the looks swap while nothing shows, then in */
+    .elme-lookbook__gallery {
+        display: grid;
+        gap: --spacing(12);
+        transition: opacity var(--transition-duration-base) var(--ease-out-quad);
+
+        &.is-fading {
+            opacity: 0;
+            transition-duration: var(--transition-duration-micro);
+        }
+
+        @variant lg {
+            gap: --spacing(20);
+        }
+    }
+
+    /* one look: head, photo, rail stacked; from lg the photo takes two thirds and the rail sticks */
+    .elme-look {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(4);
+
+        &[hidden] {
+            display: none;
+        }
+
+        @variant lg {
+            display: grid;
+            grid-template-columns: minmax(0, 2fr) minmax(--spacing(80), 1fr);
+            gap: --spacing(14);
+            align-items: start;
+        }
+    }
+
+    .elme-look__aside {
+        display: contents;
+
+        @variant lg {
+            display: block;
+            position: sticky;
+            top: calc(var(--elme-header-offset, 0px) + --spacing(6));
+        }
+    }
+
+    .elme-look__head {
+        order: 1;
+        display: grid;
+        gap: --spacing(1);
+
+        @variant lg {
+            margin-bottom: --spacing(5);
+        }
+    }
+
+    .elme-look__media {
+        order: 2;
+        min-width: 0;
+    }
+
+    .elme-look__rail {
+        order: 3;
+    }
+
+    @variant lg {
+        .elme-look__media {
+            order: 0;
+        }
+
+        .elme-look__aside {
+            order: 1;
+        }
+
+        .elme-lookbook--gallery .elme-look:nth-child(even of :not([hidden])) {
+            grid-template-columns: minmax(--spacing(80), 1fr) minmax(0, 2fr);
+
+            & .elme-look__media {
+                order: 2;
+            }
+        }
+    }
+
+    /* the photo: its own shape, its own colour until it is in */
+    .elme-look__scene {
+        position: relative;
+        width: 100%;
+        background: var(--elme-look-tone, var(--color-sand-light));
+    }
+
+    .elme-look__img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: opacity var(--transition-duration-slow) var(--ease-out-quad);
+
+        .is-loading > & {
+            opacity: 0;
+        }
+    }
+
+    /* pin: dark core, white ring and shadow read on light and dark photos; the ring pulses softly */
+    .elme-look-pin {
+        position: absolute;
+        z-index: 10;
+        display: grid;
+        place-items: center;
+        width: --spacing(7.5);
+        height: --spacing(7.5);
+        translate: -50% -50%;
+        border: 2px solid var(--color-surface);
+        border-radius: 9999px;
+        background: var(--color-ink);
+        color: var(--color-on-primary);
+        font-size: var(--text-note);
+        font-weight: 700;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        box-shadow: 0 2px 10px rgb(0 0 0 / .35);
+        cursor: pointer;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        transition: scale var(--transition-duration-fast) var(--ease-out-quart),
+            background-color var(--transition-duration-fast) var(--ease-out-quad),
+            color var(--transition-duration-fast) var(--ease-out-quad);
+
+        /* the pulse ring */
+        &::before {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            border: 2px solid var(--color-surface);
+            border-radius: inherit;
+            pointer-events: none;
+            animation: elme-look-pulse 2.6s var(--ease-out-quart) infinite;
+        }
+
+        /* 44px to tap */
+        &::after {
+            content: "";
+            position: absolute;
+            inset: --spacing(-2);
+            border-radius: inherit;
+        }
+
+        @variant md {
+            width: --spacing(8.5);
+            height: --spacing(8.5);
+            font-size: var(--text-copy);
+        }
+
+        @media (hover: hover) {
+            &:hover {
+                scale: 1.15;
+                background: var(--color-surface);
+                color: var(--color-ink);
+            }
+        }
+
+        &.is-lit {
+            scale: 1.15;
+            background: var(--color-surface);
+            color: var(--color-ink);
+
+            &::before {
+                animation: none;
+                opacity: 0;
+            }
+        }
+
+        &.is-open {
+            z-index: 11;
+        }
+
+        &:focus-visible {
+            outline: 3px solid var(--color-ink);
+            outline-offset: 2px;
+        }
+    }
+
+    @keyframes elme-look-pulse {
+        0% {
+            transform: scale(1);
+            opacity: .8;
+        }
+        70%,
+        100% {
+            transform: scale(1.8);
+            opacity: 0;
+        }
+    }
+
+    /* numbered product rail */
+    .elme-look-num {
+        display: grid;
+        flex: none;
+        place-items: center;
+        width: --spacing(6);
+        height: --spacing(6);
+        border: 1px solid var(--color-ink);
+        border-radius: 9999px;
+        font-size: var(--text-label);
+        font-weight: 700;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        transition: background-color var(--transition-duration-fast) var(--ease-out-quad),
+            color var(--transition-duration-fast) var(--ease-out-quad);
+
+        .is-lit & {
+            background: var(--color-ink);
+            color: var(--color-on-primary);
+        }
+    }
+
+    .elme-look-thumb {
+        flex: none;
+        width: --spacing(14);
+        height: --spacing(14);
+        overflow: hidden;
+        border: 1px solid var(--color-border);
+        background: var(--color-surface);
+
+        & img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    }
+
+    .elme-look-thumb--lg {
+        width: --spacing(18);
+        height: --spacing(18);
+    }
+
+    .elme-look__rows {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        border-top: 1px solid var(--color-border);
+    }
+
+    .elme-look-row {
+        display: flex;
+        align-items: center;
+        gap: --spacing(1);
+        padding-right: --spacing(1);
+        border-bottom: 1px solid var(--color-border);
+        transition: background-color var(--transition-duration-fast) var(--ease-out-quad);
+
+        &.is-lit {
+            background: var(--color-surface-muted);
+        }
+    }
+
+    .elme-look-row__main {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        gap: --spacing(3);
+        min-width: 0;
+        padding: --spacing(3) --spacing(2) --spacing(3) --spacing(1);
+        text-align: left;
+        cursor: pointer;
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: -2px;
+        }
+    }
+
+    .elme-look-row__meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0 --spacing(1);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        color: var(--color-ink-muted);
+    }
+
+    .elme-look-heart {
+        display: grid;
+        flex: none;
+        place-items: center;
+        width: --spacing(11);
+        height: --spacing(11);
+        border: 1px solid var(--color-border);
+        background: var(--color-surface);
+        color: var(--color-ink);
+        cursor: pointer;
+        transition: border-color var(--transition-duration-fast) var(--ease-out-quad);
+
+        @media (hover: hover) {
+            &:hover:not(:disabled) {
+                border-color: var(--color-ink);
+            }
+        }
+
+        &:disabled {
+            color: var(--color-placeholder);
+            cursor: default;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
+        }
+    }
+
+    .elme-look__add-all {
+        width: 100%;
+        gap: --spacing(2);
+        margin-top: --spacing(4);
+    }
+
+    .elme-look__add-count {
+        font-size: var(--text-note);
+        opacity: .75;
+    }
+
+    .elme-look__status {
+        margin-top: --spacing(3);
+        font-size: var(--text-note);
+        line-height: --spacing(4.5);
+        color: var(--color-ink);
+        opacity: 0;
+        transform: translateY(4px);
+
+        & b {
+            color: var(--color-olive);
+        }
+
+        &.is-shown {
+            opacity: 1;
+            transform: none;
+            transition: opacity var(--transition-duration-base) var(--ease-out-quad),
+                transform var(--transition-duration-base) var(--ease-out-quart);
+        }
+    }
+
+    /* product card: bottom sheet below md */
+    .elme-look-card {
+        position: fixed;
+        inset: auto 0 0;
+        z-index: 50;
+        display: grid;
+        gap: --spacing(3);
+        max-height: 88dvh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 0 --spacing(5) calc(--spacing(6) + env(safe-area-inset-bottom));
+        background: var(--color-surface);
+        color: var(--color-ink);
+        text-align: left;
+        box-shadow: 0 -8px 30px rgb(0 0 0 / .15);
+        outline: none;
+        transition: transform var(--transition-duration-base) var(--ease-out-quint);
+
+        &.is-dragging {
+            transition: none;
+        }
+
+        /* popover at the pin from md */
+        @variant md {
+            position: absolute;
+            inset: auto;
+            z-index: 20;
+            width: --spacing(100);
+            max-height: none;
+            overflow: visible;
+            padding: --spacing(4);
+            box-shadow: 0 12px 40px rgb(0 0 0 / .18), 0 0 0 1px rgb(0 0 0 / .05);
+            transform-origin: left center;
+            transition: none;
+
+            &[data-side="left"] {
+                transform-origin: right center;
+            }
+
+            &[data-side="below"] {
+                transform-origin: center top;
+            }
+
+            &[data-side="above"] {
+                transform-origin: center bottom;
+            }
+        }
+    }
+
+    .elme-look-card--enter {
+        transition: transform var(--transition-duration-slow) var(--ease-out-quint);
+
+        @variant md {
+            transition: opacity var(--transition-duration-fast) var(--ease-out-quad),
+                transform var(--transition-duration-base) var(--ease-out-quart);
+        }
+    }
+
+    .elme-look-card--leave {
+        transition: transform var(--transition-duration-base) var(--ease-out-quad);
+
+        @variant md {
+            transition: opacity var(--transition-duration-fast) var(--ease-out-quad), transform var(--transition-duration-fast) var(--ease-out-quad);
+        }
+    }
+
+    .elme-look-card--from {
+        transform: translateY(100%);
+
+        @variant md {
+            opacity: 0;
+            transform: scale(.96);
+        }
+    }
+
+    .elme-look-card--to {
+        opacity: 1;
+        transform: none;
+    }
+
+    .elme-look-card__handle {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        display: block;
+        width: calc(100% + --spacing(10));
+        height: --spacing(6);
+        margin: 0 calc(var(--spacing) * -5) --spacing(-1);
+        background: var(--color-surface);
+        cursor: grab;
+        touch-action: none;
+
+        &::before {
+            content: "";
+            position: absolute;
+            top: --spacing(2.5);
+            left: 50%;
+            width: --spacing(10);
+            height: --spacing(1);
+            margin-left: --spacing(-5);
+            border-radius: 9999px;
+            background: var(--color-border);
+        }
+
+        @variant md {
+            display: none;
+        }
+    }
+
+    .elme-look-card__close {
+        position: absolute;
+        top: --spacing(5);
+        right: --spacing(3);
+        z-index: 2;
+        display: grid;
+        place-items: center;
+        width: --spacing(10);
+        height: --spacing(10);
+        color: var(--color-ink-muted);
+        cursor: pointer;
+        transition: color var(--transition-duration-fast) var(--ease-out-quad);
+
+        @media (hover: hover) {
+            &:hover {
+                color: var(--color-ink);
+            }
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: -2px;
+        }
+
+        @variant md {
+            top: --spacing(1.5);
+            right: --spacing(1.5);
+        }
+    }
+
+    .elme-look-card__top {
+        display: flex;
+        align-items: flex-start;
+        gap: --spacing(3);
+        padding-right: --spacing(10);
+    }
+
+    .elme-look-card__name {
+        margin: 0;
+        font-family: var(--font-heading);
+        font-size: var(--text-h3);
+        font-weight: 400;
+        line-height: --spacing(6);
+        text-wrap: pretty;
+    }
+
+    .elme-look-card__buy {
+        display: grid;
+        gap: --spacing(3);
+    }
+
+    .elme-look-card__price {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0 --spacing(2);
+        min-height: --spacing(6);
+
+        & .price {
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        & .old-price .price {
+            font-weight: 400;
+            color: var(--color-ink-muted);
+            text-decoration: line-through;
+        }
+    }
+
+    .elme-look-opts {
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    .elme-look-opt {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        min-height: --spacing(10);
+        padding: 0 --spacing(3.5);
+        border: 1px solid var(--color-border);
+        font-size: var(--text-copy);
+        cursor: pointer;
+        transition: border-color var(--transition-duration-fast) var(--ease-out-quad),
+            background-color var(--transition-duration-fast) var(--ease-out-quad),
+            color var(--transition-duration-fast) var(--ease-out-quad);
+
+        @media (hover: hover) {
+            &:hover {
+                border-color: var(--color-ink);
+            }
+        }
+
+        &:has(:checked) {
+            border-color: var(--color-ink);
+            background: var(--color-ink);
+            color: var(--color-on-primary);
+        }
+
+        &:has(:disabled) {
+            color: var(--color-placeholder);
+            text-decoration: line-through;
+            cursor: not-allowed;
+        }
+
+        &:has(:focus-visible) {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
+        }
+    }
+
+    .elme-look-card__row {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: stretch;
+        gap: --spacing(2);
+
+        & .elme-qty {
+            width: --spacing(30);
+        }
+
+        /* Default heart is 44px and does not stretch. This one matches the stepper height and stays square. */
+        & .elme-look-heart {
+            width: auto;
+            height: 100%;
+            aspect-ratio: 1;
+        }
+    }
+
+    .elme-look-card__atc {
+        flex: 1;
+        min-width: 0;
+        min-height: --spacing(11);
+        padding-inline: --spacing(3);
+        font-size: var(--text-copy);
+        white-space: nowrap;
+    }
+
+    .elme-look-card__view {
+        display: inline-flex;
+        align-items: center;
+        justify-self: start;
+        gap: --spacing(1);
+        font-size: var(--text-note);
+        font-weight: 700;
+        color: var(--color-ink);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        text-decoration-color: var(--color-border);
+
+        @media (hover: hover) {
+            &:hover {
+                color: var(--color-olive);
+                text-decoration-color: currentColor;
+            }
+        }
+    }
+
+    .elme-look__scrim {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        background: color-mix(in srgb, var(--color-ink) 45%, transparent);
+
+        @variant md {
+            display: none !important;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .elme-look-pin::before {
+            animation: none;
+            opacity: 0;
+        }
+
+        .elme-look-pin,
+        .elme-look-pin:hover,
+        .elme-look-pin.is-lit {
+            scale: none;
+        }
+
+        .elme-lookbook__gallery,
+        .elme-look__img,
+        .elme-look__status.is-shown,
+        .elme-look-card,
+        .elme-look-card--enter,
+        .elme-look-card--leave {
+            transition: none;
+        }
+
+        .elme-look__img {
+            .is-loading > & {
+                opacity: 1;
+            }
+        }
+
+        .elme-look-card--from {
+            opacity: 1;
+            transform: none;
+        }
+
+        .elme-look__status {
+            transform: none;
+        }
+    }
+}

@@ -1,0 +1,64 @@
+/*
+ * Banner + breadcrumbs content pages (Outlet, About, Careers...): Page Builder Text between the Content Studio
+ * entries reads as the old Elme CMS copy (prose.css) with a readable measure and visible bullets; its H2s match
+ * the section headings of the entries (Visit us, Good to know). "Need assistance?" from the layout gets the
+ * container gutter that the gutterless <main> of this layout does not give it.
+ */
+@layer components {
+    .page-layout-banner-breadcrumbs [data-content-type="text"] {
+        @apply prose;
+        max-width: var(--content-measure);
+
+        :where(h2) {
+            margin-block: --spacing(10) --spacing(3);
+            font-size: var(--text-display);
+            line-height: var(--text-display--line-height);
+
+            @variant lg {
+                font-size: var(--text-display-desktop);
+                line-height: var(--text-display--line-height);
+            }
+        }
+
+        :where(h2:first-child) {
+            margin-top: 0;
+        }
+
+        :where(p, ul) {
+            font-size: var(--text-copy);
+            line-height: var(--text-copy--line-height);
+
+            @variant lg {
+                font-size: var(--text-copy-desktop);
+                line-height: var(--text-copy--line-height);
+            }
+        }
+
+        :where(ul) {
+            padding-inline-start: --spacing(5);
+            list-style: disc;
+            color: var(--color-ink-subtle);
+        }
+
+        :where(li)::marker {
+            color: var(--color-olive);
+        }
+
+        :where(li + li) {
+            margin-block-start: --spacing(2);
+        }
+
+        :where(strong) {
+            color: var(--color-ink);
+            font-weight: 600;
+        }
+    }
+
+    .page-layout-banner-breadcrumbs .column.main > .elme-need-assistance {
+        padding-inline: var(--container-gutter);
+
+        @variant md {
+            padding-inline: var(--container-gutter-desktop);
+        }
+    }
+}

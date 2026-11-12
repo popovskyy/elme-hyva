@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-66 Fairs & Events: CollectionPage + Event JSON-LD and Open Graph via content-page SEO.
+ * 1column / breadcrumbs; H1 is Magento page title. No hero / page-main-banner.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="elme_content_page_seo"/>
+    <body>
+        <referenceBlock name="page.main.title">
+            <arguments>
+                <argument name="css_class" xsi:type="string">elme-fairs-events-page__title mb-4 md:mb-6</argument>
+            </arguments>
+        </referenceBlock>
+
+        <referenceBlock name="content.page.jsonld" template="Magento_Cms::fairs-events/jsonld.phtml"/>
+    </body>
+</page>

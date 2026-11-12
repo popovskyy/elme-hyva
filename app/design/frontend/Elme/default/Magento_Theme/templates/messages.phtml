@@ -146,6 +146,7 @@ $iconAttrs = ['aria-hidden' => 'true'];
                             :ui-id="getMessageUiId"
                             :aria-live="getMessageLive"
                         >
+<<<<<<< HEAD
                             <span class="message__icon" aria-hidden="true">
                                 <span x-show="isSuccess">
                                     <?= $lucideIcons->checkHtml('stroke-current', 18, 18, $iconAttrs); ?>
@@ -161,6 +162,10 @@ $iconAttrs = ['aria-hidden' => 'true'];
                                 </span>
                             </span>
                             <span class="message__body" x-html-safe="message.text"></span>
+=======
+                            <span class="message__badge" aria-hidden="true"></span>
+                            <span class="message__text" x-html-safe="message.text"></span>
+>>>>>>> main
                             <button
                                 type="button"
                                 class="message__close"

@@ -1,8 +1,8 @@
 <?php
 /**
  * FE-06: account control in the header. FE-07: icon only below lg (label stays the accessible name).
- * Guest → login (UX-02 owns the wording: change $guestLabel only). Logged in: first name from private
- * content + account menu. The name is never baked into FPC HTML.
+ * UX-02: guest label is "Trade login" (same href as desktop; icon + accessible name on mobile).
+ * Logged in: first name from private content + account menu. The name is never baked into FPC HTML.
  */
 
 declare(strict_types=1);
@@ -24,7 +24,7 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
 
 $loggedIn = $block->customerLoggedIn();
 $loginUrl = $block->getUrl('customer/account/login');
-$guestLabel = __('Log in/Sign up');
+$guestLabel = __('Trade login');
 ?>
 
 <?php if (!$loggedIn): ?>
@@ -75,7 +75,7 @@ $guestLabel = __('Log in/Sign up');
         <nav
             id="customer-menu-panel"
             class="elme-account-menu absolute end-0 top-full z-40 mt-2 w-56 py-2
-                   bg-surface border border-divider shadow-lg"
+                   bg-surface border border-border shadow-lg"
             aria-label="<?= $escaper->escapeHtmlAttr(__('My Account')) ?>"
             x-show="open"
             x-transition:enter="transition ease-out duration-150"
@@ -86,7 +86,7 @@ $guestLabel = __('Log in/Sign up');
             x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
             x-cloak
         >
-            <p class="px-4 pt-1 pb-2 mb-2 border-b border-divider text-note text-ink-muted" x-show="hasName">
+            <p class="px-4 pt-1 pb-2 mb-2 border-b border-border text-note text-ink-muted" x-show="hasName">
                 <?= $escaper->escapeHtml(__('Signed in as')) ?>
                 <span class="block text-base text-ink font-medium truncate" x-text="fullName"></span>
             </p>

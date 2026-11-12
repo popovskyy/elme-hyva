@@ -1,0 +1,34 @@
+/*
+ * FE-12 "As styled by you": square tiles with edge peek (~1.3 at phone, ~4.5 at desktop).
+ * Shared arrow/track chrome lives in snap-carousel.css.
+ */
+
+@layer components {
+    .elme-instagram-slider__item {
+        /* (track + gap) / peek - gap → ~1.3 tiles visible on the phone width */
+        --elme-ig-peek: 1.3;
+        flex: 0 0 calc((100% + --spacing(3.5)) / var(--elme-ig-peek) - --spacing(3.5));
+        width: calc((100% + --spacing(3.5)) / var(--elme-ig-peek) - --spacing(3.5));
+        max-width: --spacing(72);
+    }
+
+    .elme-instagram-slider__meta {
+        /* Reserve credit + action line so Alpine / font load does not shift the section */
+        min-height: --spacing(12);
+    }
+
+    @variant lg {
+        .elme-instagram-slider__item {
+            --elme-ig-peek: 4.5;
+            flex-basis: calc((100% + --spacing(4.5)) / var(--elme-ig-peek) - --spacing(4.5));
+            width: calc((100% + --spacing(4.5)) / var(--elme-ig-peek) - --spacing(4.5));
+            max-width: none;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .elme-instagram-slider__link img {
+            transition: none;
+        }
+    }
+}

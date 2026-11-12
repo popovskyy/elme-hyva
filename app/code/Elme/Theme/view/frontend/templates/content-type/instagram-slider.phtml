@@ -1,0 +1,253 @@
+<?php
+/**
+ * Content Studio type `instagram_slider` (etc/content_types.xml, FE-12): "As styled by you"
+ * curated stockist posts. Server-renders every tile (SEO / GPTBot). Alpine only scrolls the
+ * snap track and enables/disables arrows — same carousel pattern as category_tiles (FE-15).
+ * Empty posts → render nothing (UX-01). No Instagram embed.js (CSP / UX-09).
+ *
+ * @var \Bart\ContentStudio\Block\Entry $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+use Elme\Theme\ViewModel\InstagramSlider;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+
+$slider = $block->getTypeViewModel();
+
+if (!$slider instanceof InstagramSlider) {
+    return;
+}
+
+$content = $block->getContent();
+$filterByProduct = (bool)$block->getData('filter_by_product');
+$posts = $slider->getPosts($content, $filterByProduct);
+
+if (!$posts) {
+    return;
+}
+
+$heading = $slider->getHeading($content, $filterByProduct);
+$handle = $slider->getHandle($content);
+$profileUrl = $slider->getProfileUrl($content);
+$invite = $slider->getInvite($content);
+$followLabel = $slider->getFollowLabel($content);
+$count = count($posts);
+$sectionId = 'instagram-slider-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
+$headingId = $sectionId . '-heading';
+$trackId = $sectionId . '-track';
+$isCarousel = $count > 1;
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+
+?>
+<section id="<?= $escaper->escapeHtmlAttr($sectionId) ?>"
+         class="elme-instagram-slider elme-snap-carousel relative -mx-(--entry-bleed) mb-10 lg:mb-15"
+         aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+    <?php if ($isCarousel): ?>
+         aria-roledescription="carousel"
+         x-data="initElmeSnapCarousel"
+    <?php endif; ?>
+>
+    <div class="elme-instagram-slider__intro px-5 text-center md:px-10">
+        <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+            class="mb-3 text-display text-ink lg:mb-4 lg:text-display-desktop">
+            <?= $escaper->escapeHtml($heading) ?>
+        </h2>
+
+        <p class="mb-3 text-copy text-ink lg:text-copy-desktop">
+            <a href="<?= $escaper->escapeUrl($profileUrl) ?>"
+               class="font-bold text-ink underline underline-offset-4 hover:text-link-hover
+                      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+               target="_blank"
+               rel="noopener noreferrer">
+                @<?= $escaper->escapeHtml($handle) ?>
+            </a>
+        </p>
+
+        <div class="mb-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 lg:mb-8">
+            <?php if ($invite !== ''): ?>
+                <p class="m-0 text-copy text-ink-muted"><?= $escaper->escapeHtml($invite) ?></p>
+            <?php endif; ?>
+            <a href="<?= $escaper->escapeUrl($profileUrl) ?>"
+               class="btn btn-secondary"
+               target="_blank"
+               rel="noopener noreferrer">
+                <span class="inline-flex items-center gap-2">
+                    <?= $lucideIcons->instagramHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                    <?= $escaper->escapeHtml($followLabel) ?>
+                </span>
+            </a>
+        </div>
+    </div>
+
+    <div class="relative">
+        <?php if ($isCarousel): ?>
+            <button type="button"
+                    class="elme-snap-carousel__arrow elme-snap-carousel__arrow--prev"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Previous posts')) ?>"
+                    aria-controls="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+                    x-ref="prev"
+                    @click="prev"
+                    disabled>
+                <?= $lucideIcons->chevronLeftHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+            </button>
+            <button type="button"
+                    class="elme-snap-carousel__arrow elme-snap-carousel__arrow--next"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Next posts')) ?>"
+                    aria-controls="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+                    x-ref="next"
+                    @click="next"
+                    disabled>
+                <?= $lucideIcons->chevronRightHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+            </button>
+        <?php endif; ?>
+
+        <div id="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+             class="elme-instagram-slider__track elme-snap-carousel__track m-0 flex
+                    snap-x snap-mandatory items-stretch overflow-x-auto overscroll-x-contain p-0
+                    [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+             <?php if ($isCarousel): ?>
+             x-ref="track"
+             data-item-selector=".elme-instagram-slider__item"
+             @scroll.passive="onScroll"
+             <?php endif; ?>
+        >
+            <?php foreach ($posts as $index => $post): ?>
+                <?php
+                $number = $index + 1;
+                $image = $post['image'];
+                $creditParts = ['@' . $post['credit_handle']];
+                if ($post['credit_location'] !== '') {
+                    $creditParts[] = $post['credit_location'];
+                }
+                $creditLine = implode(' · ', $creditParts);
+                ?>
+                <div class="elme-instagram-slider__item elme-snap-carousel__item shrink-0 snap-start"
+                     role="group"
+                     aria-roledescription="slide"
+                     aria-label="<?= $escaper->escapeHtmlAttr(__('%1 of %2', $number, $count)) ?>">
+                    <a href="<?= $escaper->escapeUrl($post['href']) ?>"
+                       class="elme-instagram-slider__link group flex h-full flex-col text-ink no-underline
+                              focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                       <?php if ($post['external']): ?>
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       <?php endif; ?>>
+                        <span class="elme-instagram-slider__media relative block aspect-square overflow-hidden bg-sand-light">
+                            <img src="<?= $escaper->escapeUrl($image['src']) ?>"
+                                 alt="<?= $escaper->escapeHtmlAttr($post['image_alt']) ?>"
+                                 width="<?= (int)$image['width'] ?>"
+                                 height="<?= (int)$image['height'] ?>"
+                                 loading="lazy"
+                                 decoding="async"
+                                 class="size-full object-cover transition-transform duration-(--transition-duration-slow)
+                                        ease-out-cubic motion-safe:group-hover:scale-[1.03]">
+                        </span>
+                        <span class="elme-instagram-slider__meta mt-3 flex min-h-12 flex-col gap-1 text-left">
+                            <span class="text-copy font-bold text-ink"><?= $escaper->escapeHtml($creditLine) ?></span>
+                            <span class="inline-flex flex-wrap items-center gap-2 text-copy text-ink-muted">
+                                <span class="inline-flex items-center gap-1">
+                                    <?= $escaper->escapeHtml($post['action_label']) ?>
+                                    <?php if ($post['external']): ?>
+                                        <?= $lucideIcons->externalLinkHtml('', 14, 14, ['aria-hidden' => 'true']) ?>
+                                    <?php endif; ?>
+                                </span>
+                                <?php if ($post['sku_count'] > 0): ?>
+                                    <span class="elme-instagram-slider__chip rounded-sm bg-sand px-2 py-0.5 text-label text-ink">
+                                        <?= $escaper->escapeHtml(
+                                            $post['sku_count'] === 1
+                                                ? __('1 product')
+                                                : __('%1 products', $post['sku_count'])
+                                        ) ?>
+                                    </span>
+                                <?php endif; ?>
+                            </span>
+                        </span>
+                    </a>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
+    <?php if ($isCarousel): ?>
+        <script>
+            function initElmeSnapCarousel() {
+                return {
+                    reduceMotion: false,
+
+                    init() {
+                        this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                        this.syncArrows();
+                        this.$refs.track.addEventListener('scrollend', () => this.syncArrows());
+                    },
+
+                    onScroll() {
+                        this.syncArrows();
+                    },
+
+                    itemSelector() {
+                        return this.$refs.track.dataset.itemSelector || '.elme-snap-carousel__item';
+                    },
+
+                    step() {
+                        const item = this.$refs.track.querySelector(this.itemSelector());
+
+                        if (!item) {
+                            return 0;
+                        }
+
+                        const trackStyle = window.getComputedStyle(this.$refs.track);
+                        const gap = parseFloat(trackStyle.columnGap) || parseFloat(trackStyle.gap) || 0;
+
+                        return item.getBoundingClientRect().width + gap;
+                    },
+
+                    go(direction) {
+                        const track = this.$refs.track;
+                        const amount = this.step() * direction;
+
+                        if (!amount) {
+                            return;
+                        }
+
+                        track.scrollBy({
+                            left: amount,
+                            behavior: this.reduceMotion ? 'auto' : 'smooth'
+                        });
+                        setTimeout(() => this.syncArrows(), this.reduceMotion ? 0 : 400);
+                    },
+
+                    next() {
+                        this.go(1);
+                    },
+
+                    prev() {
+                        this.go(-1);
+                    },
+
+                    syncArrows() {
+                        const track = this.$refs.track;
+                        const max = track.scrollWidth - track.clientWidth;
+                        const left = track.scrollLeft;
+                        const edge = 2;
+
+                        this.$refs.prev.disabled = left <= edge;
+                        this.$refs.next.disabled = left >= max - edge;
+                    }
+                };
+            }
+
+            window.addEventListener(
+                'alpine:init',
+                () => Alpine.data('initElmeSnapCarousel', initElmeSnapCarousel),
+                {once: true}
+            );
+        </script>
+        <?php $hyvaCsp->registerInlineScript() ?>
+    <?php endif; ?>
+</section>

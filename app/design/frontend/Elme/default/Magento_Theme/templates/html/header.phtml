@@ -33,18 +33,26 @@ $showMiniCart = (bool) $storeConfig->getStoreConfig(SidebarCart::XML_PATH_CHECKO
 $loginOnly = $viewModels->require(LoginOnly::class);
 $isLoggedIn = $loginOnly->isLoggedIn();
 
-$cartUrl = $block->getUrl('checkout/cart');
+// BE-16: the Quick Order cart is the only cart; there is no Magento cart page or mini-cart
 $qoCartUrl = $block->getUrl('quick_order/cart');
+$cartUrl = $qoCartUrl;
+// FE-73: Magento wishlist is off; Shopping list = named QO lists (Bart remake)
+$shoppingListUrl = $block->getUrl('quick_order/template');
 ?>
 <script>
     function initHeader() {
         return {
             searchOpen: false,
-            cart: {},
             cartLoaded: false,
             cartBumped: false,
             qoCount: 0,
             qoBumped: false,
+            listsCount: 0,
+            listsPrev: 0,
+            listsRolling: false,
+            listsSquashed: false,
+            listsPending: null,
+            listsTimer: null,
             isCartOpen: false,
             pageHeader: null,
             promo: null,
@@ -59,6 +67,9 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
             isMac: /Mac|iPhone|iPad|iPod/.test(navigator.userAgentData?.platform || navigator.platform || ''),
 
             init() {
+                if (window.elmeLists && window.elmeLists.isKnown()) {
+                    this.listsCount = window.elmeLists.count();
+                }
                 this.pageHeader = this.$root.closest('.page-header');
                 this.promo = this.pageHeader ? this.pageHeader.querySelector('.header-promo') : null;
                 this.measure();
@@ -193,61 +204,108 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
                 }
             },
 
+            // BE-16: the cart is the Quick Order cart (section quick_order); the quote's "cart" section is not
             getData() {
                 const data = this.$event.detail.data || {};
-                const previous = this.summaryCount();
-                this.cart = data.cart || {};
-                const bumped = this.cartLoaded && this.summaryCount() > previous;
-                // Added to cart while the row is hidden: bring it back, then bump the count once it is in view
-                if (this.cartLoaded && this.summaryCount() !== previous && this.headerHidden) {
-                    this.setHidden(false);
-                    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 200;
-                    setTimeout(() => {
-                        this.cartBumped = bumped;
-                    }, delay);
-                } else {
-                    this.cartBumped = bumped;
-                }
-                this.cartLoaded = true;
-                // FE-41: Quick Order cart count, if it ships as a customer-data section
                 if (data.quick_order) {
                     this.applyQoCount(data.quick_order.summary_count);
                 }
             },
 
-            // FE-41: or the Quick Order mini-cart dispatches `elme-qo-count` with {count}
+            // FE-78: the lists badge follows window.elmeLists (`elme-lists`). When a heart flies here the count
+            // waits for it (`elme-lists-landed`), then the icon squashes and the number rolls.
+            setListsCount() {
+                const detail = this.$event.detail || {};
+                const count = parseInt(detail.count, 10) || 0;
+                if (detail.landing || this.listsTimer) {
+                    this.listsPending = count;
+                    if (!this.listsTimer) {
+                        // the heart never lands (tab in the background): count anyway
+                        this.listsTimer = setTimeout(() => this.landLists(), 1400);
+                    }
+                    return;
+                }
+                this.applyListsCount(count, detail.reason !== 'sync', false);
+            },
+
+            landLists() {
+                clearTimeout(this.listsTimer);
+                this.listsTimer = null;
+                if (this.listsPending !== null) {
+                    this.applyListsCount(this.listsPending, true, true);
+                    this.listsPending = null;
+                }
+            },
+
+            applyListsCount(count, animate, squash) {
+                if (count === this.listsCount && !squash) {
+                    return;
+                }
+                const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                this.listsPrev = this.listsCount;
+                this.listsCount = count;
+                this.listsRolling = false;
+                this.listsSquashed = false;
+                if (!animate || reduced) {
+                    return;
+                }
+                this.$nextTick(() => requestAnimationFrame(() => {
+                    this.listsRolling = this.listsPrev !== this.listsCount && this.listsPrev > 0;
+                    this.listsSquashed = squash;
+                }));
+            },
+
+            listsRollEnd() {
+                this.listsRolling = false;
+            },
+
+            listsSquashEnd() {
+                this.listsSquashed = false;
+            },
+
+            listsIconClass() {
+                return {'is-squashed': this.listsSquashed};
+            },
+
+            listsBadgeClass() {
+                return {'is-rolling': this.listsRolling};
+            },
+
+            // The Quick Order cart client dispatches `elme-qo-count` with {count} after each change
             setQoCount() {
                 this.applyQoCount((this.$event.detail || {}).count);
             },
 
             applyQoCount(value) {
                 const count = parseInt(value, 10) || 0;
-                this.qoBumped = count > this.qoCount;
+                const previous = this.qoCount;
+                const bumped = this.cartLoaded && count > previous;
                 this.qoCount = count;
+                // Added to cart while the row is hidden: bring it back, then bump the count once it is in view
+                if (this.cartLoaded && count !== previous && this.headerHidden) {
+                    this.setHidden(false);
+                    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 200;
+                    setTimeout(() => {
+                        this.cartBumped = bumped;
+                        this.qoBumped = bumped;
+                    }, delay);
+                } else {
+                    this.cartBumped = bumped;
+                    this.qoBumped = bumped;
+                }
+                this.cartLoaded = true;
             },
 
             summaryCount() {
-                return this.cart.summary_count || 0;
+                return this.qoCount;
             },
 
             hasSummaryCount() {
                 return !!this.summaryCount();
             },
 
-            hasQoCount() {
-                return !!this.qoCount;
-            },
-
-            qoCountLabel() {
-                return this.qoCount;
-            },
-
             cartBadgeClass() {
                 return {'is-bumped': this.cartBumped};
-            },
-
-            qoBadgeClass() {
-                return {'is-bumped': this.qoBumped};
             },
 
             clearBump() {
@@ -268,8 +326,12 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
                 return '<?= $escaper->escapeJs(__('Cart')) ?>, ' + this.countLabel(this.summaryCount());
             },
 
-            qoAriaLabel() {
-                return '<?= $escaper->escapeJs(__('Quick Order')) ?>, ' + this.countLabel(this.qoCount);
+            hasListsCount() {
+                return !!this.listsCount;
+            },
+
+            listsAriaLabel() {
+                return '<?= $escaper->escapeJs(__('Shopping list')) ?>, ' + this.countLabel(this.listsCount);
             },
 
             toggleCart() {
@@ -336,20 +398,23 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
 <?php $hyvaCsp->registerInlineScript() ?>
 
 <div id="header"
-     class="elme-header<?= $isLoggedIn ? ' elme-header--signed-in' : '' ?> relative z-30 w-full border-b border-divider bg-surface"
+     class="elme-header<?= $isLoggedIn ? ' elme-header--signed-in' : '' ?> relative z-30 w-full border-b border-border bg-surface"
      x-data="initHeader"
      @private-content-loaded.window="getData"
      @elme-qo-count.window="setQoCount"
+     @elme-lists.window="setListsCount"
+     @elme-lists-landed.window="landLists"
      @keydown.escape.window="searchEscape"
      @keydown.window="searchShortcut"
 >
     <div class="elme-header__bar container grid grid-cols-[1fr_auto_1fr] lg:flex lg:flex-nowrap
-                items-center gap-2 lg:gap-6 xl:gap-5 2xl:gap-8 w-full py-1.5 lg:py-3">
+                items-center gap-2 lg:gap-4 xl:gap-4 2xl:gap-6 3xl:gap-8 w-full py-1.5 lg:py-3">
         <!-- Mobile: burger + search on the left, account + cart on the right, so the logo sits in the
              page centre. From lg this wrapper is display: contents and its children join the flex row. -->
         <div class="flex items-center justify-self-start -ms-2.5 lg:contents">
-            <!-- Burger / mega menu slot (drawer chrome → FE-09; mega → FE-08) -->
-            <div class="elme-header__nav shrink-0 lg:order-2 lg:shrink lg:min-w-0">
+            <!-- Burger / mega menu slot (drawer chrome → FE-09; mega → FE-08).
+                 From xl the nav may shrink; items stay nowrap, so keep density capped in mega-menu.css. -->
+            <div class="elme-header__nav shrink-0 lg:order-2 lg:min-w-0 lg:shrink">
                 <?= $block->getChildHtml('topmenu') ?>
             </div>
 
@@ -371,14 +436,16 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
 
         <!-- Logo: centred in the middle column on mobile, left on desktop -->
         <div class="elme-header__logo flex items-center justify-center min-w-0 lg:order-1 lg:justify-start lg:shrink-0">
-            <div class="w-28 sm:w-32 lg:w-36 xl:w-44">
+            <div class="w-28 sm:w-32 lg:w-36 xl:w-40 2xl:w-44">
                 <?= $block->getChildHtml('logo') ?>
             </div>
         </div>
 
         <!-- Search field from xl (always a real GET form; FE-22 adds autocomplete). Below xl the menu needs
-             the room: a search icon opens the full-width panel instead. -->
-        <div class="hidden xl:block lg:order-3 xl:flex-1 xl:min-w-52 xl:max-w-md 2xl:max-w-lg 3xl:max-w-xl">
+             the room: a search icon opens the full-width panel instead. shrink-0 + surface keeps the field
+             from being painted over when rem-grown nav wants more than the row can spare. -->
+        <div class="elme-header-search-slot hidden xl:block relative z-10 bg-surface lg:order-3
+                    xl:flex-1 xl:shrink-0 xl:min-w-48 xl:max-w-md 2xl:max-w-lg 3xl:max-w-xl">
             <?= $block->getChildHtml('header-search') ?>
         </div>
 
@@ -407,24 +474,28 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
 
 
             <?php if ($isLoggedIn): ?>
-                <!-- Quick Order cart (desktop; FE-41 adds the panel). Named apart from the mini-cart. -->
+                <!-- FE-73: Shopping list (named QO lists; Magento wishlist removed) -->
                 <a
-                    href="<?= $escaper->escapeUrl($qoCartUrl) ?>"
-                    class="elme-header__action elme-header__qo-btn hidden lg:inline-flex"
-                    :aria-label="qoAriaLabel"
+                    href="<?= $escaper->escapeUrl($shoppingListUrl) ?>"
+                    class="elme-header__action elme-header__lists-btn hidden lg:inline-flex"
+                    :aria-label="listsAriaLabel"
                 >
-                    <span class="elme-header__icon" aria-hidden="true">
-                        <?= $lucideIcons->clipboardListHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+                    <span class="elme-header__icon"
+                          aria-hidden="true"
+                          :class="listsIconClass"
+                          @animationend.self="listsSquashEnd">
+                        <?= $lucideIcons->heartHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
                         <span
-                            class="elme-header__badge"
-                            :class="qoBadgeClass"
-                            x-text="qoCountLabel"
-                            x-show="hasQoCount"
+                            class="elme-header__badge elme-header__badge--roll"
+                            :class="listsBadgeClass"
+                            x-show="hasListsCount"
                             x-cloak
-                            @animationend="clearBump"
-                        ></span>
+                        >
+                            <span class="elme-header__roll-out" x-show="listsRolling" x-text="listsPrev"></span>
+                            <span class="elme-header__roll-in" x-text="listsCount" @animationend="listsRollEnd"></span>
+                        </span>
                     </span>
-                    <span class="elme-header__label"><?= $escaper->escapeHtml(__('Quick Order')) ?></span>
+                    <span class="elme-header__label"><?= $escaper->escapeHtml(__('Shopping list')) ?></span>
                 </a>
 
                 <?php if ($showMiniCart): ?>
@@ -464,7 +535,7 @@ $qoCartUrl = $block->getUrl('quick_order/cart');
     <!-- Search panel below xl -->
     <div
         id="search-content"
-        class="xl:hidden absolute z-10 inset-x-0 top-full w-full border-t border-divider shadow-sm bg-surface"
+        class="xl:hidden absolute z-10 inset-x-0 top-full w-full border-t border-border shadow-sm bg-surface"
         x-cloak
         x-show="searchOpen"
         @click.outside="searchClose"

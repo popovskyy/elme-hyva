@@ -1,11 +1,22 @@
 /**
+<<<<<<< HEAD
  * Elme: page messages + toast stack (FE-03).
  * Surface cards with a type rail + icon — not flat pastel banners.
  * Page messages stay in document flow under the header (never sticky over it).
+=======
+ * Elme: flash messages (page messages + toast stack).
+ * Square paper card in a pale tint of the palette, status mark in a leaf shape.
+ * Two leaf layers sit behind the text: soft silhouettes (::before) and line
+ * art (::after). They are masks, so each type colours them from its own tint
+ * and --leaf-x / --leaf-y / --leaf-flip give each type a different scatter.
+ * Page messages and toasts are the same compact card (--message-max-width), centred.
+ * Page messages stay in the flow, toasts sit fixed under the header.
+>>>>>>> main
  */
 
 @layer components {
     .message {
+<<<<<<< HEAD
         --message-accent: var(--color-ink);
         --message-tint: var(--color-surface-muted);
         --message-icon: var(--color-ink);
@@ -50,14 +61,114 @@
             --message-accent: var(--color-warning);
             --message-tint: var(--color-warning-light);
             --message-icon: color-mix(in srgb, var(--color-warning) 70%, var(--color-ink));
+=======
+        --message-bg: var(--color-info-ground);
+        --message-mark: var(--color-info-mark);
+        --message-text: var(--color-info-text);
+        --message-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 11v6'/%3E%3Cpath d='M12 7h.01'/%3E%3C/svg%3E");
+        --message-leaves-back: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 160'%3E%3Cdefs%3E%3Cpath id='a' fill-rule='evenodd' d='M4-60C26-30 18 30-4 60-24 28-18-30 4-60ZM3-46C7-15 4 20-3 46 0 20 2-15 3-46Z'/%3E%3Cpath id='b' fill-rule='evenodd' d='M0-48C32-34 40 12 0 52-40 12-32-34 0-48ZM0-36C2-10 2 16 0 40-2 16-2-10 0-36Z'/%3E%3Cg id='c'%3E%3Cpath d='M0 60C6 30-6 0 0-60' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath id='s' d='M0 0C10-12 26-12 34-2 24 8 8 8 0 0Z' transform='translate(1 42)rotate(-28)'/%3E%3Cpath d='M0 0C10-12 26-12 34-2 24 8 8 8 0 0Z' transform='translate(-1 28)rotate(208)'/%3E%3Cpath d='M0 0C9-11 23-11 30-2 22 7 7 7 0 0Z' transform='translate(0 8)rotate(-34)'/%3E%3Cpath d='M0 0C9-11 23-11 30-2 22 7 7 7 0 0Z' transform='translate(-2-8)rotate(214)'/%3E%3Cpath d='M0 0C8-9 19-9 25-2 18 6 6 6 0 0Z' transform='translate(-1-26)rotate(-42)'/%3E%3Cpath d='M0 0C8-9 19-9 25-2 18 6 6 6 0 0Z' transform='translate(-1-40)rotate(222)'/%3E%3Cpath d='M0 0C4-9 12-12 20-10 18-2 10 4 0 0Z' transform='translate(0-58)rotate(-48)'/%3E%3C/g%3E%3Cpath id='d' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' d='M1 62C5 20-4-20 0-62M1 50Q-14 46-28 26M2 50Q16 46 30 26M2 30Q-14 26-30 6M2 30Q18 26 31 6M1 10Q-13 6-27-14M1 10Q15 6 28-14M0-10Q-11-14-22-32M0-10Q12-14 23-32M0-30Q-8-34-15-46M0-30Q8-34 16-46'/%3E%3Cpath id='e' d='M-1 56C1 34 0 18 0 6-20 12-44-2-42-22-26-40-8-38 0-26 8-38 26-40 42-22 44-2 20 12 3 6 3 18 4 34 2 56Z'/%3E%3C/defs%3E%3Cuse href='%23a' transform='translate(448 52)rotate(38)scale(0.62)'/%3E%3Cuse href='%23b' transform='translate(386 104)rotate(-112)scale(0.56)'/%3E%3Cuse href='%23c' transform='translate(322 48)rotate(74)scale(0.52)'/%3E%3Cuse href='%23d' transform='translate(452 112)rotate(-30)scale(0.56)'/%3E%3Cuse href='%23e' transform='translate(262 104)rotate(-34)scale(0.44)'/%3E%3Cuse href='%23a' transform='translate(214 44)rotate(118)scale(0.4)'/%3E%3Cuse href='%23b' transform='translate(156 112)rotate(150)scale(0.36)'/%3E%3Cuse href='%23d' transform='translate(106 50)rotate(98)scale(0.34)'/%3E%3Cuse href='%23e' transform='translate(44 100)rotate(40)scale(0.34)'/%3E%3Cuse href='%23c' transform='translate(400 30)rotate(160)scale(0.34)'/%3E%3C/svg%3E");
+        --message-leaves-front: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 160'%3E%3Cdefs%3E%3Cg id='a' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4-60C26-30 18 30-4 60-24 28-18-30 4-60Z'/%3E%3Cpath d='M4-60C7-15 4 20-4 60M4-28 16-38M5-6-13-20M4 12 15 0M2 28-13 14'/%3E%3C/g%3E%3Cg id='b' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M0-48C32-34 40 12 0 52-40 12-32-34 0-48Z'/%3E%3Cpath d='M0-48V52M0-22 18-34M0-22-18-34M0-2 27-18M0-2-27-18M0 18 24 2M0 18-24 2M0 36 14 24M0 36-14 24'/%3E%3C/g%3E%3Cg id='c' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M0 60C6 30-6 0 0-60'/%3E%3Cpath d='M1 42C11 30 27 30 35 40 25 50 9 50 1 42Z' transform='rotate(-20 1 42)'/%3E%3Cpath d='M-1 26C-11 14-27 14-35 24-25 34-9 34-1 26Z' transform='rotate(20 -1 26)'/%3E%3Cpath d='M0 8C9-3 23-3 30 6 22 15 7 15 0 8Z' transform='rotate(-26 0 8)'/%3E%3Cpath d='M-2-10C-11-21-25-21-32-12-24-3-9-3-2-10Z' transform='rotate(26 -2 -10)'/%3E%3Cpath d='M-1-28C7-37 18-37 24-30 17-22 5-22-1-28Z' transform='rotate(-34 -1 -28)'/%3E%3Cpath d='M-1-44C-9-53-20-53-26-46-19-38-7-38-1-44Z' transform='rotate(34 -1 -44)'/%3E%3C/g%3E%3C/defs%3E%3Cuse href='%23a' transform='translate(408 74)rotate(-58)scale(0.6)'/%3E%3Cuse href='%23b' transform='translate(470 50)rotate(198)scale(0.42)'/%3E%3Cuse href='%23c' transform='translate(346 110)rotate(112)scale(0.46)'/%3E%3Cuse href='%23a' transform='translate(292 62)rotate(128)scale(0.4)'/%3E%3Cuse href='%23b' transform='translate(232 108)rotate(62)scale(0.34)'/%3E%3Cuse href='%23c' transform='translate(170 54)rotate(-70)scale(0.32)'/%3E%3Cuse href='%23a' transform='translate(84 106)rotate(28)scale(0.3)'/%3E%3Cuse href='%23b' transform='translate(24 56)rotate(-150)scale(0.28)'/%3E%3C/svg%3E");
+        --leaf-x: 0px;
+        --leaf-y: 0px;
+        --leaf-flip: 1;
+
+        position: relative;
+        display: flex;
+        gap: --spacing(3);
+        align-items: center;
+        width: 100%;
+        min-height: --spacing(16);
+        margin-block-end: --spacing(2);
+        padding-block: --spacing(2.5);
+        padding-inline: --spacing(4) --spacing(2);
+        overflow: hidden;
+        isolation: isolate;
+        border: 1px solid color-mix(in srgb, var(--message-mark) 22%, transparent);
+        border-radius: var(--radius-sm);
+        background-color: var(--message-bg);
+        box-shadow: 0 --spacing(2) --spacing(6) color-mix(in srgb, var(--color-ink) 10%, transparent);
+        color: var(--message-text);
+        font-size: var(--text-base);
+        font-weight: 500;
+        line-height: var(--text-base--line-height);
+        transition: opacity var(--transition-duration-fast) var(--ease-out-quad);
+
+        @starting-style {
+            opacity: 0;
+        }
+
+        &::before,
+        &::after {
+            content: "";
+            position: absolute;
+            z-index: -1;
+            inset: calc(var(--spacing) * -6);
+            pointer-events: none;
+            scale: 1 var(--leaf-flip);
+            mask-repeat: no-repeat;
+            mask-size: --spacing(120) --spacing(40);
+            mask-composite: intersect;
+            mask-position: var(--leaf-place), var(--leaf-place);
+        }
+
+        /* The gradient fades the leaves on the text side of the tile */
+        &::before {
+            --leaf-place: right var(--leaf-x) top calc(50% + var(--leaf-y));
+
+            background-color: color-mix(in srgb, var(--message-mark) 15%, var(--message-bg));
+            mask-image: var(--message-leaves-back), linear-gradient(to left, black 40%, rgb(0 0 0 / 45%));
+        }
+
+        &::after {
+            --leaf-place: right calc(var(--leaf-x) * 1.7) top calc(50% - var(--leaf-y));
+
+            background-color: color-mix(in srgb, var(--message-mark) 34%, var(--message-bg));
+            mask-image: var(--message-leaves-front), linear-gradient(to left, black 40%, rgb(0 0 0 / 30%));
+        }
+
+        &.success {
+            --message-bg: var(--color-success-ground);
+            --message-mark: var(--color-success-mark);
+            --message-text: var(--color-success-text);
+            --message-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+            --leaf-x: --spacing(6);
+            --leaf-y: --spacing(2);
+        }
+
+        &.error {
+            --message-bg: var(--color-error-ground);
+            --message-mark: var(--color-error-mark);
+            --message-text: var(--color-error-text);
+            --message-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M18 6 6 18M6 6l12 12'/%3E%3C/svg%3E");
+            --leaf-x: --spacing(14);
+            --leaf-flip: -1;
+        }
+
+        &.warning {
+            --message-bg: var(--color-warning-ground);
+            --message-mark: var(--color-warning-mark);
+            --message-text: var(--color-warning-text);
+            --message-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M12 6v8'/%3E%3Cpath d='M12 18h.01'/%3E%3C/svg%3E");
+            --leaf-x: --spacing(2);
+            --leaf-y: calc(var(--spacing) * -3);
+            --leaf-flip: -1;
+        }
+
+        &.info {
+            --message-bg: var(--color-info-ground);
+            --message-mark: var(--color-info-mark);
+            --message-text: var(--color-info-text);
+>>>>>>> main
         }
 
         a {
+            color: inherit;
             text-decoration-line: underline;
             text-underline-offset: 2px;
         }
     }
 
+<<<<<<< HEAD
     .message__icon {
         display: inline-flex;
         flex-shrink: 0;
@@ -98,11 +209,65 @@
         &:focus-visible {
             outline: 2px solid var(--color-ink);
             outline-offset: 2px;
+=======
+    .message__badge {
+        display: grid;
+        flex: none;
+        place-items: center;
+        width: --spacing(7);
+        height: --spacing(7);
+        border-radius: 50% 0;
+        background: var(--message-mark);
+
+        &::after {
+            content: "";
+            width: --spacing(4);
+            height: --spacing(4);
+            background: var(--color-on-primary);
+            mask: var(--message-glyph) center / contain no-repeat;
+        }
+    }
+
+    .message__text {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .message__close {
+        display: grid;
+        flex: none;
+        place-items: center;
+        width: --spacing(11);
+        height: --spacing(11);
+        border: 0;
+        border-radius: 50% 0;
+        background-color: transparent;
+        color: var(--message-text);
+        cursor: pointer;
+        transition:
+            background-color var(--transition-duration-fast) var(--ease-out-quint),
+            scale var(--transition-duration-micro) var(--ease-out-quint);
+
+        &:active {
+            scale: 0.94;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--message-text);
+            outline-offset: -2px;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            &:hover {
+                background-color: color-mix(in srgb, var(--message-mark) 18%, transparent);
+            }
+>>>>>>> main
         }
     }
 
     /* Ephemeral toast: fixed under the header band, not over it */
     .elme-toast-stack {
+        --message-max-width: --spacing(150);
         position: fixed;
         z-index: 40;
         inset-inline: 0;
@@ -124,6 +289,7 @@
     }
 
     .elme-toast-stack .message {
+<<<<<<< HEAD
         pointer-events: auto;
         width: 100%;
         max-width: 24rem;
@@ -174,24 +340,72 @@
 
         @media (prefers-reduced-motion: reduce) {
             animation: none;
+=======
+        width: min(100%, var(--message-max-width));
+        margin-block-end: 0;
+        pointer-events: auto;
+
+        &.is-leaving {
+            opacity: 0;
+            pointer-events: none;
+        }
+    }
+
+    /* Toast drops in under the header, the leaves settle a beat behind it */
+    @media (prefers-reduced-motion: no-preference) {
+        .elme-toast-stack .message {
+            transition:
+                opacity var(--transition-duration-fast) var(--ease-out-quad),
+                translate var(--transition-duration-base) var(--ease-out-quint);
+
+            @starting-style {
+                translate: 0 calc(var(--spacing) * -2);
+            }
+
+            &.is-leaving {
+                translate: 0 calc(var(--spacing) * -1);
+            }
+
+            &::before,
+            &::after {
+                transition:
+                    rotate var(--transition-duration-slow) var(--ease-out-quint),
+                    translate var(--transition-duration-slow) var(--ease-out-quint);
+            }
+
+            &::before {
+                @starting-style {
+                    rotate: -2deg;
+                    translate: 0 --spacing(2);
+                }
+            }
+
+            &::after {
+                @starting-style {
+                    rotate: 3deg;
+                    translate: 0 --spacing(3);
+                }
+            }
+>>>>>>> main
         }
     }
 }
 
-/* Keep messages in the content column under the header (no sticky overlay) */
+/* Keep messages in the page flow under the header (no sticky overlay), compact and centred */
 .page.messages {
+    --message-max-width: --spacing(150);
     position: relative;
     z-index: 10;
 
-    .messages,
-    section#messages {
+    /* Elme: the section adds no gutter or strip of its own, .messages is the container */
+    .messages {
         @apply container;
         margin-inline: auto;
         padding-block: --spacing(3);
-    }
 
-    /* Elme: no empty strip in the page when there is no message */
-    section#messages:not(:has(.message)) {
-        padding-block: 0;
+        > div {
+            width: min(100%, var(--message-max-width));
+            margin-inline: auto;
+        }
     }
 }

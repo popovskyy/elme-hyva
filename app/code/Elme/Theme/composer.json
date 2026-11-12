@@ -6,7 +6,11 @@
         "php": "~8.3.0||~8.4.0",
         "magento/framework": "*",
         "magento/module-cms": "*",
-        "bart/module-content-studio": "*"
+        "bart/module-content-studio": "*",
+        "magento/module-catalog": "*",
+        "magento/module-inventory-sales-api": "*",
+        "magento/module-inventory-configuration-api": "*",
+        "magento/module-store": "*"
     },
     "autoload": {
         "files": [

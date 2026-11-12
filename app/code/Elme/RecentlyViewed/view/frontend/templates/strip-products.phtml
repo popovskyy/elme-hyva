@@ -1,0 +1,233 @@
+<?php
+/**
+ * FE-24: “Recently viewed products” strip — FE-19 tiles via AJAX, reusable on PDP (FE-30).
+ * Newest first; current product omitted when data-exclude-id is set. Hidden when empty.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Elme\RecentlyViewed\ViewModel\Config;
+use Elme\RecentlyViewed\ViewModel\ProductRecorder;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+
+$config = $viewModels->require(Config::class);
+if (!$config->isEnabled()) {
+    return;
+}
+
+$excludeId = 0;
+if ($block->getData('exclude_current_product')) {
+    $excludeId = $viewModels->require(ProductRecorder::class)->getProductId();
+}
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+
+$sectionId = 'elme-rv-products';
+$headingId = $sectionId . '-heading';
+$trackId = $sectionId . '-track';
+?>
+<section id="<?= $escaper->escapeHtmlAttr($sectionId) ?>"
+         class="elme-rv elme-rv--products elme-snap-carousel relative -mx-(--entry-bleed) mt-8 mb-12 lg:mt-10 lg:mb-16"
+         aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+         x-data="initElmeRecentlyViewedProducts"
+         data-exclude-id="<?= $escaper->escapeHtmlAttr((string) $excludeId) ?>"
+         x-cloak
+         x-show="isVisible"
+         x-bind:aria-roledescription="carouselRole"
+>
+    <div class="mb-4 flex flex-wrap items-end justify-between gap-3 px-5 md:px-10 lg:mb-6">
+        <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+            class="m-0 text-display text-ink lg:text-display-desktop">
+            <?= $escaper->escapeHtml(__('Recently viewed products')) ?>
+        </h2>
+        <button type="button"
+                class="text-copy text-ink-muted underline underline-offset-4 hover:text-ink
+                       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                @click="clearAll">
+            <?= $escaper->escapeHtml(__('Clear all')) ?>
+        </button>
+    </div>
+
+    <div class="relative" x-show="hasItems">
+        <button type="button"
+                class="elme-snap-carousel__arrow elme-snap-carousel__arrow--prev"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Previous products')) ?>"
+                aria-controls="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+                x-ref="prev"
+                @click="prev"
+                disabled>
+            <?= $lucideIcons->chevronLeftHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+        </button>
+        <button type="button"
+                class="elme-snap-carousel__arrow elme-snap-carousel__arrow--next"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Next products')) ?>"
+                aria-controls="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+                x-ref="next"
+                @click="next"
+                disabled>
+            <?= $lucideIcons->chevronRightHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+        </button>
+
+        <ul id="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+            class="elme-rv__track elme-snap-carousel__track m-0 flex list-none
+                   snap-x snap-mandatory items-stretch overflow-x-auto overscroll-x-contain
+                   [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            x-ref="track"
+            data-item-selector=".elme-rv-products__slide"
+            @scroll.passive="onScroll"
+        ></ul>
+    </div>
+</section>
+<script>
+    function initElmeRecentlyViewedProducts() {
+        return {
+            items: [],
+            ready: false,
+            reduceMotion: false,
+
+            init() {
+                this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                const excludeId = parseInt(this.$root.dataset.excludeId, 10) || 0;
+                this.items = window.elmeRecentlyViewed
+                    ? window.elmeRecentlyViewed.listProducts(excludeId)
+                    : [];
+                if (!this.items.length) {
+                    this.ready = true;
+                    return;
+                }
+                this.fetchCards();
+            },
+
+            hasItems() {
+                return this.items.length > 0;
+            },
+
+            isVisible() {
+                return this.ready && this.hasItems();
+            },
+
+            carouselRole() {
+                return this.items.length > 1 ? 'carousel' : null;
+            },
+
+            clearAll() {
+                if (window.elmeRecentlyViewed) {
+                    window.elmeRecentlyViewed.clearProducts();
+                }
+                this.items = [];
+                if (this.$refs.track) {
+                    this.$refs.track.innerHTML = '';
+                }
+            },
+
+            fetchCards() {
+                const ids = this.items.map(item => item.id).join(',');
+                const url = (window.elmeRecentlyViewed && window.elmeRecentlyViewed.cardsUrl)
+                    + (window.elmeRecentlyViewed.cardsUrl.indexOf('?') === -1 ? '?' : '&')
+                    + 'ids=' + encodeURIComponent(ids);
+
+                fetch(url, {
+                    credentials: 'same-origin',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(response => response.ok ? response.json() : {html: '', count: 0})
+                    .catch(() => ({html: '', count: 0}))
+                    .then(data => {
+                        const track = this.$refs.track;
+                        if (!track) {
+                            this.items = [];
+                            this.ready = true;
+                            return;
+                        }
+                        const html = data && data.html ? data.html : '';
+                        if (!html) {
+                            this.items = [];
+                            this.ready = true;
+                            return;
+                        }
+                        track.innerHTML = html;
+                        if (window.Alpine && typeof Alpine.initTree === 'function') {
+                            Alpine.initTree(track);
+                        }
+                        this.ready = true;
+                        this.$nextTick(() => this.syncArrows());
+                    });
+            },
+
+            onScroll() {
+                this.syncArrows();
+            },
+
+            itemSelector() {
+                return this.$refs.track?.dataset.itemSelector || '.elme-rv-products__slide';
+            },
+
+            step() {
+                const track = this.$refs.track;
+                if (!track) {
+                    return 0;
+                }
+                const item = track.querySelector(this.itemSelector());
+                if (!item) {
+                    return 0;
+                }
+                const trackStyle = window.getComputedStyle(track);
+                const gap = parseFloat(trackStyle.columnGap) || parseFloat(trackStyle.gap) || 0;
+                return item.getBoundingClientRect().width + gap;
+            },
+
+            go(direction) {
+                const track = this.$refs.track;
+                const amount = this.step() * direction;
+                if (!track || !amount) {
+                    return;
+                }
+                track.scrollBy({
+                    left: amount,
+                    behavior: this.reduceMotion ? 'auto' : 'smooth'
+                });
+                setTimeout(() => this.syncArrows(), this.reduceMotion ? 0 : 400);
+            },
+
+            next() {
+                this.go(1);
+            },
+
+            prev() {
+                this.go(-1);
+            },
+
+            syncArrows() {
+                const track = this.$refs.track;
+                const prev = this.$refs.prev;
+                const next = this.$refs.next;
+                if (!track || !prev || !next) {
+                    return;
+                }
+                const max = track.scrollWidth - track.clientWidth;
+                const left = track.scrollLeft;
+                const edge = 2;
+                prev.disabled = left <= edge;
+                next.disabled = left >= max - edge;
+            }
+        };
+    }
+
+    window.addEventListener(
+        'alpine:init',
+        () => Alpine.data('initElmeRecentlyViewedProducts', initElmeRecentlyViewedProducts),
+        {once: true}
+    );
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

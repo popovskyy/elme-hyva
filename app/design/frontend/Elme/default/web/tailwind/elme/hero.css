@@ -1,5 +1,5 @@
 /*
- * FE-14 hero (Elme_Theme content-type/hero.phtml), "Cinema" from docs/design/hero-wow-options.html.
+ * FE-14 hero (Elme_Theme content-type/hero.phtml), "Cinema".
  *
  * On the home page the hero is the top banner and sits right under the header, as on production.
  * Banner-breadcrumbs pages get the same from their breadcrumbs. Unlayered, like the .page-main margin in
@@ -20,11 +20,11 @@
     }
 
     /* On a 1-column page the photo runs to the viewport, past the 1920 container.
-       Copy stays on the container line via --hero-pad. */
+       Copy stays on the container line via --hero-pad.
+       100vw includes the scrollbar, so it shifts the hero left by half that width and the
+       copy misses the logo. Under the container max the entry-bleed margin already meets the
+       screen edge, so the breakout starts only once the viewport is wider than the container. */
     :is(.cms-page-view, .cms-index-index).page-layout-1column .elme-hero {
-        width: 100vw;
-        max-width: 100vw;
-        margin-inline: calc(50% - 50vw);
         --hero-pad: max(
             var(--container-gutter),
             calc((100vw - var(--container-max-width)) / 2 + var(--container-gutter))
@@ -35,6 +35,12 @@
                 var(--container-gutter-desktop),
                 calc((100vw - var(--container-max-width)) / 2 + var(--container-gutter-desktop))
             );
+        }
+
+        @media (width > theme(--breakpoint-3xl)) {
+            width: 100vw;
+            max-width: 100vw;
+            margin-inline: calc(50% - 50vw);
         }
     }
 
@@ -97,6 +103,9 @@
         }
     }
 
+    /* From md the copy column is 58% of the container, not of the slide: on 4K the slide is the full
+       viewport and --hero-pad is the gap to the 1920 container, so a plain 58% with that pad on both
+       sides left the heading a narrow column that wrapped into many lines and rose under the header. */
     .elme-hero__copy {
         padding: 0 var(--hero-pad) --spacing(7);
 
@@ -104,23 +113,19 @@
             top: 0;
             display: flex;
             align-items: flex-end;
-            width: 58%;
+            width: calc(var(--hero-pad) + (100% - 2 * var(--hero-pad)) * 0.58);
+            padding-right: 0;
             padding-bottom: --spacing(14);
         }
     }
 
     .elme-hero__heading {
-        font-size: var(--text-title-section);
-        line-height: var(--text-title-section--line-height);
+        font-size: var(--text-display);
+        line-height: var(--text-display--line-height);
 
         @variant md {
-            font-size: var(--text-title-section-desktop);
-            line-height: var(--text-title-section-desktop--line-height);
-        }
-
-        @variant xl {
-            font-size: var(--text-h1-desktop);
-            line-height: 1.07;
+            font-size: var(--text-display-desktop);
+            line-height: var(--text-display--line-height);
         }
     }
 
@@ -197,7 +202,7 @@
         transition:
             opacity var(--transition-duration-fast) var(--ease-out-quart),
             translate var(--transition-duration-fast) var(--ease-out-quart),
-            background-color var(--transition-duration-fast) ease;
+            background-color var(--transition-duration-fast) var(--ease-out-quad);
     }
 
     .elme-hero__arrow--prev {
@@ -240,42 +245,42 @@
        text and button follow. Slide 1 is .is-current in the HTML, so it plays on load without JS. */
     @media (prefers-reduced-motion: no-preference) {
         .elme-hero__slide.is-current .elme-hero__img {
-            animation: elme-hero-settle 1600ms var(--ease-out-quint) both;
+            animation: elme-hero-settle var(--transition-duration-long) var(--ease-out-quint) both;
         }
 
         .elme-hero__slide.is-current .elme-hero__drift {
-            animation: elme-hero-drift 14s linear 1600ms both;
+            animation: elme-hero-drift 14s linear var(--transition-duration-long) both;
         }
 
         .elme-hero__slide.is-current .elme-hero__line > span {
-            animation: elme-hero-line 400ms var(--ease-out-quint) both;
+            animation: elme-hero-line var(--transition-duration-slow) var(--ease-out-quint) both;
             animation-delay: 60ms;
         }
 
         .elme-hero__slide.is-current .elme-hero__line:nth-child(2) > span {
-            animation-delay: 120ms;
+            animation-delay: var(--transition-duration-micro);
         }
 
         .elme-hero__slide.is-current .elme-hero__line:nth-child(3) > span {
-            animation-delay: 180ms;
+            animation-delay: var(--transition-duration-fast);
         }
 
         .elme-hero__slide.is-current .elme-hero__line:nth-child(n + 4) > span {
-            animation-delay: 240ms;
+            animation-delay: var(--transition-duration-base);
         }
 
         .elme-hero__slide.is-current .elme-hero__rise {
-            animation: elme-hero-rise 280ms var(--ease-out-quint) 180ms both;
+            animation: elme-hero-rise var(--transition-duration-slow) var(--ease-out-quint) var(--transition-duration-fast) both;
         }
 
         .elme-hero__slide.is-current .elme-hero__rise + .elme-hero__rise {
-            animation-delay: 180ms;
+            animation-delay: var(--transition-duration-fast);
         }
     }
 
     @media (prefers-reduced-motion: reduce) {
         .elme-hero__slide.is-current .elme-hero__copy {
-            animation: elme-fade var(--transition-duration-slow) ease both;
+            animation: elme-fade var(--transition-duration-slow) var(--ease-out-quad) both;
         }
     }
 }
@@ -307,4 +312,55 @@
 @keyframes elme-fade {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+/* Scroll anchoring was shoving this track sideways as photos loaded, so the
+   first slide (the LCP image) painted off-screen. */
+.elme-hero__track {
+    overflow-anchor: none;
+}
+
+/*
+ * The slide is a one-cell grid: photo and copy share the cell, so the slide grows when the copy is taller
+ * than the photo's height (very wide but short windows, 4K at 67% zoom, long headings) instead of the
+ * heading running out of the top. The photo stretches to the cell; its own height is only a minimum.
+ * Unlayered: the template's absolute / inset utilities on the copy must lose.
+ */
+.elme-hero__slide {
+    display: grid;
+}
+
+.elme-hero__slide > .elme-hero__media,
+.elme-hero__slide > .elme-hero__copy {
+    grid-area: 1 / 1;
+}
+
+.elme-hero__slide > .elme-hero__media {
+    align-self: stretch;
+    max-height: none;
+}
+
+/* the photo never sizes the slide: it fills whatever height the cell gets */
+.elme-hero__slide > .elme-hero__media > .elme-hero__drift {
+    position: absolute;
+    inset: 0;
+}
+
+.elme-hero__slide > .elme-hero__copy {
+    position: relative;
+    inset: auto;
+    align-self: end;
+    padding-top: --spacing(16);
+}
+
+@variant lg {
+    .elme-hero__slide > .elme-hero__media {
+        height: auto;
+        max-height: none;
+        min-height: calc(var(--spacing) * 175);
+    }
+
+    .cms-index-index .elme-hero__slide > .elme-hero__media {
+        min-height: var(--home-hero-height);
+    }
 }

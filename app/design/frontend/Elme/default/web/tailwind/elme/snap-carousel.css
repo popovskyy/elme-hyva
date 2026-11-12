@@ -1,0 +1,114 @@
+/*
+ * Shared horizontal scroll-snap carousel chrome (FE-12). Track gutters + prev/next arrows.
+ * Instagram slider and later FE-14 / FE-15 / FE-17 can reuse .elme-snap-carousel__*.
+ */
+
+@layer components {
+    .elme-snap-carousel__track {
+        gap: --spacing(3.5);
+        padding-inline: max(var(--entry-bleed), var(--container-gutter));
+        scroll-padding-inline: max(var(--entry-bleed), var(--container-gutter));
+
+        @variant md {
+            padding-inline: max(var(--entry-bleed), var(--container-gutter-desktop));
+            scroll-padding-inline: max(var(--entry-bleed), var(--container-gutter-desktop));
+        }
+
+        @variant lg {
+            gap: --spacing(4.5);
+        }
+    }
+
+    .elme-snap-carousel__arrow {
+        position: absolute;
+        top: calc(50% - --spacing(8));
+        z-index: 10;
+        display: none;
+        place-items: center;
+        width: --spacing(11);
+        height: --spacing(11);
+        margin: 0;
+        padding: 0;
+        border: 1px solid color-mix(in oklab, var(--color-ink) 14%, transparent);
+        border-radius: 50%;
+        background: var(--color-surface);
+        color: var(--color-ink);
+        cursor: pointer;
+        translate: 0 -50%;
+    }
+
+    .elme-snap-carousel__arrow--prev {
+        left: --spacing(3.5);
+    }
+
+    .elme-snap-carousel__arrow--next {
+        right: --spacing(3.5);
+    }
+
+    .elme-snap-carousel__arrow:disabled {
+        pointer-events: none;
+        opacity: 0;
+    }
+
+    .elme-snap-carousel__arrow:focus-visible {
+        outline: --spacing(0.5) solid var(--color-ink);
+        outline-offset: --spacing(0.5);
+    }
+
+    .elme-snap-carousel__arrow:active {
+        scale: 0.97;
+    }
+
+    @variant lg {
+        .elme-snap-carousel__arrow {
+            display: grid;
+        }
+    }
+
+    @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+        .elme-snap-carousel__arrow {
+            opacity: 0;
+            pointer-events: none;
+            transition:
+                opacity var(--transition-duration-micro) var(--ease-out-quart),
+                translate var(--transition-duration-micro) var(--ease-out-quart);
+        }
+
+        .elme-snap-carousel__arrow--prev {
+            translate: calc(--spacing(2) * -1) -50%;
+        }
+
+        .elme-snap-carousel__arrow--next {
+            translate: --spacing(2) -50%;
+        }
+
+        .elme-snap-carousel:hover .elme-snap-carousel__arrow:not(:disabled),
+        .elme-snap-carousel:focus-within .elme-snap-carousel__arrow:not(:disabled) {
+            opacity: 1;
+            pointer-events: auto;
+            translate: 0 -50%;
+            transition-duration: var(--transition-duration-fast);
+            transition-timing-function: var(--ease-out-quart);
+        }
+    }
+
+    @media (hover: hover) and (prefers-reduced-motion: reduce) {
+        .elme-snap-carousel__arrow {
+            opacity: 0;
+            pointer-events: none;
+            transition: none;
+        }
+
+        .elme-snap-carousel:hover .elme-snap-carousel__arrow:not(:disabled),
+        .elme-snap-carousel:focus-within .elme-snap-carousel__arrow:not(:disabled) {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .elme-snap-carousel__arrow:active {
+            scale: 1;
+        }
+    }
+}

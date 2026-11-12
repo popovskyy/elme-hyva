@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      layout="checkout"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="fallback.module.missing" remove="true"/>
+        <referenceContainer name="checkout.header.container" remove="true"/>
+        <!-- Snowdog's inline plugin has no CSP hash, CSP is enforced here, and this page has no menu to collapse -->
+        <referenceBlock name="alpine-plugin-collapse" remove="true"/>
+        <!-- default -> default_hyva still adds the menus; CSP is enforced here and the page has its own header -->
+        <referenceBlock name="elme.mega.panels" remove="true"/>
+        <referenceBlock name="elme.mobile.menu.dialog" remove="true"/>
+        <!-- The steps carry the visible titles, as on the old checkout; the h1 stays for screen readers -->
+        <referenceBlock name="page.main.title">
+            <arguments>
+                <argument name="css_class" xsi:type="string">sr-only</argument>
+            </arguments>
+        </referenceBlock>
+
+        <referenceContainer name="page.wrapper">
+            <block name="elme.checkout.header"
+                   template="Elme_Checkout::header.phtml"
+                   before="main.content"/>
+            <block name="elme.checkout.footer"
+                   template="Elme_Checkout::footer.phtml"
+                   after="main.content"/>
+        </referenceContainer>
+
+        <referenceContainer name="content">
+            <!-- cacheable="false": the page holds this customer's cart -->
+            <block name="elme.checkout" template="Elme_Checkout::checkout.phtml" cacheable="false">
+                <container name="elme.checkout.sections" label="Checkout sections, in order">
+                    <block name="elme.checkout.section.address" template="Elme_Checkout::section/address.phtml">
+                        <arguments>
+                            <argument name="number" xsi:type="number">1</argument>
+                        </arguments>
+                        <block name="elme.checkout.section.address.shipping.cards"
+                               as="shipping_cards"
+                               template="Elme_Checkout::section/address/cards.phtml">
+                            <arguments>
+                                <argument name="group" xsi:type="string">shipping</argument>
+                                <argument name="legend" xsi:type="string" translate="true">Delivery address</argument>
+                                <argument name="can_add" xsi:type="boolean">true</argument>
+                            </arguments>
+                        </block>
+                        <block name="elme.checkout.section.address.billing.cards"
+                               as="billing_cards"
+                               template="Elme_Checkout::section/address/cards.phtml">
+                            <arguments>
+                                <argument name="group" xsi:type="string">billing</argument>
+                                <argument name="legend" xsi:type="string" translate="true">Billing address</argument>
+                            </arguments>
+                        </block>
+                        <block name="elme.checkout.section.address.form"
+                               as="form"
+                               template="Elme_Checkout::section/address/form.phtml"/>
+                    </block>
+                    <block name="elme.checkout.section.delivery" template="Elme_Checkout::section/delivery.phtml">
+                        <arguments>
+                            <argument name="number" xsi:type="number">2</argument>
+                        </arguments>
+                    </block>
+                    <block name="elme.checkout.section.payment" template="Elme_Checkout::section/payment.phtml">
+                        <arguments>
+                            <argument name="number" xsi:type="number">3</argument>
+                        </arguments>
+                        <!-- Payment renderers: the alias is the method code, "default" takes every other method -->
+                        <block name="elme.checkout.section.payment.renderer.default"
+                               as="default"
+                               template="Elme_Checkout::section/payment/method.phtml"/>
+                    </block>
+                    <!-- Optional: no step marker (FE-83), so it does not read as an unfinished required step -->
+                    <block name="elme.checkout.section.details" template="Elme_Checkout::section/details.phtml"/>
+                    <block name="elme.checkout.place_order" template="Elme_Checkout::section/place-order.phtml">
+                        <block name="elme.checkout.place_order.button"
+                               as="button"
+                               template="Elme_Checkout::section/place-order/button.phtml"/>
+                    </block>
+                </container>
+
+                <!-- Phones and tablets: the total and Place order stay in view at the bottom -->
+                <block name="elme.checkout.place_order.bar" template="Elme_Checkout::place-order-bar.phtml">
+                    <block name="elme.checkout.place_order.bar.button"
+                           as="button"
+                           template="Elme_Checkout::section/place-order/button.phtml"/>
+                </block>
+
+                <block name="elme.checkout.summary" template="Elme_Checkout::section/summary.phtml">
+                    <!-- One row template per total segment: the alias is TotalsMapper's "row" -->
+                    <block name="elme.checkout.summary.row.subtotal"
+                           as="subtotal"
+                           template="Elme_Checkout::section/summary/row.phtml"/>
+                    <block name="elme.checkout.summary.row.shipping"
+                           as="shipping"
+                           template="Elme_Checkout::section/summary/row.phtml"/>
+                    <block name="elme.checkout.summary.row.tax"
+                           as="tax"
+                           template="Elme_Checkout::section/summary/row.phtml"/>
+                    <block name="elme.checkout.summary.row.generic"
+                           as="generic"
+                           template="Elme_Checkout::section/summary/row.phtml"/>
+                    <block name="elme.checkout.summary.row.grand_total"
+                           as="grand_total"
+                           template="Elme_Checkout::section/summary/row-grand-total.phtml"/>
+                </block>
+            </block>
+        </referenceContainer>
+
+        <referenceContainer name="before.body.end">
+            <block name="elme.checkout.js.store" template="Elme_Checkout::js/store.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

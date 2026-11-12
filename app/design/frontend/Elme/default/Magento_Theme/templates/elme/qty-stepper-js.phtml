@@ -112,7 +112,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
 
             stepperClasses() {
                 return {
-                    'border-error': this.tone === 'error',
+                    'border-error-mark': this.tone === 'error',
                     'border-border hover:border-primary focus-within:border-primary': this.tone !== 'error',
                     'opacity-50': this.disabled
                 };
@@ -123,7 +123,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                     'text-ink-subtle': this.tone === 'hint',
                     // A changed quantity reads darker and medium weight, next to an info icon
                     'text-ink font-medium': this.tone === 'notice',
-                    'text-error-strong': this.tone === 'error'
+                    'text-error-text': this.tone === 'error'
                 };
             }
         }

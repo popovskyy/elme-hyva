@@ -1,0 +1,52 @@
+<?php
+/**
+ * FE-18: category banner picture — desktop/mobile sources, LCP-friendly eager load, non-empty alt.
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\CategoryBanner;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+/** @var CategoryBanner $banner */
+$banner = $block->getData('view_model');
+if (!$banner instanceof CategoryBanner || !$banner->hasImage()) {
+    return;
+}
+
+$desktopUrl = $banner->getDesktopImageUrl();
+$mobileUrl = $banner->getMobileImageUrl();
+$alt = $banner->getImageAlt();
+$desktopSize = $banner->getDesktopImageSize();
+$mobileSize = $banner->getMobileImageSize();
+$hasDistinctMobile = $banner->hasDistinctMobileImage();
+?>
+<picture class="category-banner__picture">
+    <?php if ($hasDistinctMobile): ?>
+        <source media="(max-width: 767px)"
+                srcset="<?= $escaper->escapeUrl($mobileUrl) ?>"
+                width="<?= (int) $mobileSize['width'] ?>"
+                height="<?= (int) $mobileSize['height'] ?>">
+        <source media="(min-width: 768px)"
+                srcset="<?= $escaper->escapeUrl($desktopUrl) ?>"
+                width="<?= (int) $desktopSize['width'] ?>"
+                height="<?= (int) $desktopSize['height'] ?>">
+    <?php else: ?>
+        <source media="(min-width: 768px)"
+                srcset="<?= $escaper->escapeUrl($desktopUrl) ?>"
+                width="<?= (int) $desktopSize['width'] ?>"
+                height="<?= (int) $desktopSize['height'] ?>">
+    <?php endif; ?>
+    <img class="category-banner__img"
+         src="<?= $escaper->escapeUrl($desktopUrl) ?>"
+         alt="<?= $escaper->escapeHtmlAttr($alt) ?>"
+         width="<?= (int) $desktopSize['width'] ?>"
+         height="<?= (int) $desktopSize['height'] ?>"
+         loading="eager"
+         fetchpriority="high"
+         decoding="async">
+</picture>

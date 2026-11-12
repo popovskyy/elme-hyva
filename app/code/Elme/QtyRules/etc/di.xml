@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Global: the storefront, REST and GraphQL all reach the cart through this stock check.
+         Sorted before the around plugin of Magento_InventorySales (order 0): that one never proceeds, so an after
+         plugin behind it would not run. -->
+    <type name="Magento\CatalogInventory\Api\StockStateInterface">
+        <plugin name="elme_qty_rules_enforce" type="Elme\QtyRules\Plugin\EnforceQtyRulesPlugin" sortOrder="-10"/>
+    </type>
+    <type name="Magento\Quote\Model\Quote">
+        <plugin name="elme_qty_rules_refuse_before_add" type="Elme\QtyRules\Plugin\RefuseQtyBeforeAddPlugin"/>
+    </type>
+    <type name="Magento\Checkout\Model\Cart">
+        <plugin name="elme_qty_rules_refuse_cart_update" type="Elme\QtyRules\Plugin\RefuseCartUpdatePlugin"/>
+    </type>
+</config>

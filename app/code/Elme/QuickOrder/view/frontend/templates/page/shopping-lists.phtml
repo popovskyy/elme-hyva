@@ -1,0 +1,270 @@
+<?php
+/**
+ * FE-73: My Shopping List - named Quick Order lists (Bart wishlist remake).
+ * FE-76: cards on the phone, ruled rows with real links on desktop, empty state with a CTA (elme/shopping-lists.css).
+ * FE-75: Delete asks in the shared confirm dialog, then the row turns to dust (elme/dust.phtml).
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+$getAllUrl = $block->getUrl('quick_order/list/getall');
+$deleteUrl = $block->getUrl('quick_order/list/delete');
+$quickOrderUrl = $block->getUrl('quick_order');
+?>
+<div class="elme-shopping-lists"
+     x-data="initElmeShoppingLists"
+     x-bind="eventListeners">
+    <div class="elme-sl__top">
+        <h1 class="elme-sl__title" x-ref="title"><?= $escaper->escapeHtml(__('My Shopping List')) ?></h1>
+        <a href="<?= $escaper->escapeUrl($quickOrderUrl) ?>"
+           class="btn btn-secondary elme-sl__new"
+           x-show="hasLists"
+           x-cloak>
+            <?= $lucideIcons->plusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+            <span class="lg:hidden"><?= $escaper->escapeHtml(__('New list')) ?></span>
+            <span class="hidden lg:inline"><?= $escaper->escapeHtml(__('Create new list')) ?></span>
+        </a>
+    </div>
+
+    <div x-show="isLoading" class="elme-sl__lists" aria-busy="true">
+        <p class="sr-only"><?= $escaper->escapeHtml(__('Loading your lists...')) ?></p>
+        <div class="elme-sl__bone" aria-hidden="true"></div>
+        <div class="elme-sl__bone" aria-hidden="true"></div>
+    </div>
+
+    <div class="elme-sl__empty" x-show="showEmpty" x-cloak>
+        <?= $lucideIcons->clipboardListHtml('', 40, 40, ['aria-hidden' => 'true']) ?>
+        <h2><?= $escaper->escapeHtml(__('No lists yet')) ?></h2>
+        <p><?= $escaper->escapeHtml(__('Save the products you order often, then add the whole list to your cart in one go.')) ?></p>
+        <div class="elme-sl__empty-actions">
+            <a class="btn btn-primary" href="<?= $escaper->escapeUrl($quickOrderUrl) ?>">
+                <?= $lucideIcons->plusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                <?= $escaper->escapeHtml(__('Create a list')) ?>
+            </a>
+            <a class="btn btn-link" href="<?= $escaper->escapeUrl($block->getBaseUrl()) ?>">
+                <?= $escaper->escapeHtml(__('Continue shopping')) ?>
+            </a>
+        </div>
+    </div>
+
+    <div x-show="hasLists" x-cloak>
+        <div class="elme-sl__head" aria-hidden="true">
+            <span><?= $escaper->escapeHtml(__('List')) ?></span>
+            <span><?= $escaper->escapeHtml(__('Products')) ?></span>
+            <span></span>
+        </div>
+        <ul class="elme-sl__lists">
+            <template x-for="list in lists" :key="list.id">
+                <li class="elme-dust">
+                    <div>
+                        <div class="elme-sl__row" data-list-row>
+                            <div class="elme-sl__info">
+                                <a class="elme-sl__name" :href="list.edit_url" x-text="list.name"></a>
+                                <span class="elme-sl__count" x-text="list.products_label"></span>
+                            </div>
+                            <div class="elme-sl__thumbs" aria-hidden="true">
+                                <template x-for="item in list.preview" :key="list.id + '-' + item.sku">
+                                    <span class="elme-sl__thumb" :title="item.name">
+                                        <img x-show="item.thumbnail_url"
+                                             :src="item.thumbnail_url"
+                                             alt=""
+                                             width="56"
+                                             height="56"
+                                             loading="lazy">
+                                        <span x-show="hasNoThumbnail">
+                                            <?= $lucideIcons->imageHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                                        </span>
+                                    </span>
+                                </template>
+                                <span class="elme-sl__thumb elme-sl__thumb--more" x-show="list.more" x-text="list.more_label"></span>
+                            </div>
+                            <div class="elme-sl__actions">
+                                <a class="btn btn-primary lg:btn-secondary elme-sl__open"
+                                   :href="list.edit_url"
+                                   :aria-label="list.open_label">
+                                    <?= $escaper->escapeHtml(__('Open list')) ?>
+                                </a>
+                                <button type="button"
+                                        class="elme-ib elme-ib--line elme-ib--danger"
+                                        :data-list-id="list.id"
+                                        :data-list-name="list.name"
+                                        :aria-label="list.delete_label"
+                                        @click="confirmDelete">
+                                    <?= $lucideIcons->trash2Html('', 20, 20, ['aria-hidden' => 'true']) ?>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </template>
+        </ul>
+    </div>
+    <p class="sr-only" role="status" x-text="announcement"></p>
+</div>
+
+<script>
+    function initElmeShoppingLists() {
+        const getAllUrl = '<?= $escaper->escapeJs($getAllUrl) ?>';
+        const deleteUrl = '<?= $escaper->escapeJs($deleteUrl) ?>';
+        const quickOrderUrl = '<?= $escaper->escapeJs($quickOrderUrl) ?>';
+        const labelOne = '<?= $escaper->escapeJs(__('1 product')) ?>';
+        const labelMany = '<?= $escaper->escapeJs(__('%1 products')) ?>';
+        const labelOpen = '<?= $escaper->escapeJs(__('Open list %1')) ?>';
+        const labelDelete = '<?= $escaper->escapeJs(__('Delete %1')) ?>';
+        const deleteFailed = '<?= $escaper->escapeJs(__('Could not delete the list.')) ?>';
+
+        return {
+            lists: [],
+            isLoading: true,
+            // ids of lists turning to dust
+            deleting: {},
+            announcement: '',
+
+            init() {
+                this.fetchLists(false);
+            },
+
+            showEmpty() {
+                return !this.isLoading && this.lists.length === 0;
+            },
+
+            hasLists() {
+                return !this.isLoading && this.lists.length > 0;
+            },
+
+            hasNoThumbnail() {
+                return !this.item.thumbnail_url;
+            },
+
+            editUrl(name) {
+                const sep = quickOrderUrl.indexOf('?') >= 0 ? '&' : '?';
+                return quickOrderUrl + sep + 'list=' + encodeURIComponent(name);
+            },
+
+            mapList(list) {
+                const count = list.item_count || 0;
+                const preview = Array.isArray(list.preview) ? list.preview : [];
+                const more = Math.max(0, count - preview.length);
+                return Object.assign({}, list, {
+                    preview: preview,
+                    more: more,
+                    more_label: '+' + more,
+                    products_label: count === 1 ? labelOne : hyva.str(labelMany, count),
+                    open_label: hyva.str(labelOpen, list.name),
+                    delete_label: hyva.str(labelDelete, list.name),
+                    edit_url: this.editUrl(list.name)
+                });
+            },
+
+            /**
+             * @param {boolean} silent keep the rows while asking again (no skeleton flash)
+             */
+            async fetchLists(silent) {
+                if (!silent) {
+                    this.isLoading = true;
+                }
+                try {
+                    const response = await fetch(getAllUrl, {
+                        method: 'GET',
+                        cache: 'no-store',
+                        headers: {'X-Requested-With': 'XMLHttpRequest'}
+                    });
+                    const data = await response.json();
+                    const raw = (data.success && Array.isArray(data.lists)) ? data.lists : [];
+                    this.lists = raw.map((list) => this.mapList(list));
+                } catch (e) {
+                    console.error(e);
+                    if (!silent) {
+                        this.lists = [];
+                    }
+                } finally {
+                    this.isLoading = false;
+                }
+            },
+
+            /**
+             * Asks first. The delete goes to the server at once while the row turns to dust; the list leaves the
+             * page after its gap has closed. A failed delete brings the row back with a toast.
+             */
+            async confirmDelete() {
+                const trigger = this.$event.currentTarget;
+                const id = parseInt(trigger.getAttribute('data-list-id'), 10) || null;
+                const name = trigger.getAttribute('data-list-name') || '';
+                if (!id || this.deleting[id]) {
+                    return;
+                }
+                const confirmed = await window.elmeConfirm({
+                    title: hyva.str('<?= $escaper->escapeJs(__('Delete %1?')) ?>', name),
+                    text: '<?= $escaper->escapeJs(__('This cannot be undone.')) ?>',
+                    confirmLabel: '<?= $escaper->escapeJs(__('Delete')) ?>',
+                    trigger: trigger
+                });
+                if (!confirmed || this.deleting[id]) {
+                    return;
+                }
+                this.deleting[id] = true;
+                const request = fetch(deleteUrl, {
+                    method: 'POST',
+                    cache: 'no-store',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({form_key: hyva.getFormKey(), id: id})
+                }).then((response) => response.json()).then((data) => {
+                    if (!data.success) {
+                        throw new Error(data.message || deleteFailed);
+                    }
+                });
+                // handled below, after the row has turned to dust
+                request.catch(() => {});
+                const row = trigger.closest('.elme-sl__row');
+                const gone = window.elmeDust.dissolve(row);
+                window.elmeDust.focusNext(row, '.elme-ib--danger', this.$refs.title);
+
+                await gone;
+                try {
+                    await request;
+                    this.lists = this.lists.filter((list) => String(list.id) !== String(id));
+                    this.announcement = hyva.str('<?= $escaper->escapeJs(__('%1 deleted.')) ?>', name);
+                    // the row is already gone here: our own listener skips this one
+                    window.dispatchEvent(new CustomEvent('elme:saved-lists-changed', {
+                        detail: {source: 'shopping-lists'}
+                    }));
+                    // Hyva private-content listens on window (not body); without this the section stays stale
+                    window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+                } catch (e) {
+                    window.dispatchEvent(new CustomEvent('elme-toast', {
+                        detail: {type: 'error', text: (e && e.message) || deleteFailed}
+                    }));
+                    await window.elmeDust.restore(row, trigger);
+                } finally {
+                    delete this.deleting[id];
+                }
+            },
+
+            eventListeners: {
+                ['@elme:saved-lists-changed.window'](event) {
+                    if (event.detail && event.detail.source === 'shopping-lists') {
+                        return;
+                    }
+                    this.fetchLists(true);
+                }
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeShoppingLists', initElmeShoppingLists), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

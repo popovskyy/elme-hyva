@@ -1,12 +1,39 @@
 <?xml version="1.0"?>
-<!-- FE-13: Our Difference on PDP (parity with old seo_block-elm placement). -->
+<!-- FE-12 Instagram (SKU-filtered) + FE-13 Our Difference on PDP. FE-25: layout, gallery, info column. -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
+        <!-- Core wishlist, compare and reviews. Elme ships its own later. -->
+        <referenceBlock name="product.info.review" remove="true"/>
+        <referenceBlock name="product.info.addtowishlist" remove="true"/>
+        <referenceBlock name="product.info.addtocompare" remove="true"/>
+        <referenceBlock name="reviews.tab" remove="true"/>
+        <referenceBlock name="review_list" remove="true"/>
+        <referenceBlock name="product.review.form" remove="true"/>
+        <!-- FE-25: the product name is the H1 inside the info column (product/view/product-info.phtml) -->
+        <referenceBlock name="page.main.title" remove="true"/>
+        <referenceBlock name="product.info.title" remove="true"/>
+        <referenceBlock name="product.info.stockstatus" remove="true"/>
+        <referenceBlock name="product.price.tier" remove="true"/>
+        <!-- FE-25: detail sections are an accordion inside the info column -->
+        <move element="product.info.details" destination="product.info"/>
+        <referenceBlock name="recently_viewed_products.default_widget_pdp">
+            <arguments>
+                <argument name="show_buttons" xsi:type="string">add_to_cart</argument>
+            </arguments>
+        </referenceBlock>
         <referenceContainer name="content">
+            <block class="Bart\ContentStudio\Block\Entry"
+                   name="elme.instagram.slider"
+                   after="-">
+                <arguments>
+                    <argument name="identifier" xsi:type="string">home-instagram-slider</argument>
+                    <argument name="filter_by_product" xsi:type="boolean">true</argument>
+                </arguments>
+            </block>
             <block class="Magento\Cms\Block\Block"
                    name="elme.our.difference"
-                   after="-">
+                   after="elme.instagram.slider">
                 <arguments>
                     <argument name="block_id" xsi:type="string">our_difference</argument>
                 </arguments>

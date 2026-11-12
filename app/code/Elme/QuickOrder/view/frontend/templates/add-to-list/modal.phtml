@@ -1,0 +1,493 @@
+<?php
+/**
+ * FE-78: site-wide list picker of the heart (was the FE-73 select > Continue > Confirm modal).
+ * Open: window.dispatchEvent(new CustomEvent('elme:open-add-to-list-modal', {detail: {sku, qty?, productName?}}))
+ * Or click [data-elme-qo-add-to-list][data-sku] (caught on document in the capture phase, so cards, links and
+ * sliders around the heart never swallow it).
+ *
+ * One step: a row saves the product to that list, a ticked row takes it off, New list at the bottom (a taken name is
+ * refused, case ignored). The lists come from window.elmeLists (js/lists-store.phtml): the picker opens at once,
+ * with skeleton rows only before the lists have ever arrived. Bottom sheet below md (drag down to close), a popover
+ * at the heart from md. Guests see a login link.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Elme\LoginOnly\ViewModel\LoginOnly;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+$loginUrl = $block->getUrl('customer/account/login');
+$loggedIn = $loginOnly->isLoggedIn();
+?>
+<div id="elme-qo-add-to-list-modal"
+     class="elme-lp"
+     :class="rootClass"
+     x-data="initElmeAddToListModal"
+     x-show="open"
+     x-cloak
+     x-bind="eventListeners">
+    <div class="elme-lp__scrim" @click="scrimClick"></div>
+    <div class="elme-lp__panel"
+         x-ref="panel"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="elme-lp-title"
+         tabindex="-1"
+         :style="panelStyle"
+         @keydown="panelKeydown"
+         @pointerdown="dragStart"
+         @pointermove="dragMove"
+         @pointerup="dragEnd"
+         @pointercancel="dragEnd">
+        <button type="button"
+                class="elme-lp__handle"
+                data-elme-lp-handle
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Close')) ?>"
+                @click="close"></button>
+        <button type="button"
+                class="elme-lp__close"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Close')) ?>"
+                @click="close">
+            <?= $lucideIcons->xHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+        </button>
+
+        <h2 id="elme-lp-title" class="elme-lp__title">
+            <?= $escaper->escapeHtml(__('Save to shopping list')) ?>
+        </h2>
+        <p class="elme-lp__product" x-show="hasProductName" x-text="productName"></p>
+
+        <?php if (!$loggedIn): ?>
+            <p class="elme-lp__note"><?= $escaper->escapeHtml(__('Please log in to manage your shopping lists.')) ?></p>
+            <a href="<?= $escaper->escapeUrl($loginUrl) ?>" class="btn btn-primary w-full">
+                <?= $escaper->escapeHtml(__('Login')) ?>
+            </a>
+        <?php else: ?>
+            <div class="elme-lp__rows" x-show="isSkeleton" aria-busy="true">
+                <span class="elme-lp__skeleton"></span>
+                <span class="elme-lp__skeleton"></span>
+                <span class="elme-lp__skeleton"></span>
+            </div>
+            <ul class="elme-lp__rows"
+                x-show="hasLists"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Your shopping lists')) ?>">
+                <template x-for="list in lists" :key="list.id">
+                    <li>
+                        <button type="button"
+                                class="elme-lp__row"
+                                :aria-pressed="rowPressed"
+                                :data-name="list.name"
+                                @click="pickRow">
+                            <span class="elme-lp__name" x-text="list.name"></span>
+                            <span class="elme-lp__count" x-text="rowCount"></span>
+                            <span class="elme-lp__tick" aria-hidden="true">
+                                <?= $lucideIcons->checkHtml('', 14, 14, ['aria-hidden' => 'true', 'stroke-width' => '2.5']) ?>
+                            </span>
+                        </button>
+                    </li>
+                </template>
+            </ul>
+            <p class="elme-lp__note" x-show="isEmpty">
+                <?= $escaper->escapeHtml(__('No shopping lists yet. Name your first one.')) ?>
+            </p>
+
+            <form class="elme-lp__new" novalidate @submit.prevent="createList">
+                <label for="elme-lp-new-name" class="sr-only"><?= $escaper->escapeHtml(__('New list name')) ?></label>
+                <input id="elme-lp-new-name"
+                       x-ref="newName"
+                       type="text"
+                       class="form-input"
+                       maxlength="255"
+                       autocomplete="off"
+                       enterkeyhint="done"
+                       placeholder="<?= $escaper->escapeHtmlAttr(__('Name a new list')) ?>"
+                       :value="newName"
+                       @input="setNewName"
+                       :aria-invalid="createInvalid"
+                       aria-describedby="elme-lp-error"/>
+                <button type="submit" class="btn btn-primary"><?= $escaper->escapeHtml(__('Create')) ?></button>
+            </form>
+            <p id="elme-lp-error" class="elme-lp__error" role="alert" x-text="createError"></p>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script>
+    function initElmeAddToListModal() {
+        const loggedIn = <?= $loggedIn ? 'true' : 'false' ?>;
+        const nameRequired = '<?= $escaper->escapeJs(__('List name is required.')) ?>';
+        const nameTaken = '<?= $escaper->escapeJs(__('A list with this name already exists.')) ?>';
+        const savedTo = '<?= $escaper->escapeJs(__('Saved to %1.')) ?>';
+        const removedFrom = '<?= $escaper->escapeJs(__('Removed from %1.')) ?>';
+        const oneProduct = '<?= $escaper->escapeJs(__('1 product')) ?>';
+        const manyProducts = '<?= $escaper->escapeJs(__('%1 products')) ?>';
+        const sideBySide = window.matchMedia('(min-width: 768px)');
+        const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        // the row tick draws before the picker closes
+        const TICK_MS = 220;
+        const CLOSE_MS = 220;
+        // a fast double tap: the second tap lands on the scrim, it must not close what the first one opened
+        const GUARD_MS = 350;
+
+        // DOM nodes stay out of Alpine's reactive state
+        let opener = null;
+        let openedAt = 0;
+        let closeTimer = null;
+        let drag = null;
+        let frame = 0;
+
+        const toast = (type, text) => window.dispatchEvent(new CustomEvent('elme-toast', {detail: {type, text}}));
+        const store = () => window.elmeLists || null;
+        const hearts = () => window.elmeHearts || null;
+
+        return {
+            open: false,
+            shown: false,
+            sheet: true,
+            above: false,
+            busy: false,
+            known: false,
+            lists: [],
+            sku: '',
+            qty: 1,
+            productName: '',
+            newName: '',
+            createError: '',
+            pos: null,
+
+            init() {
+                document.addEventListener('click', (event) => this.onDocumentClick(event), true);
+                const reposition = () => {
+                    if (this.open && !this.sheet && !frame) {
+                        frame = requestAnimationFrame(() => {
+                            frame = 0;
+                            this.position();
+                        });
+                    }
+                };
+                window.addEventListener('scroll', reposition, {passive: true, capture: true});
+                window.addEventListener('resize', reposition, {passive: true});
+            },
+
+            rootClass() {
+                return {
+                    'is-shown': this.shown,
+                    'is-sheet': this.sheet,
+                    'is-pop': !this.sheet,
+                    'is-above': this.above
+                };
+            },
+            panelStyle() {
+                return this.pos ? {top: this.pos.top + 'px', left: this.pos.left + 'px'} : {};
+            },
+            hasProductName() {
+                return Boolean(this.productName);
+            },
+            isSkeleton() {
+                return !this.known;
+            },
+            hasLists() {
+                return this.known && this.lists.length > 0;
+            },
+            isEmpty() {
+                return this.known && this.lists.length === 0;
+            },
+            rowPressed() {
+                const list = this.list;
+                const sku = this.sku.toLowerCase();
+                return list.skus.some((item) => String(item).toLowerCase() === sku) ? 'true' : 'false';
+            },
+            rowCount() {
+                const count = this.list.item_count;
+                return count === 1 ? oneProduct : hyva.str(manyProducts, count);
+            },
+            createInvalid() {
+                return this.createError ? 'true' : 'false';
+            },
+            setNewName() {
+                this.newName = this.$event.target.value || '';
+                this.createError = '';
+            },
+
+            syncLists(detail) {
+                this.lists = detail && Array.isArray(detail.lists) ? detail.lists : this.lists;
+                this.known = true;
+            },
+
+            onDocumentClick(event) {
+                const button = event.target.closest && event.target.closest('[data-elme-qo-add-to-list]');
+                if (!button || this.$root.contains(button)) {
+                    return;
+                }
+                event.preventDefault();
+                event.stopPropagation();
+                const formId = button.getAttribute('form');
+                const form = button.closest('form') || (formId && document.getElementById(formId));
+                const qtyInput = form && form.querySelector('input[name="qty"]');
+                this.openWith({
+                    sku: button.getAttribute('data-sku') || '',
+                    qty: (qtyInput && qtyInput.value) || button.getAttribute('data-qty') || 1,
+                    productName: button.getAttribute('data-product-name') || ''
+                }, button);
+            },
+
+            openWith(detail, button) {
+                const data = detail || {};
+                const sku = String(data.sku || '').trim();
+                if (this.open && !closeTimer) {
+                    return;
+                }
+                if (!sku && loggedIn) {
+                    return;
+                }
+                clearTimeout(closeTimer);
+                closeTimer = null;
+                opener = button || document.activeElement;
+                openedAt = performance.now();
+                this.sku = sku;
+                this.qty = parseFloat(data.qty) > 0 ? parseFloat(data.qty) : 1;
+                this.productName = data.productName || '';
+                this.newName = '';
+                this.createError = '';
+                this.busy = false;
+                this.sheet = !sideBySide.matches;
+                this.pos = null;
+                this.shown = false;
+
+                const lists = store();
+                this.known = !loggedIn || Boolean(lists && lists.isKnown());
+                this.lists = lists ? lists.all() : [];
+                if (lists && !this.known) {
+                    lists.load();
+                }
+
+                this.open = true;
+                if (this.sheet) {
+                    document.documentElement.classList.add('elme-lp-lock');
+                }
+                this.$nextTick(() => {
+                    this.position();
+                    requestAnimationFrame(() => {
+                        this.shown = true;
+                        this.focusFirst();
+                    });
+                });
+            },
+
+            focusFirst() {
+                const panel = this.$refs.panel;
+                const row = panel.querySelector('.elme-lp__row');
+                const target = row && row.offsetParent ? row
+                    : (this.known && this.$refs.newName) || panel.querySelector('a.btn') || panel;
+                target.focus({preventScroll: true});
+            },
+
+            // the popover sits under the heart, its right edge on the heart's; above it when there is no room below
+            position() {
+                if (this.sheet || !opener) {
+                    this.pos = null;
+                    return;
+                }
+                const gap = 8;
+                const edge = 12;
+                const rect = opener.getBoundingClientRect();
+                const panel = this.$refs.panel;
+                const width = panel.offsetWidth;
+                const height = panel.offsetHeight;
+                const left = Math.min(Math.max(edge, rect.right - width), window.innerWidth - width - edge);
+                let top = rect.bottom + gap;
+                let above = false;
+                if (top + height > window.innerHeight - edge && rect.top - gap - height >= edge) {
+                    top = rect.top - gap - height;
+                    above = true;
+                }
+                top = Math.max(edge, Math.min(top, window.innerHeight - height - edge));
+                this.pos = {top: Math.round(top), left: Math.round(left)};
+                this.above = above;
+            },
+
+            scrimClick() {
+                if (performance.now() - openedAt > GUARD_MS) {
+                    this.close();
+                }
+            },
+
+            close() {
+                if (!this.open || closeTimer) {
+                    return;
+                }
+                this.shown = false;
+                document.documentElement.classList.remove('elme-lp-lock');
+                closeTimer = setTimeout(() => {
+                    closeTimer = null;
+                    this.open = false;
+                    this.busy = false;
+                    this.$refs.panel.style.transform = '';
+                }, reduced() ? 0 : CLOSE_MS);
+                if (opener && opener.isConnected) {
+                    opener.focus({preventScroll: true});
+                }
+            },
+
+            // Tab stays in the picker; Esc closes
+            panelKeydown() {
+                const event = this.$event;
+                if (event.key === 'Escape') {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    this.close();
+                    return;
+                }
+                if (event.key !== 'Tab') {
+                    return;
+                }
+                const focusable = [...this.$refs.panel.querySelectorAll('button, a[href], input')]
+                    .filter((el) => !el.disabled && el.offsetParent !== null);
+                if (!focusable.length) {
+                    return;
+                }
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (event.shiftKey && (document.activeElement === first || document.activeElement === this.$refs.panel)) {
+                    event.preventDefault();
+                    last.focus();
+                } else if (!event.shiftKey && document.activeElement === last) {
+                    event.preventDefault();
+                    first.focus();
+                }
+            },
+
+            pickRow() {
+                const lists = store();
+                if (this.busy || !lists) {
+                    return;
+                }
+                const name = this.$event.currentTarget.getAttribute('data-name');
+                this.save(name, !lists.listHas(name, this.sku), false);
+            },
+
+            createList() {
+                const lists = store();
+                const name = (this.newName || '').trim();
+                if (this.busy || !lists) {
+                    return;
+                }
+                if (!name) {
+                    this.createError = nameRequired;
+                    this.$refs.newName.focus();
+                    return;
+                }
+                if (lists.nameTaken(name)) {
+                    this.createError = nameTaken;
+                    this.$refs.newName.focus();
+                    return;
+                }
+                this.save(name, true, true);
+            },
+
+            // the list changes at once (the row ticks), the picker closes, then the heart plays its motion
+            save(name, add, create) {
+                const lists = store();
+                const heart = hearts();
+                const button = opener;
+                const flies = add && heart ? heart.willFly(button) : false;
+                let failed = false;
+                this.busy = true;
+                if (heart) {
+                    heart.hold(button);
+                }
+                const request = add
+                    ? lists.add(name, this.sku, this.qty, {create: create, landing: flies})
+                    : lists.remove(name, this.sku);
+                request.then((result) => {
+                    if (result.success) {
+                        toast('success', hyva.str(add ? savedTo : removedFrom, result.name || name));
+                        return;
+                    }
+                    failed = true;
+                    if (heart) {
+                        heart.failed(button);
+                    }
+                    toast('error', result.message);
+                });
+                setTimeout(() => {
+                    this.close();
+                    if (!heart || failed) {
+                        return;
+                    }
+                    if (add) {
+                        heart.celebrate(button, flies);
+                    } else {
+                        heart.removed(button);
+                    }
+                }, reduced() ? 0 : TICK_MS);
+            },
+
+            // drag the sheet down to close it: it follows the finger, closes past 80px or on a quick flick
+            dragStart() {
+                const event = this.$event;
+                if (!this.sheet || !this.shown || event.button > 0) {
+                    return;
+                }
+                const onHandle = Boolean(event.target.closest('[data-elme-lp-handle]'));
+                if (!onHandle && event.target.closest('input, a, button, .elme-lp__rows')) {
+                    return;
+                }
+                drag = {y: event.clientY, t: performance.now(), dy: 0, onHandle: onHandle};
+                this.$refs.panel.setPointerCapture(event.pointerId);
+                this.$refs.panel.classList.add('is-dragging');
+            },
+            dragMove() {
+                if (!drag) {
+                    return;
+                }
+                drag.dy = Math.max(0, this.$event.clientY - drag.y);
+                this.$refs.panel.style.transform = 'translateY(' + drag.dy + 'px)';
+            },
+            dragEnd() {
+                if (!drag) {
+                    return;
+                }
+                const done = drag;
+                drag = null;
+                const speed = done.dy / Math.max(1, performance.now() - done.t);
+                const panel = this.$refs.panel;
+                panel.classList.remove('is-dragging');
+                if (done.dy > 80 || (done.dy > 10 && speed > 0.5) || (done.onHandle && done.dy < 4)) {
+                    // close from where the finger let go
+                    panel.style.transform = '';
+                    this.close();
+                    return;
+                }
+                panel.style.transform = '';
+            },
+
+            eventListeners: {
+                ['@elme:open-add-to-list-modal.window']() {
+                    this.openWith(this.$event.detail || {}, null);
+                },
+                ['@elme-lists.window']() {
+                    this.syncLists(this.$event.detail);
+                },
+                ['@keydown.escape.window']() {
+                    if (this.open) {
+                        this.close();
+                    }
+                }
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeAddToListModal', initElmeAddToListModal), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

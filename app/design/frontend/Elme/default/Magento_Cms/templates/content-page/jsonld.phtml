@@ -2,11 +2,15 @@
 /**
  * Page-level JSON-LD of a public CMS content page: WebPage (or the `schema_type` block argument, e.g.
  * ContactPage) + BreadcrumbList. Never paste JSON-LD into CMS HTML.
+ * FE-67 Become a Stockist adds HowTo into the same @graph; FE-47 /faqs upgrades to FAQPage via Faq
+ * (help handle loads after the page-id layout, so page-specific jsonld overrides are not reliable).
  */
 
 declare(strict_types=1);
 
+use Elme\Theme\ViewModel\BecomeStockist;
 use Elme\Theme\ViewModel\ContentPage;
+use Elme\Theme\ViewModel\Faq;
 use Hyva\Theme\Model\ViewModelRegistry;
 use Magento\Framework\View\Element\Template;
 
@@ -15,5 +19,10 @@ use Magento\Framework\View\Element\Template;
 
 $page = $viewModels->require(ContentPage::class);
 $schemaType = (string)($block->getData('schema_type') ?: 'WebPage');
+$json = match ($page->getIdentifier()) {
+    'become-a-stockist' => $viewModels->require(BecomeStockist::class)->getJsonLdScript(),
+    'faqs' => $viewModels->require(Faq::class)->getJsonLdScript(),
+    default => $page->getJsonLdScript($schemaType),
+};
 ?>
-<script type="application/ld+json"><?= /* @noEscape */ $page->getJsonLdScript($schemaType) ?></script>
+<script type="application/ld+json"><?= /* @noEscape */ $json ?></script>

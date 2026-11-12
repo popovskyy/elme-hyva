@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-24: register viewed product in browser storage (no prices). Strip UI ships on PLP;
+ * FE-30 reuses Elme_RecentlyViewed::strip-products.phtml on the PDP.
+ * Replace Hyvä register that stored catalog prices in localStorage.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="recently_viewed_products.default_widget_pdp" remove="true"/>
+        <referenceBlock name="recently_viewed_products.register_view" remove="true"/>
+
+        <referenceContainer name="after.body.start">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.recently.viewed.storage"
+                   template="Elme_RecentlyViewed::js/storage.phtml"/>
+        </referenceContainer>
+        <referenceContainer name="before.body.end">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.recently.viewed.register.product"
+                   template="Elme_RecentlyViewed::register-product.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

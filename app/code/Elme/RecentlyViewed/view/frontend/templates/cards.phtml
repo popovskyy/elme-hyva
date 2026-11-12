@@ -1,0 +1,29 @@
+<?php
+/**
+ * FE-24: FE-19 product card HTML fragments for the recently viewed products strip (AJAX).
+ *
+ * @var \Elme\RecentlyViewed\Block\Cards $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+declare(strict_types=1);
+
+$ids = $block->getOrderedIds();
+if ($ids === []) {
+    return;
+}
+?>
+<?php foreach ($ids as $productId): ?>
+    <?php
+    $cardHtml = $block->getItemHtmlForId($productId);
+    if ($cardHtml === '') {
+        continue;
+    }
+    ?>
+    <li class="elme-rv-products__slide elme-snap-carousel__item shrink-0 snap-start list-none
+               w-[min(70vw,16.5rem)] md:w-[14.5rem] lg:w-[16rem]">
+        <div class="h-full">
+            <?= /* @noEscape */ $cardHtml ?>
+        </div>
+    </li>
+<?php endforeach; ?>

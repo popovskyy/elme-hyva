@@ -4,7 +4,10 @@
     <module name="Elme_Theme">
         <sequence>
             <module name="Magento_Cms"/>
+            <module name="Magento_Catalog"/>
+            <module name="Magento_InventorySalesApi"/>
             <module name="Elme_LoginOnly"/>
+            <module name="Elme_QtyRules"/>
             <module name="Snowdog_Menu"/>
             <module name="Bart_ContentStudio"/>
         </sequence>

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-35 login, "Split screen": a tall flower photo with a line about the
+ * trade site on one half, the sign-in form and the "New to Elme Living?" apply block on the other. On phones
+ * the photo is a band above the form. The H1 is the form title, so the page title block is removed.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <attribute name="class" value="elme-login-page"/>
+        <referenceBlock name="page.main.title" remove="true"/>
+        <referenceContainer name="customer.login.container" htmlClass="login-container elme-login">
+            <block name="elme.login.media"
+                   template="Magento_Customer::login/media.phtml"
+                   before="-"/>
+            <container name="elme.login.panel" htmlTag="div" htmlClass="elme-login__panel" after="elme.login.media"/>
+        </referenceContainer>
+        <move element="customer_form_login" destination="elme.login.panel"/>
+        <move element="customer.new" destination="elme.login.panel" after="customer_form_login"/>
+    </body>
+</page>

@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Checkout review - look options (FE-83)</title>
+<style>
+@font-face { font-family: "Figtree"; src: url("../../app/design/frontend/Elme/default/web/fonts/figtree/Figtree-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Figtree"; src: url("../../app/design/frontend/Elme/default/web/fonts/figtree/Figtree-Medium.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Figtree"; src: url("../../app/design/frontend/Elme/default/web/fonts/figtree/Figtree-SemiBold.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Figtree"; src: url("../../app/design/frontend/Elme/default/web/fonts/figtree/Figtree-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "FigtreeHeading"; src: url("../../app/design/frontend/Elme/default/web/fonts/figtree/Figtree-Medium.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+
+:root {
+  /* tokens from hyva.config.json */
+  --primary: #3A3935;
+  --on-primary: #FFFFFF;
+  --secondary: #ADBBA1;
+  --olive: #647455;
+  --ink: #3A3935;
+  --ink-muted: #605E55;
+  --ink-subtle: #6F6D64;
+  --page: #F5F4EF;
+  --surface: #FFFFFF;
+  --surface-muted: #F1F0EA;
+  --sand-light: #E1DBD1;
+  --border: #D8D5CE;
+  --form-stroke: #8A8888;
+  --error: #8A3A30;
+  --ease: cubic-bezier(.23, 1, .32, 1);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #E8E6E0;
+  color: var(--ink);
+  font: 16px/1.45 Figtree, ui-sans-serif, system-ui, sans-serif;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+h1, h2, h3, .heading { font-family: FigtreeHeading, Figtree, sans-serif; font-weight: 400; }
+.num { font-variant-numeric: tabular-nums; }
+
+.page { padding: 48px 40px 120px; }
+.page-title { margin: 0 0 12px; font-size: 36px; line-height: 1.1; }
+.lead { max-width: 68ch; margin: 0; font-size: 16px; color: var(--ink-muted); }
+.lead strong { color: var(--ink); font-weight: 600; }
+
+.option { margin-top: 64px; }
+.option-title { margin: 0 0 8px; font-size: 26px; line-height: 1.15; }
+.option-note { max-width: 72ch; margin: 0 0 20px; color: var(--ink-muted); font-size: 15px; }
+
+.frames { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 28px; }
+.frame-label { margin: 0 0 8px; color: var(--ink-muted); font-size: 13px; font-weight: 600; letter-spacing: 0.02em; }
+.stage-wrap { position: relative; }
+.canvas {
+  background: var(--page);
+  outline: 1px solid var(--border);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.canvas.phone { width: 390px; height: 760px; }
+.canvas.desk { width: 1280px; height: 820px; }
+.nav {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: flex;
+  gap: 4px;
+  z-index: 2;
+}
+.nav button {
+  width: 32px; height: 32px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  cursor: pointer;
+}
+.nav button:disabled { opacity: 0.35; cursor: default; }
+.phone-wrap .nav { display: none; }
+
+/* Shared checkout chrome for variants */
+.co-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 14px 20px;
+  background: var(--surface); border-bottom: 1px solid var(--surface-muted);
+}
+.desk .co-head { padding: 18px 40px; }
+.co-logo {
+  font-family: FigtreeHeading, Figtree, sans-serif;
+  font-size: 18px; letter-spacing: 0.04em;
+}
+.co-help { margin: 0; font-size: 13px; color: var(--ink); }
+.phone .co-help span { display: none; }
+
+.co-grid { display: flex; flex-direction: column; }
+.desk .co-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  align-items: stretch;
+  min-height: 620px;
+}
+.co-sections {
+  display: flex; flex-direction: column; gap: 32px;
+  padding: 28px 20px 24px; background: var(--surface);
+}
+.desk .co-sections {
+  order: 1; gap: 40px;
+  padding: 48px 48px 56px 40px;
+  max-width: 660px; justify-self: end; width: 100%;
+}
+.co-summary {
+  background: var(--surface-muted);
+  padding: 0;
+}
+.desk .co-summary {
+  order: 2;
+  padding: 48px 40px 56px 40px;
+  box-shadow: 0 0 0 100vmax var(--surface-muted);
+  clip-path: inset(0 -100vmax 0 0);
+}
+.phone .co-summary { order: -1; }
+
+.section-head { display: flex; align-items: baseline; gap: 8px; }
+.step {
+  display: inline-flex; align-items: center; gap: 4px;
+  flex: none; align-self: center;
+  font-size: 18px; line-height: 1.25; color: var(--ink);
+}
+.desk .step { font-size: 22px; }
+.step.is-done { color: var(--olive); }
+.step .check { display: none; width: 18px; height: 18px; }
+.step.is-done .check { display: block; }
+.step.is-done.replace .n { display: none; }
+.step.keep .n { display: inline; }
+.step.keep.is-done .check { display: block; }
+.step.none { display: none; }
+.section-title { margin: 0; font-size: 18px; line-height: 1.25; }
+.desk .section-title { font-size: 22px; }
+.section-title .opt { margin-left: 4px; font-size: 14px; color: var(--ink-subtle); }
+.section-body { margin-top: 18px; }
+.desk .section-body { margin-top: 14px; }
+
+.line { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.line + .line { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.line-label { display: block; margin-bottom: 4px; font-size: 13px; color: var(--ink-subtle); }
+.line-value { display: block; font-size: 14px; color: var(--ink); line-height: 1.45; }
+.desk .line-value { font-size: 15px; }
+.link {
+  flex: none; border: 0; background: none; padding: 0;
+  font-size: 14px; font-weight: 600; letter-spacing: 0.4px;
+  color: var(--ink); cursor: pointer; text-decoration: none;
+}
+.link:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+
+.field { margin: 0 0 12px; }
+.field-label {
+  display: block; margin-bottom: 6px;
+  font-size: 11px; font-weight: 600; color: var(--ink-subtle);
+}
+.field-label .req { color: var(--ink); }
+.box-input, .box-ta {
+  display: block; width: 100%;
+  border: 1px solid var(--form-stroke);
+  border-radius: 1px;
+  background: transparent;
+  color: var(--ink);
+  padding: 14px 12px;
+}
+.box-input { height: 50px; }
+.box-ta { min-height: calc(1.45em * 3 + 28px); resize: vertical; line-height: 1.45; }
+.box-ta.tall { min-height: 190px; }
+.under {
+  position: relative; margin: 0 0 12px;
+}
+.under .field-label {
+  position: absolute; top: 6px; left: 0; margin: 0; pointer-events: none;
+}
+.under input, .under textarea {
+  display: block; width: 100%;
+  border: 0; border-bottom: 1px solid var(--border);
+  border-radius: 0; background: transparent;
+  padding: 22px 0 8px; height: 54px;
+}
+.under textarea {
+  height: auto; min-height: calc(1.45em * 3 + 30px);
+  padding-top: 24px; resize: vertical;
+}
+.err {
+  margin: 4px 0 0; min-height: 1.2em;
+  font-size: 13px; color: var(--error);
+}
+.err.empty { visibility: hidden; }
+.counter { margin-top: 6px; text-align: right; font-size: 13px; color: var(--ink-subtle); }
+
+.sum-head {
+  display: none; align-items: baseline; justify-content: space-between;
+  gap: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+}
+.desk .sum-head { display: flex; }
+.sum-title { margin: 0; font-size: 18px; }
+.desk .sum-title { font-size: 22px; }
+.sum-toggle {
+  display: flex; width: 100%; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 16px 20px; border: 0; background: transparent; text-align: left; cursor: pointer;
+}
+.desk .sum-toggle { display: none; }
+.sum-toggle-label { font-size: 18px; }
+.sum-toggle-total { margin-left: auto; font-size: 16px; font-weight: 700; }
+.sum-panel { padding: 0 20px 20px; }
+.desk .sum-panel { padding: 0; }
+.item {
+  display: flex; gap: 16px; padding: 10px;
+  background: var(--surface); margin-top: 10px;
+  font-size: 11px; color: var(--ink-muted);
+}
+.thumb {
+  width: 64px; height: 64px; flex: none;
+  background: var(--sand-light);
+}
+.item-name { margin: 0 0 4px; color: var(--ink); font-size: 16px; }
+.item-price { margin-left: auto; color: var(--ink); font-weight: 700; font-size: 15px; }
+.totals { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.row {
+  display: flex; justify-content: space-between; gap: 16px;
+  margin: 0; padding: 6px 0; font-size: 15px;
+}
+.row dd { margin: 0; }
+.grand {
+  display: flex; justify-content: space-between; gap: 16px;
+  margin: 12px 0 0; padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: 18px; font-weight: 700;
+}
+.grand dd { margin: 0; }
+.phone .sum-panel-body { display: none; }
+.phone .sum-panel.is-open .sum-panel-body { display: block; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 50px; padding: 0 24px; border: 0;
+  background: var(--primary); color: var(--on-primary);
+  font-size: 15px; font-weight: 600; letter-spacing: 0.5px; cursor: pointer;
+}
+.btn.wide { width: 100%; max-width: 320px; }
+
+.place {
+  display: none; align-items: center; justify-content: space-between; gap: 24px;
+  margin-top: 8px;
+}
+.desk .place { display: flex; }
+.place-side {
+  display: flex; align-items: center; gap: 20px; margin-left: auto;
+}
+.place-total { text-align: right; line-height: 1.2; }
+.place-total span { display: block; font-size: 12px; color: var(--ink-subtle); font-weight: 400; }
+.place-total strong { font-size: 18px; }
+
+.sum-place {
+  display: none; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);
+}
+.desk.v2 .sum-place { display: block; }
+.desk.v2 .place { display: none; }
+
+.bar {
+  display: none; align-items: center; justify-content: space-between; gap: 16px;
+  margin-top: auto; padding: 12px 20px;
+  border-top: 1px solid var(--border); background: color-mix(in srgb, var(--surface) 94%, transparent);
+}
+.phone .bar { display: flex; }
+.bar-total span { display: block; font-size: 12px; color: var(--ink-subtle); }
+.bar-total strong { font-size: 18px; }
+
+.collapse-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 0; background: none; padding: 0;
+  font-size: 14px; font-weight: 600; letter-spacing: 0.4px;
+  color: var(--ink); cursor: pointer; text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.radio-card {
+  display: flex; align-items: center; gap: 16px;
+  padding: 20px 16px; border: 1px solid var(--border); border-radius: 1px;
+}
+.radio {
+  width: 24px; height: 24px; flex: none; border-radius: 9999px;
+  border: 1px solid var(--border); background: var(--primary);
+  box-shadow: inset 0 0 0 6px var(--surface);
+}
+.radio-body { flex: 1; font-size: 15px; color: var(--ink-muted); }
+.radio-title { display: block; color: var(--ink); font-size: 16px; margin-bottom: 2px; }
+.radio-price { text-align: right; font-size: 15px; }
+.radio-price strong { display: block; font-weight: 700; color: var(--ink); }
+.radio-price small { color: var(--ink-subtle); font-size: 13px; }
+
+.now-tag {
+  display: inline-block; margin: 0 0 16px; padding: 4px 8px;
+  background: #E2E8DB; color: #4A5740; font-size: 12px; font-weight: 600;
+}
+.ghost-now {
+  opacity: 0.55;
+  outline: 1px dashed var(--border);
+  outline-offset: 8px;
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1 class="page-title">Checkout review - look options</h1>
+  <p class="lead">
+    FE-83 findings that need a direction. Same content in every frame.
+    Address contrast (muted label, ink address), hit areas, keyboard order and
+    <code>max-h</code> cleanup are fixed in all picks - not shown as choices.
+    Answer with a number, or a mix (e.g. <strong>1 for markers and fields, 2 for Place order</strong>).
+  </p>
+
+  <!-- ========== 1 ========== -->
+  <section class="option" id="opt-1">
+    <h2 class="option-title">1. Quiet optional + total beside Place order</h2>
+    <p class="option-note">
+      Required steps keep a number that becomes a tick when done. Delivery instructions has no step marker.
+      Theme bordered fields for address and instructions. Instructions start as a link.
+      One delivery / payment shows as a done line. Desktop repeats the total next to Place order.
+    </p>
+    <div class="frames">
+      <div class="stage-wrap phone-wrap">
+        <p class="frame-label">Phone / 390</p>
+        <div class="canvas phone v1" data-scroll>
+          <header class="co-head"><div class="co-logo">ELME LIVING</div><p class="co-help">Need assistance? <span>1300 375 384</span></p></header>
+          <div class="co-grid">
+            <aside class="co-summary">
+              <button type="button" class="sum-toggle" data-sum><span class="sum-toggle-label">Order summary</span><span class="sum-toggle-total num">$248.90</span></button>
+              <div class="sum-panel">
+                <div class="sum-head"><h2 class="sum-title">Order summary</h2><button type="button" class="link">Edit cart</button></div>
+                <div class="sum-panel-body">
+                  <div class="item"><div class="thumb"></div><div><p class="item-name">Faux Olive Tree 180cm</p><p>SKU: OLIVE-180 / Qty: 2</p></div><p class="item-price num">$198.00</p></div>
+                  <dl class="totals">
+                    <div class="row"><dt>Subtotal</dt><dd class="num">$198.00</dd></div>
+                    <div class="row"><dt>Delivery</dt><dd class="num">$5.00</dd></div>
+                    <div class="row"><dt>GST</dt><dd class="num">$20.30</dd></div>
+                    <div class="grand"><dt>Order total</dt><dd class="num">$248.90</dd></div>
+                  </dl>
+                </div>
+              </div>
+            </aside>
+            <div class="co-sections">
+              <section>
+                <div class="section-head">
+                  <span class="step is-done replace" aria-hidden="true"><span class="n">1.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Delivery details</h2>
+                </div>
+                <div class="section-body">
+                  <div class="line"><p class="min"><span class="line-label">Deliver to:</span><span class="line-value">12 Sample St, Richmond VIC 3121</span></p><button type="button" class="link">Change</button></div>
+                  <div class="line"><p class="min"><span class="line-label">Invoice to:</span><span class="line-value">Same as delivery address</span></p><button type="button" class="link">Change</button></div>
+                </div>
+              </section>
+              <section>
+                <div class="section-head">
+                  <span class="step is-done replace" aria-hidden="true"><span class="n">2.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Delivery method</h2>
+                </div>
+                <div class="section-body">
+                  <div class="line"><p class="min"><span class="line-label">Delivery:</span><span class="line-value">Flat Rate, $5.00 ex GST</span></p></div>
+                </div>
+              </section>
+              <section>
+                <div class="section-head">
+                  <span class="step is-done replace" aria-hidden="true"><span class="n">3.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Payment method</h2>
+                </div>
+                <div class="section-body">
+                  <div class="line"><p class="min"><span class="line-label">Payment:</span><span class="line-value">Account credit</span></p></div>
+                </div>
+              </section>
+              <section>
+                <div class="section-head">
+                  <span class="step none" aria-hidden="true"></span>
+                  <h2 class="section-title">Delivery instructions <span class="opt">(optional)</span></h2>
+                </div>
+                <div class="section-body">
+                  <button type="button" class="collapse-link">Add delivery instructions</button>
+                </div>
+              </section>
+              <div class="place">
+                <button type="button" class="link">Return to cart</button>
+                <div class="place-side">
+                  <p class="place-total"><span>Order total</span><strong class="num">$248.90</strong></p>
+                  <button type="button" class="btn wide">Place order</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bar"><p class="bar-total"><span>Order total</span><strong class="num">$248.90</strong></p><button type="button" class="btn">Place order</button></div>
+        </div>
+      </div>
+      <div class="stage-wrap">
+        <p class="frame-label">Desktop / 1280</p>
+        <div class="canvas desk v1" data-scroll>
+          <header class="co-head"><div class="co-logo">ELME LIVING</div><p class="co-help">Need assistance? 1300 375 384</p></header>
+          <div class="co-grid">
+            <aside class="co-summary">
+              <div class="sum-panel">
+                <div class="sum-head"><h2 class="sum-title">Order summary</h2><button type="button" class="link">Edit cart</button></div>
+                <div class="sum-panel-body">
+                  <div class="item"><div class="thumb"></div><div><p class="item-name">Faux Olive Tree 180cm</p><p>SKU: OLIVE-180 / Qty: 2</p></div><p class="item-price num">$198.00</p></div>
+                  <dl class="totals">
+                    <div class="row"><dt>Subtotal</dt><dd class="num">$198.00</dd></div>
+                    <div class="row"><dt>Delivery</dt><dd class="num">$5.00</dd></div>
+                    <div class="row"><dt>GST</dt><dd class="num">$20.30</dd></div>
+                    <div class="grand"><dt>Order total</dt><dd class="num">$248.90</dd></div>
+                  </dl>
+                </div>
+              </div>
+            </aside>
+            <div class="co-sections">
+              <section>
+                <div class="section-head">
+                  <span class="step is-done replace" aria-hidden="true"><span class="n">1.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Delivery details</h2>
+                </div>
+                <div class="section-body">
+                  <div class="line"><p class="min"><span class="line-label">Deliver to:</span><span class="line-value">12 Sample St, Richmond VIC 3121</span></p><button type="button" class="link">Change</button></div>
+                  <div class="line"><p class="min"><span class="line-label">Invoice to:</span><span class="line-value">Same as delivery address</span></p><button type="button" class="link">Change</button></div>
+                </div>
+              </section>
+              <section>
+                <div class="section-head">
+                  <span class="step is-done replace" aria-hidden="true"><span class="n">2.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Delivery method</h2>
+                </div>
+                <div class="section-body">
+                  <div class="line"><p class="min"><span class="line-label">Delivery:</span><span class="line-value">Flat Rate, $5.00 ex GST</span></p></div>
+                </div>
+              </section>
+              <section>
+                <div class="section-head">
+                  <span class="step is-done replace" aria-hidden="true"><span class="n">3.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Payment method</h2>
+                </div>
+                <div class="section-body">
+                  <div class="line"><p class="min"><span class="line-label">Payment:</span><span class="line-value">Account credit</span></p></div>
+                </div>
+              </section>
+              <section>
+                <div class="section-head">
+                  <h2 class="section-title">Delivery instructions <span class="opt">(optional)</span></h2>
+                </div>
+                <div class="section-body">
+                  <button type="button" class="collapse-link">Add delivery instructions</button>
+                  <div style="margin-top:20px;max-width:420px">
+                    <p class="now-tag">Field style sample (theme form)</p>
+                    <div class="field">
+                      <label class="field-label">First name <span class="req">*</span></label>
+                      <input class="box-input" value="Alex" readonly>
+                      <p class="err empty">Error placeholder keeps row height</p>
+                    </div>
+                    <div class="field">
+                      <label class="field-label">Delivery instructions</label>
+                      <textarea class="box-ta" rows="3" readonly placeholder="e.g. Please place package at front door."></textarea>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <div class="place">
+                <button type="button" class="link">Return to cart</button>
+                <div class="place-side">
+                  <p class="place-total"><span>Order total</span><strong class="num">$248.90</strong></p>
+                  <button type="button" class="btn wide">Place order</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="nav" data-nav>
+          <button type="button" data-dir="-1" aria-label="Scroll up">^</button>
+          <button type="button" data-dir="1" aria-label="Scroll down">v</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 2 ========== -->
+  <section class="option" id="opt-2">
+    <h2 class="option-title">2. Number stays + Place order under summary</h2>
+    <p class="option-note">
+      Every section keeps its number; a tick sits beside it when done (including optional once filled).
+      Theme bordered fields. Instructions open as three rows that grow. One option = done line.
+      Desktop Place order lives under the summary total (left column only has Return to cart).
+    </p>
+    <div class="frames">
+      <div class="stage-wrap phone-wrap">
+        <p class="frame-label">Phone / 390</p>
+        <div class="canvas phone v2" data-scroll>
+          <header class="co-head"><div class="co-logo">ELME LIVING</div><p class="co-help">Need assistance?</p></header>
+          <div class="co-grid">
+            <aside class="co-summary">
+              <button type="button" class="sum-toggle" data-sum><span class="sum-toggle-label">Order summary</span><span class="sum-toggle-total num">$248.90</span></button>
+              <div class="sum-panel">
+                <div class="sum-head"><h2 class="sum-title">Order summary</h2><button type="button" class="link">Edit cart</button></div>
+                <div class="sum-panel-body">
+                  <div class="item"><div class="thumb"></div><div><p class="item-name">Faux Olive Tree 180cm</p><p>SKU: OLIVE-180 / Qty: 2</p></div><p class="item-price num">$198.00</p></div>
+                  <dl class="totals">
+                    <div class="row"><dt>Subtotal</dt><dd class="num">$198.00</dd></div>
+                    <div class="row"><dt>Delivery</dt><dd class="num">$5.00</dd></div>
+                    <div class="row"><dt>GST</dt><dd class="num">$20.30</dd></div>
+                    <div class="grand"><dt>Order total</dt><dd class="num">$248.90</dd></div>
+                  </dl>
+                  <div class="sum-place"><button type="button" class="btn" style="width:100%">Place order</button></div>
+                </div>
+              </div>
+            </aside>
+            <div class="co-sections">
+              <section>
+                <div class="section-head">
+                  <span class="step is-done keep" aria-hidden="true"><span class="n">1.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Delivery details</h2>
+                </div>
+                <div class="section-body">
+                  <div class="line"><p class="min"><span class="line-label">Deliver to:</span><span class="line-value">12 Sample St, Richmond VIC 3121</span></p><button type="button" class="link">Change</button></div>
+                </div>
+              </section>
+              <section>
+                <div class="section-head">
+                  <span class="step is-done keep" aria-hidden="true"><span class="n">2.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Delivery method</h2>
+                </div>
+                <div class="section-body"><div class="line"><p class="min"><span class="line-label">Delivery:</span><span class="line-value">Flat Rate, $5.00 ex GST</span></p></div></div>
+              </section>
+              <section>
+                <div class="section-head">
+                  <span class="step is-done keep" aria-hidden="true"><span class="n">3.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Payment method</h2>
+                </div>
+                <div class="section-body"><div class="line"><p class="min"><span class="line-label">Payment:</span><span class="line-value">Account credit</span></p></div></div>
+              </section>
+              <section>
+                <div class="section-head">
+                  <span class="step keep" aria-hidden="true"><span class="n">4.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Delivery instructions <span class="opt">(optional)</span></h2>
+                </div>
+                <div class="section-body">
+                  <label class="field-label" for="v2-ta-p">Delivery instructions</label>
+                  <textarea id="v2-ta-p" class="box-ta" rows="3" readonly placeholder="e.g. Please place package at front door."></textarea>
+                  <p class="counter">0 / 500</p>
+                </div>
+              </section>
+              <div class="place">
+                <button type="button" class="link">Return to cart</button>
+                <button type="button" class="btn wide">Place order</button>
+              </div>
+            </div>
+          </div>
+          <div class="bar"><p class="bar-total"><span>Order total</span><strong class="num">$248.90</strong></p><button type="button" class="btn">Place order</button></div>
+        </div>
+      </div>
+      <div class="stage-wrap">
+        <p class="frame-label">Desktop / 1280</p>
+        <div class="canvas desk v2" data-scroll>
+          <header class="co-head"><div class="co-logo">ELME LIVING</div><p class="co-help">Need assistance? 1300 375 384</p></header>
+          <div class="co-grid">
+            <aside class="co-summary">
+              <div class="sum-panel">
+                <div class="sum-head"><h2 class="sum-title">Order summary</h2><button type="button" class="link">Edit cart</button></div>
+                <div class="sum-panel-body">
+                  <div class="item"><div class="thumb"></div><div><p class="item-name">Faux Olive Tree 180cm</p><p>SKU: OLIVE-180 / Qty: 2</p></div><p class="item-price num">$198.00</p></div>
+                  <dl class="totals">
+                    <div class="row"><dt>Subtotal</dt><dd class="num">$198.00</dd></div>
+                    <div class="row"><dt>Delivery</dt><dd class="num">$5.00</dd></div>
+                    <div class="row"><dt>GST</dt><dd class="num">$20.30</dd></div>
+                    <div class="grand"><dt>Order total</dt><dd class="num">$248.90</dd></div>
+                  </dl>
+                  <div class="sum-place"><button type="button" class="btn" style="width:100%">Place order</button></div>
+                </div>
+              </div>
+            </aside>
+            <div class="co-sections">
+              <section>
+                <div class="section-head">
+                  <span class="step is-done keep" aria-hidden="true"><span class="n">1.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Delivery details</h2>
+                </div>
+                <div class="section-body">
+                  <div class="line"><p class="min"><span class="line-label">Deliver to:</span><span class="line-value">12 Sample St, Richmond VIC 3121</span></p><button type="button" class="link">Change</button></div>
+                  <div class="line"><p class="min"><span class="line-label">Invoice to:</span><span class="line-value">Same as delivery address</span></p><button type="button" class="link">Change</button></div>
+                </div>
+              </section>
+              <section>
+                <div class="section-head">
+                  <span class="step is-done keep" aria-hidden="true"><span class="n">2.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Delivery method</h2>
+                </div>
+                <div class="section-body"><div class="line"><p class="min"><span class="line-label">Delivery:</span><span class="line-value">Flat Rate, $5.00 ex GST</span></p></div></div>
+              </section>
+              <section>
+                <div class="section-head">
+                  <span class="step is-done keep" aria-hidden="true"><span class="n">3.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Payment method</h2>
+                </div>
+                <div class="section-body"><div class="line"><p class="min"><span class="line-label">Payment:</span><span class="line-value">Account credit</span></p></div></div>
+              </section>
+              <section>
+                <div class="section-head">
+                  <span class="step keep" aria-hidden="true"><span class="n">4.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Delivery instructions <span class="opt">(optional)</span></h2>
+                </div>
+                <div class="section-body" style="max-width:420px">
+                  <label class="field-label" for="v2-ta">Delivery instructions</label>
+                  <textarea id="v2-ta" class="box-ta" rows="3" readonly placeholder="e.g. Please place package at front door."></textarea>
+                  <p class="counter">0 / 500</p>
+                  <p class="now-tag" style="margin-top:16px">vs current tall radio card (ghost)</p>
+                  <div class="radio-card ghost-now">
+                    <span class="radio" aria-hidden="true"></span>
+                    <span class="radio-body"><span class="radio-title">Flat Rate</span>Standard</span>
+                    <span class="radio-price"><strong class="num">$5.00</strong><small>ex GST</small></span>
+                  </div>
+                </div>
+              </section>
+              <div class="place">
+                <button type="button" class="link">Return to cart</button>
+                <button type="button" class="btn wide">Place order</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="nav" data-nav>
+          <button type="button" data-dir="-1" aria-label="Scroll up">^</button>
+          <button type="button" data-dir="1" aria-label="Scroll down">v</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 3 ========== -->
+  <section class="option" id="opt-3">
+    <h2 class="option-title">3. Underline fields + quiet optional + total beside button</h2>
+    <p class="option-note">
+      Same markers as 1 (no marker on optional). Unify fields by keeping the old underlined style for address
+      and the instructions textarea. Instructions open as three growing rows. One option = done line.
+      Desktop repeats the total next to Place order.
+    </p>
+    <div class="frames">
+      <div class="stage-wrap phone-wrap">
+        <p class="frame-label">Phone / 390</p>
+        <div class="canvas phone v3" data-scroll>
+          <header class="co-head"><div class="co-logo">ELME LIVING</div><p class="co-help">Need assistance?</p></header>
+          <div class="co-grid">
+            <aside class="co-summary">
+              <button type="button" class="sum-toggle" data-sum><span class="sum-toggle-label">Order summary</span><span class="sum-toggle-total num">$248.90</span></button>
+              <div class="sum-panel"><div class="sum-panel-body">
+                <div class="item"><div class="thumb"></div><div><p class="item-name">Faux Olive Tree 180cm</p><p>Qty: 2</p></div><p class="item-price num">$198.00</p></div>
+                <dl class="totals"><div class="grand"><dt>Order total</dt><dd class="num">$248.90</dd></div></dl>
+              </div></div>
+            </aside>
+            <div class="co-sections">
+              <section>
+                <div class="section-head">
+                  <span class="step is-done replace" aria-hidden="true"><span class="n">1.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Delivery details</h2>
+                </div>
+                <div class="section-body">
+                  <div class="line"><p class="min"><span class="line-label">Deliver to:</span><span class="line-value">12 Sample St, Richmond VIC 3121</span></p><button type="button" class="link">Change</button></div>
+                </div>
+              </section>
+              <section>
+                <div class="section-head">
+                  <span class="step is-done replace" aria-hidden="true"><span class="n">2.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Delivery method</h2>
+                </div>
+                <div class="section-body"><div class="line"><p class="min"><span class="line-label">Delivery:</span><span class="line-value">Flat Rate, $5.00 ex GST</span></p></div></div>
+              </section>
+              <section>
+                <div class="section-head">
+                  <span class="step is-done replace" aria-hidden="true"><span class="n">3.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Payment method</h2>
+                </div>
+                <div class="section-body"><div class="line"><p class="min"><span class="line-label">Payment:</span><span class="line-value">Account credit</span></p></div></div>
+              </section>
+              <section>
+                <div class="section-head">
+                  <h2 class="section-title">Delivery instructions <span class="opt">(optional)</span></h2>
+                </div>
+                <div class="section-body">
+                  <div class="under">
+                    <label class="field-label" for="v3-ta-p">Delivery instructions</label>
+                    <textarea id="v3-ta-p" rows="3" readonly placeholder="e.g. Please place package at front door."></textarea>
+                  </div>
+                  <p class="counter">0 / 500</p>
+                </div>
+              </section>
+            </div>
+          </div>
+          <div class="bar"><p class="bar-total"><span>Order total</span><strong class="num">$248.90</strong></p><button type="button" class="btn">Place order</button></div>
+        </div>
+      </div>
+      <div class="stage-wrap">
+        <p class="frame-label">Desktop / 1280</p>
+        <div class="canvas desk v3" data-scroll>
+          <header class="co-head"><div class="co-logo">ELME LIVING</div><p class="co-help">Need assistance? 1300 375 384</p></header>
+          <div class="co-grid">
+            <aside class="co-summary">
+              <div class="sum-panel">
+                <div class="sum-head"><h2 class="sum-title">Order summary</h2><button type="button" class="link">Edit cart</button></div>
+                <div class="sum-panel-body">
+                  <div class="item"><div class="thumb"></div><div><p class="item-name">Faux Olive Tree 180cm</p><p>SKU: OLIVE-180 / Qty: 2</p></div><p class="item-price num">$198.00</p></div>
+                  <dl class="totals">
+                    <div class="row"><dt>Subtotal</dt><dd class="num">$198.00</dd></div>
+                    <div class="row"><dt>Delivery</dt><dd class="num">$5.00</dd></div>
+                    <div class="row"><dt>GST</dt><dd class="num">$20.30</dd></div>
+                    <div class="grand"><dt>Order total</dt><dd class="num">$248.90</dd></div>
+                  </dl>
+                </div>
+              </div>
+            </aside>
+            <div class="co-sections">
+              <section>
+                <div class="section-head">
+                  <span class="step is-done replace" aria-hidden="true"><span class="n">1.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Delivery details</h2>
+                </div>
+                <div class="section-body">
+                  <div class="line"><p class="min"><span class="line-label">Deliver to:</span><span class="line-value">12 Sample St, Richmond VIC 3121</span></p><button type="button" class="link">Change</button></div>
+                  <div class="line"><p class="min"><span class="line-label">Invoice to:</span><span class="line-value">Same as delivery address</span></p><button type="button" class="link">Change</button></div>
+                </div>
+              </section>
+              <section>
+                <div class="section-head">
+                  <span class="step is-done replace" aria-hidden="true"><span class="n">2.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Delivery method</h2>
+                </div>
+                <div class="section-body"><div class="line"><p class="min"><span class="line-label">Delivery:</span><span class="line-value">Flat Rate, $5.00 ex GST</span></p></div></div>
+              </section>
+              <section>
+                <div class="section-head">
+                  <span class="step is-done replace" aria-hidden="true"><span class="n">3.</span><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M5 13l4 4L19 7"/></svg></span>
+                  <h2 class="section-title">Payment method</h2>
+                </div>
+                <div class="section-body"><div class="line"><p class="min"><span class="line-label">Payment:</span><span class="line-value">Account credit</span></p></div></div>
+              </section>
+              <section>
+                <div class="section-head">
+                  <h2 class="section-title">Delivery instructions <span class="opt">(optional)</span></h2>
+                </div>
+                <div class="section-body" style="max-width:420px">
+                  <p class="now-tag">Underline field style (address + instructions)</p>
+                  <div class="under">
+                    <label class="field-label" for="v3-fn">First name *</label>
+                    <input id="v3-fn" value="Alex" readonly>
+                  </div>
+                  <p class="err empty">keeps height</p>
+                  <div class="under">
+                    <label class="field-label" for="v3-ta">Delivery instructions</label>
+                    <textarea id="v3-ta" rows="3" readonly placeholder="e.g. Please place package at front door."></textarea>
+                  </div>
+                  <p class="counter">0 / 500</p>
+                </div>
+              </section>
+              <div class="place">
+                <button type="button" class="link">Return to cart</button>
+                <div class="place-side">
+                  <p class="place-total"><span>Order total</span><strong class="num">$248.90</strong></p>
+                  <button type="button" class="btn wide">Place order</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="nav" data-nav>
+          <button type="button" data-dir="-1" aria-label="Scroll up">^</button>
+          <button type="button" data-dir="1" aria-label="Scroll down">v</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+<script>
+  document.querySelectorAll('[data-sum]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const panel = btn.parentElement.querySelector('.sum-panel');
+      panel.classList.toggle('is-open');
+    });
+  });
+
+  document.querySelectorAll('[data-nav]').forEach((nav) => {
+    const canvas = nav.parentElement.querySelector('[data-scroll]');
+    const up = nav.querySelector('[data-dir="-1"]');
+    const down = nav.querySelector('[data-dir="1"]');
+    const sync = () => {
+      const max = canvas.scrollHeight - canvas.clientHeight;
+      const show = max > 8;
+      nav.style.display = show ? 'flex' : 'none';
+      up.disabled = canvas.scrollTop <= 0;
+      down.disabled = canvas.scrollTop >= max - 1;
+    };
+    up.addEventListener('click', () => { canvas.scrollBy({ top: -220, behavior: 'smooth' }); });
+    down.addEventListener('click', () => { canvas.scrollBy({ top: 220, behavior: 'smooth' }); });
+    canvas.addEventListener('scroll', sync);
+    sync();
+  });
+</script>
+</body>
+</html>

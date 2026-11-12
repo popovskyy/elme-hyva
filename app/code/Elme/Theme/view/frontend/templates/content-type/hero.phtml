@@ -1,7 +1,7 @@
 <?php
 /**
- * Content Studio type `hero` (etc/content_types.xml, FE-14): "Cinema" (docs/design/hero-wow-options.html,
- * 1). A photo (4:5 on phones, 2:1 from md, 700px tall on desktop) with the
+ * Content Studio type `hero` (etc/content_types.xml, FE-14): "Cinema". A photo (4:5 on phones,
+ * 2:1 from md, 700px tall on desktop) with the
  * heading, text and button on its dark side. Each slide tone says whether the photo is dark (white
  * text on a dark fade) or light (ink text on a light fade).
  *
@@ -56,7 +56,7 @@ $heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier())
          aria-labelledby="<?= $escaper->escapeHtmlAttr($heroId . '-heading-1') ?>"
     <?php endif; ?>
 >
-    <div class="flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain
+    <div class="elme-hero__track flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain
                 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         <?php if ($isSlider): ?>
          id="<?= $escaper->escapeHtmlAttr($heroId . '-slides') ?>"

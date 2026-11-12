@@ -1,0 +1,244 @@
+/*
+ * FE-67 Become a Stockist: How it works row, facts strip, apply CTAs.
+ * Lives in the FE-45 help main column; usp_strip below keeps home collage without a button.
+ * Help centre look: lead intro, numbered steps on a hairline (no boxes), facts panel with checks.
+ */
+@layer components {
+    .elme-become-stockist .elme-become-stockist__lead {
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
+        color: var(--color-ink);
+    }
+
+    /* How it works: three numbered steps on a hairline, no boxes */
+    .elme-become-stockist__how {
+        margin-block: --spacing(10) --spacing(8);
+    }
+
+    .elme-become-stockist__steps {
+        list-style: none;
+        margin: --spacing(6) 0 0;
+        padding: 0;
+        display: grid;
+        gap: 0;
+        counter-reset: none;
+    }
+
+    .elme-become-stockist__step {
+        position: relative;
+        display: grid;
+        grid-template-columns: --spacing(14) minmax(0, 1fr);
+        margin: 0;
+        padding-bottom: --spacing(6);
+    }
+
+    /* the help body's "li + li" gap is for running text, not for the steps */
+    .elme-become-stockist.elme-help-body li.elme-become-stockist__step {
+        margin: 0;
+    }
+
+    /* vertical hairline joining the numbers (phones) */
+    .elme-become-stockist__step:not(:last-child)::before {
+        content: "";
+        position: absolute;
+        inset-block: --spacing(12) 0;
+        inset-inline-start: --spacing(4.5);
+        inline-size: 1px;
+        background: var(--color-border);
+    }
+
+    .elme-become-stockist__step-num {
+        display: block;
+        font-family: var(--font-heading);
+        font-size: var(--text-display);
+        line-height: 1;
+        font-weight: 400;
+        color: var(--color-olive);
+        font-variant-numeric: lining-nums;
+    }
+
+    .elme-become-stockist__step-body {
+        min-width: 0;
+        padding-top: --spacing(0.5);
+    }
+
+    .elme-become-stockist.elme-help-body .elme-become-stockist__step-title {
+        margin: 0 0 --spacing(1.5);
+        font-family: var(--font-sans);
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
+        font-weight: 600;
+        color: var(--color-ink);
+    }
+
+    .elme-become-stockist__step-text {
+        margin: 0;
+        font-size: var(--text-copy);
+        line-height: 1.6;
+        color: var(--color-ink-muted);
+    }
+
+    @variant md {
+        .elme-become-stockist__steps {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: --spacing(8);
+        }
+
+        .elme-become-stockist__step {
+            grid-template-columns: minmax(0, 1fr);
+            align-content: start;
+            gap: --spacing(4);
+            padding: --spacing(5) 0 0;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .elme-become-stockist__step:not(:last-child)::before {
+            content: none;
+        }
+
+        /* the hairline darkens over the step's number */
+        .elme-become-stockist__step::after {
+            content: "";
+            position: absolute;
+            inset-block-start: -1px;
+            inset-inline-start: 0;
+            inline-size: --spacing(10);
+            block-size: 2px;
+            background: var(--color-olive);
+        }
+
+        .elme-become-stockist__step-num {
+            font-size: var(--text-display-desktop);
+        }
+
+        .elme-become-stockist__step-body {
+            padding-top: 0;
+        }
+    }
+
+    /* Trade account facts: white panel, checks in a sage circle */
+    .elme-become-stockist__facts {
+        margin-block: --spacing(4) --spacing(8);
+        padding: --spacing(6) --spacing(5);
+        border: 1px solid var(--color-border);
+        background-color: var(--color-surface);
+    }
+
+    .elme-become-stockist.elme-help-body .elme-become-stockist__facts h2 {
+        margin-block: 0 --spacing(4);
+        padding-top: 0;
+        border-top: 0;
+        font-family: var(--font-sans);
+        font-size: var(--text-h4-desktop);
+        line-height: var(--text-h4--line-height);
+        font-weight: 600;
+    }
+
+    .elme-become-stockist.elme-help-body .elme-become-stockist__facts-list {
+        display: grid;
+        gap: --spacing(3) --spacing(6);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        color: var(--color-ink);
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+    }
+
+    .elme-become-stockist.elme-help-body .elme-become-stockist__facts-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: --spacing(3);
+        margin: 0;
+    }
+
+    .elme-become-stockist__fact-icon {
+        flex: none;
+        display: grid;
+        place-items: center;
+        inline-size: --spacing(6);
+        block-size: --spacing(6);
+        border-radius: calc(infinity * 1px);
+        background: var(--color-success-ground);
+        color: var(--color-olive);
+
+        svg {
+            stroke-width: 2.25;
+        }
+    }
+
+    @variant md {
+        .elme-become-stockist__facts {
+            padding: --spacing(7) --spacing(8);
+        }
+
+        .elme-become-stockist.elme-help-body .elme-become-stockist__facts-list {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            font-size: var(--text-copy-desktop);
+        }
+    }
+
+    .elme-become-stockist__cta {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: --spacing(3);
+        margin-block: --spacing(6) --spacing(10);
+        /* Reserve primary + secondary + tertiary so guest/logged-in swap does not shift layout */
+        min-height: --spacing(36);
+    }
+
+    @variant sm {
+        .elme-become-stockist__cta {
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .elme-become-stockist__cta-primary,
+        .elme-become-stockist__cta-secondary {
+            width: auto;
+            min-width: --spacing(54);
+        }
+    }
+
+    .elme-become-stockist__cta-tertiary {
+        margin: 0;
+        width: 100%;
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        color: var(--color-ink-muted);
+    }
+
+    .elme-become-stockist__cta-tertiary a {
+        color: var(--color-ink);
+        text-decoration: underline;
+        text-underline-offset: 0.15em;
+    }
+
+    .elme-become-stockist__cta-tertiary a:hover {
+        color: var(--color-link-hover);
+    }
+
+    .elme-become-stockist__cta-tertiary a:focus-visible {
+        outline: 2px solid var(--color-ink);
+        outline-offset: 2px;
+    }
+
+    /* usp_strip on this help page: no full-bleed into the side nav */
+    .help-page .elme-usp-strip {
+        margin-inline: 0;
+    }
+
+    @variant md {
+        .elme-become-stockist.elme-help-body .elme-become-stockist__step-title {
+            font-size: var(--text-h4-desktop);
+            line-height: var(--text-h4--line-height);
+        }
+
+        .elme-become-stockist__step-text,
+        .elme-become-stockist__facts-list {
+            font-size: var(--text-copy-desktop);
+        }
+    }
+}

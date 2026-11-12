@@ -1,0 +1,193 @@
+/*
+ * FE-18 category PLP header.
+ * With a photo: a short cover band, copy overlaid at the bottom left (crumbs, H1, description).
+ * The file's own height never sizes the band. Without a photo: a compact text header.
+ */
+
+/* Flush under the header when the banner owns the top of the PLP (same idea as hero/login). */
+.catalog-category-view .page-main:has(.category-banner) {
+    margin-top: 0;
+}
+
+.catalog-category-view .columns.top:has(.category-banner),
+.catalog-category-view .category-view:has(.category-banner) {
+    padding-top: 0;
+}
+
+@layer components {
+    .category-banner {
+        --category-banner-bg: transparent;
+        background-color: var(--category-banner-bg);
+        width: 100%;
+    }
+
+    .category-banner__title h1 {
+        margin: 0;
+        font-family: var(--font-heading);
+        font-weight: 400;
+        font-size: var(--text-display);
+        line-height: var(--text-display--line-height);
+        color: var(--color-primary);
+    }
+
+    .category-banner__description {
+        max-width: var(--category-banner-content-max);
+        color: var(--color-primary);
+    }
+
+    .category-banner__description :where(p, li, span, a) {
+        color: var(--color-primary);
+        font-weight: 400;
+    }
+
+    .category-banner__description :where(*):last-child {
+        margin-bottom: 0;
+    }
+
+    .category-banner--no-image .category-banner__content {
+        display: flex;
+        flex-direction: column;
+        padding: --spacing(6) var(--container-gutter) --spacing(8);
+    }
+
+    .category-banner--no-image .category-banner__title {
+        margin-bottom: --spacing(3);
+    }
+
+    @variant md {
+        .category-banner--no-image .category-banner__content {
+            padding-inline: var(--container-gutter-desktop);
+            padding-block: --spacing(8) --spacing(10);
+            max-width: calc(var(--category-banner-content-max) + 2 * var(--container-gutter-desktop));
+        }
+    }
+
+    @variant lg {
+        .category-banner__title h1 {
+            font-size: var(--text-display-desktop);
+            line-height: var(--text-display--line-height);
+        }
+    }
+}
+
+/* Photo band. Unlayered so it wins over the breadcrumb and .container utilities. */
+.category-banner--has-image .category-banner__frame {
+    display: grid;
+    min-height: var(--category-banner-height);
+    margin: var(--container-gutter);
+    border-radius: var(--category-banner-radius);
+    overflow: hidden;
+}
+
+.category-banner--has-image .category-banner__media,
+.category-banner--has-image .category-banner__content {
+    grid-area: 1 / 1;
+}
+
+.category-banner--has-image .category-banner__media {
+    position: relative;
+    min-height: 100%;
+}
+
+.category-banner--has-image .category-banner__picture,
+.category-banner--has-image .category-banner__img {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* Left and bottom scrim so white type holds on a light photo and a dark one. */
+.category-banner--has-image .category-banner__media::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+        linear-gradient(
+            to top,
+            color-mix(in oklab, var(--color-ink) 72%, transparent) 0%,
+            color-mix(in oklab, var(--color-ink) 28%, transparent) 42%,
+            transparent 70%
+        ),
+        linear-gradient(
+            90deg,
+            color-mix(in oklab, var(--color-ink) 78%, transparent) 0%,
+            color-mix(in oklab, var(--color-ink) 46%, transparent) 36%,
+            transparent 66%
+        );
+}
+
+.category-banner--has-image .category-banner__content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    min-height: var(--category-banner-height);
+    max-width: calc(var(--category-banner-content-max) + 2 * var(--container-gutter));
+    padding: var(--container-gutter);
+}
+
+.category-banner--has-image .category-banner__title {
+    margin-bottom: --spacing(2);
+}
+
+.category-banner .breadcrumbs .container {
+    width: auto;
+    max-width: none !important;
+    margin: 0;
+    padding-inline: 0;
+}
+
+.category-banner .breadcrumbs ol {
+    margin: 0 0 --spacing(3);
+    padding: 0;
+}
+
+.category-banner--has-image .category-banner__title h1,
+.category-banner--has-image .category-banner__description,
+.category-banner--has-image .category-banner__description :where(p, li, span, a) {
+    color: var(--color-on-primary);
+}
+
+.category-banner--has-image .category-banner__description {
+    --link-color: var(--color-on-primary);
+}
+
+.category-banner--has-image .breadcrumbs :is(ol, a, span) {
+    color: var(--color-on-primary);
+}
+
+.category-banner--has-image .breadcrumbs a:hover {
+    color: var(--color-on-primary);
+}
+
+.category-banner--has-image .breadcrumbs a:focus-visible {
+    outline: 2px solid var(--color-on-primary);
+    outline-offset: 2px;
+}
+
+@variant md {
+    .category-banner--has-image .category-banner__frame {
+        margin: var(--container-gutter-desktop);
+    }
+
+    .category-banner--has-image .category-banner__content {
+        max-width: calc(var(--category-banner-content-max) + 2 * var(--container-gutter-desktop));
+        padding: var(--container-gutter-desktop);
+    }
+}
+
+@variant lg {
+    .category-banner--has-image .category-banner__frame,
+    .category-banner--has-image .category-banner__content {
+        min-height: var(--category-banner-height-desktop);
+    }
+}

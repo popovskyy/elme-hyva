@@ -70,6 +70,7 @@
         </policy>
         <policy id="img-src">
             <values>
+                <value id="elme-cloudinary" type="host">res.cloudinary.com</value>
                 <value id="elme-gtm" type="host">www.googletagmanager.com</value>
                 <value id="elme-ga" type="host">www.google-analytics.com</value>
                 <value id="elme-ga-star" type="host">*.google-analytics.com</value>
@@ -92,6 +93,8 @@
                 <value id="elme-klaviyo-star" type="host">*.klaviyo.com</value>
                 <value id="elme-zdassets" type="host">static.zdassets.com</value>
                 <value id="elme-zdassets-star" type="host">*.zdassets.com</value>
+                <!-- Klaviyo company fonts stylesheet -->
+                <value id="elme-google-fonts" type="host">fonts.googleapis.com</value>
             </values>
         </policy>
         <policy id="font-src">
@@ -101,6 +104,8 @@
                 <value id="elme-klaviyo-star" type="host">*.klaviyo.com</value>
                 <value id="elme-zdassets" type="host">static.zdassets.com</value>
                 <value id="elme-zdassets-star" type="host">*.zdassets.com</value>
+                <value id="elme-google-fonts" type="host">fonts.googleapis.com</value>
+                <value id="elme-gstatic-fonts" type="host">fonts.gstatic.com</value>
             </values>
         </policy>
         <policy id="frame-src">

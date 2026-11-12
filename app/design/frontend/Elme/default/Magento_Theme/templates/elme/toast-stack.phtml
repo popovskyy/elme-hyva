@@ -34,12 +34,18 @@ $iconAttrs = ['aria-hidden' => 'true'];
 >
     <template x-for="toast in toasts" :key="toast.id">
         <div
+<<<<<<< HEAD
             class="message is-entering"
             :class="toast.type"
+=======
+            class="message"
+            :class="toastClass"
+>>>>>>> main
             role="status"
             :aria-live="toastLive"
             :style="toastStyle"
         >
+<<<<<<< HEAD
             <span class="message__icon" aria-hidden="true">
                 <span x-show="isSuccess">
                     <?= $lucideIcons->checkHtml('stroke-current', 18, 18, $iconAttrs); ?>
@@ -55,6 +61,10 @@ $iconAttrs = ['aria-hidden' => 'true'];
                 </span>
             </span>
             <span class="message__body" x-text="toast.text"></span>
+=======
+            <span class="message__badge" aria-hidden="true"></span>
+            <span class="message__text" x-text="toast.text"></span>
+>>>>>>> main
             <button
                 type="button"
                 class="message__close"
@@ -74,6 +84,7 @@ $iconAttrs = ['aria-hidden' => 'true'];
             toasts: [],
             nextId: 1,
             defaultHideAfter: 5000,
+            leaveAfter: 180,
 
             eventListeners: {
                 ['@elme-toast.window'](event) {
@@ -91,7 +102,11 @@ $iconAttrs = ['aria-hidden' => 'true'];
                     ? 0
                     : (detail.hideAfter || this.defaultHideAfter);
 
+<<<<<<< HEAD
                 this.toasts.push({ id, type, text, hideAfter });
+=======
+                this.toasts.push({ id, type, text, leaving: false });
+>>>>>>> main
 
                 if (hideAfter > 0) {
                     setTimeout(() => this.removeById(id), hideAfter);
@@ -104,7 +119,17 @@ $iconAttrs = ['aria-hidden' => 'true'];
             },
 
             removeById(id) {
-                this.toasts = this.toasts.filter((toast) => toast.id !== id);
+                const toast = this.toasts.find((item) => item.id === id);
+                if (!toast || toast.leaving) return;
+
+                toast.leaving = true;
+                setTimeout(() => {
+                    this.toasts = this.toasts.filter((item) => item.id !== id);
+                }, this.leaveAfter);
+            },
+
+            toastClass() {
+                return this.toast.leaving ? this.toast.type + ' is-leaving' : this.toast.type;
             },
 
             toastLive() {

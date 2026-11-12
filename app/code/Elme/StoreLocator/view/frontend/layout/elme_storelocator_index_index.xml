@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      layout="1column"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="page.main.title" remove="true"/>
+        <referenceContainer name="content">
+            <block class="Elme\StoreLocator\Block\ListPage"
+                   name="elme.storelocator.list"
+                   template="Elme_StoreLocator::location/list.phtml"
+                   cacheable="true"/>
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.storelocator.list.jsonld"
+                   template="Elme_StoreLocator::location/list-jsonld.phtml"
+                   after="elme.storelocator.list"/>
+        </referenceContainer>
+    </body>
+</page>

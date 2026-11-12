@@ -1,0 +1,260 @@
+<?php
+/**
+ * FE-70: animated Add to Cart button + AJAX add to cart.
+ *
+ * Opt in with the class `btn-atc` on a submit button of an add to cart form (PLP tile form, PDP
+ * #product_addtocart_form via form="…"). One delegated submit listener, no Alpine, no per-button
+ * handlers (CSP-safe, same pattern as btn-ripple.phtml).
+ *
+ * Flow: submit -> button goes to "sending" at once (aria-busy; cart slides to the centre, a dot drops
+ * into it until the server answers, at least one full drop) -> POST with X-Requested-With, so
+ * Magento's cart/add answers JSON -> read the "messages" section (cart/add puts its result there)
+ * -> "success" (cart leaves right, check + "Added" comes in from the left, 2.2s) only when the
+ * server confirmed it with its success message; otherwise back to idle and the error goes to the
+ * toast stack.
+ *
+ * Requests run one after another, so quick clicks on many tiles never race on the quote and every
+ * result belongs to the right button. Clicks are never blocked: the button just shows its place in
+ * the queue. A second click on a button that is still sending is ignored (accidental double add).
+ * Section data (mini-cart) reloads once the queue is empty, so that reload never takes the messages
+ * of an add that is still running. No fetch/FormData, or a button without the class: the form posts
+ * the old way.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+?>
+<template id="elme-atc-stage">
+    <span class="btn-atc__stage" aria-hidden="true">
+        <span class="btn-atc__cart"><?= $lucideIcons->shoppingCartHtml('', 24, 24) ?></span>
+        <span class="btn-atc__dot"></span>
+        <span class="btn-atc__done">
+            <?= $lucideIcons->checkHtml('', 24, 24) ?>
+            <span class="btn-atc__done-label"><?= $escaper->escapeHtml(__('Added')) ?></span>
+        </span>
+    </span>
+</template>
+<div class="sr-only" role="status" aria-live="polite" id="elme-atc-status"></div>
+<script>
+    (function () {
+        const SELECTOR = '.btn-atc';
+        const HOLD_MS = 2200;
+        // at least --atc-slide + --atc-drop (elme/add-to-cart.css): a fast answer still shows the
+        // cart slide in and one dot drop before "Added"
+        const MIN_SENDING_MS = 1650;
+        const TEXT = {
+            added: '<?= $escaper->escapeJs(__('Added to cart')) ?>',
+            failed: '<?= $escaper->escapeJs(__('We couldn\'t add this item to your cart. Please try again.')) ?>'
+        };
+
+        const queue = [];
+        let running = false;
+
+        function findButton(form, submitter) {
+            if (submitter) {
+                return submitter.matches(SELECTOR) ? submitter : null;
+            }
+            // Enter in a qty field: no submitter in older browsers
+            const inside = form.querySelector(SELECTOR);
+            if (inside) {
+                return inside;
+            }
+            return form.id
+                ? document.querySelector(SELECTOR + '[form="' + CSS.escape(form.id) + '"]')
+                : null;
+        }
+
+        function ensureStage(btn) {
+            if (btn.querySelector('.btn-atc__stage')) {
+                return;
+            }
+            const tpl = document.getElementById('elme-atc-stage');
+            if (tpl) {
+                btn.appendChild(tpl.content.cloneNode(true));
+            }
+        }
+
+        // Where the idle cart icon sits, so the stage cart starts there and slides to the centre;
+        // icon-only buttons (label hidden at this breakpoint) drop the "Added" text.
+        function measure(btn) {
+            const rect = btn.getBoundingClientRect();
+            const icon = btn.querySelector(':scope > svg');
+            const label = btn.querySelector(':scope > span:not(.btn-atc__stage, .btn-ripple)');
+            const fromX = icon
+                ? (icon.getBoundingClientRect().left + icon.getBoundingClientRect().width / 2)
+                    - (rect.left + rect.width / 2)
+                : 0;
+            btn.style.setProperty('--atc-from-x', Math.round(fromX) + 'px');
+            btn.style.setProperty('--atc-exit-x', Math.round(rect.width / 2 + 24) + 'px');
+            btn.toggleAttribute('data-atc-compact', !label || label.getClientRects().length === 0);
+        }
+
+        function setState(btn, state) {
+            if (state === 'sending') {
+                ensureStage(btn);
+                // pressed again during "Added": the cart is out on the right, put it back on the idle
+                // icon without a slide, so it comes in from the left again
+                if (btn.dataset.atcState === 'success') {
+                    btn.dataset.atcState = 'idle';
+                }
+                measure(btn);
+                // apply the start position before the state switch so the slide animates
+                void btn.offsetWidth;
+            }
+            btn.dataset.atcState = state;
+            if (state === 'sending') {
+                btn.setAttribute('aria-busy', 'true');
+            } else {
+                btn.removeAttribute('aria-busy');
+            }
+        }
+
+        function announce(text) {
+            const status = document.getElementById('elme-atc-status');
+            if (!status) {
+                return;
+            }
+            status.textContent = '';
+            setTimeout(() => { status.textContent = text; }, 50);
+        }
+
+        function toast(type, text) {
+            window.dispatchEvent(new CustomEvent('elme-toast', { detail: { type: type, text: text } }));
+        }
+
+        // Section messages may hold HTML (links); the toast shows plain text.
+        function plainText(html) {
+            const doc = new DOMParser().parseFromString(String(html || ''), 'text/html');
+            return (doc.body.textContent || '').trim();
+        }
+
+        function isCartUrl(url) {
+            try {
+                return /\/checkout\/cart\/?$/.test(new URL(url, window.location.href).pathname);
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // cart/add leaves its result in the session messages; reading the section takes them out,
+        // so the in-page message bar does not repeat "You added … to your shopping cart."
+        async function takeMessages() {
+            try {
+                const response = await fetch(BASE_URL + 'customer/section/load/?sections=messages', {
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = response.ok ? await response.json() : null;
+                return (data && data.messages && data.messages.messages) || [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        async function send(job) {
+            let json = null;
+            try {
+                const response = await fetch(job.url, {
+                    method: 'POST',
+                    body: job.body,
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                });
+                const type = response.headers.get('content-type') || '';
+                // a redirect to HTML (expired form key) is a failure, not a success
+                if (response.ok && type.indexOf('json') !== -1) {
+                    json = await response.json();
+                }
+            } catch (e) {
+                json = null;
+            }
+
+            const messages = await takeMessages();
+
+            const problems = messages.filter((m) => m && m.type !== 'success' && plainText(m.text));
+            const backUrl = json && json.backUrl;
+            // cart/add answers {} also when it did not add anything (product gone): only its success
+            // message, or the redirect to the cart (admin "redirect to cart" = Yes), confirms the add
+            const confirmed = messages.some((m) => m && m.type === 'success')
+                || Boolean(backUrl && isCartUrl(backUrl));
+            const ok = json !== null
+                && confirmed
+                && !problems.some((m) => m.type === 'error');
+
+            problems.forEach((m) => toast(m.type === 'error' || !ok ? 'error' : m.type, plainText(m.text)));
+            if (!ok && !problems.length) {
+                toast('error', TEXT.failed);
+            }
+
+            return { ok: ok, redirect: ok && backUrl ? backUrl : null };
+        }
+
+        function finish(job, result) {
+            const btn = job.btn;
+            const wait = Math.max(0, MIN_SENDING_MS - (Date.now() - job.startedAt));
+            setTimeout(() => {
+                btn.atcPending = false;
+                if (!result.ok) {
+                    setState(btn, 'idle');
+                    return;
+                }
+                setState(btn, 'success');
+                announce(TEXT.added);
+                // Admin "After adding a product redirect to Shopping Cart" = Yes
+                if (result.redirect) {
+                    window.location.assign(result.redirect);
+                    return;
+                }
+                clearTimeout(btn.atcTimer);
+                btn.atcTimer = setTimeout(() => setState(btn, 'idle'), HOLD_MS);
+            }, wait);
+        }
+
+        async function run() {
+            if (running) {
+                return;
+            }
+            running = true;
+            while (queue.length) {
+                const job = queue.shift();
+                finish(job, await send(job));
+            }
+            running = false;
+            window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+        }
+
+        document.addEventListener('submit', (event) => {
+            const form = event.target;
+            if (event.defaultPrevented || !(form instanceof HTMLFormElement)) {
+                return;
+            }
+            const btn = findButton(form, event.submitter);
+            if (!btn || !window.fetch || !window.FormData || !window.BASE_URL) {
+                return;
+            }
+            event.preventDefault();
+            if (btn.atcPending) {
+                return;
+            }
+            btn.atcPending = true;
+            clearTimeout(btn.atcTimer);
+            setState(btn, 'sending');
+            // read the form now: qty or options changed later belong to the next click
+            queue.push({ btn: btn, url: form.action, body: new FormData(form), startedAt: Date.now() });
+            run();
+        });
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

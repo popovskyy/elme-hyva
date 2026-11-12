@@ -1,0 +1,293 @@
+/**
+ * FE-78: the heart's list picker (Elme_QuickOrder::add-to-list/modal.phtml). Bottom sheet below md, a popover at the
+ * heart from md. .is-shown runs the enter motion, removing it the exit; .is-dragging follows the finger.
+ */
+@layer components {
+    .elme-lp {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+    }
+
+    .elme-lp__scrim {
+        position: absolute;
+        inset: 0;
+    }
+
+    .elme-lp.is-sheet .elme-lp__scrim {
+        background: color-mix(in srgb, var(--color-ink) 40%, transparent);
+        opacity: 0;
+        transition: opacity var(--transition-duration-fast) var(--ease-out-quad);
+    }
+
+    .elme-lp.is-sheet.is-shown .elme-lp__scrim {
+        opacity: 1;
+        transition-duration: var(--transition-duration-base);
+    }
+
+    .elme-lp__panel {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        background: var(--color-surface);
+        outline: none;
+    }
+
+    .elme-lp.is-sheet .elme-lp__panel {
+        inset-inline: 0;
+        bottom: 0;
+        max-height: 85dvh;
+        padding: 0 --spacing(5) calc(--spacing(6) + env(safe-area-inset-bottom));
+        box-shadow: 0 -8px 24px rgb(0 0 0 / .12);
+        transform: translateY(100%);
+        transition: transform var(--transition-duration-base) var(--ease-out-quad);
+        touch-action: none;
+    }
+
+    .elme-lp.is-sheet.is-shown .elme-lp__panel {
+        transform: translateY(0);
+        transition: transform var(--transition-duration-slow) var(--ease-out-quint);
+    }
+
+    .elme-lp.is-sheet .elme-lp__panel.is-dragging {
+        transition: none;
+    }
+
+    .elme-lp.is-pop .elme-lp__panel {
+        width: --spacing(80);
+        max-height: min(--spacing(120), calc(100dvh - --spacing(6)));
+        padding: --spacing(4.5);
+        border: 1px solid var(--color-border);
+        box-shadow: 0 12px 32px rgb(0 0 0 / .14);
+        transform-origin: top right;
+        opacity: 0;
+        transform: scale(.96) translateY(-4px);
+        transition: opacity var(--transition-duration-fast) var(--ease-out-quad), transform var(--transition-duration-fast) var(--ease-out-quad);
+    }
+
+    .elme-lp.is-pop.is-above .elme-lp__panel {
+        transform-origin: bottom right;
+        transform: scale(.96) translateY(4px);
+    }
+
+    .elme-lp.is-pop.is-shown .elme-lp__panel {
+        opacity: 1;
+        transform: none;
+        transition-duration: var(--transition-duration-fast);
+        transition-timing-function: var(--ease-out-quart);
+    }
+
+    .elme-lp__handle {
+        display: block;
+        flex-shrink: 0;
+        width: 100%;
+        padding: --spacing(2.5) 0 --spacing(3.5);
+        cursor: grab;
+
+        &::before {
+            content: "";
+            display: block;
+            width: --spacing(10);
+            height: --spacing(1);
+            margin: 0 auto;
+            border-radius: 9999px;
+            background: var(--color-border);
+        }
+    }
+
+    .elme-lp__close {
+        position: absolute;
+        top: --spacing(2.5);
+        inset-inline-end: --spacing(2.5);
+        display: grid;
+        place-items: center;
+        width: --spacing(8);
+        height: --spacing(8);
+        color: var(--color-ink-muted);
+
+        @media (hover: hover) {
+            &:hover {
+                color: var(--color-ink);
+            }
+        }
+    }
+
+    .elme-lp.is-sheet .elme-lp__close,
+    .elme-lp.is-pop .elme-lp__handle {
+        display: none;
+    }
+
+    .elme-lp__handle:focus-visible,
+    .elme-lp__close:focus-visible,
+    .elme-lp__row:focus-visible {
+        outline: 2px solid var(--color-ink);
+        outline-offset: -2px;
+    }
+
+    .elme-lp__title {
+        flex-shrink: 0;
+        margin: 0 0 --spacing(0.5);
+        padding-inline-end: --spacing(8);
+        font-family: var(--font-heading);
+        font-size: var(--text-h4);
+        line-height: --spacing(6);
+        color: var(--color-ink);
+    }
+
+    .elme-lp__product {
+        flex-shrink: 0;
+        margin: 0 0 --spacing(3);
+        overflow: hidden;
+        font-size: var(--text-note);
+        line-height: --spacing(4);
+        color: var(--color-ink-muted);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .elme-lp__note {
+        margin: 0 0 --spacing(3);
+        font-size: var(--text-copy);
+        color: var(--color-ink-muted);
+    }
+
+    .elme-lp__rows {
+        min-height: 0;
+        margin: 0 0 --spacing(3);
+        padding: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        list-style: none;
+        border-top: 1px solid var(--color-border);
+        touch-action: pan-y;
+    }
+
+    .elme-lp__row {
+        display: flex;
+        width: 100%;
+        min-height: --spacing(14);
+        align-items: center;
+        gap: --spacing(3);
+        padding: --spacing(2) --spacing(1);
+        border-bottom: 1px solid var(--color-border);
+        text-align: start;
+        color: var(--color-ink);
+        transition: background-color var(--transition-duration-micro) var(--ease-out-quad);
+
+        &:active {
+            background: var(--color-page);
+        }
+
+        @media (hover: hover) {
+            &:hover {
+                background: var(--color-surface-muted);
+            }
+        }
+    }
+
+    .elme-lp.is-pop .elme-lp__row {
+        min-height: --spacing(12);
+    }
+
+    .elme-lp__name {
+        flex: 1;
+        min-width: 0;
+        font-size: var(--text-copy);
+        line-height: --spacing(5);
+        overflow-wrap: anywhere;
+    }
+
+    .elme-lp__count {
+        font-size: var(--text-note);
+        color: var(--color-ink-muted);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    .elme-lp__tick {
+        display: grid;
+        flex-shrink: 0;
+        place-items: center;
+        width: --spacing(5.5);
+        height: --spacing(5.5);
+        border: 1px solid var(--color-border);
+        border-radius: 9999px;
+        color: var(--color-on-primary);
+        transition: background-color var(--transition-duration-fast) var(--ease-out-quad),
+            border-color var(--transition-duration-fast) var(--ease-out-quad);
+
+        & svg {
+            stroke-dasharray: 24;
+            stroke-dashoffset: 24;
+            transition: stroke-dashoffset var(--transition-duration-base) var(--ease-out-quart);
+        }
+    }
+
+    .elme-lp__row[aria-pressed="true"] .elme-lp__tick {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+
+        & svg {
+            stroke-dashoffset: 0;
+        }
+    }
+
+    .elme-lp__skeleton {
+        display: block;
+        height: --spacing(14);
+        border-bottom: 1px solid var(--color-border);
+        background: linear-gradient(90deg, var(--color-surface-muted), var(--color-surface-muted), var(--color-surface-muted));
+        background-size: 200% 100%;
+        animation: elme-lp-shimmer 1.2s linear infinite;
+    }
+
+    @keyframes elme-lp-shimmer {
+        to {
+            background-position: -200% 0;
+        }
+    }
+
+    .elme-lp__new {
+        display: flex;
+        flex-shrink: 0;
+        gap: --spacing(2);
+
+        & .form-input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        & .btn {
+            flex-shrink: 0;
+        }
+    }
+
+    .elme-lp__new .form-input[aria-invalid="true"] {
+        border-color: var(--color-error-mark);
+    }
+
+    .elme-lp__error {
+        flex-shrink: 0;
+        min-height: --spacing(4);
+        margin: --spacing(1.5) 0 0;
+        font-size: var(--text-note);
+        color: var(--color-error-text);
+    }
+
+    .elme-lp-lock {
+        overflow: hidden;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .elme-lp .elme-lp__panel,
+        .elme-lp .elme-lp__scrim,
+        .elme-lp__tick,
+        .elme-lp__tick svg {
+            transition: none !important;
+        }
+
+        .elme-lp__skeleton {
+            animation: none;
+        }
+    }
+}

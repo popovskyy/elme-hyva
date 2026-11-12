@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-18: Elme category banner (H1 + breadcrumbs + description + optional image).
+ * Suppresses Hyvä category.image / page.main.title / category.description so there is one H1
+ * and one hero image. BreadcrumbList stays on the breadcrumbs block (FE-55 consolidates later).
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="category.view.container" htmlClass="category-view">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="category.banner"
+                   template="Magento_Catalog::category/banner.phtml"
+                   before="-">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">Elme\Theme\ViewModel\CategoryBanner</argument>
+                </arguments>
+                <block class="Magento\Framework\View\Element\Template"
+                       name="category.banner.image"
+                       as="banner_image"
+                       template="Magento_Catalog::category/banner/image.phtml">
+                    <arguments>
+                        <argument name="view_model" xsi:type="object">Elme\Theme\ViewModel\CategoryBanner</argument>
+                    </arguments>
+                </block>
+            </block>
+            <!-- UX-02: guest trade path; HideForLoggedIn keeps the HTML off logged-in FPC -->
+            <block class="Elme\LoginOnly\Block\HideForLoggedIn"
+                   name="category.guest.trade.banner"
+                   template="Elme_LoginOnly::catalog/guest-trade-banner.phtml"
+                   after="category.banner"/>
+        </referenceContainer>
+
+        <referenceBlock name="catalog.compare.sidebar" remove="true"/>
+        <referenceBlock name="category.image" remove="true"/>
+        <referenceBlock name="category.description" remove="true"/>
+        <referenceBlock name="page.main.title" remove="true"/>
+
+        <move element="breadcrumbs" destination="category.banner" before="-"/>
+
+        <!-- FE-20: hide list/grid mode switcher (Elme is grid-only); pager jump for first/last/ellipsis. -->
+        <referenceBlock name="product_list_toolbar">
+            <action method="disableViewSwitcher"/>
+        </referenceBlock>
+    </body>
+</page>

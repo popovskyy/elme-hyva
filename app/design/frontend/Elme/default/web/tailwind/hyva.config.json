@@ -1,7 +1,9 @@
 {
   "notice": [
     "This is a complementary config file for Tailwind v4 and is not a replacement for the Tailwind v3 config file.",
-    "For usage, see the docs: https://docs.hyva.io/hyva-themes/working-with-tailwindcss/using-hyva-modules/"
+    "For usage, see the docs: https://docs.hyva.io/hyva-themes/working-with-tailwindcss/using-hyva-modules/",
+    "UX-15: primary and ink share #3A3935 — primary = action fill, ink = text. Soft line = color.border; strong line = form.stroke.",
+    "UX-16: status = success|warning|error|info, each with ground / mark / text (from the old toast set). Olive is brand only. Promo #CB4867 is sale only, never error."
   ],
   "tailwind": {
     "include": [
@@ -12,7 +14,19 @@
         "src": "app/code/Elme/LoginOnly"
       },
       {
+        "src": "app/code/Elme/Checkout"
+      },
+      {
         "src": "app/code/Elme/Theme"
+      },
+      {
+        "src": "app/code/Elme/QuickOrder"
+      },
+      {
+        "src": "app/code/Elme/RecentlyViewed"
+      },
+      {
+        "src": "app/code/Elme/StoreLocator"
       },
       {
         "src": "app/code/Bart/ContentStudio/view/frontend"
@@ -34,70 +48,64 @@
         "primary": "#3A3935",
         "on-primary": "#FFFFFF",
         "secondary": "#ADBBA1",
-        "on-secondary": "#FFFFFF",
+        "on-secondary": "#3A3935",
         "tertiary": "#D4C8B3",
         "accent": "#98A8BB",
         "accent-dark": "#68839C",
         "ink": "#3A3935",
-        "ink-muted": "#676F78",
-        "ink-subtle": "#797D81",
-        "link-hover": "#899991",
+        "ink-muted": "#605E55",
+        "ink-subtle": "#6F6D64",
+        "link-hover": "#5F6E67",
         "page": "#F5F4EF",
         "surface": "#FFFFFF",
-        "surface-muted": "#F8F8F8",
+        "surface-muted": "#F1F0EA",
         "sand-light": "#E1DBD1",
-        "cool-light": "#ECEFF1",
-        "border": "#CAC9C9",
-        "border-light": "#D3D6D9",
-        "divider": "#DCDCDC",
-        "placeholder": "#ADB2B8",
-        "success": "#00BC37",
-        "success-light": "#C5EAD6",
-        "olive": "#677858",
-        "warning": "#F2B20C",
-        "warning-light": "#FDDCC7",
-        "error": "#FF5942",
-        "error-strong": "#D82C0D",
-        "error-light": "#FFC3B8",
+        "border": "#D8D5CE",
+        "placeholder": "#64625A",
+        "olive": "#647455",
+        "success-ground": "#E2E8DB",
+        "success-mark": "#5D6C4F",
+        "success-text": "#4A5740",
+        "warning-ground": "#EEE6D6",
+        "warning-mark": "#7A5F34",
+        "warning-text": "#5C4726",
+        "error-ground": "#F1DDD5",
+        "error-mark": "#A5473B",
+        "error-text": "#8A3A30",
+        "info-ground": "#E1E7EC",
+        "info-mark": "#4E6579",
+        "info-text": "#3E5161",
         "promo": "#CB4867"
       },
       "text": {
-        "base": "16px",
-        "base--line-height": "22px",
-        "nav": "15px",
-        "h1": "27px",
-        "h1--line-height": "35px",
-        "h1-desktop": "60px",
-        "h2": "20px",
-        "h2--line-height": "30px",
-        "h2-desktop": "28px",
-        "h3": "18px",
-        "h3--line-height": "20px",
-        "h3-desktop": "22px",
-        "h4": "18px",
-        "h4--line-height": "28px",
-        "h5": "16px",
-        "h5--line-height": "18px",
-        "h5-desktop": "18px",
-        "h6": "16px",
-        "h6--line-height": "22px",
-        "label": "11px",
-        "label--line-height": "13px",
-        "note": "13px",
-        "note--line-height": "15px",
-        "breadcrumbs": "12px",
-        "title-section": "27px",
-        "title-section--line-height": "35px",
-        "title-section-desktop": "45px",
-        "title-section-desktop--line-height": "50px",
-        "copy": "14px",
-        "copy--line-height": "18px",
-        "copy-desktop": "15px",
-        "copy-desktop--line-height": "20px",
-        "noroute-lead": "26px",
-        "noroute-lead--line-height": "30px",
-        "noroute-lead-desktop": "35px",
-        "noroute-lead-desktop--line-height": "40px"
+        "display": "2.25rem",
+        "display--line-height": "1.15",
+        "display-desktop": "3.5rem",
+        "h1": "1.75rem",
+        "h1--line-height": "1.2",
+        "h1-desktop": "2.5rem",
+        "h2": "1.375rem",
+        "h2--line-height": "1.25",
+        "h2-desktop": "1.75rem",
+        "h3": "1.125rem",
+        "h3--line-height": "1.25",
+        "h3-desktop": "1.375rem",
+        "h4": "1rem",
+        "h4--line-height": "1.25",
+        "h4-desktop": "1.125rem",
+        "copy": "0.875rem",
+        "copy--line-height": "1.45",
+        "copy-desktop": "0.9375rem",
+        "note": "0.8125rem",
+        "note--line-height": "1.4",
+        "label": "0.6875rem",
+        "label--line-height": "1.4"
+      },
+      "category-banner": {
+        "content-max": "36rem",
+        "height": "15rem",
+        "height-desktop": "28rem",
+        "radius": "0"
       },
       "breakpoint": {
         "sm": "480px",
@@ -117,7 +125,12 @@
         "width-desktop": "288px"
       },
       "help": {
-        "main-max": "42.5rem"
+        "main-max": "42.5rem",
+        "content-max": "52rem",
+        "shell-max": "79rem"
+      },
+      "content": {
+        "measure": "50rem"
       },
       "radius": {
         "xs": "0px",
@@ -133,7 +146,7 @@
       },
       "form": {
         "radius": "1px",
-        "stroke": "#CAC9C9",
+        "stroke": "#8A8888",
         "bg": "transparent",
         "color": "#3A3935",
         "active-color": "#3A3935",
@@ -144,32 +157,29 @@
       "btn": {
         "min-height": "50px",
         "padding-x": "24px",
-        "font-size": "15px",
+        "font-size": "0.9375rem",
         "letter-spacing": "0.5px"
       },
       "ease": {
         "out-quad": "cubic-bezier(.25, .46, .45, .94)",
-        "out-cubic": "cubic-bezier(.215, .61, .355, 1)",
         "out-quart": "cubic-bezier(.165, .84, .44, 1)",
         "out-quint": "cubic-bezier(.23, 1, .32, 1)",
-        "out-expo": "cubic-bezier(.19, 1, .22, 1)",
-        "out-back": "cubic-bezier(.34, 1.56, .64, 1)",
         "in-out-cubic": "cubic-bezier(.645, .045, .355, 1)",
-        "in-out-quart": "cubic-bezier(.77, 0, .175, 1)",
         "in-quart": "cubic-bezier(.895, .03, .685, .22)"
       },
       "transition-duration": {
         "micro": "120ms",
         "fast": "180ms",
         "base": "240ms",
-        "slow": "300ms"
+        "slow": "300ms",
+        "long": "600ms"
       }
     }
   },
   "fonts": [
     {
       "provider": "local",
-      "name": "Karla",
+      "name": "Figtree",
       "cssVariable": "--font-sans",
       "fallbacks": [
         "ui-sans-serif",
@@ -179,54 +189,46 @@
       "preload": false,
       "variants": [
         {
-          "weight": "300",
-          "style": "normal",
-          "src": "karla/Karla-Light.woff2"
-        },
-        {
           "weight": "400",
           "style": "normal",
-          "src": "karla/Karla-Regular.woff2"
+          "src": "figtree/Figtree-Regular.woff2"
         },
         {
           "weight": "500",
           "style": "normal",
-          "src": "karla/Karla-Medium.woff2"
+          "src": "figtree/Figtree-Medium.woff2"
         },
         {
           "weight": "600",
           "style": "normal",
-          "src": "karla/Karla-SemiBold.woff2"
+          "src": "figtree/Figtree-SemiBold.woff2"
         },
         {
           "weight": "700",
           "style": "normal",
-          "src": "karla/Karla-Bold.woff2"
-        },
-        {
-          "weight": "800",
-          "style": "normal",
-          "src": "karla/Karla-ExtraBold.woff2"
+          "src": "figtree/Figtree-Bold.woff2"
         }
       ]
     },
     {
       "provider": "local",
-      "name": "DMSerifDisplay",
+      "name": "FigtreeHeading",
       "cssVariable": "--font-heading",
       "fallbacks": [
+        "ui-sans-serif",
+        "system-ui",
         "sans-serif"
       ],
       "variants": [
         {
           "weight": "400",
           "style": "normal",
-          "src": "dm-serif-display/DMSerifDisplay-Regular.woff2"
+          "src": "figtree/Figtree-Medium.woff2"
         },
         {
           "weight": "400",
           "style": "italic",
-          "src": "dm-serif-display/DMSerifDisplay-Italic.woff2"
+          "src": "figtree/Figtree-MediumItalic.woff2"
         }
       ]
     }

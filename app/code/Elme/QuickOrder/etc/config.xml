@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <checkout>
+            <!-- No Magento mini-cart: the header cart opens the Quick Order cart (FE-32 adds its panel) -->
+            <sidebar>
+                <display>0</display>
+            </sidebar>
+        </checkout>
+        <!-- FE-79: B2B cart/lists change on other devices; Magento default 60 min left a stale header badge.
+             Minutes. Hyva mage-cache-timeout still follows cookie lifetime; Elme also refreshes after ~2 min
+             on tab focus / bfcache (cart-client.phtml). -->
+        <customer>
+            <online_customers>
+                <section_data_lifetime>5</section_data_lifetime>
+            </online_customers>
+        </customer>
+    </default>
+</config>

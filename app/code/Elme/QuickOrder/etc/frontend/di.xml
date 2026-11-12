@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Checkout\Controller\Cart\Add">
+        <plugin name="elme_quick_order_add_to_cart_list" type="Elme\QuickOrder\Plugin\AddToCartListPlugin"/>
+    </type>
+
+    <type name="Magento\Checkout\Controller\Index\Index">
+        <plugin name="elme_quick_order_rebuild_quote" type="Elme\QuickOrder\Plugin\RebuildQuoteOnCheckoutPlugin"/>
+    </type>
+
+    <type name="Elme\LoginOnly\Observer\RedirectGuests">
+        <plugin name="elme_quick_order_guests_401" type="Elme\QuickOrder\Plugin\AnswerGuestsWith401Plugin"/>
+    </type>
+    <type name="Elme\QuickOrder\Plugin\AnswerGuestsWith401Plugin">
+        <arguments>
+            <argument name="endpoints" xsi:type="array">
+                <item name="get" xsi:type="string">quick_order_cart_get</item>
+                <item name="save" xsi:type="string">quick_order_cart_save</item>
+                <item name="availability" xsi:type="string">quick_order_cart_availability</item>
+                <item name="list_get" xsi:type="string">quick_order_list_get</item>
+                <item name="list_getall" xsi:type="string">quick_order_list_getall</item>
+                <item name="list_delete" xsi:type="string">quick_order_list_delete</item>
+                <item name="list_save" xsi:type="string">quick_order_list_save</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Customer\CustomerData\SectionPoolInterface">
+        <arguments>
+            <argument name="sectionSourceMap" xsi:type="array">
+                <item name="quick_order" xsi:type="string">Elme\QuickOrder\CustomerData\QuickOrder</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

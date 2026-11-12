@@ -1,0 +1,117 @@
+<?php
+/**
+ * Content Studio type `store_visit` (etc/content_types.xml, FE-63): the "Visit us" card under the Outlet
+ * banner. Name, intro, who can visit and the hours come from the entry; address, phone and the maps link
+ * from store config (StoreContact). The page JSON-LD reads the same values (StorePage), so there is no
+ * microdata here. Hours print as one row per run of days ("Mon - Sat"), with the full day names for
+ * screen readers.
+ *
+ * @var \Bart\ContentStudio\Block\Entry $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+use Elme\Theme\ViewModel\StoreVisit;
+use Hyva\Theme\ViewModel\LucideIcons;
+
+$visit = $block->getTypeViewModel();
+
+if (!$visit instanceof StoreVisit) {
+    return;
+}
+
+$content = $block->getContent();
+$heading = $visit->getHeading($content);
+$storeName = $visit->getStoreName($content);
+
+if ($heading === '' || $storeName === '') {
+    return;
+}
+
+$intro = $visit->getIntro($content);
+$publicNote = $visit->getPublicNote($content);
+$hours = $visit->getHours($content);
+$contact = $visit->getStoreContact();
+[$streetLine, $cityLine] = $contact->getShowroomAddressLines();
+$city = $contact->getAddressParts()['city'];
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+$headingId = 'store-visit-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
+$iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
+?>
+<section class="elme-store-visit mb-10 lg:mb-15" aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
+    <div class="grid gap-8 border border-border bg-surface p-5 text-ink md:p-8 lg:grid-cols-12 lg:gap-10 lg:p-10">
+        <div class="lg:col-span-5 xl:col-span-4">
+            <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+                class="mb-3 text-display lg:text-display-desktop">
+                <?= $escaper->escapeHtml($heading) ?>
+            </h2>
+            <p class="mb-3 font-heading text-h3 text-ink lg:text-h3-desktop"><?= $escaper->escapeHtml($storeName) ?></p>
+            <?php if ($intro !== ''): ?>
+                <p class="mb-5 max-w-120 text-copy text-pretty lg:text-copy-desktop">
+                    <?= $escaper->escapeHtml($intro) ?>
+                </p>
+            <?php endif; ?>
+            <?php if ($publicNote !== ''): ?>
+                <p class="m-0 inline-flex items-center gap-2 bg-sand-light px-3 py-2 text-copy text-ink lg:text-copy-desktop">
+                    <?= $lucideIcons->storeHtml('shrink-0 text-olive', 18, 18, $iconAttrs) ?>
+                    <span><?= $escaper->escapeHtml($publicNote) ?></span>
+                </p>
+            <?php endif; ?>
+        </div>
+
+        <div class="grid gap-8 md:grid-cols-3 md:gap-6 lg:col-span-7 lg:gap-8 xl:col-span-8">
+            <div>
+                <h3 class="mb-3 flex items-center gap-2 text-h4 font-normal lg:text-h4-desktop">
+                    <?= $lucideIcons->mapPinHtml('shrink-0 text-olive', 18, 18, $iconAttrs) ?>
+                    <?= $escaper->escapeHtml(__('Address')) ?>
+                </h3>
+                <address class="mb-5 text-copy not-italic lg:text-copy-desktop">
+                    <?= $escaper->escapeHtml($streetLine) ?><br>
+                    <?= $escaper->escapeHtml($cityLine) ?>
+                </address>
+                <a href="<?= $escaper->escapeUrl($contact->getDirectionsUrl()) ?>"
+                   target="_blank"
+                   rel="noopener"
+                   class="btn btn-primary w-full gap-2 md:w-auto">
+                    <?= $escaper->escapeHtml(__('Get directions')) ?>
+                    <span class="sr-only">
+                        <?= $escaper->escapeHtml(__('to the %1, %2 (opens Google Maps)', $storeName, $city)) ?>
+                    </span>
+                    <?= $lucideIcons->arrowUpRightHtml('shrink-0', 16, 16, $iconAttrs) ?>
+                </a>
+            </div>
+
+            <div>
+                <h3 class="mb-3 flex items-center gap-2 text-h4 font-normal lg:text-h4-desktop">
+                    <?= $lucideIcons->phoneHtml('shrink-0 text-olive', 18, 18, $iconAttrs) ?>
+                    <?= $escaper->escapeHtml(__('Phone')) ?>
+                </h3>
+                <a href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>"
+                   class="text-copy underline underline-offset-4 hover:text-link-hover lg:text-copy-desktop">
+                    <?= $escaper->escapeHtml($contact->getPhoneDisplay()) ?>
+                </a>
+            </div>
+
+            <?php if ($hours): ?>
+                <div>
+                    <h3 class="mb-3 flex items-center gap-2 text-h4 font-normal lg:text-h4-desktop">
+                        <?= $lucideIcons->clockHtml('shrink-0 text-olive', 18, 18, $iconAttrs) ?>
+                        <?= $escaper->escapeHtml(__('Opening hours')) ?>
+                    </h3>
+                    <dl class="m-0 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-copy lg:text-copy-desktop">
+                        <?php foreach ($hours as $row): ?>
+                            <dt class="font-semibold">
+                                <span aria-hidden="true"><?= $escaper->escapeHtml($row['label']) ?></span>
+                                <span class="sr-only"><?= $escaper->escapeHtml($row['label_full']) ?></span>
+                            </dt>
+                            <dd class="m-0 tabular-nums"><?= $escaper->escapeHtml($row['time_label']) ?></dd>
+                        <?php endforeach; ?>
+                    </dl>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</section>

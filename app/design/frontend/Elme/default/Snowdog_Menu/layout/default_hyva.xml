@@ -3,6 +3,7 @@
 /**
  * FE-09: mobile menu drawer (Snowdog hyva-topmenu-mobile).
  * Desktop mega menu lives in FE-08 (topmenu-desktop → topmenu_generic).
+ * Bulky menu HTML is printed at the end of the body so it does not sit in front of the hero.
  */
 -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -19,10 +20,26 @@
                 <arguments>
                     <argument name="menu" xsi:type="string">hyva-topmenu-mobile</argument>
                 </arguments>
+            </block>
+        </referenceBlock>
+        <referenceContainer name="before.body.end">
+            <block name="elme.mega.panels"
+                   class="Snowdog\Menu\Block\Menu"
+                   template="Snowdog_Menu::hyva-topmenu-desktop/panels.phtml">
+                <arguments>
+                    <argument name="menu" xsi:type="string">hyva-topmenu-desktop</argument>
+                </arguments>
+            </block>
+            <block name="elme.mobile.menu.dialog"
+                   class="Snowdog\Menu\Block\Menu"
+                   template="Snowdog_Menu::hyva-topmenu-mobile/dialog.phtml">
+                <arguments>
+                    <argument name="menu" xsi:type="string">hyva-topmenu-mobile</argument>
+                </arguments>
                 <block name="mobile.menu.footer"
                        as="mobile.menu.footer"
                        template="Snowdog_Menu::hyva-topmenu-mobile/menu/mobile-footer.phtml"/>
             </block>
-        </referenceBlock>
+        </referenceContainer>
     </body>
 </page>

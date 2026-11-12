@@ -1,6 +1,6 @@
 /**
  * FE-52 404 recovery (cms_noroute_index). Layout/spacing from Bart/el _404-page.less;
- * type sizes map to hyva.config.json tokens (title-section / h1-desktop / noroute-lead).
+ * type sizes map to hyva.config.json role tokens (display / h1).
  */
 
 .cms-no-route .page-main,
@@ -44,30 +44,30 @@
 .elme-noroute__code {
     margin: 0 0 --spacing(4);
     font-family: var(--font-heading);
-    font-size: var(--text-title-section-desktop);
-    line-height: var(--text-title-section-desktop--line-height);
+    font-size: var(--text-display);
+    line-height: var(--text-display--line-height);
     font-weight: 400;
     color: var(--color-ink);
 
     @variant md {
         margin-bottom: --spacing(8);
-        font-size: var(--text-h1-desktop);
-        line-height: 1.08;
+        font-size: var(--text-display-desktop);
+        line-height: var(--text-display--line-height);
     }
 }
 
 .elme-noroute__title {
     margin: 0 0 --spacing(8);
     font-family: var(--font-heading);
-    font-size: var(--text-noroute-lead);
-    line-height: var(--text-noroute-lead--line-height);
+    font-size: var(--text-h1);
+    line-height: var(--text-h1--line-height);
     font-weight: 400;
     color: var(--color-ink);
 
     @variant md {
         max-width: 80%;
-        font-size: var(--text-noroute-lead-desktop);
-        line-height: var(--text-noroute-lead-desktop--line-height);
+        font-size: var(--text-h1-desktop);
+        line-height: var(--text-h1--line-height);
     }
 }
 

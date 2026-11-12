@@ -1,0 +1,58 @@
+<?php
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+?>
+<div class="elme-checkout-bar"
+     data-place-order-bar
+     x-data="elmeCheckoutPlaceOrderBar"
+     x-bind="focusListeners"
+     x-show="isVisible"
+     x-cloak>
+    <p class="min-w-0">
+        <span class="elme-checkout-bar__total-label"><?= $escaper->escapeHtml(__('Total (incl GST)')) ?></span>
+        <span class="elme-checkout-bar__total-value" x-text="grandTotal"></span>
+    </p>
+    <?= $block->getChildHtml('button') ?>
+</div>
+<script>
+    /**
+     * A phone keeps a fixed or sticky bar right above its keyboard, on top of the input the customer is typing in. So the
+     * bar goes away while a field that opens a keyboard or picker has the focus.
+     */
+    function elmeCheckoutPlaceOrderBar() {
+        const noKeyboard = ['button', 'checkbox', 'radio', 'submit', 'reset', 'file', 'image', 'range', 'color'];
+
+        return {
+            typing: false,
+            focusListeners: {
+                ['@focusin.window'](event) {
+                    this.typing = this.opensKeyboard(event.target);
+                },
+                ['@focusout.window']() {
+                    this.typing = false;
+                }
+            },
+            opensKeyboard(element) {
+                return element.tagName === 'TEXTAREA'
+                    || element.tagName === 'SELECT'
+                    || (element.tagName === 'INPUT' && !noKeyboard.includes(element.type));
+            },
+            isVisible() {
+                return !this.typing;
+            },
+            grandTotal() {
+                return (Alpine.store('elmeCheckout').section('summary') || {}).grand_total_formatted || '';
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('elmeCheckoutPlaceOrderBar', elmeCheckoutPlaceOrderBar), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

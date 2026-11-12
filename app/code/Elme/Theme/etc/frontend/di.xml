@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- FE-66: /fairs-events FPC + block HTML cache rotate on Melbourne calendar day -->
+    <type name="Magento\Framework\App\PageCache\Identifier">
+        <plugin name="elme_theme_events_page_cache_day"
+                type="Elme\Theme\Plugin\EventsPageCacheIdentifierPlugin"/>
+    </type>
+    <type name="Bart\ContentStudio\Block\Entry">
+        <plugin name="elme_theme_events_entry_cache_key"
+                type="Elme\Theme\Plugin\EventsEntryCacheKeyPlugin"/>
+    </type>
+
+    <!-- FE-20: stable sort option order (after LoginOnly hides price for guests). -->
+    <type name="Magento\Catalog\Block\Product\ProductList\Toolbar">
+        <plugin name="elme_theme_reorder_plp_orders"
+                type="Elme\Theme\Plugin\ReorderPlpAvailableOrdersPlugin"
+                sortOrder="20"/>
+    </type>
+
+    <!-- FE-82: record script hashes while storefront still allows inline, for block_html CSP reuse -->
+    <type name="Hyva\Theme\ViewModel\HyvaCsp">
+        <plugin name="elme_theme_hyva_csp_inline_script"
+                type="Elme\Theme\Plugin\HyvaCspInlineScriptPlugin"/>
+    </type>
+</config>

@@ -1,10 +1,14 @@
 <?php
 /**
- * Content Studio type `welcome_cta` (etc/content_types.xml, FE-16), "Statement"
- * (docs/design/home-middle-options.html, 1): the wholesale H1 as a large statement, words in *stars*
+ * Content Studio type `welcome_cta` (etc/content_types.xml, FE-16), "Statement":
+ * the wholesale H1 as a large statement, words in *stars*
  * set in italic, then a rule with the text on the left and the two guest choices (apply = the content
  * button, or log in) on the right; stacked on phones. On home this is the page's only visible H1 (hero
  * stays is_page_title off). Logged-in customers already have an account, so both buttons are omitted.
+ *
+ * Look "intro" (home "Calm gallery"): the hero holds the H1, so
+ * this is a short lead under it: the heading as an H2 at lead size, the text, and up to four trade facts
+ * on sage rules. No buttons (the Become a Stockist block further down has the apply button).
  *
  * @var \Bart\ContentStudio\Block\Entry $block
  * @var \Magento\Framework\Escaper $escaper
@@ -30,6 +34,41 @@ $showButton = $isGuest && $buttonLabel !== '' && $buttonLink !== '';
 // *home decor* -> italic accent; escaped first, so editors cannot inject markup
 $headingHtml = preg_replace('/\*([^*]+)\*/', '<em class="italic">$1</em>', (string)$escaper->escapeHtml($heading));
 $headingId = 'welcome-cta-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
+
+if (($content['look'] ?? '') === 'intro'):
+    $facts = [];
+    foreach ((array)($content['facts'] ?? []) as $row) {
+        $title = is_array($row) ? trim((string)($row['title'] ?? '')) : '';
+        if ($title !== '') {
+            $facts[] = ['title' => $title, 'text' => trim((string)($row['text'] ?? ''))];
+        }
+    }
+    $facts = array_slice($facts, 0, 4);
+    ?>
+<section class="elme-welcome-intro mb-12 pt-8 lg:mb-16 lg:pt-10"
+         aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
+    <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>" class="elme-welcome-intro__lead">
+        <?= /* @noEscape */ $headingHtml ?>
+    </h2>
+    <?php if ($text !== ''): ?>
+        <p class="elme-welcome-intro__text"><?= $escaper->escapeHtml($text) ?></p>
+    <?php endif; ?>
+    <?php if ($facts): ?>
+        <ul class="elme-welcome-intro__facts">
+            <?php foreach ($facts as $fact): ?>
+                <li class="elme-welcome-intro__fact">
+                    <span class="elme-welcome-intro__fact-title"><?= $escaper->escapeHtml($fact['title']) ?></span>
+                    <?php if ($fact['text'] !== ''): ?>
+                        <span class="elme-welcome-intro__fact-text"><?= $escaper->escapeHtml($fact['text']) ?></span>
+                    <?php endif; ?>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
+</section>
+    <?php
+    return;
+endif;
 ?>
 <section class="elme-welcome-cta mb-10 pt-6 lg:mb-15 lg:pt-12"
          aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">

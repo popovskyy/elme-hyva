@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * UX-02: same guest trade banner as PLP, above search results.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="content">
+            <block class="Elme\LoginOnly\Block\HideForLoggedIn"
+                   name="search.guest.trade.banner"
+                   template="Elme_LoginOnly::catalog/guest-trade-banner.phtml"
+                   before="search.result"/>
+        </referenceContainer>
+    </body>
+</page>

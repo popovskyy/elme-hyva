@@ -24,7 +24,7 @@ https://elme-hyva.local (or the homepage HTML). Every variant uses that same
 content. Do not invent products, prices, or category names.
 
 Colours and type come from `app/design/frontend/Elme/default/web/tailwind/hyva.config.json`
-(`tokens.values` and `fonts`). Load Karla and DM Serif Display with relative
+(`tokens.values` and `fonts`). Load the fonts listed there (Figtree) with relative
 `@font-face` paths into the theme `web/fonts/` files. Do not add a new palette.
 
 ## 2. Write one page
@@ -55,8 +55,6 @@ no numbered steps that are not a sequence, no extra marketing.
 Open the page in the browser and check phone and wide frames before handing it
 over. Say the file path and that you are waiting for a number.
 
-Worked example: `docs/design/category-tiles-options.html` (category tiles, FE-15).
-
 ## 3. After they choose
 
 Change only the look of the existing block. Keep its fields, links, and
@@ -64,4 +62,4 @@ behaviour (swipe, arrows, empty state). Use tokens, not new hex values in the
 template. If a utility is not enough, add a partial under `web/tailwind/elme/`
 and rebuild Tailwind (`hyva-compile-tailwind-css`), then flush the Magento cache.
 
-The HTML chooser stays in `docs/design/`. Do not wire it into a layout.
+Delete the HTML chooser and its photos once the look is in the theme. Do not wire it into a layout.

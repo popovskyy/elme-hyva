@@ -1,0 +1,66 @@
+/**
+ * FE-51 Showroom locator: map chrome, hours table, week switcher.
+ * Map uses aspect-ratio from width only; min-height + aspect-ratio together
+ * forced a ~427px min width (320 * 4/3) and overflowed 390px viewports.
+ */
+@layer components {
+    .elme-locator__map-col,
+    .elme-location__map-col {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .elme-locator__map,
+    .elme-location__map {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        aspect-ratio: 4 / 3;
+    }
+
+    @media (width >= 1025px) {
+        .elme-locator__map,
+        .elme-location__map {
+            aspect-ratio: 16 / 10;
+            min-block-size: 24rem;
+        }
+    }
+
+    .elme-location__hours th,
+    .elme-location__hours td {
+        border-block-end: 1px solid var(--color-border);
+    }
+
+    .elme-location__hours tr:last-child th,
+    .elme-location__hours tr:last-child td,
+    .elme-location__hours .elme-location__hours-day--note th,
+    .elme-location__hours .elme-location__hours-day--note td {
+        border-block-end: 0;
+    }
+
+    .elme-location__week-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        inline-size: 2.5rem;
+        block-size: 2.5rem;
+        border: 1px solid var(--color-border);
+        background-color: var(--color-surface);
+        color: var(--color-ink);
+        transition: border-color var(--transition-duration-fast) var(--ease-out-quad);
+
+        &:hover:not(:disabled) {
+            border-color: var(--color-ink);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
+        }
+
+        &:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    }
+}

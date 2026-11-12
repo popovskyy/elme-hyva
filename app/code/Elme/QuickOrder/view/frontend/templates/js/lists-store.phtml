@@ -1,0 +1,446 @@
+<?php
+/**
+ * FE-78: the customer's shopping lists in the page, shared by the hearts, the list picker and the header badge.
+ *
+ * window.elmeLists takes the lists from section quick_order (no request: the section is already on every page) and
+ * changes them at once in the page; the save answer is the truth. A failed save puts the list back and resolves
+ * false. Each change dispatches `elme-lists` on window: {lists, count, reason: 'sync'|'add'|'remove', landing}.
+ * `landing` means a heart is flying to the header: the header waits for `elme-lists-landed` before it counts.
+ *
+ *   isKnown()                      the lists have arrived
+ *   load()                         resolves when they have (GET getall only when the section has no lists)
+ *   all() / count()                [{id, name, item_count, skus}] / SKUs over all lists
+ *   has(sku) / listHas(name, sku)  in any list / in this list (case ignored)
+ *   nameTaken(name)                the duplicate rule of create (case ignored, cart_list is taken)
+ *   add(name, sku, qty, options)   options {create: true} makes the list first; {landing: true}, see above
+ *   remove(name, sku)
+ *
+ * window.elmeHearts paints every [data-elme-heart] button (filled + aria-pressed when its data-sku is in a list),
+ * also the ones added later (recently viewed, carousels), and plays the save, remove and error motion.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<script>
+    (function () {
+        const GET_URL = '<?= $escaper->escapeJs($block->getUrl('quick_order/list/getall')) ?>';
+        const SAVE_URL = '<?= $escaper->escapeJs($block->getUrl('quick_order/list/save')) ?>';
+        const CART_LIST = 'cart_list';
+        const FAILED = '<?= $escaper->escapeJs(__('Could not save the list.')) ?>';
+
+        let lists = null;
+        let loading = null;
+        let pending = 0;
+        let tempId = 0;
+
+        const key = (sku) => String(sku || '').trim().toLowerCase();
+
+        function clean(raw) {
+            return (Array.isArray(raw) ? raw : [])
+                .filter((list) => list && list.name !== CART_LIST)
+                .map((list) => {
+                    const skus = Array.isArray(list.skus) ? list.skus.map(String) : [];
+                    return {id: list.id, name: String(list.name), item_count: skus.length, skus: skus};
+                });
+        }
+
+        function count() {
+            return lists ? lists.reduce((sum, list) => sum + list.skus.length, 0) : 0;
+        }
+
+        function emit(reason, landing) {
+            window.dispatchEvent(new CustomEvent('elme-lists', {
+                detail: {lists: api.all(), count: count(), reason: reason, landing: Boolean(landing)}
+            }));
+        }
+
+        // a save in flight is newer than any section or getall answer that arrives meanwhile
+        function setFromServer(raw, reason) {
+            if (pending > 0) {
+                return;
+            }
+            lists = clean(raw);
+            emit(reason || 'sync');
+        }
+
+        function cachedListsItemCount() {
+            try {
+                const storage = hyva.getBrowserStorage && hyva.getBrowserStorage();
+                if (!storage) {
+                    return null;
+                }
+                const data = JSON.parse(storage.getItem('mage-cache-storage') || '{}') || {};
+                const section = data.quick_order;
+                return section ? (parseInt(section.lists_item_count, 10) || 0) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Live getall vs section cache left by another device/tab
+        function syncSectionIfListsCountDiffers() {
+            const cached = cachedListsItemCount();
+            if (cached === null || cached === count()) {
+                return;
+            }
+            if (typeof window.elmeForceSectionReload === 'function') {
+                window.elmeForceSectionReload();
+                return;
+            }
+            try {
+                const storage = hyva.getBrowserStorage && hyva.getBrowserStorage();
+                if (storage) {
+                    storage.removeItem('mage-cache-storage');
+                }
+            } catch (e) {
+                // ignore
+            }
+            window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+        }
+
+        function fetchAll() {
+            if (!loading) {
+                loading = fetch(GET_URL, {
+                    method: 'GET',
+                    cache: 'no-store',
+                    headers: {'X-Requested-With': 'XMLHttpRequest'}
+                }).then((response) => response.json()).then((json) => {
+                    if (json && json.success) {
+                        setFromServer(json.lists);
+                        syncSectionIfListsCountDiffers();
+                    }
+                }).catch((e) => console.error(e)).finally(() => {
+                    loading = null;
+                });
+            }
+            return loading;
+        }
+
+        function find(name) {
+            const wanted = key(name);
+            return lists ? lists.find((list) => key(list.name) === wanted) : null;
+        }
+
+        function changeLocally(name, sku, add) {
+            let list = find(name);
+            if (!list && add) {
+                list = {id: 'new-' + (++tempId), name: name, item_count: 0, skus: []};
+                lists.unshift(list);
+            }
+            if (!list) {
+                return;
+            }
+            const has = list.skus.some((item) => key(item) === key(sku));
+            if (add && !has) {
+                list.skus.push(sku);
+            } else if (!add && has) {
+                list.skus = list.skus.filter((item) => key(item) !== key(sku));
+            }
+            list.item_count = list.skus.length;
+            if (add) {
+                // the server lists the last changed list first
+                lists = [list].concat(lists.filter((other) => other !== list));
+            }
+        }
+
+        async function post(body) {
+            const response = await fetch(SAVE_URL, {
+                method: 'POST',
+                cache: 'no-store',
+                headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+                body: JSON.stringify(Object.assign({form_key: hyva.getFormKey()}, body))
+            });
+            const data = await response.json().catch(() => null);
+            if (!data || !data.success) {
+                throw new Error((data && data.message) || FAILED);
+            }
+            return data;
+        }
+
+        async function change(name, sku, add, options) {
+            const opts = options || {};
+            if (!lists) {
+                lists = [];
+            }
+            const createdHere = add && opts.create && !find(name);
+            const before = Boolean(find(name) && api.listHas(name, sku));
+            changeLocally(name, sku, add);
+            emit(add ? 'add' : 'remove', opts.landing);
+
+            pending++;
+            let answer = null;
+            let error = null;
+            try {
+                if (createdHere) {
+                    // never merge into a list that already has this name
+                    const created = await post({name: name, mode: 'create', items: []});
+                    name = created.name || name;
+                }
+                answer = await post({
+                    name: name,
+                    mode: add ? 'merge' : 'remove',
+                    items: [{sku: sku, qty: add ? (parseFloat(opts.qty) > 0 ? parseFloat(opts.qty) : 1) : 1}]
+                });
+            } catch (e) {
+                error = e;
+            }
+            pending--;
+
+            if (error) {
+                // undo this change only: another save may still be on its way
+                if (createdHere) {
+                    lists = lists.filter((list) => key(list.name) !== key(name));
+                } else if (before !== add) {
+                    changeLocally(name, sku, before);
+                }
+                emit('sync');
+                if (pending === 0) {
+                    fetchAll();
+                }
+                return {success: false, message: error.message || FAILED};
+            }
+
+            setFromServer(answer.lists, 'sync');
+            // the next page reads the section from local storage: have Hyva load it again
+            window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+            window.dispatchEvent(new CustomEvent('elme:saved-lists-changed', {detail: {source: 'lists-store'}}));
+            return {success: true, name: name};
+        }
+
+        const api = {
+            isKnown() {
+                return lists !== null;
+            },
+            load() {
+                return lists !== null ? Promise.resolve() : fetchAll();
+            },
+            all() {
+                return lists ? lists.map((list) => Object.assign({}, list, {skus: list.skus.slice()})) : [];
+            },
+            count: count,
+            has(sku) {
+                return Boolean(lists && lists.some((list) => list.skus.some((item) => key(item) === key(sku))));
+            },
+            listHas(name, sku) {
+                const list = find(name);
+                return Boolean(list && list.skus.some((item) => key(item) === key(sku)));
+            },
+            nameTaken(name) {
+                const wanted = key(name);
+                return wanted === CART_LIST || Boolean(find(wanted));
+            },
+            add(name, sku, qty, options) {
+                return change(String(name).trim(), String(sku), true, Object.assign({qty: qty}, options || {}));
+            },
+            remove(name, sku) {
+                return change(String(name), String(sku), false, {});
+            }
+        };
+        window.elmeLists = api;
+
+        window.addEventListener('private-content-loaded', (event) => {
+            const section = ((event.detail || {}).data || {}).quick_order;
+            if (!section) {
+                return;
+            }
+            if (Array.isArray(section.lists)) {
+                setFromServer(section.lists);
+            } else {
+                // a section stored before the lists were in it
+                fetchAll();
+            }
+        });
+
+        // the shopping lists page renamed or deleted a list
+        window.addEventListener('elme:saved-lists-changed', (event) => {
+            if (!event.detail || event.detail.source !== 'lists-store') {
+                fetchAll();
+            }
+        });
+
+        // FE-79: every page verifies lists against the server (other device / tab) and rewrites the section
+        // when lists_item_count in mage-cache-storage is wrong
+        fetchAll();
+    })();
+
+    (function () {
+        const SELECTOR = '[data-elme-heart]';
+        const ANIMS = ['is-saving', 'is-removing', 'is-failing'];
+        const held = new WeakSet();
+        const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        function paintOne(button) {
+            if (held.has(button)) {
+                return;
+            }
+            const saved = window.elmeLists.has(button.getAttribute('data-sku'));
+            button.classList.toggle('is-saved', saved);
+            button.setAttribute('aria-pressed', saved ? 'true' : 'false');
+            const label = button.getAttribute(saved ? 'data-label-saved' : 'data-label-add');
+            if (label) {
+                button.setAttribute('aria-label', label);
+            }
+        }
+
+        function paint(root) {
+            const scope = root || document;
+            if (scope.matches && scope.matches(SELECTOR)) {
+                paintOne(scope);
+            }
+            scope.querySelectorAll(SELECTOR).forEach(paintOne);
+        }
+
+        function replay(button, cls) {
+            button.classList.remove(...ANIMS);
+            void button.offsetWidth;
+            button.classList.add(cls);
+        }
+
+        function headerTarget() {
+            const icon = document.querySelector('.elme-header__lists-btn .elme-header__icon');
+            if (!icon || !icon.offsetParent) {
+                return null;
+            }
+            const rect = icon.getBoundingClientRect();
+            return rect.width && rect.bottom > 0 && rect.top < window.innerHeight ? rect : null;
+        }
+
+        // a small filled heart along a curve: x and y run on two nested boxes with different easing
+        function fly(button, target, onLand) {
+            const from = button.getBoundingClientRect();
+            const x0 = from.left + from.width / 2;
+            const y0 = from.top + from.height / 2;
+            const flyer = document.createElement('div');
+            flyer.className = 'elme-heart-fly';
+            flyer.setAttribute('aria-hidden', 'true');
+            flyer.style.left = x0 + 'px';
+            flyer.style.top = y0 + 'px';
+            flyer.style.setProperty('--dx', (target.left + target.width / 2 - x0) + 'px');
+            flyer.style.setProperty('--dy', (target.top + target.height / 2 - y0) + 'px');
+            const fill = button.querySelector('.elme-heart__fill');
+            flyer.innerHTML = '<div class="elme-heart-fly__y"></div>';
+            if (fill) {
+                flyer.firstChild.appendChild(fill.cloneNode(true));
+            }
+            let landed = false;
+            const land = () => {
+                if (!landed) {
+                    landed = true;
+                    flyer.remove();
+                    onLand();
+                }
+            };
+            flyer.addEventListener('animationend', (event) => {
+                if (event.target === flyer) {
+                    land();
+                }
+            });
+            // a tab in the background skips animations
+            setTimeout(land, 1200);
+            document.body.appendChild(flyer);
+        }
+
+        const api = {
+            paint: paint,
+            // the picker holds the heart so it fills with the burst, not under the picker
+            hold(button) {
+                if (button && button.matches(SELECTOR)) {
+                    held.add(button);
+                }
+            },
+            release(button) {
+                if (button) {
+                    held.delete(button);
+                    paintOne(button);
+                }
+            },
+            // whether celebrate() on this button will send a heart to the header
+            willFly(button) {
+                return Boolean(button && button.matches(SELECTOR) && !reduced() && headerTarget());
+            },
+            celebrate(button, flies) {
+                if (!button || !button.matches(SELECTOR)) {
+                    return;
+                }
+                api.release(button);
+                if (reduced()) {
+                    return;
+                }
+                replay(button, 'is-saving');
+                const target = flies ? headerTarget() : null;
+                if (!target) {
+                    if (flies) {
+                        window.dispatchEvent(new CustomEvent('elme-lists-landed'));
+                    }
+                    return;
+                }
+                setTimeout(() => fly(button, target, () => {
+                    window.dispatchEvent(new CustomEvent('elme-lists-landed'));
+                }), 140);
+            },
+            removed(button) {
+                if (!button || !button.matches(SELECTOR)) {
+                    return;
+                }
+                api.release(button);
+                if (!reduced() && !button.classList.contains('is-saved')) {
+                    replay(button, 'is-removing');
+                }
+            },
+            failed(button) {
+                if (!button || !button.matches(SELECTOR)) {
+                    return;
+                }
+                api.release(button);
+                if (!reduced()) {
+                    replay(button, 'is-failing');
+                }
+            }
+        };
+        window.elmeHearts = api;
+
+        document.addEventListener('animationend', (event) => {
+            if (event.target.classList && event.target.classList.contains('elme-heart__icon')) {
+                const button = event.target.closest(SELECTOR);
+                if (button) {
+                    button.classList.remove(...ANIMS);
+                }
+            }
+        });
+
+        window.addEventListener('elme-lists', () => paint());
+
+        // cards that arrive later: recently viewed (AJAX), sliders, x-for lists
+        const observer = new MutationObserver((records) => {
+            if (!window.elmeLists.isKnown()) {
+                return;
+            }
+            for (const record of records) {
+                for (const node of record.addedNodes) {
+                    if (node.nodeType === 1 && (node.matches(SELECTOR) || node.querySelector(SELECTOR))) {
+                        paint(node);
+                    }
+                }
+            }
+        });
+        const observe = () => observer.observe(document.body, {childList: true, subtree: true});
+        if (document.body) {
+            observe();
+        } else {
+            document.addEventListener('DOMContentLoaded', observe, {once: true});
+        }
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

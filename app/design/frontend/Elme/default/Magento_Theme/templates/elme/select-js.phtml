@@ -17,6 +17,7 @@ use Magento\Framework\Escaper;
 $hyvaCsp = $viewModels->require(HyvaCsp::class);
 ?>
 <template id="elme-select-ui">
+    <div class="elme-select__ui" x-data="initElmeSelect">
     <div
         class="elme-select__control"
         :class="controlClasses"
@@ -86,7 +87,10 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                 x-html="triggerIconHtml"
                 x-cloak
             ></span>
-            <span class="elme-select__value" :class="valueClasses" x-text="displayLabel"></span>
+            <span class="elme-select__value" :class="valueClasses">
+                <span class="elme-select__value-text" x-text="displayLabel"></span>
+                <span class="elme-select__sizer" aria-hidden="true" x-text="sizerText"></span>
+            </span>
         </button>
         <span class="elme-select__spinner" x-show="isLoading" x-cloak aria-hidden="true"></span>
         <svg
@@ -260,6 +264,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             </div>
         </div>
     </template>
+    </div>
 </template>
 <script>
     function initElmeSelect() {
@@ -305,7 +310,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                     return;
                 }
 
-                const data = this.$root.dataset;
+                const data = this.host().dataset;
                 this.multiple = native.multiple || data.multiple === '1' || data.multiple === 'true';
                 if (data.searchable === '0' || data.searchable === 'false') {
                     this.searchable = false;
@@ -327,7 +332,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                     this.searchable = true;
                 }
 
-                this.$root.classList.add('is-enhanced');
+                this.host().classList.add('is-enhanced');
                 this.syncFromNative();
                 this.readDisabledInvalid();
                 this.watchNative();
@@ -421,8 +426,16 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                 return null;
             },
 
+            /**
+             * The .elme-select wrapper. The Alpine root (.elme-select__ui) sits next to
+             * the native select, not around it, so the select keeps its own Alpine scope.
+             */
+            host() {
+                return this.$root.parentElement;
+            },
+
             nativeEl() {
-                return this.ref('native') || this.$root.querySelector('select');
+                return this.host().querySelector('select');
             },
 
             findLabelText(native) {
@@ -510,14 +523,14 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                 if (!native) {
                     return;
                 }
-                this.disabled = native.disabled || this.$root.dataset.disabled === '1';
+                this.disabled = native.disabled || this.host().dataset.disabled === '1';
                 const field = native.closest('.field');
                 this.invalid = native.getAttribute('aria-invalid') === 'true'
                     || (field && field.classList.contains('field-error'));
-                this.$root.classList.toggle('is-disabled', this.disabled);
-                this.$root.classList.toggle('is-error', this.invalid);
-                this.$root.classList.toggle('is-open', this.open);
-                this.$root.classList.toggle('is-loading', this.loading);
+                this.host().classList.toggle('is-disabled', this.disabled);
+                this.host().classList.toggle('is-error', this.invalid);
+                this.host().classList.toggle('is-open', this.open);
+                this.host().classList.toggle('is-loading', this.loading);
             },
 
             syncFromNative() {
@@ -727,6 +740,18 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                     return this.placeholder;
                 }
                 return selected.label;
+            },
+
+            /**
+             * Every option label on its own line: an invisible sizer, so a content-sized
+             * control is as wide as its longest option (like a native select) and does
+             * not change width with the selected value.
+             */
+            sizerText() {
+                if (this.asyncDemo || this.asyncUrl) {
+                    return '';
+                }
+                return this.optionRows().map((row) => row.label).concat(this.placeholder).join('\n');
             },
 
             showChips() {
@@ -1005,7 +1030,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
 
             onOpen() {
                 this.readDisabledInvalid();
-                this.$root.classList.add('is-open');
+                this.host().classList.add('is-open');
                 const options = this.visibleOptions().filter((row) => !row.disabled);
                 const selected = options.find((row) => this.selectedValues.includes(row.value));
                 this.activeId = selected ? selected.id : (options[0] ? options[0].id : null);
@@ -1027,7 +1052,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             },
 
             onClose() {
-                this.$root.classList.remove('is-open');
+                this.host().classList.remove('is-open');
                 this.query = '';
                 this.typeahead = '';
                 this.sheetPanelStyle = {};
@@ -1135,7 +1160,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                     return;
                 }
                 const path = event.composedPath ? event.composedPath() : [];
-                if (path.includes(this.$root)) {
+                if (path.includes(this.host())) {
                     return;
                 }
                 const panel = this.ref('panel');
@@ -1577,25 +1602,22 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                 wrap.dataset.disabled = '1';
             }
 
-            const parent = select.parentNode;
-            parent.insertBefore(wrap, select);
-
-            // x-ignore: keep parent-scope @change / x-ref on the native select;
-            // initTree must not rebind those onto initElmeSelect.
-            select.classList.add('elme-select__native');
-            select.setAttribute('x-ignore', '');
-            select.setAttribute('tabindex', '-1');
-            wrap.appendChild(select);
-            wrap.appendChild(template.content.cloneNode(true));
-
-            // Set x-data after the tree is in place. Prefer Alpine's own init; only
-            // call initTree if nothing picked the node up (avoids stacking two copies).
-            wrap.setAttribute('x-data', 'initElmeSelect');
-            requestAnimationFrame(() => {
-                if (!wrap._x_dataStack || wrap._x_dataStack.length === 0) {
-                    Alpine.initTree(wrap);
-                }
+            // Build with Alpine's MutationObserver paused, then init the UI root once.
+            // Otherwise Alpine sees the pieces as separate mutations, and a deferred
+            // parent (x-defer) walks the tree again later: every row rendered twice.
+            let ui = null;
+            Alpine.mutateDom(() => {
+                select.parentNode.insertBefore(wrap, select);
+                select.classList.add('elme-select__native');
+                select.setAttribute('tabindex', '-1');
+                wrap.appendChild(select);
+                wrap.appendChild(template.content.cloneNode(true));
+                ui = wrap.querySelector('.elme-select__ui');
             });
+            Alpine.initTree(ui);
+            // Any later Alpine.initTree() over an ancestor must skip the UI root.
+            ui._x_ignore = true;
+            ui._x_ignoreSelf = true;
         });
     }
 

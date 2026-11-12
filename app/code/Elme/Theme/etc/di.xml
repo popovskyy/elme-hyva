@@ -9,11 +9,24 @@
             <argument name="typeViewModels" xsi:type="array">
                 <item name="hero" xsi:type="object">Elme\Theme\ViewModel\Hero</item>
                 <item name="category_tiles" xsi:type="object">Elme\Theme\ViewModel\CategoryTiles</item>
+                <item name="instagram_slider" xsi:type="object">Elme\Theme\ViewModel\InstagramSlider</item>
                 <item name="catalogue_covers" xsi:type="object">Elme\Theme\ViewModel\CatalogueCovers</item>
                 <item name="virtual_catalogues" xsi:type="object">Elme\Theme\ViewModel\VirtualCatalogues</item>
+                <item name="lookbook" xsi:type="object">Elme\Theme\ViewModel\Lookbook</item>
                 <item name="usp_strip" xsi:type="object">Elme\Theme\ViewModel\UspStrip</item>
+                <item name="faq" xsi:type="object">Elme\Theme\ViewModel\Faq</item>
+                <item name="proof_pillars" xsi:type="object">Elme\Theme\ViewModel\ProofPillars</item>
+                <item name="stockist_cta" xsi:type="object">Elme\Theme\ViewModel\StockistCta</item>
+                <item name="store_visit" xsi:type="object">Elme\Theme\ViewModel\StoreVisit</item>
+                <item name="faq_list" xsi:type="object">Elme\Theme\ViewModel\FaqList</item>
                 <item name="vacancies" xsi:type="object">Elme\Theme\ViewModel\Vacancies</item>
+                <item name="team" xsi:type="object">Elme\Theme\ViewModel\Team</item>
+                <item name="events" xsi:type="object">Elme\Theme\ViewModel\Events</item>
             </argument>
         </arguments>
+    </type>
+    <type name="Magento\Catalog\Model\View\Asset\Placeholder">
+        <plugin name="elme_theme_product_placeholder"
+                type="Elme\Theme\Plugin\Catalog\ProductPlaceholderPlugin"/>
     </type>
 </config>

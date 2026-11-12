@@ -1,10 +1,15 @@
 <?php
 /**
- * Content Studio type `catalogue_covers` (etc/content_types.xml, FE-16), "Statement"
- * (docs/design/home-middle-options.html, 1): a sand band with heading, intro and See All on the left
+ * Content Studio type `catalogue_covers` (etc/content_types.xml, FE-16), "Statement":
+ * a sand band with heading, intro and See All on the left
  * and the covers as books on the right, each slightly turned; a book straightens and lifts on hover
  * (home-statement.css). Covers keep their own ratio. Empty cards -> render nothing (UX-01).
  * Server-rendered, no Alpine.
+ *
+ * Look "cards" (home "Calm gallery"): heading row on the page
+ * background, then equal photo cards (4:5, one column on phones, a row from md) with the title and short
+ * line on a scrim at the bottom of the photo. Used for "From the showroom": Outlet, Lookbook, Virtual
+ * Catalogues.
  *
  * @var \Bart\ContentStudio\Block\Entry $block
  * @var \Magento\Framework\Escaper $escaper
@@ -35,6 +40,53 @@ $headingId = $sectionId . '-heading';
 
 /** @var LucideIcons $lucideIcons */
 $lucideIcons = $viewModels->require(LucideIcons::class);
+
+if (($content['look'] ?? '') === 'cards'):
+    ?>
+<section id="<?= $escaper->escapeHtmlAttr($sectionId) ?>"
+         class="elme-showroom-cards mb-12 lg:mb-18"
+         aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
+    <div class="elme-showroom-cards__head">
+        <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+            class="text-display text-balance font-heading font-normal text-ink lg:text-display-desktop">
+            <?= $escaper->escapeHtml($heading) ?>
+        </h2>
+        <?php if ($seeAll !== null): ?>
+            <a href="<?= $escaper->escapeUrl($seeAll['link']) ?>" class="elme-showroom-cards__all">
+                <?= $escaper->escapeHtml($seeAll['label']) ?>
+            </a>
+        <?php endif; ?>
+    </div>
+    <?php if ($intro !== ''): ?>
+        <p class="mb-6 max-w-120 text-copy text-pretty text-ink-muted lg:text-copy-desktop">
+            <?= $escaper->escapeHtml($intro) ?>
+        </p>
+    <?php endif; ?>
+    <ul class="elme-showroom-cards__list m-0 list-none p-0">
+        <?php foreach ($cards as $card): ?>
+            <li class="min-w-0">
+                <a href="<?= $escaper->escapeUrl($card['link']) ?>" class="elme-showroom-cards__card group">
+                    <img src="<?= $escaper->escapeUrl($card['image']['src']) ?>"
+                         alt="<?= $escaper->escapeHtmlAttr($card['image_alt']) ?>"
+                         width="<?= (int)$card['image']['width'] ?>"
+                         height="<?= (int)$card['image']['height'] ?>"
+                         loading="lazy"
+                         decoding="async"
+                         class="elme-showroom-cards__img">
+                    <span class="elme-showroom-cards__caption">
+                        <span class="elme-showroom-cards__title"><?= $escaper->escapeHtml($card['title']) ?></span>
+                        <?php if ($card['text'] !== ''): ?>
+                            <span class="elme-showroom-cards__text"><?= $escaper->escapeHtml($card['text']) ?></span>
+                        <?php endif; ?>
+                    </span>
+                </a>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+</section>
+    <?php
+    return;
+endif;
 ?>
 <section id="<?= $escaper->escapeHtmlAttr($sectionId) ?>"
          class="elme-catalogue-covers -mx-(--entry-bleed) mb-10 bg-sand-light py-12 text-ink lg:mb-15 lg:py-22"
@@ -42,7 +94,7 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
     <div class="elme-catalogue-covers__inner">
         <div class="grid content-start justify-items-start gap-4 lg:gap-5">
             <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-                class="text-title-section text-balance font-heading font-normal text-ink lg:text-title-section-desktop">
+                class="text-display text-balance font-heading font-normal text-ink lg:text-display-desktop">
                 <?= $escaper->escapeHtml($heading) ?>
             </h2>
             <?php if ($intro !== ''): ?>
@@ -79,7 +131,7 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
                              height="<?= (int)$card['image']['height'] ?>"
                              loading="lazy"
                              decoding="async"
-                             class="elme-catalogue-covers__cover block h-auto w-full bg-cool-light">
+                             class="elme-catalogue-covers__cover block h-auto w-full bg-surface-muted">
                         <span class="grid gap-1">
                             <span class="font-heading text-h3 lg:text-h3-desktop"><?= $escaper->escapeHtml($card['title']) ?></span>
                             <?php if ($card['text'] !== ''): ?>

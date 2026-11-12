@@ -4,6 +4,7 @@
  * wins over the values btn / btn-primary set on themselves.
  */
 .btn-on-dark {
+    --btn-spinner-color: var(--color-olive);
     --btn-stroke: var(--color-surface);
     --btn-bg: var(--color-surface);
     --btn-color: var(--color-ink);
@@ -13,4 +14,22 @@
     --btn-active-stroke: transparent;
     --btn-active-bg: var(--color-surface);
     --btn-active-color: var(--color-ink);
+}
+
+/*
+ * FE-75: destructive action (Remove / Delete in the confirm dialog): `btn btn-danger`. Unlayered, like
+ * .btn-on-dark, so it wins over the values btn sets on itself.
+ */
+.btn-danger {
+    --btn-spinner-color: var(--color-on-primary);
+    --btn-stroke: var(--color-error-text);
+    --btn-bg: var(--color-error-text);
+    --btn-color: var(--color-on-primary);
+    --btn-ripple: color-mix(in srgb, var(--color-on-primary) 40%, transparent);
+    --btn-hover-stroke: var(--color-error-mark);
+    --btn-hover-bg: var(--color-error-mark);
+    --btn-hover-color: var(--color-on-primary);
+    --btn-active-stroke: var(--color-error-text);
+    --btn-active-bg: var(--color-error-text);
+    --btn-active-color: var(--color-on-primary);
 }

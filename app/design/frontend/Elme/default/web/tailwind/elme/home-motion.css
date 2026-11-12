@@ -1,28 +1,15 @@
 /*
- * Home page scroll motion (Magento_Theme::html/home-motion.phtml marks the elements and adds
- * html.elme-motion; without the script nothing here hides anything). Sections rise 16px and fade in
- * once as they scroll into view; items inside (tiles, catalogue rows, facts, contact cells) follow
- * 60ms apart. Anything already on screen when the script starts stays put. Reduced motion: fade only.
- *
- * The usp_strip collage (content-type/usp-strip.phtml): three photos fall into place when the section
- * comes in.
+ * Become a Stockist collage on the home page (Magento_Theme::html/home-motion.phtml adds
+ * html.elme-motion and .is-in on .elme-collage). The three photos fall into place once.
+ * Without the script nothing here hides anything. Reduced motion: fade only, no travel.
  */
 @layer components {
-    .elme-motion [data-reveal] {
-        transition:
-            opacity 400ms var(--ease-out-quint),
-            transform 400ms var(--ease-out-quint);
-        transition-delay: calc(var(--i, 0) * 60ms);
-    }
-
-    .elme-motion [data-reveal]:not(.is-in) {
-        opacity: 0;
-        transform: translateY(calc(var(--spacing) * 4));
-    }
-
     .elme-collage {
         position: relative;
         aspect-ratio: 6 / 5;
+        /* Cards fly in from outside the frame. Clip the horizontal overflow so that
+           translate does not widen the page before the section scrolls into view. */
+        overflow-x: clip;
         margin-inline: var(--container-gutter);
 
         @variant lg {
@@ -42,8 +29,8 @@
         box-shadow: 0 calc(var(--spacing) * 4) calc(var(--spacing) * 10)
             color-mix(in oklab, var(--color-ink) 28%, transparent);
         transition:
-            opacity 600ms var(--ease-out-quint),
-            transform 600ms var(--ease-out-quint);
+            opacity var(--transition-duration-long) var(--ease-out-quint),
+            transform var(--transition-duration-long) var(--ease-out-quint);
     }
 
     .elme-collage__card--main {
@@ -52,7 +39,7 @@
         z-index: 2;
         width: 56%;
         aspect-ratio: 720 / 742;
-        transition-delay: 100ms;
+        transition-delay: var(--transition-duration-micro);
     }
 
     .elme-collage__card--back {
@@ -61,7 +48,7 @@
         z-index: 1;
         width: 38%;
         aspect-ratio: 620 / 450;
-        transition-delay: 220ms;
+        transition-delay: var(--transition-duration-base);
     }
 
     .elme-collage__card--front {
@@ -70,7 +57,7 @@
         z-index: 3;
         width: 46%;
         aspect-ratio: 3 / 2;
-        transition-delay: 340ms;
+        transition-delay: var(--transition-duration-slow);
     }
 
     .elme-motion .elme-collage:not(.is-in) .elme-collage__card {
@@ -90,12 +77,10 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .elme-motion [data-reveal],
         .elme-collage__card {
-            transition: opacity var(--transition-duration-slow) ease;
+            transition: opacity var(--transition-duration-slow) var(--ease-out-quad);
         }
 
-        .elme-motion [data-reveal]:not(.is-in),
         .elme-motion .elme-collage:not(.is-in) .elme-collage__card {
             transform: none;
         }

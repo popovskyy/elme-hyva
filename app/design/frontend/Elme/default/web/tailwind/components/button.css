@@ -36,7 +36,7 @@
         background-color var(--default-transition-duration) var(--default-transition-timing-function),
         border-color var(--default-transition-duration) var(--default-transition-timing-function),
         outline-color var(--default-transition-duration) var(--default-transition-timing-function),
-        scale 160ms var(--ease-out-quint);
+        scale var(--transition-duration-fast) var(--ease-out-quint);
 
     &:hover {
         border-color: var(--btn-hover-stroke, var(--btn-stroke));
@@ -66,8 +66,10 @@
         cursor: not-allowed;
     }
 
-    /* Elme: loading keeps the button's size, hides the label and spins a 20px ring in the label colour */
-    &:is(.is-loading, [aria-busy="true"]) {
+    /* Elme: loading keeps the button's size, hides the label and spins a 20px ring in the label colour
+       (fading tail + round cap, same ring as .elme-spinner in feedback.css).
+       Not on .btn-atc: its busy state is the cart animation (elme/add-to-cart.css). */
+    &:is(.is-loading, [aria-busy="true"]):not(.btn-atc) {
         position: relative;
         color: transparent;
         pointer-events: none;
@@ -76,14 +78,36 @@
             content: "";
             position: absolute;
             inset: 0;
+            --spinner-color: var(--btn-spinner-color, var(--btn-color));
+            --spinner-track: color-mix(in srgb, var(--spinner-color) 22%, transparent);
+            --spinner-width: --spacing(0.75);
             inline-size: --spacing(5);
             block-size: --spacing(5);
             margin: auto;
-            border: 2px solid var(--btn-color);
-            border-inline-end-color: transparent;
             border-radius: calc(infinity * 1px);
-            animation: btn-spin 0.8s linear infinite;
+            background:
+                radial-gradient(
+                    circle at 50% calc(var(--spinner-width) / 2),
+                    var(--spinner-color) calc(var(--spinner-width) / 2 - 0.25px),
+                    transparent calc(var(--spinner-width) / 2 + 0.25px)
+                ),
+                conic-gradient(var(--spinner-track), var(--spinner-color));
+            -webkit-mask: radial-gradient(
+                farthest-side,
+                transparent calc(100% - var(--spinner-width) - 0.5px),
+                #000 calc(100% - var(--spinner-width))
+            );
+            mask: radial-gradient(
+                farthest-side,
+                transparent calc(100% - var(--spinner-width) - 0.5px),
+                #000 calc(100% - var(--spinner-width))
+            );
+            animation: btn-spin 0.9s linear infinite;
             z-index: 2;
+
+            @media (prefers-reduced-motion: reduce) {
+                animation: elme-spinner-pulse 1.4s var(--ease-in-out-cubic) infinite alternate;
+            }
         }
     }
 }
@@ -105,7 +129,7 @@
     transform: scale(0);
     pointer-events: none;
     z-index: 1;
-    animation: btn-ripple-out 620ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation: btn-ripple-out var(--transition-duration-long) var(--ease-out-quint) forwards;
 }
 
 @keyframes btn-ripple-out {
@@ -169,6 +193,7 @@
 
 /* Elme: charcoal, sage on hover (@button-primary__hover__background) */
 @utility btn-primary {
+    --btn-spinner-color: var(--color-secondary);
     --btn-stroke: var(--color-primary);
     --btn-bg: var(--color-primary);
     --btn-color: var(--color-on-primary);
@@ -204,7 +229,7 @@
             transparent 100%
         );
         transform: translateX(-120%) skewX(-18deg);
-        transition: transform var(--transition-duration-slow) cubic-bezier(0.22, 1, 0.36, 1);
+        transition: transform var(--transition-duration-slow) var(--ease-out-quint);
         z-index: 0;
         pointer-events: none;
     }
@@ -226,6 +251,7 @@
 
 /* Elme: transparent with a charcoal outline, fills charcoal on hover (@button__border / @button__hover__background) */
 @utility btn-secondary {
+    --btn-spinner-color: var(--color-olive);
     --btn-stroke: var(--color-primary);
     --btn-bg: transparent;
     --btn-color: var(--color-primary);
@@ -261,7 +287,7 @@
             transparent 100%
         );
         transform: translateX(-120%) skewX(-18deg);
-        transition: transform var(--transition-duration-slow) cubic-bezier(0.22, 1, 0.36, 1);
+        transition: transform var(--transition-duration-slow) var(--ease-out-quint);
         z-index: 0;
         pointer-events: none;
         opacity: 0;
@@ -322,13 +348,13 @@
 .btn-size-lg {
     padding-inline: --spacing(10);
     padding-block: --spacing(4);
-    font-size: var(--text-lg);
-    line-height: var(--text-lg--line-height);
+    font-size: var(--text-h3);
+    line-height: var(--text-h3--line-height);
 }
 
 .btn-size-sm {
     padding-inline: --spacing(2);
     padding-block: --spacing(2);
-    font-size: var(--text-sm);
-    line-height: var(--text-sm--line-height);
+    font-size: var(--text-copy);
+    line-height: var(--text-copy--line-height);
 }

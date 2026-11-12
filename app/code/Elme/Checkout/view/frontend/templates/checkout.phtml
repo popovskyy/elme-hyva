@@ -1,0 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
+use Elme\Checkout\ViewModel\Checkout;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$checkout = $viewModels->require(Checkout::class);
+?>
+<div id="elme-checkout"
+     class="elme-checkout"
+     data-state="<?= $escaper->escapeHtmlAttr($checkout->getInitialStateJson()) ?>"
+     data-action-url="<?= $escaper->escapeUrl($block->getUrl('elme_checkout/action')) ?>">
+    <p class="elme-checkout__message"
+       id="elme-checkout-message"
+       role="alert"
+       tabindex="-1"
+       x-data="elmeCheckoutMessage"
+       x-cloak
+       x-show="message"
+       x-text="message"></p>
+    <div class="elme-checkout__grid">
+        <?php // Sections first in the DOM so Tab reaches delivery before Edit cart; CSS order pulls the summary up on phones ?>
+        <div class="elme-checkout__sections">
+            <?= $block->getChildHtml('elme.checkout.sections') ?>
+        </div>
+        <aside class="elme-checkout__summary-col"
+               aria-label="<?= $escaper->escapeHtmlAttr(__('Order summary')) ?>">
+            <?= $block->getChildHtml('elme.checkout.summary') ?>
+        </aside>
+    </div>
+    <?= $block->getChildHtml('elme.checkout.place_order.bar') ?>
+</div>
+<script>
+    function elmeCheckoutMessage() {
+        return {
+            message() {
+                return Alpine.store('elmeCheckout').message;
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('elmeCheckoutMessage', elmeCheckoutMessage), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

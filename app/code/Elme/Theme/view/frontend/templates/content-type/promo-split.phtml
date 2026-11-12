@@ -4,7 +4,7 @@
  * right. Below desktop it stacks. Production: the Outlet promo on the home page
  * (Bart/el home/_become-retailer.less). Server-rendered, no JS.
  *
- * Optional "Statement" look (docs/design/home-middle-options.html, 1): tone `dark` puts it on a
+ * Optional "Statement" look: tone `dark` puts it on a
  * charcoal band with white text, `highlight` is a very large line under the heading ("Up to 80% off"),
  * and `ticker` lines run as a slow strip under the band (home-statement.css; still when visitors
  * turn animations off, paused on hover).
@@ -60,7 +60,7 @@ $textTags = ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'a', 'ul', 'ol', 'li', 's
     <div class="flex flex-col justify-center px-5 lg:w-1/2 lg:max-w-160 lg:pr-5 lg:pl-18
                 <?= $isDark ? 'py-8 lg:py-10' : 'text-center lg:text-left' ?>">
         <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-            class="<?= $highlight !== '' ? 'elme-promo-split__kicker' : 'mb-6 text-title-section lg:mb-5.5 lg:text-title-section-desktop' ?>
+            class="<?= $highlight !== '' ? 'elme-promo-split__kicker' : 'mb-6 text-display lg:mb-5.5 lg:text-display-desktop' ?>
                    text-inherit">
             <?= nl2br($escaper->escapeHtml($heading), false) ?>
         </h2>

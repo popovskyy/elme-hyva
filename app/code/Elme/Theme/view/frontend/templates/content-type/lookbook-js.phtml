@@ -1,0 +1,647 @@
+<?php
+/**
+ * FE-77: Alpine components of Elme_Theme::content-type/lookbook.phtml, rendered once per page.
+ *
+ * initLookbookGallery: room filter (aria-pressed chips, cross-fade, status for screen readers).
+ * initLookbookLook: one look. Pin and row light each other; a pin or a row opens its card: placed next to the pin
+ *   from md (non-modal, outside click / Esc close), a bottom sheet below md (modal, focus trapped, drag the handle
+ *   down to close). One card open on the page. Add this look posts every addable item at its MOQ, one after another,
+ *   and reads each result from the messages section (as FE-70 does), then names what it added and what it skipped.
+ * initLookbookBuy: the card's form: MOQ stepper, price (ex GST, loaded after render), and for a configurable the
+ *   option picker that switches price, stock, MOQ and the heart to the chosen child.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<script>
+    (function () {
+        const SHEET_QUERY = '(max-width: 767.98px)';
+        const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        function plainText(html) {
+            const doc = new DOMParser().parseFromString(String(html || ''), 'text/html');
+            return (doc.body.textContent || '').trim();
+        }
+
+        async function takeMessages() {
+            try {
+                const response = await fetch(BASE_URL + 'customer/section/load/?sections=messages', {
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = response.ok ? await response.json() : null;
+                return (data && data.messages && data.messages.messages) || [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        // One item of Add this look: cart/add answers {} also when it refused, so only its success message counts
+        async function addItem(item) {
+            const body = new URLSearchParams();
+            body.set('product', String(item.product_id));
+            body.set('qty', String(item.qty));
+            body.set('form_key', hyva.getFormKey());
+            const uenc = hyva.getUenc();
+            const url = item.add_url.replace('%25uenc%25', uenc).replace('%uenc%', uenc);
+            let answered = false;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: body,
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                });
+                answered = response.ok && (response.headers.get('content-type') || '').indexOf('json') !== -1;
+            } catch (e) {
+                answered = false;
+            }
+            const messages = await takeMessages();
+            const error = messages.find((m) => m && m.type === 'error' && plainText(m.text));
+            const success = messages.some((m) => m && m.type === 'success');
+
+            return { ok: answered && success && !error, message: error ? plainText(error.text) : '' };
+        }
+
+        function formatQty(qty) {
+            return String(Math.round(qty * 1e4) / 1e4);
+        }
+
+        window.initLookbookGallery = function initLookbookGallery() {
+            return {
+                room: '',
+                fading: false,
+                status: '',
+                fadeTimer: null,
+
+                chipPressed() {
+                    return (this.$el.dataset.room || '') === this.room ? 'true' : 'false';
+                },
+
+                isLookHidden() {
+                    return this.room !== '' && this.$el.dataset.room !== this.room;
+                },
+
+                galleryClass() {
+                    return { 'is-fading': this.fading };
+                },
+
+                setRoom() {
+                    const chip = this.$event.currentTarget;
+                    const room = chip.dataset.room || '';
+                    if (room === this.room && !this.fading) {
+                        return;
+                    }
+                    window.dispatchEvent(new CustomEvent('lookbook-close-pin'));
+                    const status = chip.dataset.status || '';
+                    clearTimeout(this.fadeTimer);
+                    if (reduced()) {
+                        this.room = room;
+                        this.status = status;
+                        return;
+                    }
+                    // out fast, swap the looks while nothing shows, in a little slower
+                    this.fading = true;
+                    this.fadeTimer = setTimeout(() => {
+                        this.room = room;
+                        this.status = status;
+                        this.$nextTick(() => requestAnimationFrame(() => {
+                            this.fading = false;
+                        }));
+                    }, 140);
+                }
+            };
+        };
+
+        window.initLookbookLook = function initLookbookLook() {
+            return {
+                open: -1,
+                lit: -1,
+                sheet: false,
+                trigger: null,
+                drag: null,
+                dragged: false,
+                adding: false,
+                addingLabel: '',
+                statusLead: '',
+                statusText: '',
+                statusShown: false,
+
+                init() {
+                    this.$root.querySelectorAll('.elme-look__img').forEach((img) => {
+                        if (img.complete && img.naturalWidth) {
+                            return;
+                        }
+                        // the scene shows the photo's own colour, the photo fades in over it
+                        const scene = img.parentElement;
+                        scene.classList.add('is-loading');
+                        const done = () => scene.classList.remove('is-loading');
+                        img.addEventListener('load', done, { once: true });
+                        img.addEventListener('error', done, { once: true });
+                    });
+                },
+
+                index() {
+                    return parseInt(this.$el.dataset.pinIndex, 10);
+                },
+
+                card(i) {
+                    return this.$root.querySelector('.elme-look-card[data-pin-index="' + i + '"]');
+                },
+
+                pin(i) {
+                    return this.$root.querySelector('.elme-look-pin[data-pin-index="' + i + '"]');
+                },
+
+                isCardOpen() {
+                    return this.open === this.index();
+                },
+
+                isSheetOpen() {
+                    return this.open !== -1 && this.sheet;
+                },
+
+                ariaModal() {
+                    return this.sheet ? 'true' : 'false';
+                },
+
+                pinExpanded() {
+                    return this.open === this.index() ? 'true' : 'false';
+                },
+
+                pinClass() {
+                    const i = this.index();
+                    return { 'is-lit': this.lit === i || this.open === i, 'is-open': this.open === i };
+                },
+
+                rowClass() {
+                    const i = this.index();
+                    return { 'is-lit': this.lit === i || this.open === i };
+                },
+
+                light() {
+                    this.lit = this.index();
+                },
+
+                unlight() {
+                    if (this.lit === this.index()) {
+                        this.lit = -1;
+                    }
+                },
+
+                togglePin() {
+                    const i = this.index();
+                    if (this.open === i) {
+                        this.closePin();
+                        return;
+                    }
+                    this.openPin(i, this.$event.currentTarget, false);
+                },
+
+                openFromRow() {
+                    this.openPin(this.index(), this.$event.currentTarget, true);
+                },
+
+                openPin(i, trigger, fromRow) {
+                    window.dispatchEvent(new CustomEvent('lookbook-pin-open', { detail: { id: this.$root.id } }));
+                    if (this.open !== -1) {
+                        this.release();
+                    }
+                    this.trigger = trigger;
+                    this.sheet = window.matchMedia(SHEET_QUERY).matches;
+                    this.open = i;
+                    if (this.sheet) {
+                        document.documentElement.classList.add('overflow-hidden');
+                    }
+                    this.$nextTick(() => {
+                        const card = this.card(i);
+                        if (!card || this.open !== i) {
+                            return;
+                        }
+                        card.style.transform = '';
+                        if (!this.sheet) {
+                            this.place(card, i);
+                            const pin = this.pin(i);
+                            const rect = pin ? pin.getBoundingClientRect() : null;
+                            // a row far from its photo (stacked layout): bring the pin and its card into view
+                            const behavior = reduced() ? 'auto' : 'smooth';
+                            if (fromRow && rect && (rect.top < 80 || rect.bottom > window.innerHeight - 80)) {
+                                pin.scrollIntoView({ block: 'center', behavior: behavior });
+                            } else {
+                                // the whole card in view, under the sticky header (html scroll-padding-top)
+                                card.scrollIntoView({ block: 'nearest', behavior: behavior });
+                            }
+                        }
+                        card.focus({ preventScroll: true });
+                        if (this.sheet && window.hyva && hyva.trapFocus) {
+                            hyva.trapFocus(card);
+                        }
+                    });
+                },
+
+                release() {
+                    const card = this.card(this.open);
+                    if (this.sheet && card && window.hyva && hyva.releaseFocus) {
+                        hyva.releaseFocus(card);
+                    }
+                    document.documentElement.classList.remove('overflow-hidden');
+                },
+
+                closePin() {
+                    this.shut(true);
+                },
+
+                shut(restoreFocus) {
+                    if (this.open === -1) {
+                        return;
+                    }
+                    this.release();
+                    const trigger = this.trigger;
+                    this.open = -1;
+                    this.lit = -1;
+                    this.trigger = null;
+                    if (restoreFocus && trigger && trigger.isConnected) {
+                        trigger.focus({ preventScroll: true });
+                    }
+                },
+
+                onEscape() {
+                    // the heart's list picker over the card closes first
+                    if (this.open !== -1 && !document.querySelector('.elme-lp.is-shown')) {
+                        this.closePin();
+                    }
+                },
+
+                onOtherOpen() {
+                    if ((this.$event.detail || {}).id !== this.$root.id) {
+                        this.shut(false);
+                    }
+                },
+
+                onCloseAll() {
+                    this.shut(false);
+                },
+
+                onOutside() {
+                    if (this.open === -1 || this.sheet) {
+                        return;
+                    }
+                    const target = this.$event.target;
+                    if (target.closest && target.closest('[data-lookbook-trigger], .elme-lp, .elme-toasts')) {
+                        return;
+                    }
+                    this.shut(false);
+                },
+
+                onResize() {
+                    if (this.open === -1) {
+                        return;
+                    }
+                    if (window.matchMedia(SHEET_QUERY).matches !== this.sheet) {
+                        this.shut(false);
+                        return;
+                    }
+                    if (!this.sheet) {
+                        this.place(this.card(this.open), this.open);
+                    }
+                },
+
+                // next to the pin on the side with room; below (or above) it when neither side fits
+                place(card, i) {
+                    const pin = this.pin(i);
+                    if (!card || !pin) {
+                        return;
+                    }
+                    const scene = card.parentElement;
+                    const width = scene.clientWidth;
+                    const height = scene.clientHeight;
+                    const x = pin.offsetLeft;
+                    const y = pin.offsetTop;
+                    const cw = card.offsetWidth;
+                    const ch = card.offsetHeight;
+                    const gap = 28;
+                    const edge = 8;
+                    let side = 'right';
+                    let left = x + gap;
+                    let top = Math.max(edge, Math.min(y - ch / 2, height - ch - edge));
+                    if (left + cw > width - edge) {
+                        left = x - gap - cw;
+                        side = 'left';
+                    }
+                    if (left < edge) {
+                        left = Math.max(edge, Math.min(x - cw / 2, width - cw - edge));
+                        side = y + gap + ch > height && y - gap - ch >= edge ? 'above' : 'below';
+                        top = side === 'above' ? y - gap - ch : y + gap;
+                    }
+                    card.style.left = Math.round(left) + 'px';
+                    card.style.top = Math.round(top) + 'px';
+                    card.dataset.side = side;
+                },
+
+                dragStart() {
+                    if (!this.sheet) {
+                        return;
+                    }
+                    const event = this.$event;
+                    const card = event.currentTarget.closest('.elme-look-card');
+                    this.drag = { y0: event.clientY, dy: 0, card: card };
+                    this.dragged = false;
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    card.classList.add('is-dragging');
+                },
+
+                dragMove() {
+                    if (!this.drag) {
+                        return;
+                    }
+                    const dy = Math.max(0, this.$event.clientY - this.drag.y0);
+                    this.drag.dy = dy;
+                    this.drag.card.style.transform = 'translateY(' + dy + 'px)';
+                },
+
+                dragEnd() {
+                    const drag = this.drag;
+                    if (!drag) {
+                        return;
+                    }
+                    this.drag = null;
+                    this.dragged = drag.dy > 6;
+                    const card = drag.card;
+                    card.classList.remove('is-dragging');
+                    if (drag.dy > Math.min(120, card.offsetHeight * 0.25)) {
+                        // keep going down from where the finger let go, then close under it
+                        card.style.transform = 'translateY(100%)';
+                        setTimeout(() => {
+                            this.shut(true);
+                            setTimeout(() => { card.style.transform = ''; }, 400);
+                        }, reduced() ? 0 : 220);
+                        return;
+                    }
+                    card.style.transform = '';
+                },
+
+                onHandleClick() {
+                    if (this.dragged) {
+                        this.dragged = false;
+                        return;
+                    }
+                    this.closePin();
+                },
+
+                isAdding() {
+                    return this.adding;
+                },
+
+                addLookLabel() {
+                    return this.addingLabel || this.$el.dataset.label || this.$el.textContent;
+                },
+
+                statusClass() {
+                    return { 'is-shown': this.statusShown };
+                },
+
+                async addLook() {
+                    if (this.adding || typeof hyva === 'undefined') {
+                        return;
+                    }
+                    const button = this.$event.currentTarget;
+                    const text = button.dataset;
+                    const node = document.getElementById(text.addAllId);
+                    let all = [];
+                    try {
+                        all = (JSON.parse(node ? node.textContent : '[]') || [])[parseInt(this.$root.dataset.lookIndex, 10)] || [];
+                    } catch (e) {
+                        all = [];
+                    }
+                    const items = all.filter((item) => item.reason === '' && item.add_url);
+                    const added = [];
+                    const skipped = all
+                        .filter((item) => item.reason !== '')
+                        .map((item) => item.name + ' (' + item.reason + ')');
+
+                    this.adding = true;
+                    this.statusShown = false;
+                    for (let k = 0; k < items.length; k++) {
+                        this.addingLabel = hyva.str(text.addingText, k + 1, items.length);
+                        const result = await addItem(items[k]);
+                        if (result.ok) {
+                            added.push(items[k].name + ' × ' + formatQty(items[k].qty));
+                        } else {
+                            skipped.push(items[k].name + ' (' + (result.message || text.failedText) + ')');
+                        }
+                    }
+                    this.adding = false;
+                    this.addingLabel = '';
+                    if (added.length) {
+                        window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+                    }
+
+                    this.statusLead = added.length ? hyva.str(text.addedText, added.length, all.length) : text.noneText;
+                    this.statusText = [
+                        added.length ? added.join(', ') + '.' : '',
+                        skipped.length ? text.skippedText + ' ' + skipped.join(', ') + '.' : ''
+                    ].filter(Boolean).join(' ');
+                    this.$nextTick(() => requestAnimationFrame(() => {
+                        this.statusShown = true;
+                    }));
+                }
+            };
+        };
+
+        window.initLookbookBuy = function initLookbookBuy() {
+            return {
+                productId: 0,
+                min: 1,
+                step: 1,
+                qty: 1,
+                children: [],
+                selected: {},
+                child: null,
+                priceId: 0,
+                price: null,
+                priceState: 'loading',
+
+                init() {
+                    const data = this.$root.dataset;
+                    this.productId = parseInt(data.productId, 10) || 0;
+                    this.min = parseFloat(data.min) || 1;
+                    this.step = parseFloat(data.step) || this.min;
+                    try {
+                        this.children = data.children ? JSON.parse(data.children) : [];
+                    } catch (e) {
+                        this.children = [];
+                    }
+                    this.set(this.$refs.input.value);
+                    this.loadPrice(this.productId);
+                },
+
+                loadPrice(id) {
+                    this.priceId = id;
+                    if (!window.elmeCustomerPrices) {
+                        this.priceState = 'none';
+                        return;
+                    }
+                    this.priceState = 'loading';
+                    window.elmeCustomerPrices.get(id).then((price) => {
+                        if (id !== this.priceId) {
+                            return;
+                        }
+                        this.price = price;
+                        this.priceState = price ? 'ready' : 'none';
+                    });
+                },
+
+                isPriceLoading() {
+                    return this.priceState === 'loading';
+                },
+
+                isPriceReady() {
+                    return this.priceState === 'ready';
+                },
+
+                isFromPrice() {
+                    return this.isPriceReady() && this.children.length > 0 && !this.child;
+                },
+
+                // the configurable's "From" price is the cheapest child, not a sale
+                hasDiscount() {
+                    return this.isPriceReady() && !this.isFromPrice() && this.price.regular > this.price.final;
+                },
+
+                finalPrice() {
+                    return this.price ? this.price.final_formatted : '';
+                },
+
+                regularPrice() {
+                    return this.price ? this.price.regular_formatted : '';
+                },
+
+                // MOQ 6: 6, 12, 18... anything else goes up to the next one
+                snap(value) {
+                    const qty = parseFloat(value);
+                    if (!(qty > this.min)) {
+                        return this.min;
+                    }
+                    const steps = Math.ceil(Math.round((qty - this.min) / this.step * 1e4) / 1e4);
+                    return Math.round((this.min + steps * this.step) * 1e4) / 1e4;
+                },
+
+                set(value) {
+                    this.qty = this.snap(value);
+                    const input = this.$refs.input;
+                    input.value = this.qty;
+                    input.min = this.min;
+                    input.step = this.step;
+                },
+
+                increment() {
+                    this.set(this.qty + this.step);
+                },
+
+                decrement() {
+                    this.set(this.qty - this.step);
+                },
+
+                normalize() {
+                    this.set(this.$refs.input.value);
+                },
+
+                isAtMin() {
+                    return this.qty <= this.min;
+                },
+
+                attributeIds() {
+                    return this.children.length ? Object.keys(this.children[0].attrs) : [];
+                },
+
+                findChild() {
+                    const ids = this.attributeIds();
+                    if (!ids.length || ids.some((id) => !(id in this.selected))) {
+                        return null;
+                    }
+                    return this.children.find((child) => ids.every((id) => child.attrs[id] === this.selected[id])) || null;
+                },
+
+                onOption() {
+                    const input = this.$event.target;
+                    this.selected = Object.assign({}, this.selected, {
+                        [input.dataset.attributeId]: parseInt(input.value, 10)
+                    });
+                    this.child = this.findChild();
+                    if (this.child) {
+                        this.min = this.child.min || 1;
+                        this.step = this.child.step || this.min;
+                        this.set(this.min);
+                        this.loadPrice(this.child.id);
+                    }
+                    this.$nextTick(() => {
+                        const heart = this.$refs.heart;
+                        if (heart) {
+                            heart.setAttribute('data-sku', this.child ? this.child.sku : '');
+                            if (window.elmeHearts) {
+                                window.elmeHearts.paint(heart);
+                            }
+                        }
+                    });
+                },
+
+                // a value with no saleable child next to what is already chosen
+                isOptionOff() {
+                    if (!this.children.length) {
+                        return false;
+                    }
+                    const attr = this.$el.dataset.attributeId;
+                    const value = parseInt(this.$el.value, 10);
+                    return !this.children.some((child) => child.saleable
+                        && child.attrs[attr] === value
+                        && Object.keys(this.selected).every((id) => id === attr || child.attrs[id] === this.selected[id]));
+                },
+
+                isAtcOff() {
+                    return this.children.length > 0 && !(this.child && this.child.saleable);
+                },
+
+                isHeartOff() {
+                    return !this.child;
+                },
+
+                atcLabel() {
+                    return this.children.length && !this.child ? this.$root.dataset.chooseLabel : this.$root.dataset.atcLabel;
+                },
+
+                stockText() {
+                    const data = this.$root.dataset;
+                    if (!this.child) {
+                        return data.chooseLabel;
+                    }
+                    if (!this.child.saleable) {
+                        return this.child.label + ', ' + data.outText;
+                    }
+                    return this.child.stock_qty > 0
+                        ? this.child.label + ', ' + hyva.str(data.stockText, formatQty(this.child.stock_qty))
+                        : this.child.label;
+                },
+
+                moqText() {
+                    return this.min > 1 || this.step > 1
+                        ? hyva.str(this.$root.dataset.moqText, formatQty(this.min), formatQty(this.step))
+                        : '';
+                }
+            };
+        };
+
+        window.addEventListener('alpine:init', () => {
+            Alpine.data('initLookbookGallery', window.initLookbookGallery);
+            Alpine.data('initLookbookLook', window.initLookbookLook);
+            Alpine.data('initLookbookBuy', window.initLookbookBuy);
+        }, { once: true });
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

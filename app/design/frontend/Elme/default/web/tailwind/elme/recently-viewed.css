@@ -1,0 +1,19 @@
+/*
+ * FE-24: recently viewed category / product strips under the PLP grid.
+ * Reuses .elme-snap-carousel__* chrome; card look stays on product-card.css (FE-19).
+ */
+
+@layer components {
+    .elme-rv__track {
+        align-items: stretch;
+    }
+
+    .elme-rv-categories__media {
+        border-radius: var(--radius-sm, 0);
+    }
+
+    .elme-rv-products__slide .elme-card,
+    .elme-rv-products__slide .product_addtocart_form {
+        height: 100%;
+    }
+}

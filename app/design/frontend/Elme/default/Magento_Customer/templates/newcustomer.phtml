@@ -1,0 +1,58 @@
+<?php
+/**
+ * Elme: "New to Elme Living?" under the login form ("Split screen").
+ * Elme is trade-only (elme-business): no consumer "check out faster" pitch; retailers apply with an ABN.
+ * The button goes to registration (the trade application, FE-36), or to Become a Stockist when
+ * registration is switched off.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Customer\Block\Form\Login\Info;
+use Magento\Framework\Escaper;
+
+/** @var Info $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+$applyUrl = $block->getRegistration()->isAllowed()
+    ? $block->getCreateAccountUrl()
+    : $block->getUrl('become-a-stockist');
+
+$facts = [
+    [__('ABN trade account'), __('Apply online with your Australian Business Number.')],
+    [__('Your prices, ex GST'), __('Customer-specific, shown after sign-in.')],
+    [__('Australia-wide delivery'), __('Order online, some lines carry a minimum.')],
+];
+?>
+<div class="elme-login__or" aria-hidden="true"><span><?= $escaper->escapeHtml(__('or')) ?></span></div>
+<section class="block-new-customer elme-login__new" aria-labelledby="elme-login-new-heading">
+    <h2 id="elme-login-new-heading" class="elme-login__new-title">
+        <?= $escaper->escapeHtml(__('New to Elme Living?')) ?>
+    </h2>
+    <p class="elme-login__new-text">
+        <?= $escaper->escapeHtml(__('We are trade-only. Retailers apply with an ABN to open a wholesale account.')) ?>
+    </p>
+    <ul class="elme-login__facts">
+        <?php foreach ($facts as [$title, $text]): ?>
+            <li>
+                <span class="elme-login__tick" aria-hidden="true">
+                    <?= $lucideIcons->checkHtml('', 14, 14, ['aria-hidden' => 'true']) ?>
+                </span>
+                <span>
+                    <span class="elme-login__fact-title"><?= $escaper->escapeHtml($title) ?></span>
+                    <span class="elme-login__fact-text"><?= $escaper->escapeHtml($text) ?></span>
+                </span>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+    <a href="<?= $escaper->escapeUrl($applyUrl) ?>" class="btn btn-secondary w-full elme-login__apply">
+        <span><?= $escaper->escapeHtml(__('Apply for a trade account')) ?></span>
+        <?= $lucideIcons->arrowRightHtml('elme-login__apply-arrow', 18, 18, ['aria-hidden' => 'true']) ?>
+    </a>
+</section>

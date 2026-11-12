@@ -6,10 +6,13 @@
 
 declare(strict_types=1);
 
+use Elme\LoginOnly\ViewModel\LoginOnly;
 use Elme\Styleguide\ViewModel\Styleguide;
+use Elme\Theme\ViewModel\ProductTile;
 use Hyva\Theme\Model\ViewModelRegistry;
 use Hyva\Theme\ViewModel\HyvaCsp;
 use Hyva\Theme\ViewModel\LucideIcons;
+use Hyva\Theme\ViewModel\ProductPage;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 
@@ -23,7 +26,15 @@ $styleguide = $viewModels->require(Styleguide::class);
 $hyvaCsp = $viewModels->require(HyvaCsp::class);
 /** @var LucideIcons $lucideIcons */
 $lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+/** @var ProductPage $productPage */
+$productPage = $viewModels->require(ProductPage::class);
+/** @var ProductTile $productTile */
+$productTile = $viewModels->require(ProductTile::class);
 $layout = $block->getLayout();
+// FE-70 live demo: a real add for logged-in customers only (guests never get an Add to Cart button)
+$atcDemoProduct = $loginOnly->isLoggedIn() ? $styleguide->getAddToCartDemoProduct() : null;
 $doneIcon = $lucideIcons->checkHtml('', 18, 18, ['aria-hidden' => 'true']);
 
 $buttons = [
@@ -32,7 +43,7 @@ $buttons = [
     'btn-outline' => __('Outline'),
     'btn-link' => __('Link'),
 ];
-$sectionClass = 'py-8 border-t border-divider';
+$sectionClass = 'py-8 border-t border-border';
 $captionClass = 'mb-2 text-label uppercase tracking-wide text-ink-subtle';
 $skuOptions = [];
 for ($i = 1; $i <= 40; $i++) {
@@ -47,6 +58,49 @@ for ($i = 1; $i <= 40; $i++) {
             . 'disabled, loading and error are shown as they render.'
         )) ?>
     </p>
+
+    <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-type">
+        <h2 id="sg-type" class="mb-6"><?= $escaper->escapeHtml(__('Type scale')) ?></h2>
+        <p class="max-w-2xl mb-6 text-ink-subtle">
+            <?= $escaper->escapeHtml(__(
+                'Nine role tokens (rem). Desktop sizes apply from the lg breakpoint. '
+                . 'h5 and h6 are not size tokens: they reuse body and copy with tracking.'
+            )) ?>
+        </p>
+        <div class="grid gap-4 max-w-3xl">
+            <p class="m-0 font-heading font-normal text-display lg:text-display-desktop text-ink">
+                <?= $escaper->escapeHtml(__('Display — hero and section titles')) ?>
+            </p>
+            <p class="m-0 font-heading font-normal text-h1 lg:text-h1-desktop text-ink">
+                <?= $escaper->escapeHtml(__('Heading 1')) ?>
+            </p>
+            <p class="m-0 font-heading font-normal text-h2 lg:text-h2-desktop text-ink">
+                <?= $escaper->escapeHtml(__('Heading 2')) ?>
+            </p>
+            <p class="m-0 font-heading font-normal text-h3 lg:text-h3-desktop text-ink">
+                <?= $escaper->escapeHtml(__('Heading 3')) ?>
+            </p>
+            <p class="m-0 font-heading font-normal text-h4 lg:text-h4-desktop text-ink">
+                <?= $escaper->escapeHtml(__('Heading 4')) ?>
+            </p>
+            <p class="m-0 text-base text-ink">
+                <?= $escaper->escapeHtml(__('Body — default copy, line-height 1.5')) ?>
+            </p>
+            <p class="m-0 text-copy lg:text-copy-desktop text-ink">
+                <?= $escaper->escapeHtml(__('Copy — secondary text and UI labels')) ?>
+            </p>
+            <p class="m-0 text-note text-ink-muted">
+                <?= $escaper->escapeHtml(__('Note — breadcrumbs, meta, helpers')) ?>
+            </p>
+            <p class="m-0 text-label uppercase tracking-wide text-ink-subtle">
+                <?= $escaper->escapeHtml(__('Label — badges and overlines')) ?>
+            </p>
+        </div>
+        <div class="mt-8 max-w-3xl space-y-2">
+            <h5 class="m-0"><?= $escaper->escapeHtml(__('Native h5 (body size, wider tracking)')) ?></h5>
+            <h6 class="m-0"><?= $escaper->escapeHtml(__('Native h6 (copy size, uppercase)')) ?></h6>
+        </div>
+    </section>
 
     <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-buttons">
         <h2 id="sg-buttons" class="mb-6"><?= $escaper->escapeHtml(__('Buttons')) ?></h2>
@@ -87,17 +141,56 @@ for ($i = 1; $i <= 40; $i++) {
                     </div>
                 </div>
             <?php endforeach; ?>
-            <div x-data="initElmeStyleguideAddDemo">
+            <div>
                 <p class="<?= /* @noEscape */ $captionClass ?>">
-                    <?= $escaper->escapeHtml(__('Add to cart, live: loading, then "Added" for 1.5s')) ?>
+                    <?= $escaper->escapeHtml(__('Add to Cart, live (.btn-atc): sending until the server answers, then "Added" for 1.5s')) ?>
                 </p>
-                <button type="button" class="btn btn-primary" :class="buttonClasses" :aria-busy="isLoading" @click="add">
-                    <span class="btn-swap">
-                        <span><?= $escaper->escapeHtml(__('Add to cart')) ?></span>
-                        <span class="btn-swap-done"><?= /* @noEscape */ $doneIcon ?><?= $escaper->escapeHtml(__('Added')) ?></span>
-                    </span>
-                </button>
-                <span class="sr-only" role="status" x-text="announcement"></span>
+                <?php if ($atcDemoProduct): ?>
+                    <p class="max-w-2xl mb-4 text-ink-subtle">
+                        <?= $escaper->escapeHtml(__(
+                            'The first two really add %1 to your cart (full and icon-only button). '
+                            . 'The third posts a product that does not exist, so the server refuses it: no "Added", an error toast.',
+                            $atcDemoProduct->getName()
+                        )) ?>
+                    </p>
+                    <div class="flex flex-wrap items-center gap-4">
+                        <?php foreach (['full' => true, 'icon' => false] as $atcWithLabel): ?>
+                            <form method="post"
+                                  action="<?= $escaper->escapeUrl($productPage->getAddToCartUrl($atcDemoProduct, ['useUencPlaceholder' => true])) ?>"
+                            >
+                                <?= /* @noEscape */ $block->getBlockHtml('formkey') ?>
+                                <input type="hidden" name="product" value="<?= (int) $atcDemoProduct->getId() ?>">
+                                <input type="hidden" name="qty" value="<?= (float) $productTile->getQtyRules($atcDemoProduct)['min'] ?>">
+                                <button type="submit"
+                                        class="btn btn-primary btn-atc"
+                                        aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Cart') . ' ' . $atcDemoProduct->getName()) ?>"
+                                        data-addto="cart"
+                                >
+                                    <?= $lucideIcons->shoppingCartHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                                    <?php if ($atcWithLabel): ?>
+                                        <span><?= $escaper->escapeHtml(__('Add to Cart')) ?></span>
+                                    <?php endif; ?>
+                                </button>
+                            </form>
+                        <?php endforeach; ?>
+                        <form method="post" action="<?= $escaper->escapeUrl($block->getUrl('checkout/cart/add')) ?>">
+                            <?= /* @noEscape */ $block->getBlockHtml('formkey') ?>
+                            <input type="hidden" name="product" value="0">
+                            <button type="submit"
+                                    class="btn btn-primary btn-atc"
+                                    aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Cart') . ' ' . __('a product that does not exist')) ?>"
+                                    data-addto="cart"
+                            >
+                                <?= $lucideIcons->shoppingCartHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                                <span><?= $escaper->escapeHtml(__('Add to Cart')) ?></span>
+                            </button>
+                        </form>
+                    </div>
+                <?php else: ?>
+                    <p class="max-w-2xl text-ink-subtle">
+                        <?= $escaper->escapeHtml(__('Sign in as a customer to try it: guests get no Add to Cart button.')) ?>
+                    </p>
+                <?php endif; ?>
             </div>
             <div>
                 <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Full width (mobile forms)')) ?></p>
@@ -220,7 +313,7 @@ for ($i = 1; $i <= 40; $i++) {
                 <label class="label" for="sg-cs-swatch"><?= $escaper->escapeHtml(__('Finish')) ?></label>
                 <select id="sg-cs-swatch" class="form-select w-full" name="sg_cs_swatch" data-elme-searchable="0">
                     <option value=""><?= $escaper->escapeHtml(__('Choose a finish')) ?></option>
-                    <option value="olive" data-color="#677858"><?= $escaper->escapeHtml(__('Olive')) ?></option>
+                    <option value="olive" data-color="#647455"><?= $escaper->escapeHtml(__('Olive')) ?></option>
                     <option value="sand" data-color="#D4C8B3"><?= $escaper->escapeHtml(__('Sand')) ?></option>
                     <option value="charcoal" data-color="#3A3935"><?= $escaper->escapeHtml(__('Charcoal')) ?></option>
                     <option value="slate" data-color="#98A8BB"><?= $escaper->escapeHtml(__('Slate')) ?></option>
@@ -420,48 +513,113 @@ for ($i = 1; $i <= 40; $i++) {
         <?= /* @noEscape */ $styleguide->getPagerHtml($layout) ?>
     </section>
 
+    <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-status">
+        <h2 id="sg-status" class="mb-2"><?= $escaper->escapeHtml(__('Status colours')) ?></h2>
+        <p class="max-w-2xl mb-6 text-ink-subtle">
+            <?= $escaper->escapeHtml(__(
+                'One family of four states (success, warning, error, info), each with ground, mark and text. '
+                . 'Promo is sale only. Olive is brand only.'
+            )) ?>
+        </p>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 max-w-5xl mb-8" role="presentation">
+            <?php
+            $statusGroups = [
+                'success' => [__('Success'), 'bg-success-ground', 'bg-success-mark', 'text-success-text'],
+                'warning' => [__('Warning'), 'bg-warning-ground', 'bg-warning-mark', 'text-warning-text'],
+                'error' => [__('Error'), 'bg-error-ground', 'bg-error-mark', 'text-error-text'],
+                'info' => [__('Info'), 'bg-info-ground', 'bg-info-mark', 'text-info-text'],
+            ];
+            foreach ($statusGroups as $key => [$label, $ground, $mark, $text]):
+                ?>
+                <div class="border border-border p-4 <?= /* @noEscape */ $ground ?>">
+                    <p class="m-0 mb-3 text-label uppercase tracking-wide <?= /* @noEscape */ $text ?>">
+                        <?= $escaper->escapeHtml($label) ?>
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <span class="inline-block size-6 shrink-0 <?= /* @noEscape */ $mark ?>"
+                              aria-hidden="true"></span>
+                        <span class="text-copy font-medium <?= /* @noEscape */ $text ?>">
+                            <?= $escaper->escapeHtml(__('Status text on ground')) ?>
+                        </span>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Form field error (uses error-text)')) ?></p>
+        <div class="field required field-error max-w-md mb-2">
+            <label class="label" for="sg-status-field-error"><?= $escaper->escapeHtml(__('Purchase order')) ?></label>
+            <input id="sg-status-field-error" type="text" class="form-input w-full" value="PO"
+                   aria-invalid="true" aria-describedby="sg-status-field-error-msg" required>
+            <ul class="messages" id="sg-status-field-error-msg">
+                <li><?= $escaper->escapeHtml(__('Enter the full purchase order number.')) ?></li>
+            </ul>
+        </div>
+    </section>
+
     <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-messages" x-data="initElmeStyleguideFeedback">
         <h2 id="sg-messages" class="mb-2"><?= $escaper->escapeHtml(__('Messages and toasts')) ?></h2>
         <p class="max-w-2xl mb-6 text-ink-subtle">
             <?= $escaper->escapeHtml(__(
                 'Page messages sit in the content column under the header (never over it). '
-                . 'Toasts float under --elme-header-row-bottom and auto-dismiss. Screen readers get role=alert / aria-live.'
+                . 'Toasts float under --elme-header-row-bottom and auto-dismiss. Screen readers get role=alert / aria-live. '
+                . 'Notice maps to the info status set.'
             )) ?>
         </p>
         <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Static types')) ?></p>
         <div class="grid gap-3 max-w-2xl mb-8" role="presentation">
             <div class="message success" role="status">
+<<<<<<< HEAD
                 <span class="message__icon" aria-hidden="true">
                     <?= /* @noEscape */ $lucideIcons->checkHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
                 </span>
                 <span class="message__body"><?= $escaper->escapeHtml(__('You saved the shopping list.')) ?></span>
+=======
+                <span class="message__badge" aria-hidden="true"></span>
+                <span class="message__text"><?= $escaper->escapeHtml(__('You saved the shopping list.')) ?></span>
+>>>>>>> main
                 <button type="button" class="message__close" aria-label="<?= $escaper->escapeHtmlAttr(__('Close message')) ?>">
                     <?= /* @noEscape */ $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
                 </button>
             </div>
             <div class="message error" role="alert">
+<<<<<<< HEAD
                 <span class="message__icon" aria-hidden="true">
                     <?= /* @noEscape */ $lucideIcons->circleAlertHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
                 </span>
                 <span class="message__body"><?= $escaper->escapeHtml(__('The account sign-in was incorrect or your account is disabled temporarily.')) ?></span>
+=======
+                <span class="message__badge" aria-hidden="true"></span>
+                <span class="message__text"><?= $escaper->escapeHtml(__('The account sign-in was incorrect or your account is disabled temporarily.')) ?></span>
+>>>>>>> main
                 <button type="button" class="message__close" aria-label="<?= $escaper->escapeHtmlAttr(__('Close message')) ?>">
                     <?= /* @noEscape */ $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
                 </button>
             </div>
+<<<<<<< HEAD
             <div class="message notice" role="status">
                 <span class="message__icon" aria-hidden="true">
                     <?= /* @noEscape */ $lucideIcons->infoHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
                 </span>
                 <span class="message__body"><?= $escaper->escapeHtml(__('Add $120.00 more to place your order.')) ?></span>
+=======
+            <div class="message notice info" role="status">
+                <span class="message__badge" aria-hidden="true"></span>
+                <span class="message__text"><?= $escaper->escapeHtml(__('Add $120.00 more to place your order.')) ?></span>
+>>>>>>> main
                 <button type="button" class="message__close" aria-label="<?= $escaper->escapeHtmlAttr(__('Close message')) ?>">
                     <?= /* @noEscape */ $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
                 </button>
             </div>
             <div class="message warning" role="status">
+<<<<<<< HEAD
                 <span class="message__icon" aria-hidden="true">
                     <?= /* @noEscape */ $lucideIcons->alertTriangleHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
                 </span>
                 <span class="message__body"><?= $escaper->escapeHtml(__('Only 4 left in stock for this finish.')) ?></span>
+=======
+                <span class="message__badge" aria-hidden="true"></span>
+                <span class="message__text"><?= $escaper->escapeHtml(__('Only 4 left in stock for this finish.')) ?></span>
+>>>>>>> main
                 <button type="button" class="message__close" aria-label="<?= $escaper->escapeHtmlAttr(__('Close message')) ?>">
                     <?= /* @noEscape */ $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']) ?>
                 </button>
@@ -478,6 +636,9 @@ for ($i = 1; $i <= 40; $i++) {
             <button type="button" class="btn btn-outline" @click="toastNotice">
                 <?= $escaper->escapeHtml(__('Notice toast')) ?>
             </button>
+            <button type="button" class="btn btn-outline" @click="toastWarning">
+                <?= $escaper->escapeHtml(__('Warning toast')) ?>
+            </button>
         </div>
     </section>
 
@@ -491,7 +652,7 @@ for ($i = 1; $i <= 40; $i++) {
         <div class="grid gap-8 lg:grid-cols-2">
             <div>
                 <p class="<?= /* @noEscape */ $captionClass ?>"><?= $escaper->escapeHtml(__('Spinner')) ?></p>
-                <div class="elme-loader py-8 border border-divider">
+                <div class="elme-loader py-8 border border-border">
                     <span class="elme-spinner elme-spinner--lg" aria-hidden="true"></span>
                     <span><?= $escaper->escapeHtml(__('Loading…')) ?></span>
                 </div>
@@ -531,7 +692,7 @@ for ($i = 1; $i <= 40; $i++) {
 
     <section class="<?= /* @noEscape */ $sectionClass ?>" aria-labelledby="sg-empty">
         <h2 id="sg-empty" class="mb-6"><?= $escaper->escapeHtml(__('Empty state')) ?></h2>
-        <div class="border border-divider">
+        <div class="border border-border">
             <?= /* @noEscape */ $styleguide->getEmptyStateHtml($layout, [
                 'title' => __('Your cart is empty'),
                 'text' => __('Browse the catalogue to add products for your next order.'),
@@ -543,38 +704,6 @@ for ($i = 1; $i <= 40; $i++) {
     </section>
 </div>
 <script>
-    // Demo only: fakes an 800ms add-to-cart request, then shows "Added" for 1.5s
-    function initElmeStyleguideAddDemo() {
-        return {
-            state: 'idle',
-            announcement: '',
-            timer: null,
-
-            add() {
-                clearTimeout(this.timer);
-                this.state = 'loading';
-                this.announcement = '';
-                this.timer = setTimeout(() => this.done(), 800);
-            },
-
-            done() {
-                this.state = 'done';
-                this.announcement = '<?= $escaper->escapeJs(__('Added to cart')) ?>';
-                this.timer = setTimeout(() => {
-                    this.state = 'idle';
-                }, 1500);
-            },
-
-            isLoading() {
-                return this.state === 'loading';
-            },
-
-            buttonClasses() {
-                return {'is-done': this.state === 'done'};
-            }
-        }
-    }
-
     function initElmeStyleguideFeedback() {
         return {
             toastSuccess() {
@@ -593,6 +722,12 @@ for ($i = 1; $i <= 40; $i++) {
                 this.$dispatch('elme-toast', {
                     type: 'notice',
                     text: '<?= $escaper->escapeJs(__('Add $120.00 more to place your order.')) ?>'
+                });
+            },
+            toastWarning() {
+                this.$dispatch('elme-toast', {
+                    type: 'warning',
+                    text: '<?= $escaper->escapeJs(__('Only 4 left in stock for this finish.')) ?>'
                 });
             }
         }
@@ -613,7 +748,6 @@ for ($i = 1; $i <= 40; $i++) {
     }
 
     window.addEventListener('alpine:init', () => {
-        Alpine.data('initElmeStyleguideAddDemo', initElmeStyleguideAddDemo);
         Alpine.data('initElmeStyleguideFeedback', initElmeStyleguideFeedback);
         Alpine.data('initElmeStyleguideLoader', initElmeStyleguideLoader);
     }, {once: true});

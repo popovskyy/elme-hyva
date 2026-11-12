@@ -13,33 +13,36 @@ https://www.elmeliving.com/ on 2026-10-21. "Uses" = occurrences in the `Bart/el`
 | `primary` | `#3A3935` | `@jl-color-brand-primary` (244 uses), `@heading__color__base` | text, headings, primary button, borders, breadcrumbs |
 | `on-primary` | `#FFFFFF` | `@jl-color-brand-primary-alt` | text on primary |
 | `secondary` | `#ADBBA1` | `@jl-color-brand-secondary` | top bar, primary button hover, pager border, label accent |
+| `on-secondary` | `#3A3935` | text on sage (primary / on-dark hover) | text on secondary |
 | `tertiary` | `#D4C8B3` | `@jl-color-brand-tertiary` | sand accents |
 | `accent` | `#98A8BB` | none - CMS content on the live site | category tiles, banners |
 | `accent-dark` | `#68839C` | `@jl-background-color-blue`, `@jl-form-element-input-focus-border-color` | input focus |
 | `ink` | `#3A3935` | `@jl-color-brand-primary` | body text (`--color-fg`) |
-| `ink-muted` | `#676F78` | `@jl-p-color-primary` (69) | secondary paragraphs |
-| `ink-subtle` | `#797D81` | `@jl-background-color-grey5` (68) | paragraphs, choice labels, meta |
+| `ink-muted` | `#676F78` | `@jl-p-color-primary` (69) | base paragraphs, secondary copy |
+| `ink-subtle` | `#6D7074` | `@jl-background-color-grey5` (68, darkened for AA) | captions and meta; body `p` uses ink-muted |
+| `link-hover` | `#5F6E67` | sage link hover (AA on page / surface) | link and btn-link hover |
 | `page` | `#F5F4EF` | `@jl-color-body-background`, `@page__background-color` | page background (`--color-bg`) |
 | `surface` | `#FFFFFF` | `@od-product__background` | cards, header |
 | `surface-muted` | `#F8F8F8` | `@jl-background-color-primary`, `@jl-state-inactive-color` | inactive / muted panels |
 | `sand-light` | `#E1DBD1` | `@jl-background-color-grey7` (12) | warm panels |
 | `cool-light` | `#ECEFF1` | `@jl-background-color-grey4` | cool panels |
-| `border` | `#CAC9C9` | `@jl-background-color-grey6` (42), `@form-element-input__border-color` | inputs, dividers |
+| `border` | `#CAC9C9` | `@jl-background-color-grey6` (42) | decorative dividers (not form fields) |
 | `border-light` | `#D3D6D9` | `@jl-form-radio-outer-border-color`, grey9 | radios, light borders |
 | `divider` | `#DCDCDC` | `@_hr-border-color` | `<hr>` |
-| `placeholder` | `#ADB2B8` | `@form-element-input-placeholder__color` | placeholders, disabled text |
-| `success` / `success-light` | `#00BC37` / `#C5EAD6` | `@jl-message-success-color`, `@jl-background-color-green` | success messages |
-| `olive` | `#677858` | `@jl-background-color-green2` | |
-| `warning` | `#F2B20C` | `@jl-low-stock-status` | Low Stock label |
-| `error` / `error-strong` / `error-light` | `#FF5942` / `#D82C0D` / `#FFC3B8` | `@jl-error-color`, red3, red1 | validation, required `*` |
-| `promo` | `#CB4867` | `@jl-background-color-purple` | sale / promo badge |
+| `placeholder` | `#646D76` | `@form-element-input-placeholder__color` (darkened for AA) | placeholders, disabled text |
+| `olive` | `#647455` | `@jl-background-color-green2` | brand accent only (not status) |
+| `success-ground` / `success-mark` / `success-text` | `#E2E8DB` / `#5D6C4F` / `#4A5740` | former toast-success set | status success |
+| `warning-ground` / `warning-mark` / `warning-text` | `#EEE6D6` / `#7A5F34` / `#5C4726` | former toast-warning set | status warning / low stock |
+| `error-ground` / `error-mark` / `error-text` | `#F1DDD5` / `#A5473B` / `#8A3A30` | former toast-error set | status error / validation |
+| `info-ground` / `info-mark` / `info-text` | `#E1E7EC` / `#4E6579` / `#3E5161` | former toast-help set | status info / notice |
+| `promo` | `#CB4867` | `@jl-background-color-purple` | sale badge only (never error) |
 
 ## Typography
 
 | Token | Value | Old |
 |---|---|---|
-| `font-sans` (hyva.config.json `fonts`) | Karla 300-800 | `@font-family-name__base` |
-| `font-heading` | DM Serif Display 400 (+ italic) | `@font-family-name__dmserif`, `@heading__font-family__base` |
+| `font-sans` (hyva.config.json `fonts`) | Figtree 300-800 (the old site used Karla) | `@font-family-name__base` |
+| `font-heading` | Figtree Medium, registered at weight 400 (+ italic); the old site used DM Serif Display | `@font-family-name__dmserif`, `@heading__font-family__base` |
 | `text-base` | 15px / 20px | `@font-size__base`, `@line-height__base` |
 | `text-h1` / `h1-desktop` | 27px/35px → 60px | `@h1__font-size`, `@h1__font-size-desktop` |
 | `text-h2` / `h2-desktop` | 20px/30px → 28px | `@h2__font-size`, `@od-h2__font-size--desktop` |
@@ -71,7 +74,7 @@ All headings are weight 400; `elme/typography.css` sets them, and `elme/prose.cs
 |---|---|---|
 | `radius-*` | 0 | `@button__border-radius: 0` - Elme is square |
 | `form-radius` | 1px | `@form-element-input__border-radius` |
-| `form-stroke` | `#CAC9C9` | `@form-element-input__border-color` |
+| `form-stroke` | `#8A8888` | form field border (3:1 UI on page); decorative borders stay `border` |
 | `form-py` / `form-px` | 14px / 12px | 50px input height (`@form-element-input__height`) |
 | `btn-min-height` | 50px | `@od-button__min-height` |
 | `btn-padding-x` | 24px | `@button__padding: 8px 24px` |

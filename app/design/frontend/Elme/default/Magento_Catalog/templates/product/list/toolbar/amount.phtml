@@ -1,0 +1,46 @@
+<?php
+/**
+ * FE-20: “Items X–Y of Z” — honest total for users and for FE-55 ItemList later.
+ * Not a heading.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\LocaleFormatter;
+use Magento\Catalog\Block\Product\ProductList\Toolbar;
+use Magento\Framework\Escaper;
+
+/** @var Toolbar $block */
+/** @var Escaper $escaper */
+/** @var LocaleFormatter $localeFormatter */
+?>
+<p class="toolbar-amount text-copy leading-5 text-ink-subtle order-3 sm:order-2 md:order-3
+    lg:order-2 col-span-2 gap-x-1" id="toolbar-amount<?= $block->getIsBottom() ? '-bottom' : '' ?>">
+    <?php if ($block->getLastPageNum() > 1): ?>
+        <?= $escaper->escapeHtml(
+            __(
+                'Items %1–%2 of %3',
+                '<span class="toolbar-number">' . $localeFormatter->formatNumber($block->getFirstNum()) . '</span>',
+                '<span class="toolbar-number">' . $localeFormatter->formatNumber($block->getLastNum()) . '</span>',
+                '<span class="toolbar-number">' . $localeFormatter->formatNumber($block->getTotalNum()) . '</span>'
+            ),
+            ['span']
+        ) ?>
+    <?php elseif ($block->getTotalNum() == 1): ?>
+        <?= $escaper->escapeHtml(
+            __(
+                '%1 Item',
+                '<span class="toolbar-number">' . $localeFormatter->formatNumber($block->getTotalNum()) . '</span>'
+            ),
+            ['span']
+        ) ?>
+    <?php else: ?>
+        <?= $escaper->escapeHtml(
+            __(
+                '%1 Items',
+                '<span class="toolbar-number">' . $localeFormatter->formatNumber($block->getTotalNum()) . '</span>'
+            ),
+            ['span']
+        ) ?>
+    <?php endif; ?>
+</p>

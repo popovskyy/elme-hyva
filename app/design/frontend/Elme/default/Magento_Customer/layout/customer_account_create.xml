@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-36 registration in the login's "Split screen" look: orchid photo on one half (sticky from lg, the form is
+ * long), "Apply for a trade account" intro and the Hyvä register form on the other. The H1 is in the intro.
+ * The form itself is Hyvä's (validation, password strength, address fields); elme/login.css restyles it.
+ * The ABN field and approval flow are backend work (FE-36).
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <attribute name="class" value="elme-login-page"/>
+        <attribute name="class" value="elme-register-page"/>
+        <referenceBlock name="page.main.title" remove="true"/>
+        <referenceContainer name="customer.login.container"
+                            htmlClass="registration-container registation-container elme-login elme-register">
+            <block name="elme.register.media"
+                   template="Magento_Customer::login/media.phtml"
+                   before="-">
+                <arguments>
+                    <argument name="image_desktop" xsi:type="string">images/sample-images/register-olive.webp</argument>
+                    <argument name="image_mobile" xsi:type="string">images/sample-images/register-olive-mobile.webp</argument>
+                    <argument name="kicker" xsi:type="string">Trade account</argument>
+                    <argument name="quote" xsi:type="string">Wholesale flowers, plants and decor for your store.</argument>
+                </arguments>
+            </block>
+            <container name="elme.register.panel" htmlTag="div" htmlClass="elme-login__panel elme-register__panel"
+                       after="elme.register.media">
+                <block name="elme.register.intro" template="Magento_Customer::register/intro.phtml"/>
+            </container>
+        </referenceContainer>
+        <move element="customer_form_register" destination="elme.register.panel" after="elme.register.intro"/>
+    </body>
+</page>
