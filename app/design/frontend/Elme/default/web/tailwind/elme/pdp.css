@@ -252,13 +252,8 @@
 
     .elme-pdp__section-body {
         padding-bottom: --spacing(5);
-        font-size: var(--text-copy);
-        line-height: var(--text-copy--line-height);
-
-        @variant lg {
-            font-size: var(--text-copy-desktop);
-            line-height: var(--text-copy--line-height);
-        }
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
     }
 
     @media (prefers-reduced-motion: no-preference) {

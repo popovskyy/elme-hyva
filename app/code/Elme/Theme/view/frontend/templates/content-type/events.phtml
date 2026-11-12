@@ -37,7 +37,7 @@ $ctaLabel = $eventsVm->getCtaLabel();
 
     <section aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
         <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-            class="mb-6 text-center font-heading text-display font-normal text-balance text-ink
+            class="mb-6 text-center font-heading text-display font-medium text-balance text-ink
                    lg:mb-10 lg:text-display-desktop">
             <?= $escaper->escapeHtml($eventsVm->getHeading($content)) ?>
         </h2>
@@ -50,7 +50,7 @@ $ctaLabel = $eventsVm->getCtaLabel();
                         id="event-<?= $escaper->escapeHtmlAttr($event['slug']) ?>">
                         <div class="flex shrink-0 flex-col items-start md:items-center"
                              aria-hidden="true">
-                            <span class="font-heading text-h1 font-normal leading-none text-ink
+                            <span class="font-heading text-h1 font-medium leading-none text-ink
                                          lg:text-h1-desktop">
                                 <?= $escaper->escapeHtml($event['day']) ?>
                             </span>
@@ -61,7 +61,7 @@ $ctaLabel = $eventsVm->getCtaLabel();
 
                         <div class="min-w-0">
                             <div class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-                                <h3 class="m-0 font-heading text-h3 font-normal text-ink lg:text-h3-desktop">
+                                <h3 class="m-0 font-heading text-h3 font-medium text-ink lg:text-h3-desktop">
                                     <?= $escaper->escapeHtml($event['name']) ?>
                                 </h3>
                                 <?php if ($event['on_now']): ?>

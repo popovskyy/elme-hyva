@@ -45,7 +45,7 @@ $cleanTitle = trim((string) preg_replace('/\{.*?\}/', '', $titleRaw));
             <span><?= $escaper->escapeHtml(__('Back')) ?></span>
         </button>
         <p class="elme-mobile-menu__sub-title flex-1 min-w-0 m-0 text-center font-heading
-                  font-normal text-base text-ink truncate">
+                  font-medium text-base text-ink truncate">
             <?= $escaper->escapeHtml($cleanTitle) ?>
         </p>
         <button type="button"

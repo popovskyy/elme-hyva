@@ -54,7 +54,7 @@ $contactClass = 'inline-flex min-h-11 min-w-11 items-center text-copy text-ink u
      data-chip-selected="<?= $escaper->escapeHtmlAttr($chipSelectedClass) ?>">
 
     <h1 id="<?= $escaper->escapeHtmlAttr($titleId) ?>"
-        class="mb-6 text-center font-heading text-h1 font-normal text-balance text-ink
+        class="mb-6 text-center font-heading text-h1 font-medium text-balance text-ink
                lg:mb-8 lg:text-h1-desktop">
         <?= $escaper->escapeHtml($title) ?>
     </h1>
@@ -87,7 +87,7 @@ $contactClass = 'inline-flex min-h-11 min-w-11 items-center text-copy text-ink u
 
         <?php if ($heading !== ''): ?>
             <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-                class="mb-6 text-center font-heading text-display font-normal text-balance text-ink
+                class="mb-6 text-center font-heading text-display font-medium text-balance text-ink
                        lg:mb-8 lg:text-display-desktop">
                 <?= $escaper->escapeHtml($heading) ?>
             </h2>
@@ -115,7 +115,7 @@ $contactClass = 'inline-flex min-h-11 min-w-11 items-center text-copy text-ink u
                     <p class="m-0 mb-1 text-note uppercase tracking-wide text-ink-muted">
                         <?= $escaper->escapeHtml($person['role']) ?>
                     </p>
-                    <h3 class="m-0 mb-1 font-heading text-h3 font-normal text-ink lg:text-h3-desktop">
+                    <h3 class="m-0 mb-1 font-heading text-h3 font-medium text-ink lg:text-h3-desktop">
                         <?= $escaper->escapeHtml($person['name']) ?>
                     </h3>
                     <p class="m-0 mb-3 text-note text-ink-subtle">

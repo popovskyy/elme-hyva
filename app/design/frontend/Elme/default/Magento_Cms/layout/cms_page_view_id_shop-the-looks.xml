@@ -6,6 +6,10 @@
 -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <!-- FE-100: Fraunces for Shop the Looks page title -->
+        <font src="fonts/fraunces/fraunces-latin-soft-normal.woff2"/>
+    </head>
     <body>
         <referenceBlock name="breadcrumbs">
             <arguments>

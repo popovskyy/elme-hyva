@@ -7,6 +7,10 @@
      (Magento_Theme::html/home-motion.phtml, home-motion.css). -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <!-- FE-100: Fraunces for above-fold home hero -->
+        <font src="fonts/fraunces/fraunces-latin-soft-normal.woff2"/>
+    </head>
     <body>
         <referenceContainer name="head.additional">
             <block name="elme.home.hero.preload"

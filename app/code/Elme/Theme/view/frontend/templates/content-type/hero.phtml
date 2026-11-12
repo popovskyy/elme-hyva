@@ -119,7 +119,7 @@ $heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier())
                 <div class="elme-hero__copy pointer-events-none absolute inset-x-0 bottom-0 z-1">
                     <div class="grid max-w-150 gap-4 lg:gap-5">
                         <<?= /* @noEscape */ $headingTag ?> id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-                            class="elme-hero__heading font-heading font-normal">
+                            class="elme-hero__heading font-display font-medium">
                             <?php foreach ($slide['lines'] as $line): ?>
                                 <span class="elme-hero__line"><span><?= $escaper->escapeHtml($line) ?></span></span>
                             <?php endforeach; ?>
