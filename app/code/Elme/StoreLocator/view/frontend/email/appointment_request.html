@@ -1,0 +1,74 @@
+<!--
+/**
+ * FE-90: showroom appointment request to the showroom team. Reply goes to the customer.
+ */
+-->
+<!--@subject {{trans "Showroom appointment request: %date at %time" date=$data.date_label time=$data.time_label}} @-->
+<!--@vars {
+"var data.showroom_name":"Showroom",
+"var data.date_label":"Date",
+"var data.time_label":"Time",
+"var data.visitors":"Visitors",
+"var data.interests_label":"Interested In",
+"var data.name":"Name",
+"var data.email":"Email",
+"var data.telephone":"Phone",
+"var data.company":"Company",
+"var data.account_id":"Customer ID",
+"var data.notes":"Notes"
+} @-->
+
+{{template config_path="design/email/header_template"}}
+
+<p>{{trans "A trade customer has asked to visit the showroom. Reply to this email or call them to confirm the appointment."}}</p>
+
+<table class="message-details">
+    <tr>
+        <td><strong>{{trans "Showroom"}}</strong></td>
+        <td>{{var data.showroom_name}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Date"}}</strong></td>
+        <td>{{var data.date_label}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Time"}}</strong></td>
+        <td>{{var data.time_label}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Visitors"}}</strong></td>
+        <td>{{var data.visitors}}</td>
+    </tr>
+    {{depend data.interests_label}}
+    <tr>
+        <td><strong>{{trans "Interested in"}}</strong></td>
+        <td>{{var data.interests_label}}</td>
+    </tr>
+    {{/depend}}
+    <tr>
+        <td><strong>{{trans "Name"}}</strong></td>
+        <td>{{var data.name}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Company"}}</strong></td>
+        <td>{{var data.company}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Email"}}</strong></td>
+        <td>{{var data.email}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Phone"}}</strong></td>
+        <td>{{var data.telephone}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Customer ID"}}</strong></td>
+        <td>{{var data.account_id}}</td>
+    </tr>
+</table>
+{{depend data.notes}}
+<p><strong>{{trans "Notes"}}</strong></p>
+<p>{{var data.notes}}</p>
+{{/depend}}
+
+{{template config_path="design/email/footer_template"}}

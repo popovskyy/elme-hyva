@@ -19,6 +19,16 @@
                     <comment>Optional Google Maps Embed API key. Keys are usually locked to the live domain, so leave empty on local and staging: the map then uses the keyless embed.</comment>
                 </field>
             </group>
+            <group id="appointment" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1"
+                   showInStore="0">
+                <label>Showroom Appointments</label>
+                <field id="recipient_email" translate="label comment" type="text" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Send Requests To</label>
+                    <validate>validate-email</validate>
+                    <comment>Email that receives /book-appointment requests. Empty: the Contact Us recipient (Stores > Configuration > General > Contacts).</comment>
+                </field>
+            </group>
         </section>
     </system>
 </config>

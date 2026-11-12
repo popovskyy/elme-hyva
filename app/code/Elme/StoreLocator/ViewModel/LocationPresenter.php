@@ -168,9 +168,15 @@ class LocationPresenter implements ArgumentInterface
         return 'https://maps.google.com/maps?q=' . rawurlencode($query) . '&z=15&output=embed';
     }
 
-    public function getAppointmentUrl(): string
+    /**
+     * FE-90 booking page, with the showroom preselected when given.
+     */
+    public function getAppointmentUrl(?LocationInterface $location = null): string
     {
-        return $this->urlBuilder->getUrl('', ['_direct' => 'contact-us']);
+        return $this->urlBuilder->getUrl('', [
+            '_direct' => AppointmentForm::PAGE_PATH,
+            '_query' => $location ? ['showroom' => $location->getUrlKey()] : [],
+        ]);
     }
 
     public function getApplyUrl(): string
@@ -201,6 +207,7 @@ class LocationPresenter implements ArgumentInterface
             'phone_tel' => $this->getTelHref($location->getPhone()),
             'description' => (string) $location->getDescription(),
             'url' => $this->getLocationUrl($location),
+            'appointment_url' => $this->isShowroom($location) ? $this->getAppointmentUrl($location) : '',
             'url_key' => $location->getUrlKey(),
             'lat' => $location->getLatitude(),
             'lng' => $location->getLongitude(),

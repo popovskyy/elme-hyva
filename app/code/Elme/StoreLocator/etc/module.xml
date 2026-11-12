@@ -7,6 +7,8 @@
             <module name="Magento_Ui"/>
             <module name="Magento_Theme"/>
             <module name="Magento_Customer"/>
+            <module name="Magento_Cms"/>
+            <module name="Magento_Contact"/>
             <module name="Elme_LoginOnly"/>
             <module name="Hyva_Theme"/>
         </sequence>

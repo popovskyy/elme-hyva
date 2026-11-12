@@ -144,7 +144,13 @@ $iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
                             </dt>
                             <dd class="m-0" x-show="hasDistance" x-text="cardDistanceLabel" data-url-key="<?= $escaper->escapeHtmlAttr($card['url_key']) ?>"></dd>
                         </dl>
-                        <p class="m-0">
+                        <p class="m-0 flex flex-wrap gap-3">
+                            <?php if ($card['appointment_url'] !== ''): ?>
+                                <a href="<?= $escaper->escapeUrl($card['appointment_url']) ?>"
+                                   class="btn btn-primary">
+                                    <?= $escaper->escapeHtml(__('Book an appointment')) ?>
+                                </a>
+                            <?php endif; ?>
                             <a href="<?= $escaper->escapeUrl($card['url']) ?>"
                                class="btn btn-secondary">
                                 <?= $escaper->escapeHtml(__('See location')) ?>
