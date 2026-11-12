@@ -2,12 +2,13 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <head>
-        <!-- Favicons from the old Bart/el theme; favicon.ico itself is Magento_Theme/web/favicon.ico (Magento default path) -->
-        <link src="Magento_Theme::favicon/favicon-16x16.png" rel="icon" type="image/png" sizes="16x16"/>
-        <link src="Magento_Theme::favicon/favicon-32x32.png" rel="icon" type="image/png" sizes="32x32"/>
-        <link src="Magento_Theme::favicon/android-chrome-192x192.png" rel="icon" type="image/png" sizes="192x192"/>
-        <link src="Magento_Theme::favicon/android-chrome-512x512.png" rel="icon" type="image/png" sizes="512x512"/>
+        <!--
+            Favicon.ico is Magento_Theme/web/favicon.ico (auto-injected by Renderer::prepareFavicon).
+            SVG icon + manifest.json: Magento_Theme::html/head/icons.phtml via default.xml (svg-as-font Renderer quirk).
+            manifest.json (not .webmanifest) so Magento/nginx serve application/json; theme-color = token color.primary (#3A3935).
+        -->
         <link src="Magento_Theme::favicon/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+        <meta name="theme-color" content="#3A3935"/>
         <!-- Body text and the heading face (every page has an h1): other weights load on demand (font-display: swap + metric-matched fallback) -->
         <font src="fonts/figtree/Figtree-Regular.woff2"/>
         <font src="fonts/figtree/Figtree-Medium.woff2"/>

@@ -2,6 +2,12 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
+        <!-- FE-95: SVG favicon + web manifest (cannot use head <link src> for .svg — Magento treats svg as font preload) -->
+        <referenceContainer name="head.additional">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.head.icons"
+                   template="Magento_Theme::html/head/icons.phtml"/>
+        </referenceContainer>
         <!-- Hyva prefetches a link on hover. Login-only pages must not be prefetched: for a guest the
              prefetch runs Elme_LoginOnly's redirect and leaves "Please login to access this page."
              in the session, shown on the next page they open. -->

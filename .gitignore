@@ -23,6 +23,11 @@
 !/bin
 !/bin/clinotty
 
+# Root favicon fallback so /favicon.ico never 404s (browsers request it without the theme path).
+!/pub
+/pub/**
+!/pub/favicon.ico
+
 # PHPUnit Allure config when the suite is run from the repo root (see elme-qa / BE unit tests).
 !/allure
 !/allure/allure.config.php
