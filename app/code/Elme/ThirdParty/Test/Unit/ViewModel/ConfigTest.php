@@ -50,4 +50,43 @@ class ConfigTest extends TestCase
 
         self::assertSame('', $this->config->getOutletEmbedFormId());
     }
+
+    public function testGetOutletListIdReturnsConfiguredId(): void
+    {
+        $this->scopeConfig->method('getValue')
+            ->with('elme_third_party/klaviyo/outlet_list_id', ScopeInterface::SCOPE_STORE)
+            ->willReturn('TNqMx7');
+
+        self::assertSame('TNqMx7', $this->config->getOutletListId());
+    }
+
+    public function testGetOutletListIdRejectsUnsafeCharacters(): void
+    {
+        $this->scopeConfig->method('getValue')
+            ->with('elme_third_party/klaviyo/outlet_list_id', ScopeInterface::SCOPE_STORE)
+            ->willReturn('TN/../x');
+
+        self::assertSame('', $this->config->getOutletListId());
+    }
+
+    public function testGetKlaviyoPublicApiKeyWhenEnabled(): void
+    {
+        $this->scopeConfig->method('isSetFlag')
+            ->with('elme_third_party/klaviyo/enabled', ScopeInterface::SCOPE_STORE)
+            ->willReturn(true);
+        $this->scopeConfig->method('getValue')
+            ->with('elme_third_party/klaviyo/public_api_key', ScopeInterface::SCOPE_STORE)
+            ->willReturn('TMvimz');
+
+        self::assertSame('TMvimz', $this->config->getKlaviyoPublicApiKey());
+    }
+
+    public function testGetKlaviyoPublicApiKeyEmptyWhenDisabled(): void
+    {
+        $this->scopeConfig->method('isSetFlag')
+            ->with('elme_third_party/klaviyo/enabled', ScopeInterface::SCOPE_STORE)
+            ->willReturn(false);
+
+        self::assertSame('', $this->config->getKlaviyoPublicApiKey());
+    }
 }

@@ -22,6 +22,7 @@ class Config implements ArgumentInterface
     private const XML_KL_KEY = 'elme_third_party/klaviyo/public_api_key';
     private const XML_KL_FORMS = 'elme_third_party/klaviyo/forms_enabled';
     private const XML_KL_OUTLET_FORM = 'elme_third_party/klaviyo/outlet_embed_form_id';
+    private const XML_KL_OUTLET_LIST = 'elme_third_party/klaviyo/outlet_list_id';
     private const XML_ZD_ENABLED = 'elme_third_party/zendesk/enabled';
     private const XML_ZD_KEY = 'elme_third_party/zendesk/snippet_key';
     private const XML_ZD_OFF_M = 'elme_third_party/zendesk/launcher_offset_mobile';
@@ -42,13 +43,31 @@ class Config implements ArgumentInterface
     }
 
     /**
-     * Klaviyo onsite embed form id for /elme-outlet-signup (FE-91). Empty = do not render.
+     * Klaviyo onsite embed form id for /elme-outlet-signup (FE-91). Empty = unused.
      */
     public function getOutletEmbedFormId(): string
     {
-        $id = trim((string) $this->get(self::XML_KL_OUTLET_FORM));
+        return $this->safeId((string) $this->get(self::XML_KL_OUTLET_FORM));
+    }
 
-        return preg_match('/^[A-Za-z0-9_-]+$/', $id) === 1 ? $id : '';
+    /**
+     * Klaviyo list id for outlet signup (FE-91). Empty = do not render the form.
+     */
+    public function getOutletListId(): string
+    {
+        return $this->safeId((string) $this->get(self::XML_KL_OUTLET_LIST));
+    }
+
+    /**
+     * Public Klaviyo company_id (site id). Empty when disabled or unset.
+     */
+    public function getKlaviyoPublicApiKey(): string
+    {
+        if (!$this->flag(self::XML_KL_ENABLED)) {
+            return '';
+        }
+
+        return $this->safeId((string) $this->get(self::XML_KL_KEY));
     }
 
     /**
@@ -91,5 +110,12 @@ class Config implements ArgumentInterface
     private function flag(string $path): bool
     {
         return $this->scopeConfig->isSetFlag($path, ScopeInterface::SCOPE_STORE);
+    }
+
+    private function safeId(string $value): string
+    {
+        $id = trim($value);
+
+        return preg_match('/^[A-Za-z0-9_-]+$/', $id) === 1 ? $id : '';
     }
 }

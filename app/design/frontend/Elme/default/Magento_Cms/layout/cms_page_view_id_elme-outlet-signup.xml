@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 /**
- * FE-91: /elme-outlet-signup — Klaviyo onsite embed (form id from ThirdParty config).
+ * FE-91: /elme-outlet-signup — Client API form to Klaviyo Outlet Sign Ups list (ThirdParty config).
  * Company script is already deferred in Elme_ThirdParty (FE-54).
  */
 -->
