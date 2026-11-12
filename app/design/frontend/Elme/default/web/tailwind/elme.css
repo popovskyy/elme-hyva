@@ -4,6 +4,7 @@
  */
 
 @import "./elme/typography.css";
+@import "./elme/display.css";
 @import "./elme/prose.css";
 @import "./elme/header.css";
 @import "./elme/mobile-menu.css";

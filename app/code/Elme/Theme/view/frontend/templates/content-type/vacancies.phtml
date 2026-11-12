@@ -38,7 +38,7 @@ $linkClass = 'font-bold text-ink underline underline-offset-4 hover:text-link-ho
 
     <section aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
         <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
-            class="mb-6 text-center font-heading text-display font-normal text-balance text-ink
+            class="mb-6 text-center font-heading text-display font-medium text-balance text-ink
                    lg:mb-8 lg:text-display-desktop">
             <?= $escaper->escapeHtml($vacancies->getHeading($content)) ?>
         </h2>
@@ -49,7 +49,7 @@ $linkClass = 'font-bold text-ink underline underline-offset-4 hover:text-link-ho
                     <li class="grid gap-3 border-b border-border py-5
                                lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-center
                                lg:gap-6 lg:py-6">
-                        <h3 class="m-0 font-heading text-h4 font-normal text-ink">
+                        <h3 class="m-0 font-heading text-h4 font-medium text-ink">
                             <?= $escaper->escapeHtml($role['title']) ?>
                         </h3>
                         <p class="m-0 flex flex-wrap items-center gap-x-2.5 text-ink-muted lg:contents">

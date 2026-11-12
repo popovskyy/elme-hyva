@@ -2,7 +2,14 @@
  * Elme Living base typography.
  * Roles from hyva.config.json tokens.values.text (scale UX-14 option 1).
  * h5/h6 are not separate size tokens: they reuse body/copy and differ by tracking.
+ * FE-100: --font-heading aliases Figtree (--font-sans); weight comes from the VF axis.
+ * Showcase (inspire) headings use --font-display (Fraunces) via elme/display.css.
  */
+
+/* Working headings share the Figtree stack; font-heading utility keeps working after FigtreeHeading removal */
+@theme {
+    --font-heading: var(--font-sans);
+}
 
 @layer base {
     body {
@@ -13,9 +20,8 @@
 
     /* Plain element selectors: :where() would lose to Tailwind preflight's `h1 { font-size: inherit }` */
     h1, h2, h3, h4, h5, h6 {
-        /* --font-heading is Figtree Medium registered at weight 400, so font-normal headings stay medium */
         font-family: var(--font-heading);
-        font-weight: 400;
+        font-weight: 500;
         letter-spacing: -0.02em;
         color: var(--color-ink);
     }

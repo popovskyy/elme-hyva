@@ -529,8 +529,8 @@
 
     .elme-help-body p {
         margin: 0 0 --spacing(3);
-        font-size: var(--text-copy);
-        line-height: 1.6;
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
         color: var(--color-ink-muted);
     }
 
@@ -538,8 +538,8 @@
         margin: 0 0 --spacing(4);
         padding-inline-start: --spacing(5);
         color: var(--color-ink-muted);
-        font-size: var(--text-copy);
-        line-height: 1.6;
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
     }
 
     .elme-help-body li + li {
@@ -573,7 +573,8 @@
 
         .elme-help-body p,
         .elme-help-body ul {
-            font-size: var(--text-copy-desktop);
+            font-size: var(--text-base);
+            line-height: var(--text-base--line-height);
         }
     }
 

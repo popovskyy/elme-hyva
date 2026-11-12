@@ -46,7 +46,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
              x-transition:enter-start="opacity-0 scale-97 motion-reduce:scale-100"
              x-transition:leave="transition ease-out-quart duration-150"
              x-transition:leave-end="opacity-0 scale-97 motion-reduce:scale-100">
-            <h2 id="elme-confirm-title" class="font-heading font-normal text-h4 text-ink" x-text="title"></h2>
+            <h2 id="elme-confirm-title" class="font-heading font-medium text-h4 text-ink" x-text="title"></h2>
             <p id="elme-confirm-text" class="text-copy text-ink-muted mt-3" x-show="hasText" x-text="text"></p>
             <div class="flex flex-wrap gap-3 justify-end mt-6">
                 <button type="button" class="btn btn-secondary" x-ref="cancel" @click="cancel" x-text="cancelLabel">
