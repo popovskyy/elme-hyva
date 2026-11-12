@@ -1,0 +1,35 @@
+<?php
+/**
+ * FE-93: registration agree-to trade terms (production widget/termsconditions.phtml).
+ * Checkbox is UI/required only here; customer attribute persistence is FE-36 / BE.
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+$termsUrl = $block->getUrl('', ['_direct' => 'terms-conditions-of-trade']);
+?>
+<fieldset class="fieldset elme-register-terms my-6">
+    <legend class="sr-only"><?= $escaper->escapeHtml(__('Terms & Conditions')) ?></legend>
+    <div class="field choice required">
+        <input type="checkbox"
+               name="business_terms_and_conditions"
+               value="1"
+               id="business_terms_and_conditions"
+               class="checkbox"
+               required
+               data-validate='{"required":true}'
+               aria-required="true">
+        <label for="business_terms_and_conditions" class="label">
+            <?= /* @noEscape */ __(
+                'I agree to Elme Living <a href="%1" target="_blank" rel="noopener noreferrer">Terms &amp; Conditions</a>',
+                $escaper->escapeUrl($termsUrl)
+            ) ?>
+        </label>
+    </div>
+</fieldset>

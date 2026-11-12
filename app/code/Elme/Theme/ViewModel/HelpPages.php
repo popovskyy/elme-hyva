@@ -14,7 +14,7 @@ use Magento\Store\Model\StoreManagerInterface;
 class HelpPages implements ArgumentInterface
 {
     /**
-     * Task-first order (idea review): Contact → Shipping → FAQs → Stockist → Terms → Privacy.
+     * Task-first order (idea review): Contact → Shipping → FAQs → Stockist → Terms → Trade → Privacy.
      *
      * @var list<array{
      *     identifier: string,
@@ -48,6 +48,11 @@ class HelpPages implements ArgumentInterface
         [
             'identifier' => 'website-terms-conditions',
             'label' => 'Terms & Conditions',
+            'on_this_page' => true,
+        ],
+        [
+            'identifier' => 'terms-conditions-of-trade',
+            'label' => 'Trade Terms & Conditions',
             'on_this_page' => true,
         ],
         [

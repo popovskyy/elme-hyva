@@ -2,7 +2,7 @@
 <!--
 /**
  * FE-45 Help page shell: two-column layout, curated side nav, assistance strip, JSON-LD / OG.
- * Applied via Elme\Theme\Observer\AddHelpPageHandle on the six help identifiers.
+ * Applied via Elme\Theme\Observer\AddHelpPageHandle on curated help identifiers.
  */
 -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
