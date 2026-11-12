@@ -3,7 +3,7 @@
  * Working UI headings stay on Figtree (--font-heading / --font-sans).
  */
 @layer components {
-    .elme-look-card__name,
+    /* Look-card product names stay Figtree (QA1). Page title is showcase. */
     .elme-shop-the-looks-page__title {
         font-family: var(--font-display);
         letter-spacing: -0.01em;

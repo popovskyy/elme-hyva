@@ -589,7 +589,6 @@
 
     .elme-look-card__name {
         margin: 0;
-        font-family: var(--font-display);
         font-size: var(--text-h3);
         font-weight: 400;
         line-height: --spacing(6);
