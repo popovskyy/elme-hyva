@@ -8,6 +8,12 @@
     --elme-zendesk-bottom-mobile: 5.5rem;
     --elme-zendesk-bottom-desktop: 1.5rem;
     --elme-zendesk-launcher-size: 3.5rem;
+
+    /* FE-27 / UX-06: lift the launcher while the sticky ATC is on screen */
+    &:has(.elme-sticky-atc.is-visible) {
+        --elme-zendesk-bottom-mobile: 6.5rem;
+        --elme-zendesk-bottom-desktop: 5.5rem;
+    }
 }
 
 /* Classic Web Widget launcher + Messaging iframe button */

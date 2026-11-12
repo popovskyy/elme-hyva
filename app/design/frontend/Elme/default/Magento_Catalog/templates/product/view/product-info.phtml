@@ -1,16 +1,15 @@
 <?php
 /**
- * Elme FE-25: product info column: name (the page H1), subtitle, SKU, stock line, the buy box, short
- * description, essentials, then the detail sections (accordion). FE-26 (guests): sign-in price +
- * Apply here / Login (product.info.guest.buybox); qty and add to cart stay out of the HTML. FE-27
- * (customers) rebuilds the logged-in buy box and must keep btn-atc on the add to cart button (FE-70).
+ * Elme FE-25 / FE-27: product info column. FE-26 guests: sign-in price + Apply/Login. FE-27 customers:
+ * price (after render), MOQ stepper, ATC with line total, In your cart, sticky bar. Keep btn-atc (FE-70).
+ * Heart next to ATC is the shopping list (FE-78); core wishlist stays removed.
  *
- * Every field may be empty (elme-product-data): subtitle and short description render nothing then.
- * From lg the buy box sits above the description (CSS order); the source order stays name, text, buy.
+ * Every field may be empty (elme-product-data). Buy box sits above the description on all widths (CSS order).
  */
 
 declare(strict_types=1);
 
+use Elme\LoginOnly\ViewModel\LoginOnly;
 use Elme\Theme\ViewModel\ProductTile;
 use Hyva\Theme\Model\ViewModelRegistry;
 use Hyva\Theme\ViewModel\HyvaCsp;
@@ -28,15 +27,17 @@ use Magento\Framework\View\Element\Template;
 $productViewModel = $viewModels->require(ProductPage::class);
 /** @var ProductTile $tile */
 $tile = $viewModels->require(ProductTile::class);
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
 
 /** @var Product $product */
 $product = $productViewModel->getProduct();
 $subtitle = trim((string) $product->getData('subtitle'));
 $shortDescription = trim((string) $productViewModel->getShortDescription());
 $stockLevel = $tile->getStockLevel($product);
+$isLoggedIn = $loginOnly->isLoggedIn();
 
-// UX-11 essentials next to the buy box: size, material, assembly (planned PIM fields `dimensions`,
-// `material`, `assembly_info`; see elme-product-data). A row without a value is not rendered.
+// UX-11 essentials next to the buy box: size, material, assembly (planned PIM fields).
 $attributeText = static function (string $code) use ($product): string {
     $attribute = $product->getResource()->getAttribute($code);
     if (!$attribute || $product->getData($code) === null || $product->getData($code) === '') {
@@ -59,6 +60,10 @@ $essentials = array_filter([
     (string) __('Material') => $attributeText('material'),
     (string) __('Assembly') => $attributeText('assembly_info'),
 ]);
+
+$buyControls = $product->isSaleable()
+    ? trim($block->getChildHtml('product.info.quantity') . $block->getChildHtml('product.info.addtocart'))
+    : '';
 ?>
 <div class="elme-pdp__info">
     <div class="elme-pdp__head">
@@ -104,7 +109,16 @@ $essentials = array_filter([
         </div>
     <?php endif; ?>
 
-    <div class="elme-pdp__buy">
+    <div class="elme-pdp__buy"
+         <?php if ($isLoggedIn && $buyControls !== ''): ?>
+         x-data="initElmePdpBuyBox"
+         data-product-id="<?= (int) $product->getId() ?>"
+         data-sku="<?= $escaper->escapeHtmlAttr($product->getSku()) ?>"
+         data-product-name="<?= $escaper->escapeHtmlAttr($product->getName()) ?>"
+         data-in-cart="<?= $escaper->escapeHtmlAttr(__('In your cart: %1')) ?>"
+         x-ref="buyBox"
+         <?php endif; ?>
+    >
         <?= $block->getChildHtml('alert.urls') ?>
 
         <?= $block->getChildHtml('product.info.form') ?>
@@ -119,13 +133,8 @@ $essentials = array_filter([
 
         <?= $block->getChildHtml('product.info.guest.buybox') ?>
 
-        <?php
-        $buyControls = $product->isSaleable()
-            ? trim($block->getChildHtml('product.info.quantity') . $block->getChildHtml('product.info.addtocart'))
-            : '';
-        ?>
         <?php if ($buyControls !== ''): ?>
-            <div class="flex flex-wrap gap-2"><?= /* @noEscape */ $buyControls ?></div>
+            <?= /* @noEscape */ $buyControls ?>
             <?= $block->getChildHtml('addtocart.shortcut.buttons') ?>
         <?php endif; ?>
 
@@ -133,7 +142,7 @@ $essentials = array_filter([
     </div>
 
     <?php if ($essentials): ?>
-        <dl class="elme-pdp__essentials">
+        <dl class="elme-pdp__essentials" id="elme-pdp-essentials">
             <?php foreach ($essentials as $label => $value): ?>
                 <div>
                     <dt><?= $escaper->escapeHtml($label) ?></dt>
@@ -148,9 +157,12 @@ $essentials = array_filter([
     <?= $block->getChildHtml('product.info.additional') ?>
 </div>
 
+<?php if ($isLoggedIn && $buyControls !== ''): ?>
+    <?= $block->getChildHtml('product.info.sticky.atc') ?>
+<?php endif; ?>
+
 <?php if ($shortDescription !== ''): ?>
 <script>
-    // Short description: three lines on phones, six from lg, with "Read more"; the button only shows when text is cut.
     function initElmeClamp() {
         return {
             open: false,
@@ -172,7 +184,7 @@ $essentials = array_filter([
                 return this.open;
             },
             isClosed() {
-                return !this.open;
+                return this.open === false;
             },
             canToggle() {
                 return this.overflows;

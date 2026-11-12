@@ -15,7 +15,9 @@ interface CustomerPriceProviderInterface
 {
     /**
      * @param int[] $productIds
-     * @return array<int, array{final: float, regular: float}> Ex GST. Products without a price are left out.
+     * @return array<int, array{final: float, regular: float, promo: bool}> Ex GST. Products without a price are
+     *         left out. `promo` is true only when a list/region (or Magento special) promo wins; contract prices
+     *         stay `promo` false so the storefront does not show was/now for every A1 customer.
      */
     public function getPrices(array $productIds, int $customerId, int $customerGroupId): array;
 }

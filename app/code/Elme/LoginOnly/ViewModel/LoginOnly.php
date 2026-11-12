@@ -59,4 +59,12 @@ class LoginOnly implements ArgumentInterface
     {
         return $this->urlBuilder->getUrl('elme_customer_price/prices');
     }
+
+    /**
+     * Live MOQ max/salable for the PDP stepper (FE-27). min/step may also be read from cached HTML.
+     */
+    public function getQtyRulesUrl(): string
+    {
+        return $this->urlBuilder->getUrl('elme_qty_rules/rules');
+    }
 }

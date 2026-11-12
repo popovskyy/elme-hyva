@@ -2,9 +2,10 @@
 /**
  * Loads the logged-in customer's prices for Elme_LoginOnly::price/customer-price.phtml placeholders.
  *
- * window.elmeCustomerPrices.get(productId) returns a promise of {final, regular, final_formatted,
+ * window.elmeCustomerPrices.get(productId) returns a promise of {final, regular, promo, final_formatted,
  * regular_formatted} or null. Ids asked for in the same tick go out as one request. Prices are kept in memory
  * for the page only (never in localStorage), so a shared computer never shows the last customer's prices.
+ * `promo` is true only for a list/region (or Magento special) sale; contract prices stay false.
  */
 
 declare(strict_types=1);
@@ -106,7 +107,20 @@ $loginOnly = $viewModels->require(LoginOnly::class);
             },
 
             hasDiscount() {
-                return this.isReady() && this.price.regular > this.price.final;
+                return this.isReady() && Boolean(this.price.promo);
+            },
+
+            // Contract / A1 / group discount: plain "Your price", no strike-through
+            isContractPrice() {
+                return this.isReady()
+                    && !this.price.promo
+                    && this.price.regular > this.price.final;
+            },
+
+            isPlainPrice() {
+                return this.isReady()
+                    && !this.hasDiscount()
+                    && !this.isContractPrice();
             },
 
             finalPrice() {

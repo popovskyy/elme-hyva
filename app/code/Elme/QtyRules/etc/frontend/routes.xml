@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
+    <router id="standard">
+        <!-- Live max/salable for steppers (FE-27); min/step also returned but may come from cached HTML -->
+        <route id="elme_qty_rules" frontName="qty-rules">
+            <module name="Elme_QtyRules"/>
+        </route>
+    </router>
+</config>

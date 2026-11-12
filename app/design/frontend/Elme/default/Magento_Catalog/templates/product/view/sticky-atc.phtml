@@ -1,0 +1,100 @@
+<?php
+/**
+ * FE-27: sticky add-to-cart after the buy box leaves the viewport. Logged-in only.
+ * Visual repeat of name/price only (no headings, no itemprop). Button clicks the main ATC so qty
+ * and FE-70 stay in one place. Compact stepper mirrors the buy-box qty.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Catalog\Block\Product\View;
+use Magento\Framework\Escaper;
+
+/** @var View $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$product = $block->getProduct();
+if (!$product || !$product->isSaleable()) {
+    return;
+}
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+$productName = (string) $product->getName();
+$imageBlock = $block->getImage($product, 'product_page_image_small');
+$imageUrl = $imageBlock ? (string) $imageBlock->getImageUrl() : '';
+?>
+<aside class="elme-sticky-atc"
+       x-data="initElmePdpStickyAtc"
+       x-ref="sticky"
+       :class="barClasses"
+       :aria-hidden="isHidden"
+       :inert="isInert"
+       role="region"
+       aria-label="<?= $escaper->escapeHtmlAttr(__('Add to cart')) ?>"
+       data-product-name="<?= $escaper->escapeHtmlAttr($productName) ?>"
+       data-label-idle="<?= $escaper->escapeHtmlAttr(__('Add to Cart')) ?>"
+       data-label-add="<?= $escaper->escapeHtmlAttr(__('Add %1 to cart · %2')) ?>"
+>
+    <div class="elme-sticky-atc__inner">
+        <?php if ($imageUrl !== ''): ?>
+            <img class="elme-sticky-atc__thumb"
+                 src="<?= $escaper->escapeUrl($imageUrl) ?>"
+                 alt=""
+                 width="48"
+                 height="48"
+                 loading="lazy"
+                 decoding="async"
+            >
+        <?php endif; ?>
+
+        <div class="elme-sticky-atc__meta">
+            <p class="elme-sticky-atc__name"><?= $escaper->escapeHtml($productName) ?></p>
+            <p class="elme-sticky-atc__price tabular-nums min-h-5">
+                <span class="elme-skeleton elme-sticky-atc__price-skel" x-show="isPriceLoading" aria-hidden="true"></span>
+                <span x-show="isPriceReady" x-cloak x-text="priceLabel"></span>
+            </p>
+        </div>
+
+        <div class="elme-sticky-atc__qty elme-qty" :class="stepperClasses">
+            <button type="button"
+                    class="elme-qty__btn"
+                    @click="decrement"
+                    :disabled="isDecrementDisabled"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Decrease quantity')) ?>"
+            >
+                <?= $lucideIcons->minusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+            </button>
+            <span class="elme-qty__input tabular-nums" x-text="qty" aria-live="polite"></span>
+            <button type="button"
+                    class="elme-qty__btn"
+                    @click="increment"
+                    :disabled="isIncrementDisabled"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Increase quantity')) ?>"
+            >
+                <?= $lucideIcons->plusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+            </button>
+        </div>
+
+        <nav class="elme-sticky-atc__jumps" aria-label="<?= $escaper->escapeHtmlAttr(__('On this page')) ?>">
+            <a href="#description" class="elme-sticky-atc__jump" data-jump="description"><?= $escaper->escapeHtml(__('Details')) ?></a>
+            <a href="#elme-pdp-essentials" class="elme-sticky-atc__jump" data-jump="elme-pdp-essentials"><?= $escaper->escapeHtml(__('Dimensions')) ?></a>
+            <a href="#elme-pdp-section-delivery" class="elme-sticky-atc__jump" data-jump="elme-pdp-section-delivery"><?= $escaper->escapeHtml(__('Delivery')) ?></a>
+        </nav>
+
+        <button type="button"
+                class="btn btn-primary elme-sticky-atc__btn"
+                @click="submit"
+                :aria-label="ariaLabel"
+        >
+            <?= $lucideIcons->shoppingCartHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+            <span class="elme-sticky-atc__btn-label tabular-nums min-w-32" x-text="buttonLabel">
+                <?= $escaper->escapeHtml(__('Add to Cart')) ?>
+            </span>
+        </button>
+    </div>
+</aside>

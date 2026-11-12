@@ -1,0 +1,487 @@
+<?php
+/**
+ * FE-27: Alpine for the logged-in PDP buy box — qty rules (live max), line-total ATC label,
+ * In your cart from Quick Order, sticky bar sync via Alpine.store('elmePdpBuy').
+ */
+
+declare(strict_types=1);
+
+use Elme\LoginOnly\ViewModel\LoginOnly;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+?>
+<script>
+    (function () {
+        const RULES_URL = '<?= $escaper->escapeJs($loginOnly->getQtyRulesUrl()) ?>';
+
+        function formatQty(value) {
+            const n = Number(value);
+            if (!Number.isFinite(n)) {
+                return '1';
+            }
+            return String(parseFloat(n.toFixed(4)));
+        }
+
+        function createStore(seed) {
+            return {
+                productId: seed.productId || 0,
+                sku: seed.sku || '',
+                productName: seed.productName || '',
+                min: seed.min || 1,
+                step: seed.step || 1,
+                max: 0,
+                salable: true,
+                qty: seed.min || 1,
+                price: null,
+                priceState: 'loading',
+                cartQty: 0,
+                stickyVisible: false,
+                hint: seed.hint || '',
+                note: seed.hint || '',
+                tone: 'hint',
+                roundedMessage: seed.roundedMessage || '',
+                maxMessage: seed.maxMessage || '',
+                inCartTemplate: seed.inCartTemplate || '',
+                labelIdle: seed.labelIdle || '',
+                labelAdd: seed.labelAdd || '',
+
+                maxQty() {
+                    return this.max > 0 ? Math.floor(this.max / this.step) * this.step : 0;
+                },
+
+                toValidQty(value) {
+                    let qty = Math.max(this.min, Math.ceil(value / this.step) * this.step);
+                    const maxQty = this.maxQty();
+                    if (maxQty && qty > maxQty) {
+                        qty = Math.max(this.min, maxQty);
+                    }
+                    return qty;
+                },
+
+                setQty(qty, options) {
+                    const next = this.toValidQty(qty);
+                    this.qty = next;
+                    window.dispatchEvent(new CustomEvent('elme-pdp-qty', {
+                        detail: { qty: next, silent: Boolean(options && options.silent) }
+                    }));
+                    this.updateAtcLabel();
+                },
+
+                setPrice(price, state) {
+                    this.price = price;
+                    this.priceState = state || (price ? 'ready' : 'unavailable');
+                    this.updateAtcLabel();
+                },
+
+                setCartQty(qty) {
+                    this.cartQty = Math.max(0, Number(qty) || 0);
+                },
+
+                setStickyVisible(visible) {
+                    this.stickyVisible = Boolean(visible);
+                    document.documentElement.classList.toggle('elme-sticky-atc-active', this.stickyVisible);
+                    window.dispatchEvent(new CustomEvent('elme-pdp-sticky', {
+                        detail: { visible: this.stickyVisible }
+                    }));
+                },
+
+                lineTotal() {
+                    return this.price && this.price.final
+                        ? this.price.final * this.qty
+                        : null;
+                },
+
+                buttonLabel() {
+                    const total = this.lineTotal();
+                    if (total === null || !this.labelAdd || !window.hyva || !hyva.formatPrice) {
+                        return this.labelIdle || '';
+                    }
+                    return hyva.str(this.labelAdd, formatQty(this.qty), hyva.formatPrice(total));
+                },
+
+                updateAtcLabel() {
+                    const btn = document.getElementById('product-addtocart-button');
+                    if (!btn) {
+                        return;
+                    }
+                    const label = btn.querySelector('.elme-pdp__atc-label');
+                    if (label) {
+                        label.textContent = this.buttonLabel() || this.labelIdle || label.textContent;
+                    }
+                },
+
+                applyRules(rules) {
+                    if (!rules) {
+                        return;
+                    }
+                    if (rules.min) {
+                        this.min = Number(rules.min) || this.min;
+                    }
+                    if (rules.step) {
+                        this.step = Number(rules.step) || this.step;
+                    }
+                    this.max = rules.max === null || rules.max === undefined
+                        ? 0
+                        : Number(rules.max) || 0;
+                    this.salable = rules.salable !== false;
+                    this.setQty(this.qty, { silent: true });
+                }
+            };
+        }
+
+        function initElmePdpBuyBox() {
+            return {
+                store: null,
+                cartQty: 0,
+                inCartTemplate: '',
+
+                init() {
+                    const data = this.$root.dataset;
+                    const qtyRoot = this.$root.querySelector('.elme-pdp__qty');
+                    const atc = document.getElementById('product-addtocart-button');
+                    const seed = {
+                        productId: parseInt(data.productId, 10) || 0,
+                        sku: data.sku || '',
+                        productName: data.productName || '',
+                        min: qtyRoot ? parseFloat(qtyRoot.dataset.min) || 1 : 1,
+                        step: qtyRoot ? parseFloat(qtyRoot.dataset.step) || 1 : 1,
+                        hint: qtyRoot && qtyRoot.querySelector('.elme-pdp__moq span')
+                            ? qtyRoot.querySelector('.elme-pdp__moq span').textContent.trim()
+                            : '',
+                        roundedMessage: qtyRoot ? qtyRoot.dataset.roundedMessage || '' : '',
+                        maxMessage: qtyRoot ? qtyRoot.dataset.maxMessage || '' : '',
+                        inCartTemplate: data.inCart || '',
+                        labelIdle: atc ? atc.dataset.labelIdle || '' : '',
+                        labelAdd: atc ? atc.dataset.labelAdd || '' : ''
+                    };
+                    this.inCartTemplate = seed.inCartTemplate;
+                    this.store = createStore(seed);
+                    Alpine.store('elmePdpBuy', this.store);
+
+                    this.observeBuyBox();
+                    this.loadRules();
+                    this.watchPrice();
+                    this.watchCart();
+                    this.store.updateAtcLabel();
+                },
+
+                observeBuyBox() {
+                    const box = this.$refs.buyBox || this.$root;
+                    if (!('IntersectionObserver' in window)) {
+                        this.store.setStickyVisible(false);
+                        return;
+                    }
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach((entry) => {
+                            this.store.setStickyVisible(!entry.isIntersecting);
+                        });
+                    }, { root: null, threshold: 0, rootMargin: '0px' });
+                    observer.observe(box);
+                },
+
+                loadRules() {
+                    if (!this.store.productId) {
+                        return;
+                    }
+                    fetch(RULES_URL + '?ids=' + this.store.productId, {
+                        credentials: 'same-origin',
+                        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                        .then((response) => response.ok ? response.json() : {})
+                        .catch(() => ({}))
+                        .then((data) => {
+                            this.store.applyRules(data[this.store.productId] || null);
+                        });
+                },
+
+                watchPrice() {
+                    const priceEl = this.$root.querySelector('.elme-customer-price');
+                    if (!priceEl || !window.elmeCustomerPrices) {
+                        return;
+                    }
+                    const productId = this.store.productId;
+                    window.elmeCustomerPrices.get(productId).then((price) => {
+                        this.store.setPrice(price, price ? 'ready' : 'unavailable');
+                    });
+                    window.addEventListener('configurable-selection-changed', (event) => {
+                        const detail = event.detail || {};
+                        if (parseInt(detail.productId, 10) !== productId) {
+                            return;
+                        }
+                        const id = parseInt(detail.productIndex, 10) || productId;
+                        window.elmeCustomerPrices.get(id).then((price) => {
+                            this.store.setPrice(price, price ? 'ready' : 'unavailable');
+                        });
+                    });
+                },
+
+                watchCart() {
+                    const apply = (cart) => {
+                        if (!cart || !cart.items) {
+                            this.store.setCartQty(0);
+                            this.cartQty = 0;
+                            return;
+                        }
+                        const row = cart.items.find((item) => item.sku === this.store.sku);
+                        const qty = row ? Number(row.qty) || 0 : 0;
+                        this.store.setCartQty(qty);
+                        this.cartQty = qty;
+                    };
+                    window.addEventListener('elme-qo-cart', (event) => {
+                        apply(event.detail && event.detail.cart);
+                    });
+                    if (window.elmeQuickOrderCart && window.elmeQuickOrderCart.load) {
+                        window.elmeQuickOrderCart.load().then(apply).catch(() => apply(null));
+                    }
+                    window.addEventListener('reload-customer-section-data', () => {
+                        if (window.elmeQuickOrderCart && window.elmeQuickOrderCart.load) {
+                            window.elmeQuickOrderCart.load(true).then(apply).catch(() => {});
+                        }
+                    });
+                },
+
+                hasInCart() {
+                    return this.cartQty > 0;
+                },
+
+                inCartLabel() {
+                    if (!this.cartQty || !this.inCartTemplate) {
+                        return '';
+                    }
+                    return hyva.str(this.inCartTemplate, formatQty(this.cartQty));
+                }
+            };
+        }
+
+        function initElmePdpQty() {
+            return {
+                store: null,
+                qty: 1,
+                note: '',
+                tone: 'hint',
+                noteId: 'elme-pdp-moq-note',
+
+                init() {
+                    this.store = Alpine.store('elmePdpBuy');
+                    if (!this.store) {
+                        return;
+                    }
+                    this.qty = this.store.qty;
+                    this.note = this.store.hint;
+                    this.noteId = 'elme-pdp-moq-' + (this.store.productId || 'note');
+                    window.addEventListener('elme-pdp-qty', () => {
+                        this.qty = this.store.qty;
+                        if (this.$refs.input) {
+                            this.$refs.input.value = this.qty;
+                        }
+                    });
+                },
+
+                showHint() {
+                    this.note = this.store ? this.store.hint : '';
+                    this.tone = 'hint';
+                },
+
+                increment() {
+                    if (!this.store) {
+                        return;
+                    }
+                    this.showHint();
+                    this.store.setQty(this.store.qty + this.store.step);
+                    this.qty = this.store.qty;
+                },
+
+                decrement() {
+                    if (!this.store) {
+                        return;
+                    }
+                    this.showHint();
+                    this.store.setQty(this.store.qty - this.store.step);
+                    this.qty = this.store.qty;
+                },
+
+                onInput() {
+                    // keep typed digits visible until change/blur snaps
+                },
+
+                onChange() {
+                    if (!this.store) {
+                        return;
+                    }
+                    const input = this.$event.target;
+                    const typed = hyva.safeParseNumber(input.value);
+                    const qty = this.store.toValidQty(typed);
+                    const maxQty = this.store.maxQty();
+
+                    if (maxQty && typed > maxQty) {
+                        this.note = hyva.str(this.store.maxMessage, formatQty(this.store.max), formatQty(qty));
+                        this.tone = 'error';
+                    } else if (typed !== qty) {
+                        this.note = hyva.str(this.store.roundedMessage, formatQty(this.store.step), formatQty(qty));
+                        this.tone = 'notice';
+                    } else {
+                        this.showHint();
+                    }
+
+                    this.store.setQty(qty);
+                    this.qty = qty;
+                    input.value = qty;
+                },
+
+                isDecrementDisabled() {
+                    return !this.store || this.store.qty <= this.store.min;
+                },
+
+                isIncrementDisabled() {
+                    if (!this.store) {
+                        return true;
+                    }
+                    const maxQty = this.store.maxQty();
+                    return maxQty > 0 && this.store.qty + this.store.step > maxQty;
+                },
+
+                isError() {
+                    return this.tone === 'error';
+                },
+
+                stepperClasses() {
+                    return {
+                        'border-error-mark': this.tone === 'error'
+                    };
+                },
+
+                noteClasses() {
+                    return {
+                        'text-ink-subtle': this.tone === 'hint',
+                        'text-ink font-medium': this.tone === 'notice',
+                        'text-error-text': this.tone === 'error'
+                    };
+                }
+            };
+        }
+
+        function initElmePdpStickyAtc() {
+            return {
+                store: null,
+                qty: 1,
+                visible: false,
+
+                init() {
+                    this.store = Alpine.store('elmePdpBuy');
+                    if (!this.store) {
+                        return;
+                    }
+                    this.qty = this.store.qty;
+                    this.visible = this.store.stickyVisible;
+                    this.hideMissingJumps();
+                    window.addEventListener('elme-pdp-qty', () => {
+                        this.qty = this.store.qty;
+                    });
+                    window.addEventListener('elme-pdp-sticky', (event) => {
+                        this.visible = Boolean(event.detail && event.detail.visible);
+                    });
+                },
+
+                hideMissingJumps() {
+                    this.$root.querySelectorAll('[data-jump]').forEach((link) => {
+                        const id = link.getAttribute('data-jump');
+                        if (!id || !document.getElementById(id)) {
+                            link.hidden = true;
+                        }
+                    });
+                },
+
+                increment() {
+                    if (this.store) {
+                        this.store.setQty(this.store.qty + this.store.step);
+                        this.qty = this.store.qty;
+                    }
+                },
+
+                decrement() {
+                    if (this.store) {
+                        this.store.setQty(this.store.qty - this.store.step);
+                        this.qty = this.store.qty;
+                    }
+                },
+
+                submit() {
+                    const btn = document.getElementById('product-addtocart-button');
+                    if (btn) {
+                        btn.click();
+                    }
+                },
+
+                isHidden() {
+                    return !this.visible;
+                },
+
+                isInert() {
+                    return !this.visible;
+                },
+
+                isPriceLoading() {
+                    return !this.store || this.store.priceState === 'loading';
+                },
+
+                isPriceReady() {
+                    return Boolean(this.store && this.store.priceState === 'ready' && this.store.price);
+                },
+
+                priceLabel() {
+                    if (!this.isPriceReady()) {
+                        return '';
+                    }
+                    return this.store.price.final_formatted + ' ' + '<?= $escaper->escapeJs(__('ex. GST')) ?>';
+                },
+
+                buttonLabel() {
+                    return this.store ? this.store.buttonLabel() : (this.$root.dataset.labelIdle || '');
+                },
+
+                ariaLabel() {
+                    const name = this.$root.dataset.productName || '';
+                    return (this.$root.dataset.labelIdle || '') + (name ? ' ' + name : '');
+                },
+
+                isDecrementDisabled() {
+                    return !this.store || this.store.qty <= this.store.min;
+                },
+
+                isIncrementDisabled() {
+                    if (!this.store) {
+                        return true;
+                    }
+                    const maxQty = this.store.maxQty();
+                    return maxQty > 0 && this.store.qty + this.store.step > maxQty;
+                },
+
+                stepperClasses() {
+                    return {};
+                },
+
+                barClasses() {
+                    return {
+                        'is-visible': this.visible
+                    };
+                }
+            };
+        }
+
+        window.addEventListener('alpine:init', () => {
+            Alpine.data('initElmePdpBuyBox', initElmePdpBuyBox);
+            Alpine.data('initElmePdpQty', initElmePdpQty);
+            Alpine.data('initElmePdpStickyAtc', initElmePdpStickyAtc);
+        }, { once: true });
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

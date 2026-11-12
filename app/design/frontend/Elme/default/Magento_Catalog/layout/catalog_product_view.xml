@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
-<!-- FE-12 Instagram (SKU-filtered) + FE-13 Our Difference on PDP. FE-25: layout, gallery, info column. -->
+<!-- FE-12 Instagram + FE-13 Our Difference. FE-25 layout. FE-27 sticky ATC + buy box JS (logged-in only via handle). -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
-        <!-- Core wishlist, compare and reviews. Elme ships its own later. -->
+        <!-- Core wishlist, compare and reviews. Heart = shopping list (FE-78); no second wishlist. -->
         <referenceBlock name="product.info.review" remove="true"/>
         <referenceBlock name="product.info.addtowishlist" remove="true"/>
         <referenceBlock name="product.info.addtocompare" remove="true"/>
@@ -17,6 +17,16 @@
         <referenceBlock name="product.price.tier" remove="true"/>
         <!-- FE-25: detail sections are an accordion inside the info column -->
         <move element="product.info.details" destination="product.info"/>
+        <!-- FE-27: sticky ATC + buy-box JS; guests remove these in elme_customer_guest.xml -->
+        <referenceBlock name="product.info">
+            <block class="Magento\Catalog\Block\Product\View"
+                   name="product.info.sticky.atc"
+                   template="Magento_Catalog::product/view/sticky-atc.phtml"/>
+        </referenceBlock>
+        <referenceContainer name="before.body.end">
+            <block name="elme.pdp.buybox.js"
+                   template="Magento_Catalog::product/view/buybox-js.phtml"/>
+        </referenceContainer>
         <referenceBlock name="recently_viewed_products.default_widget_pdp">
             <arguments>
                 <argument name="show_buttons" xsi:type="string">add_to_cart</argument>
@@ -41,3 +51,4 @@
         </referenceContainer>
     </body>
 </page>
+

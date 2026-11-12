@@ -45,9 +45,13 @@ class GroupPriceProvider implements CustomerPriceProviderInterface
                 continue;
             }
             $regular = (float) $priceInfo->getPrice(RegularPrice::PRICE_CODE)->getAmount()->getBaseAmount();
+            $regularRounded = round(max($regular, $final), 2);
+            $finalRounded = round($final, 2);
             $prices[(int) $product->getId()] = [
-                'final' => round($final, 2),
-                'regular' => round(max($regular, $final), 2),
+                'final' => $finalRounded,
+                'regular' => $regularRounded,
+                // Magento special / catalog rule under the list price is a sale, not a contract price
+                'promo' => $regularRounded > $finalRounded,
             ];
         }
 
