@@ -14,7 +14,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\View\Page\Config as PageConfig;
 
 /**
- * FE-45: add cms_page_view_help handle + help-page body classes on the six help URLs.
+ * FE-45 / FE-93: add cms_page_view_help handle + help-page body classes on curated help URLs.
  */
 class AddHelpPageHandle implements ObserverInterface
 {

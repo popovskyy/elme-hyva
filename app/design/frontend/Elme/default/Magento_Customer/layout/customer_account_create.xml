@@ -31,5 +31,10 @@
             </container>
         </referenceContainer>
         <move element="customer_form_register" destination="elme.register.panel" after="elme.register.intro"/>
+        <referenceContainer name="form.additional.info">
+            <block name="elme.register.terms"
+                   template="Magento_Customer::form/terms-conditions.phtml"
+                   before="-"/>
+        </referenceContainer>
     </body>
 </page>
