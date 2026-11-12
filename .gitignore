@@ -28,6 +28,13 @@
 /pub/**
 !/pub/favicon.ico
 
+# FE-94: Magento maintenance / 503 error skin (inline, no theme pipeline). Must ship with the repo.
+!/pub/errors/
+!/pub/errors/503.php
+!/pub/errors/default/
+!/pub/errors/default/page.phtml
+!/pub/errors/default/503.phtml
+
 # PHPUnit Allure config when the suite is run from the repo root (see elme-qa / BE unit tests).
 !/allure
 !/allure/allure.config.php

@@ -1,0 +1,352 @@
+<?php
+/**
+ * Elme Living error page shell (FE-94).
+ * Standalone: inline CSS and SVG logo, no theme static assets, no database.
+ * Contact values match Elme\Theme\ViewModel\StoreContact defaults.
+ */
+// phpcs:ignoreFile
+
+$phoneDisplay = '(03) 7067 9725';
+$phoneTel = '+61370679725';
+$email = 'hello@elmeliving.com';
+
+$script = basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+$pageTitle = $this->pageTitle;
+if ($script === '503.php') {
+    $pageTitle = '503 Service Unavailable';
+}
+?>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title><?= $this->escaper->escapeHtml($pageTitle) ?></title>
+    <style>
+        :root {
+            --elme-ink: #3A3935;
+            --elme-ink-muted: #605E55;
+            --elme-page: #F5F4EF;
+            --elme-surface: #FFFFFF;
+            --elme-border: #D8D5CE;
+            --elme-gutter: 20px;
+            --elme-gutter-lg: 40px;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: var(--elme-page);
+            color: var(--elme-ink);
+            font-family: Arial, Helvetica, ui-sans-serif, system-ui, sans-serif;
+            font-size: 0.9375rem;
+            line-height: 1.45;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            color: var(--elme-ink);
+            text-decoration: underline;
+            text-underline-offset: 0.15em;
+        }
+
+        a:hover {
+            color: #5F6E67;
+        }
+
+        a:focus-visible {
+            outline: 2px solid var(--elme-ink);
+            outline-offset: 3px;
+        }
+
+        .elme-error {
+            display: flex;
+            flex-direction: column;
+            flex: 1 0 auto;
+            min-height: 100vh;
+        }
+
+        .elme-error__header {
+            padding: 1.5rem var(--elme-gutter) 0;
+            max-width: 42rem;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .elme-error__logo {
+            display: inline-block;
+            line-height: 0;
+        }
+
+        .elme-error__logo svg {
+            width: 140px;
+            height: auto;
+            display: block;
+        }
+
+        .elme-error__main {
+            flex: 1 0 auto;
+            display: flex;
+            align-items: center;
+            padding: 2.5rem var(--elme-gutter) 2rem;
+            max-width: 42rem;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .elme-error__content {
+            width: 100%;
+        }
+
+        .elme-error__content h1 {
+            margin: 0 0 1rem;
+            font-family: Georgia, "Times New Roman", serif;
+            font-weight: 400;
+            font-size: 2rem;
+            line-height: 1.15;
+            letter-spacing: -0.01em;
+            color: var(--elme-ink);
+        }
+
+        .elme-error__content p {
+            margin: 0 0 0.75rem;
+            color: var(--elme-ink-muted);
+            font-size: 1rem;
+            line-height: 1.5;
+            max-width: 36rem;
+        }
+
+        .elme-error__content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .elme-error__footer {
+            border-top: 1px solid var(--elme-border);
+            background: var(--elme-surface);
+            padding: 1.25rem var(--elme-gutter);
+        }
+
+        .elme-error__footer-inner {
+            max-width: 42rem;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .elme-error__contact-label {
+            margin: 0;
+            font-size: 0.6875rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--elme-ink-muted);
+        }
+
+        .elme-error__contacts {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .elme-error__contacts a {
+            text-decoration: none;
+            font-size: 0.9375rem;
+        }
+
+        .elme-error__contacts a:hover {
+            text-decoration: underline;
+        }
+
+        /* Report form (Magento default report.phtml) */
+        .elme-error__content .fieldset {
+            border: 0;
+            margin: 1.5rem 0 0;
+            padding: 0;
+        }
+
+        .elme-error__content .legend {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 1.25rem;
+            margin: 0 0 1rem;
+            padding: 0;
+        }
+
+        .elme-error__content .field {
+            margin: 0 0 1rem;
+        }
+
+        .elme-error__content .label {
+            display: block;
+            font-weight: 700;
+            margin: 0 0 0.35rem;
+        }
+
+        .elme-error__content input[type="text"],
+        .elme-error__content textarea {
+            width: 100%;
+            max-width: 28rem;
+            box-sizing: border-box;
+            border: 1px solid #8A8888;
+            border-radius: 1px;
+            background: transparent;
+            color: var(--elme-ink);
+            font: inherit;
+            padding: 0.75rem 0.75rem;
+        }
+
+        .elme-error__content textarea {
+            min-height: 6rem;
+            resize: vertical;
+        }
+
+        .elme-error__content button {
+            appearance: none;
+            border: 0;
+            background: var(--elme-ink);
+            color: #fff;
+            min-height: 50px;
+            padding: 0 1.5rem;
+            font: inherit;
+            font-size: 0.9375rem;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+        }
+
+        .elme-error__content button:hover {
+            background: #5F6E67;
+        }
+
+        .elme-error__content .message {
+            border: 1px solid var(--elme-border);
+            padding: 0.75rem 1rem;
+            margin: 0 0 1rem;
+            background: var(--elme-surface);
+        }
+
+        .elme-error__content .message.error {
+            border-color: #A5473B;
+            background: #F1DDD5;
+            color: #8A3A30;
+        }
+
+        .elme-error__content .message.success {
+            border-color: #5D6C4F;
+            background: #E2E8DB;
+            color: #4A5740;
+        }
+
+        .elme-error__content .message.info {
+            border-color: #4E6579;
+            background: #E1E7EC;
+            color: #3E5161;
+        }
+
+        .elme-error__content .trace {
+            background: var(--elme-surface);
+            border: 1px solid var(--elme-border);
+            min-height: 12rem;
+            overflow: auto;
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 0.8125rem;
+        }
+
+        @media (min-width: 768px) {
+            .elme-error__header,
+            .elme-error__main,
+            .elme-error__footer {
+                padding-left: var(--elme-gutter-lg);
+                padding-right: var(--elme-gutter-lg);
+            }
+
+            .elme-error__logo svg {
+                width: 180px;
+            }
+
+            .elme-error__content h1 {
+                font-size: 2.75rem;
+            }
+
+            .elme-error__contacts {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 0.5rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="elme-error">
+        <header class="elme-error__header">
+            <span class="elme-error__logo" aria-label="Elme Living">
+                <svg width="180" height="38" viewBox="0 0 180 38" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" focusable="false">
+                    <title>Elme Living</title>
+                    <g clip-path="url(#elme-error-logo-leaf)">
+                        <path d="M23.5226 11.9981C23.5018 11.922 23.4663 11.8508 23.4182 11.7887C19.5191 6.67017 16.7348 6.03629 16.6195 6.00837C16.5406 5.99298 16.4595 5.99298 16.3806 6.00837C16.2653 6.0335 13.4893 6.66459 9.58193 11.7859C9.53381 11.848 9.49834 11.9192 9.47759 11.9953C8.36551 16.1432 8.19929 20.4945 8.99158 24.7176C9.00842 24.8046 9.04406 24.8866 9.09592 24.9578C10.5375 26.9432 12.8797 29.4983 15.9083 30.5734V33.0112H17.0891V30.5734C20.1095 29.4983 22.4627 26.9432 23.9042 24.9578C23.9561 24.8866 23.9917 24.8046 24.0086 24.7176C24.7987 20.499 24.6325 16.1527 23.5226 12.0093V11.9981ZM9.90869 16.0388C12.0724 20.2721 14.8787 21.7828 15.9221 22.2212V25.3683C14.5492 24.8098 11.4711 23.1343 9.70549 18.7558C9.73021 17.8483 9.79611 16.9407 9.90869 16.0388ZM17.1028 7.48556C17.6966 7.79968 18.2578 8.1739 18.7777 8.60253C18.3047 9.46115 17.7432 10.2662 17.1028 11.004V7.48556ZM15.9221 10.9984C15.2826 10.2588 14.7212 9.45294 14.2471 8.59416C14.768 8.16684 15.3291 7.79271 15.9221 7.47719V10.9984ZM17.1028 22.2045C18.1792 21.7493 20.9662 20.2135 23.1107 15.9829C23.2276 16.9029 23.2982 17.8285 23.3221 18.7558C21.5648 23.1008 18.4949 24.7986 17.1028 25.3627V22.2045ZM22.7647 13.8718C20.9909 18.3397 18.3714 20.1911 17.1028 20.8725V17.7645C17.9512 17.287 20.0765 15.7791 22.0178 11.9004C22.1524 12.0679 22.2924 12.2383 22.427 12.4198C22.5533 12.8945 22.6659 13.3748 22.7647 13.8607V13.8718ZM21.1666 10.9202C19.6674 14.0757 18.0336 15.6367 17.0836 16.3348V12.6488C17.5558 12.2718 18.5389 11.3307 19.6729 9.38441C20.1342 9.81165 20.6339 10.3199 21.1666 10.9202ZM13.3163 9.38441C14.4476 11.3391 15.4333 12.2718 15.9029 12.6488V16.3404C14.9555 15.6395 13.3218 14.0813 11.8225 10.9258C12.2941 10.3881 12.7927 9.87547 13.3163 9.39V9.38441ZM10.9905 11.9032C12.9319 15.7707 15.0571 17.2786 15.9029 17.7673V20.8948C14.6398 20.2302 12.0202 18.3816 10.2327 13.9333C10.3334 13.4269 10.4496 12.9271 10.5814 12.4337C10.7187 12.2522 10.856 12.0819 10.9905 11.9144V11.9032ZM10.1174 24.3435C9.94258 23.4074 9.81973 22.4621 9.74943 21.5119C11.9104 25.0136 14.7908 26.2758 15.9029 26.65V29.2861C13.3932 28.2584 11.4024 26.0887 10.1174 24.3435ZM17.0836 29.2861V26.65C18.1984 26.2758 21.0788 25.0136 23.2397 21.5119C23.1699 22.4622 23.0461 23.4077 22.869 24.3435C21.5867 26.0859 19.596 28.2529 17.0836 29.2861Z" fill="#3A3935"/>
+                    </g>
+                    <g clip-path="url(#elme-error-logo-word)">
+                        <path d="M46.9343 20.603H35.0697C35.2224 21.1198 35.4753 21.6005 35.8136 22.0168C36.1519 22.4332 36.5688 22.7767 37.0398 23.0272C38.2332 23.65 39.5647 23.9499 40.9057 23.8981C41.7064 23.8923 42.5053 23.8212 43.2948 23.6855C44.097 23.5551 44.8879 23.3614 45.6603 23.106V26.3703C44.8948 26.5899 44.1159 26.7583 43.3286 26.8744C42.4267 26.9936 41.5178 27.0497 40.6083 27.0424C38.9797 27.0739 37.3642 26.7402 35.8774 26.0651C34.5741 25.4727 33.4598 24.5227 32.6603 23.322C31.8817 22.1351 31.4774 20.7359 31.5012 19.3103C31.4768 17.9215 31.8199 16.5515 32.4947 15.3431C33.1475 14.192 34.1066 13.2508 35.2623 12.6274C36.504 11.9647 37.891 11.632 39.2938 11.6605C40.6718 11.6383 42.0311 11.9861 43.234 12.6686C44.3865 13.3291 45.3309 14.3075 45.9577 15.4905C46.6218 16.7558 46.9579 18.1718 46.9343 19.6052V20.603ZM36.3471 15.7202C35.5695 16.4195 35.0767 17.3878 34.965 18.4359H43.5179C43.4042 17.3845 42.9048 16.415 42.1188 15.7202C41.2982 15.0707 40.2872 14.718 39.2465 14.718C38.2057 14.718 37.1947 15.0707 36.3741 15.7202" fill="#3A3935"/>
+                        <path d="M53.1279 5.46454H49.698V26.7338H53.1279V5.46454Z" fill="#3A3935"/>
+                        <path d="M81.9089 18.0999V26.7372H78.5127V18.4668C78.5127 17.9388 78.4958 17.5067 78.4654 17.1707C78.4365 16.8404 78.3614 16.516 78.2424 16.2072C78.0474 15.6855 77.6794 15.249 77.2016 14.9728C76.6664 14.6659 76.0589 14.513 75.4444 14.5305C74.9012 14.5167 74.3616 14.6227 73.8628 14.8411C73.364 15.0596 72.9178 15.3853 72.5551 15.7957C71.7865 16.6591 71.3772 17.7908 71.4129 18.9537V26.7372H67.9863V18.4668C67.9863 17.9388 67.9694 17.5067 67.939 17.1707C67.911 16.8429 67.8452 16.5195 67.743 16.2072C67.5556 15.6726 67.1818 15.2262 66.6921 14.9522C66.1468 14.6575 65.5356 14.511 64.918 14.527C64.1962 14.5201 63.4873 14.721 62.8735 15.1065C62.2509 15.4938 61.7458 16.0479 61.4137 16.7078C61.0598 17.4003 60.8787 18.1703 60.8865 18.9503V26.7338H57.46V11.9657H60.8865V16.4506C61.2654 15.1138 62.0177 13.9169 63.0526 13.0046C64.0404 12.1226 65.3155 11.6437 66.6313 11.6605C67.6089 11.6346 68.5688 11.9292 69.3685 12.5006C70.1338 13.0646 70.7029 13.8606 70.9939 14.7739C71.1799 15.3478 71.3001 15.9414 71.3521 16.5432C71.7331 15.1857 72.4909 13.9681 73.5351 13.0355C74.5211 12.1383 75.8029 11.6489 77.1272 11.6639C78.1108 11.6334 79.0774 11.9282 79.8813 12.504C80.6418 13.076 81.2133 13.8687 81.5203 14.7773C81.8139 15.8599 81.9449 16.9812 81.9089 18.1033" fill="#3A3935"/>
+                        <path d="M100.138 20.603H88.2865C88.4385 21.1202 88.6911 21.6013 89.0295 22.0177C89.3679 22.4341 89.7852 22.7774 90.2566 23.0272C91.45 23.65 92.7815 23.95 94.1225 23.8982C94.9232 23.8923 95.7221 23.8213 96.5116 23.6856C97.3137 23.5548 98.1046 23.3611 98.8771 23.1061V26.3704C98.1116 26.59 97.3327 26.7584 96.5454 26.8744C95.6435 26.9937 94.7346 27.0498 93.8251 27.0424C92.1965 27.0739 90.581 26.7403 89.0941 26.0652C87.7909 25.4728 86.6766 24.5227 85.8771 23.3221C85.0985 22.1352 84.6942 20.736 84.718 19.3103C84.6936 17.9216 85.0367 16.5516 85.7115 15.3431C86.3612 14.1982 87.3141 13.2609 88.4622 12.6378C89.702 11.972 91.0878 11.6358 92.4903 11.6605C93.8683 11.6384 95.2276 11.9861 96.4305 12.6686C97.583 13.3291 98.5274 14.3076 99.1542 15.4906C99.8184 16.7559 100.154 18.1718 100.131 19.6052L100.138 20.603ZM89.5503 15.7203C88.7728 16.4196 88.28 17.3878 88.1682 18.436H96.7076C96.594 17.3846 96.0945 16.4151 95.3086 15.7203C94.488 15.0708 93.477 14.718 92.4362 14.718C91.3955 14.718 90.3845 15.0708 89.5639 15.7203" fill="#3A3935"/>
+                        <path d="M111.81 5.46457H108.38V26.7338H111.81V5.46457Z" fill="#3A3935"/>
+                        <path d="M116.277 9.38743C116.067 9.17969 115.901 8.93033 115.79 8.65486C115.679 8.3794 115.625 8.0837 115.632 7.78615C115.63 7.49763 115.687 7.21187 115.799 6.94649C115.91 6.68112 116.074 6.44175 116.28 6.24316C116.701 5.82309 117.268 5.58768 117.859 5.58768C118.449 5.58768 119.016 5.82309 119.437 6.24316C119.643 6.44175 119.807 6.68112 119.919 6.94649C120.03 7.21187 120.087 7.49763 120.085 7.78615C120.084 8.23262 119.952 8.66859 119.707 9.03935C119.462 9.41011 119.114 9.69915 118.708 9.87019C118.301 10.0412 117.854 10.0867 117.422 10.0008C116.99 9.91489 116.593 9.70152 116.28 9.38743H116.277ZM116.145 11.9659H119.572V26.7375H116.142L116.145 11.9659Z" fill="#3A3935"/>
+                        <path d="M137.192 11.9658L132.501 26.7339H125.854L121.373 11.9658H125.043L129.223 26.247L133.674 11.9658H137.192Z" fill="#3A3935"/>
+                        <path d="M139.105 9.38743C138.894 9.17998 138.728 8.93076 138.616 8.65528C138.504 8.37979 138.45 8.08395 138.456 7.78615C138.454 7.49763 138.511 7.21187 138.623 6.94649C138.734 6.68112 138.898 6.44175 139.105 6.24316C139.526 5.82309 140.092 5.58768 140.683 5.58768C141.273 5.58768 141.84 5.82309 142.261 6.24316C142.467 6.44192 142.63 6.6814 142.741 6.94679C142.852 7.21218 142.908 7.49785 142.906 7.78615C142.905 8.23264 142.774 8.66888 142.53 9.03996C142.285 9.41104 141.937 9.70038 141.531 9.87156C141.125 10.0427 140.677 10.0881 140.246 10.002C139.814 9.91582 139.417 9.70201 139.105 9.38743ZM138.969 11.9659H142.396V26.7375H138.969V11.9659Z" fill="#3A3935"/>
+                        <path d="M160.637 16.3752C160.688 16.9136 160.711 17.4896 160.711 18.0897V26.727H157.285V18.4668C157.285 17.9388 157.268 17.5033 157.237 17.1707C157.209 16.8429 157.144 16.5195 157.041 16.2072C156.854 15.6733 156.48 15.2278 155.99 14.9557C155.445 14.6609 154.834 14.5145 154.216 14.5305C153.495 14.5235 152.786 14.7245 152.172 15.11C151.549 15.4972 151.044 16.0513 150.712 16.7113C150.358 17.4037 150.177 18.1737 150.185 18.9537V26.7373H146.758V11.9657H150.185V16.4507C150.564 15.1138 151.316 13.9169 152.351 13.0047C153.339 12.1226 154.614 11.6437 155.93 11.6605C156.907 11.6347 157.867 11.9293 158.667 12.5006C159.432 13.0647 160.001 13.8607 160.292 14.7739C160.467 15.2923 160.58 15.8298 160.63 16.3752" fill="#3A3935"/>
+                        <path d="M179.5 11.9657V23.7164C179.5 26.6241 178.648 28.8208 176.942 30.3067C175.237 31.7925 172.951 32.5354 170.086 32.5354C169.151 32.5351 168.219 32.4374 167.305 32.244C166.485 32.0866 165.697 31.7923 164.973 31.373V28.047C165.718 28.4668 166.511 28.7904 167.335 29.0106C168.219 29.2331 169.128 29.3402 170.038 29.3294C172.023 29.3294 173.527 28.8311 174.55 27.8345C175.572 26.8378 176.084 25.4663 176.084 23.7198V21.467C175.712 22.8101 174.946 24.0062 173.887 24.8959C172.84 25.7627 171.522 26.2223 170.17 26.192C168.989 26.2109 167.828 25.8771 166.831 25.2319C165.84 24.5831 165.044 23.6696 164.53 22.5917C163.972 21.4439 163.688 20.1787 163.702 18.8988C163.687 17.6287 163.971 16.3731 164.53 15.2368C165.051 14.1725 165.847 13.2709 166.831 12.6274C167.828 11.984 168.989 11.6502 170.17 11.6673C171.521 11.6386 172.839 12.098 173.887 12.9635C174.942 13.8468 175.708 15.034 176.084 16.3683V11.9657H179.5ZM174.834 21.8099C175.23 21.4382 175.545 20.9874 175.762 20.4858C175.978 19.9843 176.089 19.4428 176.089 18.8954C176.089 18.348 175.978 17.8065 175.762 17.305C175.545 16.8034 175.23 16.3526 174.834 15.9809C173.991 15.2055 172.885 14.7903 171.748 14.8219C170.589 14.7844 169.459 15.1992 168.592 15.9809C168.194 16.3512 167.876 16.8016 167.658 17.3033C167.441 17.8051 167.328 18.3472 167.328 18.8954C167.328 19.4436 167.441 19.9857 167.658 20.4875C167.876 20.9892 168.194 21.4396 168.592 21.8099C169.468 22.5739 170.594 22.9765 171.748 22.938C172.883 22.9712 173.988 22.5613 174.834 21.7928" fill="#3A3935"/>
+                    </g>
+                    <defs>
+                        <clipPath id="elme-error-logo-leaf">
+                            <rect width="16" height="27" fill="white" transform="translate(8.5 6)"/>
+                        </clipPath>
+                        <clipPath id="elme-error-logo-word">
+                            <rect width="148" height="38" fill="white" transform="translate(31.5)"/>
+                        </clipPath>
+                    </defs>
+                </svg>
+            </span>
+        </header>
+
+        <main class="elme-error__main" id="maincontent">
+            <div class="elme-error__content">
+                <?php require $contentTemplate; ?>
+            </div>
+        </main>
+
+        <footer class="elme-error__footer">
+            <div class="elme-error__footer-inner">
+                <p class="elme-error__contact-label">Need help?</p>
+                <ul class="elme-error__contacts">
+                    <li>
+                        <a href="tel:<?= $this->escaper->escapeHtmlAttr($phoneTel) ?>">
+                            <?= $this->escaper->escapeHtml($phoneDisplay) ?>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="mailto:<?= $this->escaper->escapeHtmlAttr($email) ?>">
+                            <?= $this->escaper->escapeHtml($email) ?>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
