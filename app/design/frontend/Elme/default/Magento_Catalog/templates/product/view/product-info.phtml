@@ -61,24 +61,26 @@ $essentials = array_filter([
 ]);
 ?>
 <div class="elme-pdp__info">
-    <h1 class="elme-pdp__title" itemprop="name"><?= $escaper->escapeHtml($product->getName()) ?></h1>
+    <div class="elme-pdp__head">
+        <h1 class="elme-pdp__title" itemprop="name"><?= $escaper->escapeHtml($product->getName()) ?></h1>
 
-    <?php if ($subtitle !== ''): ?>
-        <p class="elme-pdp__subtitle"><?= $escaper->escapeHtml($subtitle) ?></p>
-    <?php endif; ?>
-
-    <div class="elme-pdp__meta">
-        <p>
-            <?= $escaper->escapeHtml(__('SKU')) ?>
-            <span class="text-ink" itemprop="sku"><?= $escaper->escapeHtml($product->getSku()) ?></span>
-        </p>
-        <?php if ($stockLevel): ?>
-            <p class="elme-card__stock--<?= /* @noEscape */ $stockLevel ?> flex items-center gap-1.5 font-medium">
-                <span class="size-1.5 shrink-0 rounded-full bg-current" aria-hidden="true"></span>
-                <?= $escaper->escapeHtml($stockLevel === ProductTile::STOCK_IN ? __('In Stock') : __('Low Stock')) ?>
-            </p>
+        <?php if ($subtitle !== ''): ?>
+            <p class="elme-pdp__subtitle"><?= $escaper->escapeHtml($subtitle) ?></p>
         <?php endif; ?>
-        <?= $block->getChildHtml('product.info.stockqty') ?>
+
+        <div class="elme-pdp__meta">
+            <p>
+                <?= $escaper->escapeHtml(__('SKU')) ?>
+                <span class="text-ink" itemprop="sku"><?= $escaper->escapeHtml($product->getSku()) ?></span>
+            </p>
+            <?php if ($stockLevel): ?>
+                <p class="elme-card__stock--<?= /* @noEscape */ $stockLevel ?> flex items-center gap-1.5 font-medium">
+                    <span class="size-1.5 shrink-0 rounded-full bg-current" aria-hidden="true"></span>
+                    <?= $escaper->escapeHtml($stockLevel === ProductTile::STOCK_IN ? __('In Stock') : __('Low Stock')) ?>
+                </p>
+            <?php endif; ?>
+            <?= $block->getChildHtml('product.info.stockqty') ?>
+        </div>
     </div>
 
     <?php if ($shortDescription !== ''): ?>

@@ -22,21 +22,11 @@
             gap: --spacing(8);
         }
 
-        /* photos about three fifths, text two fifths; the page stops growing at 90rem so the
-           square photo still fits a laptop screen */
+        /* FE-101: same container as the rest of the site; 3:2 split; photo capped on the slide */
         @variant lg {
             grid-template-columns: minmax(0, 1.6fr) minmax(--spacing(88), 1fr);
             gap: --spacing(10);
-            max-width: --spacing(360);
-            margin-inline: auto;
             padding-bottom: --spacing(16);
-        }
-    }
-
-    /* the breadcrumbs line up with the capped page on wide screens */
-    .catalog-product-view .breadcrumbs > .container {
-        @variant lg {
-            max-width: calc(--spacing(360) + 2 * var(--container-gutter-desktop)) !important;
         }
     }
 
@@ -50,6 +40,8 @@
     }
 
     /* ---------- info column ---------- */
+    /* one gap between groups (title block, buy box, description, essentials, accordion);
+       smaller gaps inside a group */
     .elme-pdp__info {
         display: flex;
         flex-direction: column;
@@ -57,8 +49,15 @@
         min-width: 0;
 
         @variant lg {
-            gap: --spacing(5);
+            gap: --spacing(8);
         }
+    }
+
+    .elme-pdp__head {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(2);
+        min-width: 0;
     }
 
     /* UX-11: size, material, assembly without opening anything */
@@ -99,14 +98,15 @@
         margin: 0;
         text-wrap: balance;
 
+        /* FE-101: h1 role (not display) so a long name stays within three lines at 1440 */
         @variant lg {
-            font-size: var(--text-display-desktop);
-            line-height: var(--text-display--line-height);
+            font-size: var(--text-h1-desktop);
+            line-height: var(--text-h1--line-height);
         }
     }
 
     .elme-pdp__subtitle {
-        margin-top: calc(--spacing(2) * -1);
+        margin: 0;
         font-size: var(--text-base);
         line-height: var(--text-base--line-height);
         color: var(--color-ink-muted);
@@ -160,6 +160,7 @@
 
         @variant lg {
             order: -1;
+            gap: --spacing(4);
             padding: --spacing(5);
             background: var(--color-surface);
         }
@@ -196,10 +197,8 @@
         }
     }
 
-    /* name, subtitle and SKU line stay above the buy box when it moves up at lg */
-    .elme-pdp__title,
-    .elme-pdp__subtitle,
-    .elme-pdp__meta {
+    /* title block stays above the buy box when the buy box moves up at lg */
+    .elme-pdp__head {
         @variant lg {
             order: -2;
         }
@@ -307,6 +306,15 @@
         padding: 0;
         background: var(--color-surface);
         scroll-snap-align: start;
+
+        /* FE-101 look 1: cap the white tile to the viewport so the photo stays above the fold;
+           on a wide screen the tile goes landscape and the square photo sits inside it */
+        @variant lg {
+            max-height: max(
+                --spacing(90),
+                calc(100dvh - var(--elme-header-offset, 0px) - --spacing(44))
+            );
+        }
 
         &:is(button) {
             cursor: zoom-in;
