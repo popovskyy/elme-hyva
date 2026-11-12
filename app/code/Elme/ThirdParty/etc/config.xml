@@ -34,6 +34,8 @@
                 <public_api_key>TMvimz</public_api_key>
                 <!-- D7: 1 = load Klaviyo onsite forms/popup; 0 = tracking company_id only -->
                 <forms_enabled>1</forms_enabled>
+                <!-- FE-91: production embed on /elme-outlet-signup (klaviyo-form-{id}) -->
+                <outlet_embed_form_id>WJGDrH</outlet_embed_form_id>
             </klaviyo>
             <zendesk>
                 <enabled>1</enabled>

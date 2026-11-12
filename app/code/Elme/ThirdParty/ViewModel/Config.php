@@ -21,6 +21,7 @@ class Config implements ArgumentInterface
     private const XML_KL_ENABLED = 'elme_third_party/klaviyo/enabled';
     private const XML_KL_KEY = 'elme_third_party/klaviyo/public_api_key';
     private const XML_KL_FORMS = 'elme_third_party/klaviyo/forms_enabled';
+    private const XML_KL_OUTLET_FORM = 'elme_third_party/klaviyo/outlet_embed_form_id';
     private const XML_ZD_ENABLED = 'elme_third_party/zendesk/enabled';
     private const XML_ZD_KEY = 'elme_third_party/zendesk/snippet_key';
     private const XML_ZD_OFF_M = 'elme_third_party/zendesk/launcher_offset_mobile';
@@ -38,6 +39,16 @@ class Config implements ArgumentInterface
     public function isEnabled(): bool
     {
         return $this->flag(self::XML_ENABLED);
+    }
+
+    /**
+     * Klaviyo onsite embed form id for /elme-outlet-signup (FE-91). Empty = do not render.
+     */
+    public function getOutletEmbedFormId(): string
+    {
+        $id = trim((string) $this->get(self::XML_KL_OUTLET_FORM));
+
+        return preg_match('/^[A-Za-z0-9_-]+$/', $id) === 1 ? $id : '';
     }
 
     /**

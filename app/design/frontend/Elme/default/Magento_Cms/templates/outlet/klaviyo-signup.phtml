@@ -1,0 +1,39 @@
+<?php
+/**
+ * FE-91: Klaviyo onsite embed for /elme-outlet-signup.
+ * Company script loads via Elme_ThirdParty (FE-54); this only places the form mount node.
+ * Form id matches production elmeliving.com (Admin: elme_third_party/klaviyo/outlet_embed_form_id).
+ */
+
+declare(strict_types=1);
+
+use Elme\ThirdParty\ViewModel\Config as ThirdPartyConfig;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var ThirdPartyConfig $thirdParty */
+$thirdParty = $viewModels->require(ThirdPartyConfig::class);
+$formId = $thirdParty->getOutletEmbedFormId();
+
+if ($formId === '') {
+    return;
+}
+
+$formClass = 'klaviyo-form-' . $formId;
+?>
+<section class="elme-outlet-signup container py-8 lg:py-12"
+         aria-label="<?= $escaper->escapeHtmlAttr(__('Outlet signup')) ?>">
+    <div class="<?= $escaper->escapeHtmlAttr($formClass) ?>"></div>
+    <noscript>
+        <p class="m-0 text-copy text-ink-muted">
+            <?= $escaper->escapeHtml(__(
+                'JavaScript is required to sign up for outlet updates. Enable JavaScript or contact us.'
+            )) ?>
+        </p>
+    </noscript>
+</section>

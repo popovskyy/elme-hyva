@@ -1,0 +1,32 @@
+<?php
+/**
+ * FE-91: CTA on /outlet-and-clearance-store pointing at the Klaviyo outlet signup page.
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+$href = $block->getUrl('elme-outlet-signup');
+?>
+<section class="elme-outlet-signup-link mb-10 border border-border bg-surface px-5 py-6 text-ink lg:mb-15 lg:px-8 lg:py-8"
+         aria-labelledby="elme-outlet-signup-link-heading">
+    <h2 id="elme-outlet-signup-link-heading"
+        class="m-0 mb-3 font-heading text-h3 font-medium lg:text-h3-desktop">
+        <?= $escaper->escapeHtml(__('Hear about new outlet stock')) ?>
+    </h2>
+    <p class="m-0 mb-5 max-w-160 text-copy text-pretty lg:text-copy-desktop">
+        <?= $escaper->escapeHtml(__(
+            'Outlet pieces are sold in store only and change often. Sign up for outlet updates and we will'
+            . ' email you when new stock arrives.'
+        )) ?>
+    </p>
+    <a href="<?= $escaper->escapeUrl($href) ?>"
+       class="btn btn-primary inline-flex min-h-11 items-center justify-center">
+        <?= $escaper->escapeHtml(__('Sign up for outlet updates')) ?>
+    </a>
+</section>

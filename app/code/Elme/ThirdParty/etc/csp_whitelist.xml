@@ -78,6 +78,9 @@
                 <value id="elme-klaviyo-forms" type="host">static-forms.klaviyo.com</value>
                 <value id="elme-klaviyo-tracking" type="host">static-tracking.klaviyo.com</value>
                 <value id="elme-klaviyo-star" type="host">*.klaviyo.com</value>
+                <!-- FE-91: Klaviyo onsite form image CDN + phone flag sprites -->
+                <value id="elme-klaviyo-form-cdn" type="host">d3k81ch9hvuctc.cloudfront.net</value>
+                <value id="elme-cdnjs" type="host">cdnjs.cloudflare.com</value>
                 <value id="elme-zdassets" type="host">static.zdassets.com</value>
                 <value id="elme-zdassets-star" type="host">*.zdassets.com</value>
                 <value id="elme-zendesk-star" type="host">*.zendesk.com</value>

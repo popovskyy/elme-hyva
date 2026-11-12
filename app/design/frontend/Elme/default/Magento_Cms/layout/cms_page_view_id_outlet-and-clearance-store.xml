@@ -13,6 +13,9 @@
         <referenceBlock name="content.page.jsonld" template="Magento_Cms::content-page/store-jsonld.phtml"/>
 
         <referenceContainer name="content">
+            <block name="elme.outlet.signup.link"
+                   template="Magento_Cms::outlet/signup-link.phtml"
+                   before="elme.need.assistance"/>
             <block class="Magento\Cms\Block\Block"
                    name="elme.need.assistance"
                    after="-">
