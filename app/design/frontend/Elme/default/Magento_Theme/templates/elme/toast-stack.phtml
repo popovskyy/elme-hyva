@@ -22,8 +22,6 @@ use Magento\Framework\View\Element\Template;
 
 $lucideIcons = $viewModels->require(LucideIcons::class);
 $hyvaCsp = $viewModels->require(HyvaCsp::class);
-
-$iconAttrs = ['aria-hidden' => 'true'];
 ?>
 <div
     class="elme-toast-stack"
@@ -34,37 +32,13 @@ $iconAttrs = ['aria-hidden' => 'true'];
 >
     <template x-for="toast in toasts" :key="toast.id">
         <div
-<<<<<<< HEAD
-            class="message is-entering"
-            :class="toast.type"
-=======
             class="message"
             :class="toastClass"
->>>>>>> main
             role="status"
             :aria-live="toastLive"
-            :style="toastStyle"
         >
-<<<<<<< HEAD
-            <span class="message__icon" aria-hidden="true">
-                <span x-show="isSuccess">
-                    <?= $lucideIcons->checkHtml('stroke-current', 18, 18, $iconAttrs); ?>
-                </span>
-                <span x-show="isError">
-                    <?= $lucideIcons->circleAlertHtml('stroke-current', 18, 18, $iconAttrs); ?>
-                </span>
-                <span x-show="isWarning">
-                    <?= $lucideIcons->alertTriangleHtml('stroke-current', 18, 18, $iconAttrs); ?>
-                </span>
-                <span x-show="isNotice">
-                    <?= $lucideIcons->infoHtml('stroke-current', 18, 18, $iconAttrs); ?>
-                </span>
-            </span>
-            <span class="message__body" x-text="toast.text"></span>
-=======
             <span class="message__badge" aria-hidden="true"></span>
             <span class="message__text" x-text="toast.text"></span>
->>>>>>> main
             <button
                 type="button"
                 class="message__close"
@@ -72,9 +46,8 @@ $iconAttrs = ['aria-hidden' => 'true'];
                 @click="dismiss"
                 :data-toast-id="toast.id"
             >
-                <?= $lucideIcons->xHtml('stroke-current', 18, 18, $iconAttrs); ?>
+                <?= $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']); ?>
             </button>
-            <span class="message__timer" x-show="hasTimer" aria-hidden="true"></span>
         </div>
     </template>
 </div>
@@ -102,11 +75,7 @@ $iconAttrs = ['aria-hidden' => 'true'];
                     ? 0
                     : (detail.hideAfter || this.defaultHideAfter);
 
-<<<<<<< HEAD
-                this.toasts.push({ id, type, text, hideAfter });
-=======
                 this.toasts.push({ id, type, text, leaving: false });
->>>>>>> main
 
                 if (hideAfter > 0) {
                     setTimeout(() => this.removeById(id), hideAfter);
@@ -134,34 +103,6 @@ $iconAttrs = ['aria-hidden' => 'true'];
 
             toastLive() {
                 return this.toast.type === 'error' ? 'assertive' : 'polite';
-            },
-
-            toastStyle() {
-                if (!this.toast.hideAfter) {
-                    return '';
-                }
-                return '--toast-ttl: ' + this.toast.hideAfter + 'ms';
-            },
-
-            hasTimer() {
-                return this.toast.hideAfter > 0;
-            },
-
-            isSuccess() {
-                return this.toast.type === 'success';
-            },
-
-            isError() {
-                return this.toast.type === 'error';
-            },
-
-            isWarning() {
-                return this.toast.type === 'warning';
-            },
-
-            isNotice() {
-                return this.toast.type === 'notice' || this.toast.type === 'info'
-                    || (!this.isSuccess() && !this.isError() && !this.isWarning());
             }
         }
     }
