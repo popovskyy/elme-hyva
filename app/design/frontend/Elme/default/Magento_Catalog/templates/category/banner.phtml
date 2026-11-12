@@ -1,7 +1,8 @@
 <?php
 /**
  * FE-18: category PLP header. With an image the photo fills a short band and the
- * breadcrumbs, H1 and description sit on it. Without an image: a compact text header.
+ * breadcrumbs, H1 and description sit on it in a dark translucent panel (readable on any photo).
+ * Without an image: a compact text header (the panel is a plain wrapper then).
  */
 
 declare(strict_types=1);
@@ -41,17 +42,19 @@ $sectionClass = $hasImage
         <?php endif; ?>
 
         <div class="category-banner__content">
-            <?= $block->getChildHtml('breadcrumbs') ?>
+            <div class="category-banner__panel">
+                <?= $block->getChildHtml('breadcrumbs') ?>
 
-            <div class="category-banner__title">
-                <h1 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"><?= $escaper->escapeHtml($name) ?></h1>
-            </div>
-
-            <?php if ($descriptionHtml !== ''): ?>
-                <div class="category-banner__description prose">
-                    <?= /* @noEscape */ $descriptionHtml ?>
+                <div class="category-banner__title">
+                    <h1 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"><?= $escaper->escapeHtml($name) ?></h1>
                 </div>
-            <?php endif; ?>
+
+                <?php if ($descriptionHtml !== ''): ?>
+                    <div class="category-banner__description prose">
+                        <?= /* @noEscape */ $descriptionHtml ?>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </section>

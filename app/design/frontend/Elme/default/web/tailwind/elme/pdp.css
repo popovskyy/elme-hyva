@@ -22,11 +22,22 @@
             gap: --spacing(8);
         }
 
-        /* FE-101: same container as the rest of the site; 3:2 split; photo capped on the slide */
+        /* FE-101: same container as the rest of the site; photo capped on the slide.
+           lg: 1.6 : 1 split. From xl the info column stops at 30rem and the gallery takes the
+           rest, with a wider gutter, so the buy box does not stretch on large screens. */
         @variant lg {
             grid-template-columns: minmax(0, 1.6fr) minmax(--spacing(88), 1fr);
-            gap: --spacing(10);
+            gap: --spacing(12);
             padding-bottom: --spacing(16);
+        }
+
+        @variant xl {
+            grid-template-columns: minmax(0, 1fr) minmax(--spacing(88), --spacing(120));
+            gap: --spacing(16);
+        }
+
+        @variant 2xl {
+            gap: --spacing(24);
         }
     }
 

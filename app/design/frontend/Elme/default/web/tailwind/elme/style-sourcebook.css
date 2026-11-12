@@ -1,6 +1,8 @@
 /*
  * FE-64 /style-sourcebook body (CMS HTML). BEM in the seeded markup so layout does not depend on
  * Tailwind scanning Page Builder / DB content. Buttons reuse .btn.
+ * The body is centred in the container (the photos are 400-620px, so it does not stretch to full
+ * width); the intro section is centred text, the split sections alternate photo and copy.
  */
 @layer components {
     .elme-ssb {
@@ -8,10 +10,32 @@
         flex-direction: column;
         gap: --spacing(10);
         margin-block: --spacing(2) --spacing(10);
+        margin-inline: auto;
+        width: 100%;
         max-width: 48rem;
     }
 
+    /* intro: the first section that is not a split */
+    .elme-ssb__section:not(.elme-ssb__section--split) {
+        @variant md {
+            align-items: center;
+            text-align: center;
+            max-width: 44rem;
+            margin-inline: auto;
+
+            .elme-ssb__actions {
+                justify-content: center;
+            }
+        }
+    }
+
     .elme-ssb__section {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(4);
+    }
+
+    .elme-ssb__copy {
         display: flex;
         flex-direction: column;
         gap: --spacing(4);
@@ -56,21 +80,16 @@
 
     @variant lg {
         .elme-ssb {
-            gap: --spacing(15);
-            max-width: 56rem;
+            gap: --spacing(20);
+            max-width: 72rem;
+            margin-block: --spacing(6) --spacing(16);
         }
 
         .elme-ssb__section--split {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: --spacing(10);
+            gap: --spacing(16);
             align-items: center;
-        }
-
-        .elme-ssb__section--split .elme-ssb__copy {
-            display: flex;
-            flex-direction: column;
-            gap: --spacing(4);
         }
     }
 }
