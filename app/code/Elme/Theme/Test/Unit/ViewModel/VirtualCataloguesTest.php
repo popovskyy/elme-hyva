@@ -126,6 +126,59 @@ class VirtualCataloguesTest extends TestCase
         );
     }
 
+    public function testGuestMessageFromContent(): void
+    {
+        $message = 'Sign in to see our brand new Special Offers Catalogue!';
+        $this->assertSame(
+            $message,
+            $this->viewModel(false)->getGuestMessage(['guest_message' => $message])
+        );
+        $this->assertSame('', $this->viewModel(false)->getGuestMessage([]));
+    }
+
+    public function testSpecialOffersPageIsRecognised(): void
+    {
+        $cms = $this->createMock(CmsPage::class);
+        $cms->method('getIdentifier')->willReturn('virtual-special-offers-catalogue');
+        $cms->method('getMetaTitle')->willReturn('Special Offers Catalogue | Elme Living Product Showcase');
+        $cms->method('getMetaDescription')->willReturn('Best value offer.');
+        $cms->method('getTitle')->willReturn('Special Offers Catalogue');
+
+        $entryRepo = $this->createMock(EntryRepositoryInterface::class);
+        $entry = $this->createMock(EntryInterface::class);
+        $entry->method('isActive')->willReturn(true);
+        $entry->method('getEntryData')->willReturn([
+            'guest_message' => 'Sign in to see our brand new Special Offers Catalogue!',
+            'catalogues' => [
+                [
+                    'title' => 'Special Offers',
+                    'image' => self::MEDIA_URL . 'covers/cover.png',
+                    'open_url' => 'https://e.issuu.com/embed.html?d=secret&u=elmeliving',
+                ],
+            ],
+        ]);
+        $entryRepo->method('getByIdentifier')->willReturnCallback(
+            function (string $identifier) use ($entry) {
+                $this->assertSame('special-offers-catalogue', $identifier);
+                return $entry;
+            }
+        );
+
+        $vm = $this->viewModel(false, $cms, $entryRepo);
+        $this->assertTrue($vm->isVirtualCataloguesPage());
+        $this->assertSame(
+            'https://elme.test/virtual-special-offers-catalogue',
+            $vm->getCanonicalUrl()
+        );
+
+        $graph = $vm->getJsonLdGraph();
+        $json = (string) json_encode($graph);
+        $this->assertStringNotContainsString('issuu', $json);
+        $this->assertStringNotContainsString('secret', $json);
+        $this->assertSame('Special Offers Catalogue', $graph['@graph'][1]['itemListElement'][1]['item']['name']);
+        $this->assertSame('Elme Living special offers catalogue', $graph['@graph'][2]['name']);
+    }
+
     private function viewModel(
         bool $loggedIn,
         ?CmsPage $cmsPage = null,
@@ -163,7 +216,9 @@ class VirtualCataloguesTest extends TestCase
         $loginState->method('isLoggedIn')->willReturn($loggedIn);
 
         $cms = $cmsPage ?? $this->createMock(CmsPage::class);
-        $cms->method('getIdentifier')->willReturn('virtual-catalogues');
+        if ($cmsPage === null) {
+            $cms->method('getIdentifier')->willReturn('virtual-catalogues');
+        }
 
         $repo = $entryRepository ?? $this->createMock(EntryRepositoryInterface::class);
 

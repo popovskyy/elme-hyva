@@ -251,22 +251,24 @@
         </field>
     </type>
 
-    <!-- /virtual-catalogues season list (FE-50): cover cards always; flipbook + shop URLs only when
-         logged in (QA 0). Empty catalogues hide the grid (UX-01). -->
+    <!-- /virtual-catalogues (FE-50) and /virtual-special-offers-catalogue (FE-92): cover cards always;
+         flipbook + shop URLs only when logged in (QA 0). Empty catalogues hide the grid (UX-01). -->
     <type code="virtual_catalogues"
           label="Virtual Catalogues"
           standalone="true"
           group="pages"
           icon="image-text"
-          description="Seasonal wholesale catalogue covers. Guests see locked covers and trade CTAs; signed-in buyers open flipbooks and shop the range."
+          description="Seasonal wholesale catalogue covers. Guests see locked covers and trade CTAs; signed-in buyers open flipbooks and shop the range. Also used for Special Offers Catalogue."
           template="Elme_Theme::content-type/virtual-catalogues.phtml"
           version="1">
 
         <field name="intro" type="textarea" label="Intro" maxlength="400"
-               description="Optional plain text under the page H1. Wholesale voice: seasonal catalogues for Australian trade customers."/>
+               description="Optional plain text under the page H1. Wholesale voice: seasonal catalogues for Australian trade customers. Shown to everyone when set."/>
+        <field name="guest_message" type="textarea" label="Guest sign-in message" maxlength="200"
+               description="Optional. Guests only (e.g. Sign in to see our brand new Special Offers Catalogue!). Hidden when signed in. Leave empty on the seasonal Virtual Catalogues page."/>
 
         <field name="catalogues" type="repeater" label="Catalogues" label_field="title" max="12" required="true"
-               description="One card per season. Cover + title are public; Open URL is never printed for guests.">
+               description="One card per season. Cover + title are public; Open URL is never printed for guests. Editable in admin (FE-92 QA 2).">
             <field name="title" type="text" label="Season title" required="true" maxlength="40" width="half"
                    description="Visible card H2, e.g. SS27 or AW26."/>
             <field name="description" type="text" label="Short line" maxlength="120" width="half"
