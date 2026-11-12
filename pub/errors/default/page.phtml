@@ -10,9 +10,14 @@ $phoneDisplay = '(03) 7067 9725';
 $phoneTel = '+61370679725';
 $email = 'hello@elmeliving.com';
 
-$script = basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''));
-$pageTitle = $this->pageTitle;
-if ($script === '503.php') {
+// htmlspecialchars only: Magento Escaper hits inline translation / store config (needs DB).
+$h = static function (string $value): string {
+    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+};
+
+// contentTemplate is 503.phtml both for /errors/503.php and for maintenance (index.php requires 503.php).
+$pageTitle = (string) $this->pageTitle;
+if (basename((string) $contentTemplate) === '503.phtml') {
     $pageTitle = '503 Service Unavailable';
 }
 ?>
@@ -22,7 +27,7 @@ if ($script === '503.php') {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <title><?= $this->escaper->escapeHtml($pageTitle) ?></title>
+    <title><?= $h($pageTitle) ?></title>
     <style>
         :root {
             --elme-ink: #3A3935;
@@ -335,14 +340,10 @@ if ($script === '503.php') {
                 <p class="elme-error__contact-label">Need help?</p>
                 <ul class="elme-error__contacts">
                     <li>
-                        <a href="tel:<?= $this->escaper->escapeHtmlAttr($phoneTel) ?>">
-                            <?= $this->escaper->escapeHtml($phoneDisplay) ?>
-                        </a>
+                        <a href="tel:<?= $h($phoneTel) ?>"><?= $h($phoneDisplay) ?></a>
                     </li>
                     <li>
-                        <a href="mailto:<?= $this->escaper->escapeHtmlAttr($email) ?>">
-                            <?= $this->escaper->escapeHtml($email) ?>
-                        </a>
+                        <a href="mailto:<?= $h($email) ?>"><?= $h($email) ?></a>
                     </li>
                 </ul>
             </div>
