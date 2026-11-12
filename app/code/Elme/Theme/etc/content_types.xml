@@ -685,11 +685,11 @@
           version="1">
 
         <field name="banner_desktop" type="image" label="Banner (desktop)" recommended="1920x700"
-               description="Optional top banner for desktop. Leave empty when the lifestyle collage below is the hero (as on Three Birds)."/>
-        <field name="banner_mobile" type="image" label="Banner (mobile)" recommended="900x480" width="half"
-               description="Optional. Shown under md instead of the desktop banner. Leave empty to use the desktop banner on phones."/>
+               description="Full-width top banner on desktop (production Three Birds: 1920x700 with campaign logo). Leave empty only for text-first collabs with no hero."/>
+        <field name="banner_mobile" type="image" label="Banner (mobile)" recommended="450x240" width="half"
+               description="Full-width top banner under md (production Three Birds: 450x240). Leave empty to use the desktop banner on phones."/>
         <field name="banner_alt" type="text" label="Banner alt text" maxlength="160" width="half"
-               description="What the banner shows. Empty only if decorative."/>
+               description="What the banner shows (campaign / partner). Empty only if decorative."/>
 
         <field name="heading" type="text" label="Title" required="true" maxlength="100"
                description="Centered page title under the banner, e.g. THREE BIRDS RENOVATIONS MAISON SOLEIL. This is the page H1 when is_page_title is on."/>

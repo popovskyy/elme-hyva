@@ -31,7 +31,18 @@ class CreateCollaborationPage implements DataPatchInterface
 
     public const PAGE_IDENTIFIER = 'elme-living-three-birds-maison-soleil';
 
+    private const BANNER_DESKTOP_FILE = 'banner-desktop.jpg';
+
+    private const BANNER_MOBILE_FILE = 'banner-mobile.jpg';
+
     private const COLLAGE_FILE = 'collage.jpg';
+
+    /** @var list<string> */
+    private const MEDIA_FILES = [
+        self::BANNER_DESKTOP_FILE,
+        self::BANNER_MOBILE_FILE,
+        self::COLLAGE_FILE,
+    ];
 
     private const SEED_PRODUCT_LIMIT = 12;
 
@@ -49,10 +60,7 @@ class CreateCollaborationPage implements DataPatchInterface
     public function apply(): self
     {
         self::syncImagesToMedia();
-        $mediaBase = rtrim(
-            $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA),
-            '/'
-        ) . '/' . self::MEDIA_DIR . '/';
+        $mediaBase = self::mediaBaseUrl($this->storeManager);
 
         $this->ensureEntry($mediaBase);
         $this->upsertPage();
@@ -69,11 +77,21 @@ class CreateCollaborationPage implements DataPatchInterface
             return;
         }
 
-        $from = $sourceDir . '/' . self::COLLAGE_FILE;
-        $to = $targetDir . '/' . self::COLLAGE_FILE;
-        if (is_file($from)) {
-            copy($from, $to);
+        foreach (self::MEDIA_FILES as $file) {
+            $from = $sourceDir . '/' . $file;
+            $to = $targetDir . '/' . $file;
+            if (is_file($from)) {
+                copy($from, $to);
+            }
         }
+    }
+
+    public static function mediaBaseUrl(StoreManagerInterface $storeManager): string
+    {
+        return rtrim(
+            $storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA),
+            '/'
+        ) . '/' . self::MEDIA_DIR . '/';
     }
 
     private function ensureEntry(string $mediaBase): void
@@ -106,9 +124,9 @@ class CreateCollaborationPage implements DataPatchInterface
         }
 
         return [
-            'banner_desktop' => '',
-            'banner_mobile' => '',
-            'banner_alt' => '',
+            'banner_desktop' => $mediaBase . self::BANNER_DESKTOP_FILE,
+            'banner_mobile' => $mediaBase . self::BANNER_MOBILE_FILE,
+            'banner_alt' => 'Three Birds Renovations Maison Soleil with Elme Living',
             'heading' => 'THREE BIRDS RENOVATIONS MAISON SOLEIL',
             'is_page_title' => true,
             'intro' => 'Explore the Elme Living pieces featured in Three Birds Renovations Maison Soleil.'
@@ -120,6 +138,23 @@ class CreateCollaborationPage implements DataPatchInterface
             'section_heading' => 'Shop the look',
             'products' => $products,
         ];
+    }
+
+    /**
+     * Banner fields for an already-seeded entry (preserves SKUs and copy).
+     *
+     * @param array<string, mixed> $existing
+     * @return array<string, mixed>
+     */
+    public static function withBannerFields(array $existing, string $mediaBase): array
+    {
+        $existing['banner_desktop'] = $mediaBase . self::BANNER_DESKTOP_FILE;
+        $existing['banner_mobile'] = $mediaBase . self::BANNER_MOBILE_FILE;
+        if (trim((string) ($existing['banner_alt'] ?? '')) === '') {
+            $existing['banner_alt'] = 'Three Birds Renovations Maison Soleil with Elme Living';
+        }
+
+        return $existing;
     }
 
     /**
