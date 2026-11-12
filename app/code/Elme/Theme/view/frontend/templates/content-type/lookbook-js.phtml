@@ -512,7 +512,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
 
                 // the configurable's "From" price is the cheapest child, not a sale
                 hasDiscount() {
-                    return this.isPriceReady() && !this.isFromPrice() && this.price.regular > this.price.final;
+                    return this.isPriceReady() && !this.isFromPrice() && Boolean(this.price.promo);
                 },
 
                 finalPrice() {

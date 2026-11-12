@@ -15,8 +15,8 @@ use Magento\Framework\Pricing\PriceCurrencyInterface;
 /**
  * GET /customer-price/prices?ids=1,2,3 - prices of the current customer, never cached.
  *
- * Response: {"1": {"final": 12.5, "regular": 15, "final_formatted": "$12.50", "regular_formatted": "$15.00"}}.
- * Guests get 401 and no prices.
+ * Response: {"1": {"final": 12.5, "regular": 15, "promo": true, "final_formatted": "$12.50",
+ * "regular_formatted": "$15.00"}}. Guests get 401 and no prices. `promo` means was/now is a sale.
  */
 class Index implements HttpGetActionInterface
 {

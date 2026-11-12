@@ -24,6 +24,9 @@
         <referenceBlock name="product.info.quantity" remove="true"/>
         <referenceBlock name="product.info.addtocart" remove="true"/>
         <referenceBlock name="addtocart.shortcut.buttons" remove="true"/>
+        <!-- FE-27 sticky / buy-box JS are for customers only -->
+        <referenceBlock name="product.info.sticky.atc" remove="true"/>
+        <referenceBlock name="elme.pdp.buybox.js" remove="true"/>
         <!-- Stores the PDP price in localStorage for the recently viewed widget -->
         <referenceBlock name="recently_viewed_products.register_view" remove="true"/>
         <!-- Guests have no wishlist; the sidebar template carries add to cart buttons -->

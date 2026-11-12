@@ -9,10 +9,11 @@
             <block name="elme.customer-price.js" template="Elme_LoginOnly::js/customer-price.phtml"/>
         </referenceContainer>
 
-        <!-- PDP: the customer's own price, loaded after render -->
+        <!-- PDP: the customer's own price, loaded after render (no Offer microdata; FE-27) -->
         <referenceBlock name="product.info.price" template="Elme_LoginOnly::price/customer-price.phtml">
             <arguments>
                 <argument name="show_tax_label" xsi:type="boolean">true</argument>
+                <argument name="pdp" xsi:type="boolean">true</argument>
             </arguments>
         </referenceBlock>
     </body>

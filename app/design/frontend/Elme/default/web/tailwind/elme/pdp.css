@@ -1,8 +1,9 @@
 /*
  * FE-25 product page: layout, gallery and fullscreen viewer.
  * FE-26: guest buy box (.elme-pdp__guest) under the sign-in price line.
+ * FE-27: logged-in buy box (price, MOQ stepper, line-total ATC, In your cart) + sticky ATC bar.
  * Templates: Magento_Catalog::product/product-detail-page.phtml, product/view/gallery.phtml,
- * product/view/product-info.phtml; Elme_LoginOnly::product/view/guest-buybox.phtml.
+ * product/view/product-info.phtml, quantity/addtocart/sticky-atc; Elme_LoginOnly guest/customer price.
  *
  * Gallery: one square photo at a time (swipe, arrows from md). Under it a thumbnail strip below lg,
  * and from lg a two-column photo grid cut off behind "View gallery". Info column beside it from md,
@@ -168,9 +169,10 @@
     .elme-pdp__buy {
         display: grid;
         gap: --spacing(3);
+        /* phones too: price + ATC above the short description (idea FE-27) */
+        order: -1;
 
         @variant lg {
-            order: -1;
             gap: --spacing(4);
             padding: --spacing(5);
             background: var(--color-surface);
@@ -184,6 +186,210 @@
                 display: none;
             }
         }
+    }
+
+    /* FE-27: large customer price, reserved height so the skeleton does not shift the box */
+    .elme-pdp__price {
+        display: grid;
+        gap: --spacing(1);
+        min-height: --spacing(12);
+        align-content: center;
+    }
+
+    .elme-pdp__price-skeleton {
+        display: block;
+        width: --spacing(36);
+        height: --spacing(8);
+    }
+
+    .elme-pdp__price-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: --spacing(1) --spacing(3);
+        margin: 0;
+    }
+
+    .elme-pdp__price .price {
+        font-size: var(--text-h2);
+        line-height: var(--text-h2--line-height);
+        font-variant-numeric: tabular-nums;
+        font-weight: 500;
+    }
+
+    .elme-pdp__price .old-price .price {
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        font-weight: 400;
+        color: var(--color-ink-muted);
+    }
+
+    .elme-pdp__your-price {
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        color: var(--color-ink-muted);
+        width: 100%;
+    }
+
+    .elme-pdp__ex-gst {
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        color: var(--color-ink-muted);
+    }
+
+    .elme-pdp__qty {
+        display: grid;
+        gap: --spacing(1.5);
+    }
+
+    .elme-pdp__stepper {
+        width: fit-content;
+        min-height: --spacing(11);
+    }
+
+    .elme-pdp__moq {
+        margin: 0;
+        min-height: var(--text-note--line-height);
+    }
+
+    .elme-pdp__actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: stretch;
+        gap: --spacing(2);
+    }
+
+    .elme-pdp__atc {
+        flex: 1 1 auto;
+        min-width: --spacing(48);
+    }
+
+    .elme-pdp__atc-label {
+        min-width: --spacing(40);
+        white-space: nowrap;
+    }
+
+    .elme-pdp__in-cart {
+        margin: 0;
+        min-height: var(--text-note--line-height);
+    }
+
+    /* FE-27 sticky ATC: fixed, transform reveal only (no layout jump). Zendesk offset uses html.elme-sticky-atc-active */
+    .elme-sticky-atc {
+        position: fixed;
+        inset-inline: 0;
+        bottom: 0;
+        z-index: 40;
+        padding: --spacing(3) var(--container-gutter);
+        background: var(--color-surface);
+        border-top: 1px solid var(--color-border);
+        translate: 0 100%;
+        transition: translate var(--transition-duration-base) var(--ease-out-quart);
+        pointer-events: none;
+
+        &.is-visible {
+            translate: 0 0;
+            pointer-events: auto;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            transition: none;
+        }
+    }
+
+    .elme-sticky-atc__inner {
+        display: flex;
+        align-items: center;
+        gap: --spacing(3);
+        max-width: var(--container-max-width, 100%);
+        margin-inline: auto;
+    }
+
+    .elme-sticky-atc__thumb {
+        display: none;
+        flex: none;
+        width: --spacing(12);
+        height: --spacing(12);
+        object-fit: contain;
+        background: var(--color-surface-muted);
+
+        @variant md {
+            display: block;
+        }
+    }
+
+    .elme-sticky-atc__meta {
+        display: none;
+        flex: 1 1 auto;
+        min-width: 0;
+
+        @variant lg {
+            display: block;
+        }
+    }
+
+    .elme-sticky-atc__name {
+        margin: 0;
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .elme-sticky-atc__price {
+        margin: 0;
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        color: var(--color-ink-muted);
+    }
+
+    .elme-sticky-atc__price-skel {
+        display: inline-block;
+        width: --spacing(20);
+        height: --spacing(4);
+        vertical-align: middle;
+    }
+
+    .elme-sticky-atc__qty {
+        flex: none;
+        min-height: --spacing(11);
+    }
+
+    .elme-sticky-atc__jumps {
+        display: none;
+        flex: none;
+        gap: --spacing(4);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+
+        @variant lg {
+            display: flex;
+        }
+    }
+
+    .elme-sticky-atc__jump {
+        color: var(--color-ink-muted);
+        text-decoration: underline;
+        text-underline-offset: --spacing(0.75);
+
+        &[hidden] {
+            display: none;
+        }
+    }
+
+    .elme-sticky-atc__btn {
+        flex: 1 1 auto;
+        min-width: --spacing(40);
+
+        @variant lg {
+            flex: 0 1 auto;
+        }
+    }
+
+    .elme-sticky-atc__btn-label {
+        min-width: --spacing(32);
+        white-space: nowrap;
     }
 
     /* FE-26: guests — apply + login under "Sign in to see pricing" (old guest-user-wrapper) */
@@ -208,11 +414,9 @@
         }
     }
 
-    /* title block stays above the buy box when the buy box moves up at lg */
+    /* title stays above the buy box; buy box stays above the description (all widths) */
     .elme-pdp__head {
-        @variant lg {
-            order: -2;
-        }
+        order: -2;
     }
 
     /* ---------- detail sections (accordion in the info column) ---------- */

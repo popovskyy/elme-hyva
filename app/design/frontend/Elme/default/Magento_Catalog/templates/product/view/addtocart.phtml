@@ -1,18 +1,12 @@
 <?php
 /**
- * Hyvä Themes - https://hyva.io
- * Copyright © Hyvä Themes. All rights reserved.
- * See COPYING.txt for license details.
+ * FE-27 / FE-70: logged-in PDP add to cart. Heart = shopping list (FE-78); no core wishlist.
+ * Button label shows line total once the customer price and qty are known ("Add 12 to cart · $264.00");
+ * server HTML keeps a price-free "Add to Cart" so FPC never leaks Pronto prices. btn-atc stays for
+ * the AJAX Added animation.
  */
 
 declare(strict_types=1);
-
-/**
- * Elme: copy of Hyvä 1.5.3. FE-70: "Add to Cart" carries btn-atc (AJAX add + animated sending / Added
- * states, see Magento_Theme::elme/atc-button.phtml). "Update item" (cart item configure) keeps the
- * normal post, because updateItemOptions answers with a redirect. FE-27 rebuilds the buy box and must
- * keep btn-atc on its add to cart button. The accessible name carries the product name, as on the tile.
- */
 
 use Hyva\Theme\Model\ViewModelRegistry;
 use Hyva\Theme\ViewModel\LucideIcons;
@@ -39,6 +33,7 @@ $ariaLabel = $isCartConfigure || !$product
     : $buttonLabel . ' ' . $product->getName();
 ?>
 
+<div class="elme-pdp__actions">
 <?php if (!$isCartConfigure && $product): ?>
 <button type="button"
         class="elme-save"
@@ -65,12 +60,22 @@ $ariaLabel = $isCartConfigure || !$product
     type="submit"
     form="product_addtocart_form"
     aria-label="<?= $escaper->escapeHtmlAttr($ariaLabel) ?>"
-    class="btn btn-primary<?= $isCartConfigure ? '' : ' btn-atc' ?>"
+    class="btn btn-primary elme-pdp__atc<?= $isCartConfigure ? '' : ' btn-atc' ?>"
     id="product-addtocart-button"
     data-addto="cart"
+    data-label-idle="<?= $escaper->escapeHtmlAttr($buttonLabel) ?>"
+    data-label-add="<?= $escaper->escapeHtmlAttr(__('Add %1 to cart · %2')) ?>"
 >
     <?= $lucideIcons->shoppingCartHtml('', 24, 24, ['aria-hidden' => 'true']); ?>
-    <span class="hidden sm:block md:hidden lg:block"><?= $escaper->escapeHtml($buttonLabel) ?></span>
+    <span class="elme-pdp__atc-label tabular-nums"><?= $escaper->escapeHtml($buttonLabel) ?></span>
 </button>
+</div>
+
+<p class="elme-pdp__in-cart text-note text-ink-muted"
+   x-show="hasInCart"
+   x-cloak
+   x-text="inCartLabel"
+   role="status"
+></p>
 
 <?= $block->getChildHtml('', true) ?>

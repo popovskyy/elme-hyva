@@ -125,7 +125,7 @@ class CartData
                 'regular' => $price['regular'],
                 'final_formatted' => $this->format($price['final']),
                 'regular_formatted' => $this->format($price['regular']),
-                'has_discount' => round($price['regular'] * 100) > round($price['final'] * 100),
+                'has_discount' => !empty($price['promo']),
             ],
             'row_total' => $line->getRowTotal(),
             'row_total_formatted' => $this->format($line->getRowTotal()),
