@@ -60,7 +60,7 @@ class RequestFactoryTest extends TestCase
             24
         );
         $request = $this->factory([
-            'colour_group' => 'Green, Blue,',
+            'colour_group' => [' Green', 'Blue', ''],
             'width' => '50-120',
             'depth' => '-80',
             'in_stock' => '1',
@@ -80,6 +80,24 @@ class RequestFactoryTest extends TestCase
             'depth' => ['min' => null, 'max' => 80.0],
         ], $request->ranges);
         $this->assertTrue($request->collapseFamilies);
+    }
+
+    public function testScalarFacetValueIsOneValueEvenWithAComma(): void
+    {
+        $criteria = $this->criteria(['category_ids' => '14'], [], 0, 24);
+        $request = $this->factory(['colour_group' => 'Bed Frame, Storage Bed'])->fromCriteria($criteria, 1);
+
+        $this->assertSame(['colour_group' => ['Bed Frame, Storage Bed']], $request->filters);
+    }
+
+    public function testArrayFacetValuesKeepCommas(): void
+    {
+        $criteria = $this->criteria(['category_ids' => '14'], [], 0, 24);
+        $request = $this->factory([
+            'colour_group' => ['Engineered Wood Frame, Metal Frame', 'Oak', ['nested']],
+        ])->fromCriteria($criteria, 1);
+
+        $this->assertSame(['colour_group' => ['Engineered Wood Frame, Metal Frame', 'Oak']], $request->filters);
     }
 
     public function testSearchPageRelevanceIsAlwaysBestFirst(): void

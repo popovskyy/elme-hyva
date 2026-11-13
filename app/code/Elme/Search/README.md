@@ -65,11 +65,13 @@ options of a facet keep their counts while one of them is selected. Counts count
 
 `products` (`id`, `sku`, `name`, `url`, `image`; no price: Elme prices are per customer), `categories`
 (`id`, `name`, `url`: categories that hold matching products), `queries` (a spelling correction, then the types of
-the matching products).
+the matching products). Autocomplete is typed letter by letter, so the last word also matches as a prefix of a
+name word: "din" finds "Dining", "ares b" finds "Ares Buffet".
 
 ### Relevance (UX-05)
 
-1. Exact SKU (`VG.228.ML`, `218AREDINW210B#`), then the same SKU without punctuation (`vg228ml`), then a SKU prefix
+1. Exact SKU (`VG.228.ML`, `218AREDINW210B#`), then the same SKU without punctuation (`vg228ml`, `zardtbl` for
+   `Z-ARDTBL`), then a SKU prefix
    (only for one-word queries with a digit or `. # - / _`).
 2. Then what the item is: `product_type` > `type_detail` > `name`, then colour, material, style, features. All
    words must match (`operator: and`). For several words, the exact phrase in the name gets a boost.
@@ -89,7 +91,7 @@ should only rename parameters. The Search Service column is a proposal for the b
 | `storeId` | index alias `elme_products_<storeId>` | `channel=EL` (+ store / locale) |
 | `query` | bool query: SKU term / prefix + multi_match (see Relevance) | `q` |
 | `categoryId` | `term category_ids` (anchor ids in the doc) | `category` (Magento category id; or PIM leaf category + tree) |
-| `filters[code]` | `terms <code>` in `post_filter` | `filter[<code>]=v1,v2` |
+| `filters[code]` | `terms <code>` in `post_filter` | `filter[<code>][]=v1&filter[<code>][]=v2` (labels contain commas) |
 | `filters[in_stock]` | `term in_stock` (Magento stock today) | `filter[in_stock]=1` (Shipment Service stock) |
 | `ranges[code]` | `range <code> gte/lte` | `range[<code>]=min..max` (or size bands) |
 | `sort` / `direction` | `_score`; nested `category_positions.position`; `name.sort`; `price`; `news_from_date` | `sort=relevance\|position\|name\|price\|newest`, `dir` |
@@ -99,7 +101,7 @@ should only rename parameters. The Search Service column is a proposal for the b
 | `SearchResult.total` | `aggs._total.items` (cardinality of `family_key`) or `hits.total` | `total` (families collapsed) |
 | `Facet` multi / boolean | `aggs.facet_<code>.values` terms (+ cardinality per bucket) | `facets[]` with `options[].value / count` |
 | `Facet` range | `aggs.facet_<code>.values` stats | `facets[]` with `min / max` |
-| `suggest()` | same query, size = limit, terms on `category_direct_ids` and `type_detail`, term suggester on `name` | `/suggest?q=&limit=` |
+| `suggest()` | same query, size = limit, terms on `category_direct_ids` and `type_detail`, term suggester on `name`; plus `match_bool_prefix` on `name.prefix` (last word as a prefix) | `/suggest?q=&limit=` |
 
 Facet values are option **labels** today (`Green`, `Dining Table`). If the Search Service uses option codes, the
 adapter returns codes as `value` and labels as `label`; the URLs change, the contract does not.
@@ -112,7 +114,7 @@ One document per enabled, visible product of the store's website (`Model\Indexer
 | Field | Type | Source today (Magento) | Target source |
 |---|---|---|---|
 | `id`, `sku` (+ `sku.compact`) | integer, keyword | entity | PIM `sku` |
-| `name` (+ `name.sort`) | text, keyword | `name` | PIM |
+| `name` (+ `name.sort`, `name.prefix`) | text, keyword, text not stemmed | `name` | PIM |
 | `url_key`, `url` | not indexed | `url_key`, URL rewrite | PIM / Magento |
 | `image` | not indexed | `small_image` | Cloudinary via PIM |
 | `product_type` | keyword + text | `product_type` (not created yet) | PIM |
@@ -146,9 +148,14 @@ in it. Start set: colour_group, material, type_detail, style, features, seats, w
 
 1. `Model\Storefront\RequestFactory` builds the `SearchRequest` from Magento's criteria (category, query text,
    toolbar sort, page, page size) plus the facet parameters of the URL:
-   `?colour_group=Green,Blue`, `?in_stock=1`, `?width=50-120` (`50-` / `-120` for open bounds).
+   - select / multiselect: the option label as it is, one value per parameter: `?colour_group=Green`, several
+     values as an array `?colour_group[]=Green&colour_group[]=Blue`. A scalar value is never split: labels
+     contain commas ("Bed Frame, Storage Bed"), so `?type_detail=Bed%20Frame%2C%20Storage%20Bed` is one value.
+   - boolean: `?in_stock=1`
+   - range: `?width=50-120` (`50-` / `-120` for open bounds).
 2. The answer goes back to Magento as its own search result (page ids + total). The product collection loads those
    ids in that order, so the toolbar, pager and product list templates stay as they are.
+   A page past the end (`?p=99`) is asked again for the last page, so it lists the last page like Magento.
 3. Magento's layered navigation gets empty buckets (it shows no filters). Facets come from
    `Elme\Search\ViewModel\SearchFacets` (`isActive()`, `getFacets()`, `getTotal()`, `getSelection()`); render it
    after the product list has loaded (FE-21 / FE-23).

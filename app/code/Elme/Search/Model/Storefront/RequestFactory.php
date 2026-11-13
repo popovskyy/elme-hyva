@@ -15,8 +15,12 @@ use Magento\Framework\App\RequestInterface;
  * Magento's search criteria of the category / search page (category, query text, page, page size, toolbar sort)
  * plus our facet filters from the URL -> SearchRequest.
  *
- * Facet URL parameters (FE-21 builds them): ?<code>=value1,value2 (multi), ?in_stock=1 (boolean),
- * ?width=50-120 / ?width=50- / ?width=-120 (range).
+ * Facet URL parameters (FE-21 builds them):
+ * - select / multiselect: the option label as it is, one value per parameter. One value: ?<code>=Green;
+ *   several: ?<code>[]=Green&<code>[]=Blue. A scalar value is never split, because labels contain commas
+ *   ("Bed Frame, Storage Bed").
+ * - boolean: ?in_stock=1
+ * - range: ?width=50-120 / ?width=50- / ?width=-120
  */
 class RequestFactory
 {
@@ -114,9 +118,9 @@ class RequestFactory
                 }
                 continue;
             }
-            $values = is_array($param) ? $param : explode(',', (string)$param);
+            $values = is_array($param) ? $param : [$param];
             $values = array_values(array_filter(
-                array_map(static fn ($v): string => trim((string)$v), $values),
+                array_map(static fn ($v): string => is_scalar($v) ? trim((string)$v) : '', $values),
                 static fn (string $v): bool => $v !== ''
             ));
             if ($values !== []) {

@@ -48,6 +48,7 @@ class QueryBuilder
     public const BOOST_SKU_COMPACT = 800;
     public const BOOST_SKU_PREFIX = 200;
     public const BOOST_NAME_PHRASE = 20;
+    public const BOOST_NAME_PREFIX = 3;
 
     /**
      * @param FacetDefinition[] $facets
@@ -102,7 +103,7 @@ class QueryBuilder
         $body = [
             'size' => max(1, $limit),
             '_source' => ['id', 'sku', 'name', 'url', 'image'],
-            'query' => $this->buildBaseQuery($request),
+            'query' => $this->buildBaseQuery($request, true),
             'sort' => $this->buildSort($request),
             'aggs' => [
                 'categories' => ['terms' => ['field' => 'category_direct_ids', 'size' => 5]],
@@ -121,7 +122,10 @@ class QueryBuilder
         return $body;
     }
 
-    public function buildBaseQuery(SearchRequest $request): array
+    /**
+     * @param bool $prefixLastWord autocomplete: the last word is still being typed, so it also matches as a prefix
+     */
+    public function buildBaseQuery(SearchRequest $request, bool $prefixLastWord = false): array
     {
         $filter = [
             ['terms' => ['visibility' => $request->hasQuery() ? self::VISIBILITY_SEARCH : self::VISIBILITY_CATALOG]],
@@ -131,19 +135,21 @@ class QueryBuilder
         }
         $bool = ['filter' => $filter];
         if ($request->hasQuery()) {
-            $bool['must'] = [$this->buildTextQuery(trim((string)$request->query))];
+            $bool['must'] = [$this->buildTextQuery(trim((string)$request->query), $prefixLastWord)];
         }
         return ['bool' => $bool];
     }
 
-    public function buildTextQuery(string $query): array
+    public function buildTextQuery(string $query, bool $prefixLastWord = false): array
     {
         $lower = mb_strtolower($query);
         $compact = SkuQuery::compact($query); // what the sku.compact normalizer stores
         $should = [
             ['term' => ['sku' => ['value' => $lower, 'boost' => self::BOOST_SKU_EXACT]]],
         ];
-        if ($compact !== '' && $compact !== $lower) {
+        if ($compact !== '') {
+            // always: "zardtbl" equals the query in lower case, but the stored compact SKU of "Z-ARDTBL" is the one
+            // that matches
             $should[] = ['term' => ['sku.compact' => ['value' => $compact, 'boost' => self::BOOST_SKU_COMPACT]]];
         }
         if (SkuQuery::looksLikeSku($query)) {
@@ -155,6 +161,14 @@ class QueryBuilder
         if (preg_match('/\s/', $query)) {
             // "ginger jar" in this order in the name beats the words spread over fields
             $should[] = ['match_phrase' => ['name' => ['query' => $query, 'boost' => self::BOOST_NAME_PHRASE]]];
+        }
+        if ($prefixLastWord) {
+            // "ares b", "din": every word typed so far, the last one as a prefix of a name word
+            $should[] = [
+                'match_bool_prefix' => [
+                    'name.prefix' => ['query' => $query, 'operator' => 'and', 'boost' => self::BOOST_NAME_PREFIX],
+                ],
+            ];
         }
         $should[] = [
             'multi_match' => [

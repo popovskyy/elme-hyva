@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Elme\Search\Plugin;
 
+use Elme\Search\Api\Data\SearchRequest;
 use Elme\Search\Api\ProductSearchInterface;
 use Elme\Search\Model\Config;
 use Elme\Search\Model\Storefront\CurrentSearch;
@@ -59,6 +60,11 @@ class UseProductSearch
         try {
             $request = $this->requestFactory->fromCriteria($searchCriteria, $storeId);
             $result = $this->productSearch->search($request);
+            if ($result->getProductIds() === [] && $result->total > 0 && $request->page > 1) {
+                // ?p= past the end (stale link, or a filter shrank the list): show the last page, as Magento does
+                $request = $this->withPage($request, (int)ceil($result->total / max(1, $request->pageSize)));
+                $result = $this->productSearch->search($request);
+            }
         } catch (\Throwable $e) {
             $this->currentSearch->markFailed();
             $this->logger->error(
@@ -81,5 +87,21 @@ class UseProductSearch
         $searchResult->setAggregations(new EmptyAggregation());
         $searchResult->setSearchCriteria($searchCriteria);
         return $searchResult;
+    }
+
+    private function withPage(SearchRequest $request, int $page): SearchRequest
+    {
+        return new SearchRequest(
+            $request->storeId,
+            $request->query,
+            $request->categoryId,
+            $request->filters,
+            $request->ranges,
+            $request->sort,
+            $request->direction,
+            max(1, $page),
+            $request->pageSize,
+            $request->collapseFamilies
+        );
     }
 }

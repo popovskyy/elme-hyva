@@ -37,7 +37,7 @@ class Query extends Command
             ->setDescription('Run a ProductSearchInterface search or suggest and print the result as JSON')
             ->addArgument('query', InputArgument::OPTIONAL, 'Search text')
             ->addOption('category', 'c', InputOption::VALUE_REQUIRED, 'Category id')
-            ->addOption('filter', 'f', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'code=value1,value2')
+            ->addOption('filter', 'f', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'code=value (one value, kept as is; repeat the option for more values)')
             ->addOption('range', 'r', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'code=min-max')
             ->addOption('sort', 's', InputOption::VALUE_REQUIRED, implode(' | ', SearchRequest::SORTS))
             ->addOption('dir', 'd', InputOption::VALUE_REQUIRED, 'asc | desc')
@@ -66,7 +66,10 @@ class Query extends Command
                 $filters = [];
                 foreach ((array)$input->getOption('filter') as $filter) {
                     [$code, $values] = array_pad(explode('=', (string)$filter, 2), 2, '');
-                    $filters[$code] = array_values(array_filter(array_map('trim', explode(',', $values))));
+                    $values = trim($values);
+                    if ($values !== '') {
+                        $filters[$code][] = $values; // labels contain commas: never split
+                    }
                 }
                 $ranges = [];
                 foreach ((array)$input->getOption('range') as $range) {

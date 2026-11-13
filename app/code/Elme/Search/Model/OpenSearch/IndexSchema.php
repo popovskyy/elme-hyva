@@ -34,7 +34,11 @@ class IndexSchema
             'name' => [
                 'type' => 'text',
                 'analyzer' => 'elme_text',
-                'fields' => ['sort' => ['type' => 'keyword', 'normalizer' => 'elme_lowercase']],
+                'fields' => [
+                    'sort' => ['type' => 'keyword', 'normalizer' => 'elme_lowercase'],
+                    // whole words, not stemmed: autocomplete matches "din" / "dinin" as a prefix of "dining"
+                    'prefix' => ['type' => 'text', 'analyzer' => 'elme_words'],
+                ],
             ],
             'url_key' => ['type' => 'keyword', 'index' => false],
             'url' => ['type' => 'keyword', 'index' => false],
@@ -92,6 +96,11 @@ class IndexSchema
                         ],
                     ],
                     'analyzer' => [
+                        'elme_words' => [
+                            'type' => 'custom',
+                            'tokenizer' => 'standard',
+                            'filter' => ['lowercase', 'asciifolding'],
+                        ],
                         'elme_text' => [
                             'type' => 'custom',
                             'tokenizer' => 'standard',

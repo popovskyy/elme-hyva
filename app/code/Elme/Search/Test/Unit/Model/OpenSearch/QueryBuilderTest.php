@@ -222,6 +222,24 @@ class QueryBuilderTest extends TestCase
         $this->assertSame([['terms' => ['visibility' => [3, 4]]]], $words['query']['bool']['filter']);
     }
 
+    public function testSuggestMatchesTheLastWordAsAPrefixButSearchDoesNot(): void
+    {
+        $suggest = $this->builder->buildSuggest('ares b', 6)['query']['bool']['must'][0]['bool']['should'];
+        $search = $this->builder->buildTextQuery('ares b')['bool']['should'];
+        $prefix = ['match_bool_prefix' => ['name.prefix' => ['query' => 'ares b', 'operator' => 'and', 'boost' => 3]]];
+
+        $this->assertContains($prefix, $suggest);
+        $this->assertNotContains($prefix, $search);
+    }
+
+    public function testAllLetterSkuAlsoMatchesTheCompactSku(): void
+    {
+        $should = $this->builder->buildTextQuery('zardtbl')['bool']['should'];
+
+        // "Z-ARDTBL" is stored as sku.compact "zardtbl"
+        $this->assertContains(['term' => ['sku.compact' => ['value' => 'zardtbl', 'boost' => 800]]], $should);
+    }
+
     private function findClause(array $should, string $type): array
     {
         foreach ($should as $clause) {
