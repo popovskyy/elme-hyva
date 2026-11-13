@@ -367,6 +367,7 @@ return [
         'Elme_QtyRules' => 1,
         'Snowdog_Menu' => 1,
         'Elme_Newsletter' => 1,
+        'Elme_ProductFamily' => 1,
         'Elme_Theme' => 1,
         'Elme_Checkout' => 1,
         'Elme_RecentlyViewed' => 1,
