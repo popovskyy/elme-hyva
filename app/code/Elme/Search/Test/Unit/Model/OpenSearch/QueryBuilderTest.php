@@ -53,6 +53,20 @@ class QueryBuilderTest extends TestCase
         $this->assertTrue($body['track_total_hits']);
     }
 
+    public function testPagePastTheResultWindowAsksForNoHitsInsteadOfAnError(): void
+    {
+        // from 49992 + size 24 > max_result_window 50000
+        $body = $this->builder->build(new SearchRequest(1, null, 14, [], [], 'position', null, 2084, 24), $this->facets);
+
+        $this->assertSame(0, $body['from']);
+        $this->assertSame(0, $body['size']);
+        $this->assertArrayHasKey('aggs', $body);
+
+        $last = $this->builder->build(new SearchRequest(1, null, 14, [], [], 'position', null, 2083, 24), []);
+        $this->assertSame(49968, $last['from']);
+        $this->assertSame(24, $last['size']);
+    }
+
     public function testSearchUsesSearchVisibilityAndRanksExactSkuFirst(): void
     {
         $body = $this->builder->build(new SearchRequest(1, 'VG.228.ML'), []);
@@ -128,14 +142,33 @@ class QueryBuilderTest extends TestCase
 
         $this->assertEquals(['match_all' => (object)[]], $aggs['facet_colour_group']['filter']);
         $terms = $aggs['facet_colour_group']['aggs']['values'];
-        $this->assertSame(['field' => 'colour_group', 'size' => 50], $terms['terms']);
+        $this->assertSame(
+            ['field' => 'colour_group', 'size' => 50, 'order' => ['items' => 'desc']],
+            $terms['terms']
+        );
         $this->assertSame('family_key', $terms['aggs']['items']['cardinality']['field']);
-        $this->assertSame(['_key' => 'asc'], $aggs['facet_seats']['aggs']['values']['terms']['order']);
+        // label sort is applied when mapping; OpenSearch still picks the top size by family count
+        $this->assertSame(['items' => 'desc'], $aggs['facet_seats']['aggs']['values']['terms']['order']);
         $this->assertSame(['stats' => ['field' => 'width']], $aggs['facet_width']['aggs']['values']);
         $this->assertSame(2, $aggs['facet_in_stock']['aggs']['values']['terms']['size']);
+        $this->assertArrayNotHasKey('selected', $aggs['facet_colour_group']['aggs']);
     }
 
-    public function testRangeWithOnlyMaxAndBooleanFalse(): void
+    public function testSelectedFacetValuesGetTheirOwnAggregation(): void
+    {
+        $request = new SearchRequest(1, null, 14, ['colour_group' => ['Rare Green', 'Natural']]);
+        $aggs = $this->builder->build($request, $this->facets)['aggs']['facet_colour_group']['aggs'];
+
+        $this->assertSame(
+            ['Rare Green', 'Natural'],
+            $aggs['selected']['terms']['include']
+        );
+        $this->assertSame(2, $aggs['selected']['terms']['size']);
+        $this->assertSame(['items' => 'desc'], $aggs['selected']['terms']['order']);
+        $this->assertSame('family_key', $aggs['selected']['aggs']['items']['cardinality']['field']);
+    }
+
+    public function testRangeWithOnlyMaxAndInStockZeroIsIgnored(): void
     {
         $filters = $this->builder->buildFacetFilters(
             new SearchRequest(1, null, null, ['in_stock' => ['0']], ['width' => ['min' => null, 'max' => 120]]),
@@ -143,7 +176,7 @@ class QueryBuilderTest extends TestCase
         );
 
         $this->assertSame(['range' => ['width' => ['lte' => 120.0]]], $filters['width']);
-        $this->assertSame(['term' => ['in_stock' => false]], $filters['in_stock']);
+        $this->assertArrayNotHasKey('in_stock', $filters, 'in_stock accepts only 1');
     }
 
     public function testFamiliesCollapseAndTotalCountsFamilies(): void
@@ -212,8 +245,8 @@ class QueryBuilderTest extends TestCase
 
     public function testSuggestCollapsesWordsButNotSkus(): void
     {
-        $words = $this->builder->buildSuggest('marble', 6);
-        $sku = $this->builder->buildSuggest('VG.228', 6);
+        $words = $this->builder->buildSuggest('marble', 6, true);
+        $sku = $this->builder->buildSuggest('VG.228', 6, false);
 
         $this->assertSame(6, $words['size']);
         $this->assertSame(['field' => 'family_key'], $words['collapse']);

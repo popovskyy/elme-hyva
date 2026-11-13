@@ -123,6 +123,8 @@ Most B2B pages need backend work the old site did in `ElmeLiving_*` modules. Eac
 | BE-14 | Reorder (MOQ aware) and order CSV export | FE-39 buttons | BE-06, FE-39 |
 | BE-15 | Showroom locations data: module, admin, import | FE-51 | FE-04 |
 | BE-16 | Quick Order cart as the only cart (replaces default mini-cart and cart page) | FE-32, FE-33, FE-40, BE-11, BE-12 | BE-06, FE-53 |
+| BE-24 | Product search behind `ProductSearchInterface`: OpenSearch adapter, own index, storefront wiring | FE-21, FE-22, FE-23, UX-05 | FE-53 |
+| BE-25 | Elme_Search: verify BE-24 review fixes on a live instance and finish review follow-ups | FE-21, FE-22, FE-23 | BE-24 |
 
 Data feeds from Pronto (prices, stock, balances, customers) are integration tickets that come later.
 
@@ -505,6 +507,18 @@ Production category page: banner with title and breadcrumbs, a Filters button th
 
 - [ ] After visiting 3 products/categories they show newest first; current page not included
 - [ ] Hidden when the list is empty
+
+### BE-24 Product search behind ProductSearchInterface (OpenSearch now)
+
+**Status:** Built (merged). Module `Elme_Search`: `ProductSearchInterface`, OpenSearch adapter and index, indexer, storefront wiring for category and search pages. Search Service adapter later.
+
+**Ref:** `app/code/Elme/Search/README.md`
+
+### BE-25 Elme_Search: verify review fixes and finish follow-ups
+
+**Status:** In progress. Verify BE-24 review fixes on the live stack (scheduled indexer, category invalidation, deep pages, dual-write during rebuild, credentials); orphan index cleanup; SKU collapse rule from the real SKU list; facet selected counts; batch `reindexIds`; MSI stock known gap until BE-23.
+
+**Ref:** `app/code/Elme/Search/README.md`; commits `5e0374d`, `020ddf4`
 
 ## Epic 5 — PDP
 

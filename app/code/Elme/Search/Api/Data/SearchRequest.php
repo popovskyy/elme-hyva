@@ -54,4 +54,20 @@ final class SearchRequest
     {
         return $this->query !== null && trim($this->query) !== '';
     }
+
+    public function withCollapseFamilies(bool $collapseFamilies): self
+    {
+        return new self(
+            $this->storeId,
+            $this->query,
+            $this->categoryId,
+            $this->filters,
+            $this->ranges,
+            $this->sort,
+            $this->direction,
+            $this->page,
+            $this->pageSize,
+            $collapseFamilies
+        );
+    }
 }

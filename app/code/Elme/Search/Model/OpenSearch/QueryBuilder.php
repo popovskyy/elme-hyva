@@ -25,6 +25,7 @@ class QueryBuilder
     public const AGG_TOTAL = '_total';
     public const AGG_PREFIX = 'facet_';
     public const AGG_ITEMS = 'items';
+    public const AGG_SELECTED = 'selected';
 
     public const VISIBILITY_CATALOG = [2, 4];
     public const VISIBILITY_SEARCH = [3, 4];
@@ -58,9 +59,18 @@ class QueryBuilder
         $collapse = $request->collapseFamilies;
         $facetFilters = $this->buildFacetFilters($request, $facets);
 
+        $size = max(0, $request->pageSize);
+        $from = max(0, ($request->page - 1) * $size);
+        if ($from + $size > IndexSchema::MAX_RESULT_WINDOW) {
+            // A page past max_result_window (?p=5000) is an OpenSearch error. Ask for no hits instead: the total
+            // and the facets still come back, and the storefront then lists the last page.
+            $from = 0;
+            $size = 0;
+        }
+
         $body = [
-            'from' => max(0, ($request->page - 1) * $request->pageSize),
-            'size' => max(0, $request->pageSize),
+            'from' => $from,
+            'size' => $size,
             'track_total_hits' => true,
             '_source' => ['id', 'sku', 'family_code'],
             'query' => $this->buildBaseQuery($request),
@@ -84,7 +94,7 @@ class QueryBuilder
             $others = array_values(array_diff_key($facetFilters, [$facet->code => true]));
             $aggs[self::AGG_PREFIX . $facet->code] = [
                 'filter' => $this->combine($others),
-                'aggs' => ['values' => $this->buildFacetAgg($facet, $collapse)],
+                'aggs' => $this->buildFacetAggs($facet, $collapse, $request),
             ];
         }
         if ($aggs !== []) {
@@ -96,8 +106,10 @@ class QueryBuilder
     /**
      * Autocomplete: best products (families collapsed), the categories they sit in, their types for query
      * suggestions and a spelling suggestion.
+     *
+     * $collapseFamilies is decided by the caller after checking the index (a hyphenated word is not a SKU).
      */
-    public function buildSuggest(string $query, int $limit): array
+    public function buildSuggest(string $query, int $limit, bool $collapseFamilies = true): array
     {
         $request = new SearchRequest(0, $query, null, [], [], SearchRequest::SORT_RELEVANCE);
         $body = [
@@ -116,8 +128,8 @@ class QueryBuilder
                 ],
             ],
         ];
-        if (!SkuQuery::looksLikeSku($query)) {
-            $body['collapse'] = ['field' => self::COLLAPSE_FIELD]; // a typed SKU prefix lists every SKU
+        if ($collapseFamilies) {
+            $body['collapse'] = ['field' => self::COLLAPSE_FIELD];
         }
         return $body;
     }
@@ -251,16 +263,45 @@ class QueryBuilder
         return $filters;
     }
 
-    private function buildFacetAgg(FacetDefinition $facet, bool $collapse): array
+    /**
+     * Top options by family count (when collapsed), plus an explicit bucket for every selected value so a
+     * selection outside the top size keeps its real count.
+     *
+     * @return array<string, array>
+     */
+    private function buildFacetAggs(FacetDefinition $facet, bool $collapse, SearchRequest $request): array
     {
         if ($facet->type === Facet::TYPE_RANGE) {
-            return ['stats' => ['field' => $facet->code]];
+            return ['values' => ['stats' => ['field' => $facet->code]]];
         }
+        $aggs = ['values' => $this->buildTermsAgg($facet, $collapse, $facet->size)];
+        $selected = $this->selectedFacetValues($facet, $request);
+        if ($selected !== [] && $facet->type !== Facet::TYPE_BOOLEAN) {
+            $aggs[self::AGG_SELECTED] = $this->buildTermsAgg($facet, $collapse, count($selected), $selected);
+        }
+        return $aggs;
+    }
+
+    /**
+     * @param string[] $include exact values to force into the bucket list (selected options)
+     */
+    private function buildTermsAgg(
+        FacetDefinition $facet,
+        bool $collapse,
+        int $size,
+        array $include = []
+    ): array {
         $terms = [
             'field' => $facet->code,
-            'size' => $facet->type === Facet::TYPE_BOOLEAN ? 2 : $facet->size,
+            'size' => $facet->type === Facet::TYPE_BOOLEAN ? 2 : max(1, $size),
         ];
-        if ($facet->optionSort === FacetDefinition::SORT_LABEL) {
+        if ($include !== []) {
+            $terms['include'] = array_values($include);
+        }
+        if ($collapse) {
+            // buckets are the top size by family count, not by member document count
+            $terms['order'] = [self::AGG_ITEMS => 'desc'];
+        } elseif ($facet->optionSort === FacetDefinition::SORT_LABEL) {
             $terms['order'] = ['_key' => 'asc'];
         }
         $agg = ['terms' => $terms];
@@ -268,6 +309,20 @@ class QueryBuilder
             $agg['aggs'] = [self::AGG_ITEMS => $this->cardinality()];
         }
         return $agg;
+    }
+
+    /**
+     * @return string[]
+     */
+    private function selectedFacetValues(FacetDefinition $facet, SearchRequest $request): array
+    {
+        if ($facet->type === Facet::TYPE_BOOLEAN) {
+            return [];
+        }
+        return array_values(array_unique(array_filter(
+            array_map(static fn ($v): string => trim((string)$v), $request->filters[$facet->code] ?? []),
+            static fn (string $v): bool => $v !== ''
+        )));
     }
 
     private function termsClause(string $field, array $values): ?array
@@ -285,9 +340,6 @@ class QueryBuilder
             $value = strtolower(trim((string)$value));
             if (in_array($value, ['1', 'true', 'yes'], true)) {
                 return ['term' => [$field => true]];
-            }
-            if (in_array($value, ['0', 'false', 'no'], true)) {
-                return ['term' => [$field => false]];
             }
         }
         return null;

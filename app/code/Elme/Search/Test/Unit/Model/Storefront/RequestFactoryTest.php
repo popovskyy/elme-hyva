@@ -119,6 +119,14 @@ class RequestFactoryTest extends TestCase
         $this->assertFalse($this->factory([])->fromCriteria($criteria, 1)->collapseFamilies);
     }
 
+    public function testHyphenatedWordLooksLikeSkuAtFactoryLevel(): void
+    {
+        // ProductSearch confirms against the index before keeping collapse off
+        $criteria = $this->criteria(['search_term' => 'l-shaped'], [], 0, 24);
+
+        $this->assertFalse($this->factory([])->fromCriteria($criteria, 1)->collapseFamilies);
+    }
+
     public function testToolbarSortsMapAndUnknownFallsBack(): void
     {
         $byName = $this->factory([])->fromCriteria($this->criteria(['category_ids' => 3], ['name' => 'DESC'], 0, 24), 1);

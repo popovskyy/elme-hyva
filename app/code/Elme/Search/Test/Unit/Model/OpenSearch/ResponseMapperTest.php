@@ -65,6 +65,27 @@ class ResponseMapperTest extends TestCase
         $this->assertTrue($facet->isSelected());
     }
 
+    public function testSelectedFacetOutsideTopSizeKeepsItsRealCount(): void
+    {
+        $request = new SearchRequest(1, null, 14, ['colour_group' => ['Rare Teal']]);
+        $response = $this->response();
+        $response['aggregations']['facet_colour_group']['selected'] = ['buckets' => [
+            ['key' => 'Rare Teal', 'doc_count' => 4, 'items' => ['value' => 2]],
+        ]];
+        $facet = $this->mapper->map($response, $request, $this->facets)->getFacet('colour_group');
+
+        $teal = null;
+        foreach ($facet->options as $option) {
+            if ($option->value === 'Rare Teal') {
+                $teal = $option;
+                break;
+            }
+        }
+        $this->assertNotNull($teal);
+        $this->assertSame(2, $teal->count);
+        $this->assertTrue($teal->selected);
+    }
+
     public function testLabelSortedFacet(): void
     {
         $facet = $this->mapper->map($this->response(), new SearchRequest(1, null, 14), $this->facets)->getFacet('seats');

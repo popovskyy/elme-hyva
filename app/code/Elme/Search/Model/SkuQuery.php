@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace Elme\Search\Model;
 
 /**
- * Trade customers search by SKU (8,503 SKUs contain "#", others "." or "-"). Engine-neutral helpers.
+ * Trade customers search by SKU (many contain "#", others "." or "-"). Engine-neutral helpers.
+ *
+ * looksLikeSku is only a cheap candidate filter ("l-shaped", "3-seater" also match). Collapse and SKU listing
+ * are decided after OpenSearch confirms a SKU or SKU prefix exists (see ProductSearch / Client::hasSkuMatch).
  */
 class SkuQuery
 {
     /**
-     * One token with a digit or SKU punctuation, e.g. "VG.228", "218AREDIN", "107BRE#".
+     * One token with a digit or SKU punctuation, e.g. "VG.228", "218AREDIN", "107BRE#", "Z-ARDTBL".
+     * Not proof it is a SKU: "l-shaped" and "3-seater" also match.
      */
     public static function looksLikeSku(?string $value): bool
     {

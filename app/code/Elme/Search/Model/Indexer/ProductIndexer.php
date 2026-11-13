@@ -62,11 +62,16 @@ class ProductIndexer implements IndexerActionInterface, MviewActionInterface
             return;
         }
         foreach ($this->getStoreIds() as $storeId) {
-            $documents = [];
+            $indexed = [];
             foreach ($this->documentBuilder->build($storeId, $ids) as $batch) {
-                $documents += $batch;
+                // one bulk per DocumentBuilder batch: do not hold the whole catalog change in memory
+                $this->indexWriter->update($storeId, $batch, []);
+                $indexed += $batch;
             }
-            $this->indexWriter->update($storeId, $documents, array_values(array_diff($ids, array_keys($documents))));
+            $remove = array_values(array_diff($ids, array_keys($indexed)));
+            if ($remove !== []) {
+                $this->indexWriter->update($storeId, [], $remove);
+            }
         }
     }
 

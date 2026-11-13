@@ -82,7 +82,8 @@ empty lists when the engine throws. It works whatever `elme_search/general/engin
 3. Typo tolerance only for longer words: no edits up to 4 letters, 1 edit for 5-7, 2 from 8 (`AUTO:5,8`). So
    "vase" never matches "Vale"; "tabel" finds "table".
 4. Visibility: search uses "Search" + "Catalog, Search", listings use "Catalog" + "Catalog, Search".
-5. SKU-like queries are not collapsed, so a trade customer who types `218AREDIN` sees every matching SKU.
+5. A query that matches a SKU or SKU prefix in the index is not collapsed, so a trade customer who types
+   `218AREDIN` or `Z-ARD` sees every matching SKU. Hyphenated words that are not SKUs (`l-shaped`) stay collapsed.
 6. Facets follow the result: only facets and options that occur in it (a vase search shows no bed facets).
 
 ## Mapping for a future Search Service adapter
@@ -173,10 +174,21 @@ in it. Start set: colour_group, material, type_detail, style, features, seats, w
   product entity tables, websites, category products, stock items).
 - `bin/magento elme:search:reindex [--store=1]`: builds `elme_products_<store>_v<time>`, swaps the alias
   `elme_products_<store>`, deletes the old index. The storefront never reads a half-built index.
-- "Update on Save": product save / delete, category save (products and positions) and admin mass actions update
-  the affected documents right away. "Update by Schedule" (the default here): the `index` cron runs the mview.
-  A failure while saving is logged, never thrown.
+- "Update by Schedule" is the mode on every instance (data patch `SetIndexerScheduled`): the `index` cron runs the
+  mview. Keep it: only the mview sees stock after an order, imports and price reindexes.
+  "Update on Save" still works for admin edits: product save / delete, category save (products and positions) and
+  mass actions update the affected documents right away. A failure while saving is logged, never thrown.
+- Category moved, enabled / disabled, anchor changed: after Magento's "Category Products" indexer has run,
+  `Plugin\InvalidateOnCategoryReindex` marks our indexer invalid and the cron rebuilds it (within a minute or two).
+  In "Update by Schedule" that is after every category save.
+- An update during a full rebuild is written to the live index and to the one being built, so it survives the swap.
+- A rebuild that was killed leaves `elme_products_<store>_v...` without an alias: the next rebuild deletes those
+  leftovers only when they are older than one hour (a rebuild still running is not touched).
+- A page past `max_result_window` (50,000 items) asks OpenSearch for no hits, so the storefront lists the last page.
+- Facet term buckets are ordered by family count; a selected value outside the top size is fetched in a second
+  aggregation so its count stays real.
 - Connection: Magento's catalog search connection unless `elme_search/opensearch/hostname` / `port` are set;
+  Magento's OpenSearch credentials are sent only when Magento's host is used;
   timeout `elme_search/opensearch/timeout` (5 s, connect 2 s); index prefix `elme_search/opensearch/index_prefix`.
 
 ## Adding the Search Service
@@ -204,6 +216,11 @@ mapper (hits, totals, facets) and the storefront request mapping.
 
 - `product_type`, `colour_group`, `style`, `features`, `seats`, `made_to_order`, `condition_code` do not exist on
   this instance yet; their facets stay empty until the attributes are created and the index is rebuilt.
-- Stock is Magento's stock status until BE-23 replaces `DocumentBuilder::getStockStatuses()`.
+- Stock / `in_stock`: MSI is enabled, but the index still reads legacy `cataloginventory_stock_status` (ignores
+  reservations). BE-23 has not landed; do not build an MSI reader here. Replace
+  `DocumentBuilder::getStockStatuses()` when BE-23 provides `StockProviderInterface` / Shipment Service stock.
 - Facet values are labels (one store view, English).
 - No synonyms, no merchandising rules, no sort by sales (Search Service features).
+- Category move / enable / anchor change invalidates the whole index (Update by Schedule full rebuild). Fine on
+  a small catalog; on a full catalog measure rebuild time and, if too slow, reindex only the products of the
+  affected categories instead of invalidating.

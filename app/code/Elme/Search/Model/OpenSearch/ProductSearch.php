@@ -11,6 +11,7 @@ use Elme\Search\Api\Data\SuggestResult;
 use Elme\Search\Api\ProductSearchInterface;
 use Elme\Search\Model\Catalog\CategoryLinks;
 use Elme\Search\Model\Facet\FacetConfig;
+use Elme\Search\Model\SkuQuery;
 use Magento\Catalog\Model\Product\Image\UrlBuilder;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -35,6 +36,7 @@ class ProductSearch implements ProductSearchInterface
 
     public function search(SearchRequest $request): SearchResult
     {
+        $request = $this->resolveCollapse($request);
         $facets = $this->facetConfig->getFacets();
         $response = $this->client->search(
             $this->indexName->getAlias($request->storeId),
@@ -49,9 +51,11 @@ class ProductSearch implements ProductSearchInterface
         if ($query === '') {
             return new SuggestResult();
         }
+        $alias = $this->indexName->getAlias($storeId);
+        $collapse = !$this->isSkuQueryInIndex($query, $alias);
         $response = $this->client->search(
-            $this->indexName->getAlias($storeId),
-            $this->queryBuilder->buildSuggest($query, $limit)
+            $alias,
+            $this->queryBuilder->buildSuggest($query, $limit, $collapse)
         );
 
         $store = $this->storeManager->getStore($storeId);
@@ -117,5 +121,26 @@ class ProductSearch implements ProductSearchInterface
         } catch (\Throwable) {
             return $mediaUrl . '/' . ltrim($path, '/');
         }
+    }
+
+    /**
+     * RequestFactory turns collapse off for any looksLikeSku token ("l-shaped", "3-seater"). Keep collapse on
+     * unless the index actually has that SKU or a SKU prefix (real list: Z-ARDTBL, 218AREDIN…).
+     */
+    private function resolveCollapse(SearchRequest $request): SearchRequest
+    {
+        if ($request->collapseFamilies || !$request->hasQuery()) {
+            return $request;
+        }
+        $query = trim((string)$request->query);
+        if ($this->isSkuQueryInIndex($query, $this->indexName->getAlias($request->storeId))) {
+            return $request;
+        }
+        return $request->withCollapseFamilies(true);
+    }
+
+    private function isSkuQueryInIndex(string $query, string $alias): bool
+    {
+        return SkuQuery::looksLikeSku($query) && $this->client->hasSkuMatch($alias, $query);
     }
 }
