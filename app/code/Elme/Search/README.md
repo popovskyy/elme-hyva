@@ -68,6 +68,10 @@ options of a facet keep their counts while one of them is selected. Counts count
 the matching products). Autocomplete is typed letter by letter, so the last word also matches as a prefix of a
 name word: "din" finds "Dining", "ares b" finds "Ares Buffet".
 
+The header autocomplete reads it through `GET /elme-search/suggest?q=` (`Controller\Suggest\Index`, from 2
+characters, 6 products): the same JSON shape, cached publicly for 5 minutes (no prices, same answer for everyone),
+empty lists when the engine throws. It works whatever `elme_search/general/engine` says, so the index must exist.
+
 ### Relevance (UX-05)
 
 1. Exact SKU (`VG.228.ML`, `218AREDINW210B#`), then the same SKU without punctuation (`vg228ml`, `zardtbl` for

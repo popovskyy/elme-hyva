@@ -1,0 +1,55 @@
+/**
+ * FE-22: header search autocomplete dropdown (Magento_Theme::html/header/search-form.phtml).
+ */
+@layer components {
+    .elme-search-suggest {
+        max-height: min(70dvh, 40rem);
+    }
+
+    .elme-search-suggest__list {
+        padding-block: --spacing(2);
+    }
+
+    .elme-search-suggest__heading {
+        padding: --spacing(2) --spacing(4) --spacing(1);
+        font-size: var(--text-label);
+        line-height: var(--text-label--line-height);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--color-ink-muted);
+    }
+
+    .elme-search-suggest__option {
+        padding-inline: --spacing(4);
+        background-color: var(--color-surface);
+        color: var(--color-ink);
+        text-decoration: none;
+        cursor: pointer;
+
+        &[aria-selected="true"] {
+            background-color: var(--color-surface-muted);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: -2px;
+        }
+    }
+
+    /* "See all" is sticky: it stays in view at the bottom of a long list */
+    .elme-search-suggest__all {
+        margin-bottom: calc(--spacing(2) * -1);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .elme-search-suggest--enter {
+            transition: opacity var(--transition-duration-fast) var(--ease-out-quad),
+                transform var(--transition-duration-fast) var(--ease-out-quad);
+        }
+
+        .elme-search-suggest--from {
+            opacity: 0;
+            transform: translateY(-0.25rem);
+        }
+    }
+}
