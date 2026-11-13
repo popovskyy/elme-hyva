@@ -7,6 +7,7 @@
             <module name="Magento_CatalogInventory"/>
             <module name="Magento_CatalogSearch"/>
             <module name="Magento_Search"/>
+            <module name="Magento_Indexer"/>
             <module name="Magento_OpenSearch"/>
         </sequence>
     </module>

@@ -38,14 +38,18 @@ class IndexWriter
                 $count += count($batch);
             }
             $this->client->refresh($index);
-            $old =$this->client->getAliasTargets($alias);
+            $old = $this->client->getAliasTargets($alias);
             if ($old === [] && $this->client->indexExists($alias)) {
                 // a concrete index squats the alias name: remove it so the alias can be created
                 $this->client->deleteIndex($alias);
             }
             $this->client->swapAlias($alias, $index, $old);
         } catch (\Throwable $e) {
-            $this->client->deleteIndex($index);
+            try {
+                $this->client->deleteIndex($index);
+            } catch (\Throwable) {
+                // keep the first error: it says why the rebuild failed
+            }
             throw $e;
         }
         foreach ($old as $oldIndex) {
@@ -59,18 +63,26 @@ class IndexWriter
     /**
      * Update on save / mview: write these documents and remove the ids that are no longer eligible.
      *
+     * Goes to the live index (through the alias) and to an index a full rebuild is filling right now: a change
+     * written only to the live one would be gone after the alias swap.
+     *
      * @param array<int, array> $documents
      * @param int[] $removeIds
      */
     public function update(int $storeId, array $documents, array $removeIds): void
     {
         $alias = $this->indexName->getAlias($storeId);
-        if (!$this->client->indexExists($alias)) {
-            return; // never built: the first bin/magento elme:search:reindex creates it
+        $targets = $this->client->getBuildingIndices($alias);
+        if ($this->client->indexExists($alias)) {
+            $targets[] = $alias;
         }
-        $operations = $this->indexOperations($alias, $documents);
-        foreach ($removeIds as $id) {
-            $operations[] = ['delete' => ['_index' => $alias, '_id' => (string)$id]];
+        // no target: never built, the first bin/magento elme:search:reindex creates it
+        $operations = [];
+        foreach ($targets as $index) {
+            array_push($operations, ...$this->indexOperations($index, $documents));
+            foreach ($removeIds as $id) {
+                $operations[] = ['delete' => ['_index' => $index, '_id' => (string)$id]];
+            }
         }
         $this->client->bulk($operations, true);
     }

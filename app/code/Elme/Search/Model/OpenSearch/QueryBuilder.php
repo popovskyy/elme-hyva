@@ -58,9 +58,18 @@ class QueryBuilder
         $collapse = $request->collapseFamilies;
         $facetFilters = $this->buildFacetFilters($request, $facets);
 
+        $size = max(0, $request->pageSize);
+        $from = max(0, ($request->page - 1) * $size);
+        if ($from + $size > IndexSchema::MAX_RESULT_WINDOW) {
+            // A page past max_result_window (?p=5000) is an OpenSearch error. Ask for no hits instead: the total
+            // and the facets still come back, and the storefront then lists the last page.
+            $from = 0;
+            $size = 0;
+        }
+
         $body = [
-            'from' => max(0, ($request->page - 1) * $request->pageSize),
-            'size' => max(0, $request->pageSize),
+            'from' => $from,
+            'size' => $size,
             'track_total_hits' => true,
             '_source' => ['id', 'sku', 'family_code'],
             'query' => $this->buildBaseQuery($request),

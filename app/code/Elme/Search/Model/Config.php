@@ -56,19 +56,20 @@ class Config
     {
         $hostname = trim((string)$this->scopeConfig->getValue(self::XML_HOSTNAME));
         $port = trim((string)$this->scopeConfig->getValue(self::XML_PORT));
+        $auth = '';
         if ($hostname === '') {
             $hostname = (string)$this->scopeConfig->getValue(self::XML_MAGENTO_HOSTNAME) ?: 'localhost';
             if ($port === '') {
                 $port = (string)$this->scopeConfig->getValue(self::XML_MAGENTO_PORT);
             }
+            // Magento's credentials belong to Magento's host only: never send them to a host of our own
+            if ((int)$this->scopeConfig->getValue(self::XML_MAGENTO_AUTH) === 1) {
+                $auth = rawurlencode((string)$this->scopeConfig->getValue(self::XML_MAGENTO_USERNAME)) . ':'
+                    . rawurlencode((string)$this->scopeConfig->getValue(self::XML_MAGENTO_PASSWORD)) . '@';
+            }
         }
         $protocol = parse_url($hostname, PHP_URL_SCHEME) ?: 'http';
         $hostname = (string)preg_replace('#^https?://#i', '', $hostname);
-        $auth = '';
-        if ((int)$this->scopeConfig->getValue(self::XML_MAGENTO_AUTH) === 1) {
-            $auth = rawurlencode((string)$this->scopeConfig->getValue(self::XML_MAGENTO_USERNAME)) . ':'
-                . rawurlencode((string)$this->scopeConfig->getValue(self::XML_MAGENTO_PASSWORD)) . '@';
-        }
         $timeout = (float)$this->scopeConfig->getValue(self::XML_TIMEOUT) ?: 5.0;
 
         return [

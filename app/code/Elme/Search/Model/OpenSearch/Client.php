@@ -86,6 +86,27 @@ class Client
     }
 
     /**
+     * Versioned indices of an alias that it does not point at: the ones a full rebuild is filling right now.
+     *
+     * @return string[]
+     */
+    public function getBuildingIndices(string $alias): array
+    {
+        $response = $this->call(fn (OpenSearchClient $c) => $c->indices()->get([
+            'index' => $alias . '_v*',
+            'allow_no_indices' => true,
+            'ignore_unavailable' => true,
+        ]));
+        $building = [];
+        foreach ((array)$response as $index => $info) {
+            if (!isset($info['aliases'][$alias])) {
+                $building[] = (string)$index;
+            }
+        }
+        return $building;
+    }
+
+    /**
      * Point the alias at $newIndex only, atomically.
      *
      * @param string[] $oldIndices

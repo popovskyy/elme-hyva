@@ -15,6 +15,9 @@ class IndexSchema
         'product_type', 'colour_group', 'color', 'material', 'type_detail', 'style', 'features',
     ];
 
+    /** from + size of a request may not go past this (index setting max_result_window) */
+    public const MAX_RESULT_WINDOW = 50000;
+
     public function getBody(): array
     {
         $keywordText = [
@@ -75,7 +78,7 @@ class IndexSchema
             'settings' => [
                 'number_of_shards' => 1,
                 'number_of_replicas' => 0,
-                'max_result_window' => 50000,
+                'max_result_window' => self::MAX_RESULT_WINDOW,
                 'analysis' => [
                     'char_filter' => [
                         'elme_strip_punctuation' => [
