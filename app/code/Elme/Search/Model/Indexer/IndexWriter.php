@@ -25,9 +25,14 @@ class IndexWriter
      * @param iterable<array<int, array>> $batches
      * @return int number of documents
      */
+    /** Leftover building indices younger than this are left alone (a parallel rebuild may still be writing). */
+    public const ORPHAN_MIN_AGE_SECONDS = 3600;
+
     public function rebuild(int $storeId, iterable $batches): int
     {
         $alias = $this->indexName->getAlias($storeId);
+        // A killed rebuild leaves elme_products_<store>_v... without an alias; updates keep writing to it.
+        $this->client->deleteOrphanBuildingIndices($alias, self::ORPHAN_MIN_AGE_SECONDS);
         $index = $this->indexName->newVersion($storeId);
         $this->client->createIndex($index, $this->schema->getBody());
         $count = 0;

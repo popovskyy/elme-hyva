@@ -6,6 +6,7 @@ namespace Elme\Search\Model\OpenSearch;
 
 use Elme\Search\Api\SearchUnavailableException;
 use Elme\Search\Model\Config;
+use Elme\Search\Model\SkuQuery;
 use OpenSearch\Client as OpenSearchClient;
 use OpenSearch\ClientBuilder;
 
@@ -92,18 +93,96 @@ class Client
      */
     public function getBuildingIndices(string $alias): array
     {
-        $response = $this->call(fn (OpenSearchClient $c) => $c->indices()->get([
-            'index' => $alias . '_v*',
-            'allow_no_indices' => true,
-            'ignore_unavailable' => true,
-        ]));
         $building = [];
-        foreach ((array)$response as $index => $info) {
+        foreach ($this->listVersionedIndices($alias) as $index => $info) {
             if (!isset($info['aliases'][$alias])) {
                 $building[] = (string)$index;
             }
         }
         return $building;
+    }
+
+    /**
+     * Drop leftover versioned indices from a killed rebuild. Only ones older than $minAgeSeconds, so a rebuild
+     * running in parallel is not touched. Age comes from the `_vYmdHis` suffix in the index name (see IndexName),
+     * falling back to OpenSearch creation_date.
+     *
+     * @return string[] deleted index names
+     */
+    public function deleteOrphanBuildingIndices(string $alias, int $minAgeSeconds = 3600): array
+    {
+        $cutoffTs = time() - $minAgeSeconds;
+        $deleted = [];
+        foreach ($this->listVersionedIndices($alias) as $index => $info) {
+            if (isset($info['aliases'][$alias])) {
+                continue;
+            }
+            $createdTs = $this->versionTimestamp((string)$index);
+            if ($createdTs === null) {
+                $createdMs = (int)($info['settings']['index']['creation_date'] ?? 0);
+                $createdTs = $createdMs > 0 ? (int)floor($createdMs / 1000) : null;
+            }
+            if ($createdTs === null || $createdTs >= $cutoffTs) {
+                continue;
+            }
+            $this->deleteIndex((string)$index);
+            $deleted[] = (string)$index;
+        }
+        return $deleted;
+    }
+
+    /**
+     * elme_products_1_v202611131941253377 -> unix time of the YmdHis part.
+     */
+    private function versionTimestamp(string $index): ?int
+    {
+        if (!preg_match('/_v(\d{14})/', $index, $match)) {
+            return null;
+        }
+        $dt = \DateTimeImmutable::createFromFormat('YmdHis', $match[1]);
+        return $dt instanceof \DateTimeImmutable ? $dt->getTimestamp() : null;
+    }
+
+    /**
+     * True when at least one document has this exact SKU or a SKU that starts with it (compact form included).
+     * Used so "l-shaped" keeps family collapse while "Z-ARD" / "218AREDIN" still list every matching SKU.
+     */
+    public function hasSkuMatch(string $index, string $query): bool
+    {
+        $query = trim($query);
+        if ($query === '') {
+            return false;
+        }
+        $lower = mb_strtolower($query);
+        $compact = SkuQuery::compact($query);
+        $should = [
+            ['term' => ['sku' => $lower]],
+            ['prefix' => ['sku' => $lower]],
+        ];
+        if ($compact !== '') {
+            $should[] = ['term' => ['sku.compact' => $compact]];
+            $should[] = ['prefix' => ['sku.compact' => $compact]];
+        }
+        $response = $this->search($index, [
+            'size' => 0,
+            'track_total_hits' => true,
+            'query' => ['bool' => ['should' => $should, 'minimum_should_match' => 1]],
+        ]);
+        $total = $response['hits']['total'] ?? 0;
+        return (int)(is_array($total) ? ($total['value'] ?? 0) : $total) > 0;
+    }
+
+    /**
+     * @return array<string, array>
+     */
+    private function listVersionedIndices(string $alias): array
+    {
+        $response = $this->call(fn (OpenSearchClient $c) => $c->indices()->get([
+            'index' => $alias . '_v*',
+            'allow_no_indices' => true,
+            'ignore_unavailable' => true,
+        ]));
+        return is_array($response) ? $response : [];
     }
 
     /**

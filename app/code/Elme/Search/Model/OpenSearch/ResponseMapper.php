@@ -46,13 +46,19 @@ class ResponseMapper
 
         $result = [];
         foreach ($facets as $definition) {
-            $agg = $aggs[QueryBuilder::AGG_PREFIX . $definition->code]['values'] ?? null;
+            $facetAgg = $aggs[QueryBuilder::AGG_PREFIX . $definition->code] ?? null;
+            $agg = $facetAgg['values'] ?? null;
             if ($agg === null) {
                 continue;
             }
             $facet = $definition->type === Facet::TYPE_RANGE
                 ? $this->mapRange($definition, $agg, $request)
-                : $this->mapOptions($definition, $agg, $request);
+                : $this->mapOptions(
+                    $definition,
+                    $agg,
+                    $request,
+                    $facetAgg[QueryBuilder::AGG_SELECTED]['buckets'] ?? []
+                );
             if ($facet !== null) {
                 $result[] = $facet;
             }
@@ -61,8 +67,15 @@ class ResponseMapper
         return new SearchResult($hits, $total, $result);
     }
 
-    private function mapOptions(FacetDefinition $definition, array $agg, SearchRequest $request): ?Facet
-    {
+    /**
+     * @param array $selectedBuckets OpenSearch terms buckets forced for the current selection
+     */
+    private function mapOptions(
+        FacetDefinition $definition,
+        array $agg,
+        SearchRequest $request,
+        array $selectedBuckets = []
+    ): ?Facet {
         $isBoolean = $definition->type === Facet::TYPE_BOOLEAN;
         $selected = array_map('strval', $request->filters[$definition->code] ?? []);
         if ($isBoolean) {
@@ -72,7 +85,7 @@ class ResponseMapper
         $label = (string)__($definition->label);
 
         $options = [];
-        foreach ($agg['buckets'] ?? [] as $bucket) {
+        foreach (array_merge($agg['buckets'] ?? [], $selectedBuckets) as $bucket) {
             $count = (int)($bucket[QueryBuilder::AGG_ITEMS]['value'] ?? $bucket['doc_count'] ?? 0);
             if ($isBoolean) {
                 $key = (string)($bucket['key_as_string'] ?? $bucket['key']);
@@ -88,7 +101,10 @@ class ResponseMapper
             if ($count <= 0) {
                 continue;
             }
-            $options[$value] = new FacetOption($value, $optionLabel, $count, in_array($value, $selected, true));
+            // selected agg may repeat a top-size value: keep the first (same count)
+            if (!isset($options[$value])) {
+                $options[$value] = new FacetOption($value, $optionLabel, $count, in_array($value, $selected, true));
+            }
         }
         // A selected value that has no items any more stays visible, so it can be unselected.
         foreach ($selected as $value) {
