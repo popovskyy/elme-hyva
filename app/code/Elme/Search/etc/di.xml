@@ -61,6 +61,11 @@
             <argument name="productIndexer" xsi:type="object">Elme\Search\Model\Indexer\ProductIndexer\Proxy</argument>
         </arguments>
     </type>
+    <!-- Category moved / enabled / anchor changed: Magento rebuilt its category / product index, ours follows -->
+    <type name="Magento\Catalog\Model\Indexer\Category\Product">
+        <plugin name="elme_search_invalidate_on_category_reindex"
+                type="Elme\Search\Plugin\InvalidateOnCategoryReindex"/>
+    </type>
     <type name="Magento\Catalog\Model\Product\Action">
         <plugin name="elme_search_reindex_mass_action" type="Elme\Search\Plugin\ReindexOnMassAction"/>
     </type>

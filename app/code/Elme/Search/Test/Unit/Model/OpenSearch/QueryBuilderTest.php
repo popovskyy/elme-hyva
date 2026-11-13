@@ -53,6 +53,20 @@ class QueryBuilderTest extends TestCase
         $this->assertTrue($body['track_total_hits']);
     }
 
+    public function testPagePastTheResultWindowAsksForNoHitsInsteadOfAnError(): void
+    {
+        // from 49992 + size 24 > max_result_window 50000
+        $body = $this->builder->build(new SearchRequest(1, null, 14, [], [], 'position', null, 2084, 24), $this->facets);
+
+        $this->assertSame(0, $body['from']);
+        $this->assertSame(0, $body['size']);
+        $this->assertArrayHasKey('aggs', $body);
+
+        $last = $this->builder->build(new SearchRequest(1, null, 14, [], [], 'position', null, 2083, 24), []);
+        $this->assertSame(49968, $last['from']);
+        $this->assertSame(24, $last['size']);
+    }
+
     public function testSearchUsesSearchVisibilityAndRanksExactSkuFirst(): void
     {
         $body = $this->builder->build(new SearchRequest(1, 'VG.228.ML'), []);

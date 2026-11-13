@@ -173,9 +173,15 @@ in it. Start set: colour_group, material, type_detail, style, features, seats, w
   product entity tables, websites, category products, stock items).
 - `bin/magento elme:search:reindex [--store=1]`: builds `elme_products_<store>_v<time>`, swaps the alias
   `elme_products_<store>`, deletes the old index. The storefront never reads a half-built index.
-- "Update on Save": product save / delete, category save (products and positions) and admin mass actions update
-  the affected documents right away. "Update by Schedule" (the default here): the `index` cron runs the mview.
-  A failure while saving is logged, never thrown.
+- "Update by Schedule" is the mode on every instance (data patch `SetIndexerScheduled`): the `index` cron runs the
+  mview. Keep it: only the mview sees stock after an order, imports and price reindexes.
+  "Update on Save" still works for admin edits: product save / delete, category save (products and positions) and
+  mass actions update the affected documents right away. A failure while saving is logged, never thrown.
+- Category moved, enabled / disabled, anchor changed: after Magento's "Category Products" indexer has run,
+  `Plugin\InvalidateOnCategoryReindex` marks our indexer invalid and the cron rebuilds it (within a minute or two).
+  In "Update by Schedule" that is after every category save.
+- An update during a full rebuild is written to the live index and to the one being built, so it survives the swap.
+- A page past `max_result_window` (50,000 items) asks OpenSearch for no hits, so the storefront lists the last page.
 - Connection: Magento's catalog search connection unless `elme_search/opensearch/hostname` / `port` are set;
   timeout `elme_search/opensearch/timeout` (5 s, connect 2 s); index prefix `elme_search/opensearch/index_prefix`.
 
