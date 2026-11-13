@@ -155,6 +155,13 @@
         font-variant-numeric: tabular-nums;
         appearance: textfield;
 
+        /* Sticky bar repeats the qty as a span. An input centres its text; a span does not. */
+        &:where(span) {
+            display: grid;
+            place-items: center;
+            line-height: 1;
+        }
+
         &::-webkit-inner-spin-button,
         &::-webkit-outer-spin-button {
             appearance: none;
