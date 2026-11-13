@@ -2,6 +2,7 @@
  * FE-25 product page: layout, gallery and fullscreen viewer.
  * FE-26: guest buy box (.elme-pdp__guest) under the sign-in price line.
  * FE-27: logged-in buy box (price, MOQ stepper, line-total ATC, In your cart) + sticky ATC bar.
+ * FE-29: section content (spec table, dimensions, delivery cartons, Trade FAQ) + CMS blocks below.
  * Templates: Magento_Catalog::product/product-detail-page.phtml, product/view/gallery.phtml,
  * product/view/product-info.phtml, quantity/addtocart/sticky-atc; Elme_LoginOnly guest/customer price.
  *
@@ -480,6 +481,211 @@
         from {
             opacity: 0;
             translate: 0 calc(--spacing(2) * -1);
+        }
+    }
+
+    /* FE-29: #dimensions etc. land below the sticky header */
+    .elme-pdp__section,
+    .elme-pdp__faq-item {
+        scroll-margin-top: calc(var(--elme-header-offset, 0px) + --spacing(4));
+    }
+
+    /* FE-29 spec table: label above value on phones, 35 / 65 columns from md */
+    .elme-pdp__spec {
+        width: 100%;
+        border-collapse: collapse;
+
+        tr + tr {
+            border-top: 1px solid var(--color-border);
+        }
+
+        th,
+        td {
+            display: block;
+            padding: 0;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            padding-top: --spacing(3);
+            font-weight: 400;
+            font-size: var(--text-note);
+            line-height: var(--text-note--line-height);
+            color: var(--color-ink-muted);
+        }
+
+        td {
+            padding-bottom: --spacing(3);
+            overflow-wrap: anywhere;
+        }
+
+        tr:first-child th {
+            padding-top: 0;
+        }
+
+        @variant md {
+            th,
+            td {
+                display: table-cell;
+                padding-block: --spacing(3);
+            }
+
+            th {
+                width: 35%;
+                padding-right: --spacing(4);
+                font-size: inherit;
+                line-height: inherit;
+            }
+
+            tr:first-child th,
+            tr:first-child td {
+                padding-top: 0;
+            }
+        }
+    }
+
+    .elme-pdp__note {
+        margin-top: --spacing(4);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        color: var(--color-ink-muted);
+    }
+
+    /* FE-29 Dimensions: labelled lines, numbers line up */
+    .elme-pdp__dims {
+        margin: 0;
+
+        > div {
+            display: flex;
+            justify-content: space-between;
+            gap: --spacing(4);
+            padding-block: --spacing(2);
+
+            + div {
+                border-top: 1px solid var(--color-border);
+            }
+
+            &:first-child {
+                padding-top: 0;
+            }
+        }
+
+        dt {
+            color: var(--color-ink-muted);
+        }
+
+        dd {
+            margin: 0;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+    }
+
+    /* FE-29 Delivery: cartons, units per carton, handling notice */
+    .elme-pdp__delivery {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(3);
+
+        p {
+            margin: 0;
+        }
+    }
+
+    .elme-pdp__cartons {
+        margin: 0;
+        padding-left: --spacing(5);
+        list-style: decimal;
+        font-variant-numeric: tabular-nums;
+
+        li + li {
+            margin-top: --spacing(1);
+        }
+    }
+
+    .elme-pdp__notice {
+        padding: --spacing(3) --spacing(4);
+        border-radius: var(--radius-sm);
+        background: var(--color-surface-muted);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+    }
+
+    /* FE-29 Trade FAQ: nested questions inside the last section */
+    .elme-pdp__faq-item {
+        + .elme-pdp__faq-item {
+            border-top: 1px solid var(--color-border);
+        }
+
+        summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: --spacing(4);
+            min-height: --spacing(11);
+            padding-block: --spacing(2);
+            cursor: pointer;
+            list-style: none;
+
+            &::-webkit-details-marker {
+                display: none;
+            }
+
+            &:focus-visible {
+                outline: 2px solid var(--color-primary);
+                outline-offset: 2px;
+            }
+
+            svg {
+                flex: none;
+                color: var(--color-ink-muted);
+                transition: rotate var(--transition-duration-base) var(--ease-out-quart);
+            }
+        }
+
+        &[open] summary svg {
+            rotate: 45deg;
+        }
+
+        h3 {
+            margin: 0;
+            font-family: var(--font-sans);
+            font-size: inherit;
+            line-height: inherit;
+            font-weight: 400;
+        }
+    }
+
+    .elme-pdp__faq-answer {
+        padding-bottom: --spacing(4);
+        color: var(--color-ink-muted);
+
+        > :first-child {
+            margin-top: 0;
+        }
+    }
+
+    .elme-pdp__faq-more a {
+        color: var(--color-ink-muted);
+        text-decoration: underline;
+        text-underline-offset: 0.15em;
+
+        &:hover {
+            color: var(--color-link-hover);
+        }
+    }
+
+    /* FE-29 per product type CMS blocks, full width below the two columns */
+    .elme-pdp__blocks {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(10);
+        padding-bottom: --spacing(10);
+
+        @variant lg {
+            gap: --spacing(16);
+            padding-bottom: --spacing(16);
         }
     }
 

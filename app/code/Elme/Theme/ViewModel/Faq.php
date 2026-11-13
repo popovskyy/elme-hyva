@@ -90,7 +90,8 @@ class Faq implements ArgumentInterface
      *     answer_html: string,
      *     answer_text: string,
      *     search_text: string,
-     *     next_step: array{label: string, href: string}|null
+     *     next_step: array{label: string, href: string}|null,
+     *     show_on_pdp: bool
      * }>
      */
     public function getItems(array $content): array
@@ -144,6 +145,7 @@ class Faq implements ArgumentInterface
                 'answer_text' => $answerText,
                 'search_text' => $this->withSearchSynonyms($baseSearch),
                 'next_step' => $nextStep,
+                'show_on_pdp' => !empty($row['show_on_pdp']),
             ];
         }
 
@@ -223,6 +225,36 @@ class Faq implements ArgumentInterface
         }
 
         return $links;
+    }
+
+    /**
+     * FE-29: questions flagged "Show on product pages", for the Trade FAQ row of the PDP accordion.
+     * Plain HTML there (no FAQPage markup: /faqs is the one marked-up copy).
+     *
+     * @return list<array{question: string, anchor: string, answer_html: string, url: string}>
+     */
+    public function getPdpItems(): array
+    {
+        $content = $this->loadPublishedContent();
+        if ($content === null) {
+            return [];
+        }
+
+        $pageUrl = $this->faqsPageUrl();
+        $items = [];
+        foreach ($this->getItems($content) as $item) {
+            if (!$item['show_on_pdp']) {
+                continue;
+            }
+            $items[] = [
+                'question' => $item['question'],
+                'anchor' => $item['anchor'],
+                'answer_html' => $item['answer_html'],
+                'url' => $pageUrl . '#' . $item['anchor'],
+            ];
+        }
+
+        return $items;
     }
 
     /**

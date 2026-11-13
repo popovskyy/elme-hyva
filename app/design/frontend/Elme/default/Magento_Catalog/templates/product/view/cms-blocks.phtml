@@ -1,0 +1,51 @@
+<?php
+/**
+ * Elme FE-29: per product type CMS blocks, full width below the gallery and info columns (old site:
+ * Bart/el product/cms-block.phtml, keyed on the attribute set). Identifiers come from the block
+ * arguments, e.g. pdp_middle_page_%s -> pdp_middle_page_sofa (ProductDetails::getProductTypeCode).
+ * A missing or disabled block outputs nothing. Same copy on every product of the type, so the
+ * wrapper is data-nosnippet. Content rule: blocks start at h2, never h1.
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\ProductDetails;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\ProductPage;
+use Magento\Cms\Block\BlockByIdentifier;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var ProductDetails $details */
+$details = $viewModels->require(ProductDetails::class);
+$product = $viewModels->require(ProductPage::class)->getProduct();
+
+$blocks = [];
+foreach ((array) $block->getData('identifier_templates') as $name => $template) {
+    $identifier = $details->getCmsBlockIdentifier($product, (string) $template);
+    if ($identifier === '') {
+        continue;
+    }
+    $html = trim((string) $block->getLayout()
+        ->createBlock(BlockByIdentifier::class, '', ['data' => ['identifier' => $identifier]])
+        ->toHtml());
+    if ($html !== '') {
+        $blocks[(string) $name] = $html;
+    }
+}
+
+if (!$blocks) {
+    return;
+}
+?>
+<div class="elme-pdp__blocks" data-nosnippet>
+    <?php foreach ($blocks as $name => $html): ?>
+        <div class="elme-pdp__block elme-pdp__block--<?= $escaper->escapeHtmlAttr($name) ?>">
+            <?= /* @noEscape */ $html ?>
+        </div>
+    <?php endforeach; ?>
+</div>
