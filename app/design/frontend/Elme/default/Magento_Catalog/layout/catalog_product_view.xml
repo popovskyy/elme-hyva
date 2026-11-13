@@ -17,6 +17,19 @@
         <referenceBlock name="product.price.tier" remove="true"/>
         <!-- FE-25: detail sections are an accordion inside the info column -->
         <move element="product.info.details" destination="product.info"/>
+        <!-- FE-29: per product type CMS blocks, full width below the two columns -->
+        <referenceBlock name="product.detail.page">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.pdp.cms.blocks"
+                   template="Magento_Catalog::product/view/cms-blocks.phtml">
+                <arguments>
+                    <argument name="identifier_templates" xsi:type="array">
+                        <item name="middle" xsi:type="string">pdp_middle_page_%s</item>
+                        <item name="material" xsi:type="string">pdp_material_info_block_%s</item>
+                    </argument>
+                </arguments>
+            </block>
+        </referenceBlock>
         <!-- FE-27: sticky ATC + buy-box JS; guests remove these in elme_customer_guest.xml -->
         <referenceBlock name="product.info">
             <block class="Magento\Catalog\Block\Product\View"

@@ -1,14 +1,20 @@
 <?php
 /**
- * Elme FE-25: product detail sections as an accordion inside the info column (moved there in
+ * Elme FE-25 / FE-29: product detail sections, an accordion inside the info column (moved there in
  * catalog_product_view.xml). Native <details>: works without JS, several can be open, all closed on
- * load (the short description above already says what "Details" starts with). Sections with no content are not rendered. FE-29 adds the remaining sections
- * (dimensions, delivery, CMS blocks, FAQ) to the same list. Look: web/tailwind/elme/pdp.css.
+ * load, every text is in the initial HTML. A section with no content is not rendered at all.
+ * Order: Details, Product Specifications, Dimensions, Delivery, Care Instructions, Trade FAQ.
+ * Rows come from Elme\Theme\ViewModel\ProductDetails (FE-55 maps the same rows to Product JSON-LD).
+ * No structured data here; the Trade FAQ is plain HTML (FAQPage lives on /faqs only).
+ * Look: web/tailwind/elme/pdp.css.
  */
 
 declare(strict_types=1);
 
+use Elme\Theme\ViewModel\Faq;
+use Elme\Theme\ViewModel\ProductDetails;
 use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
 use Hyva\Theme\ViewModel\LucideIcons;
 use Hyva\Theme\ViewModel\ProductPage;
 use Magento\Catalog\Block\Product\View\Details;
@@ -17,45 +23,149 @@ use Magento\Framework\Escaper;
 /** @var Details $block */
 /** @var Escaper $escaper */
 /** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
 
 /** @var LucideIcons $lucideIcons */
 $lucideIcons = $viewModels->require(LucideIcons::class);
-$product = $viewModels->require(ProductPage::class)->getProduct();
-
-$titles = [
-    'description' => __('Details'),
-    'product.attributes' => __('Product Specifications'),
-];
+/** @var ProductPage $productPage */
+$productPage = $viewModels->require(ProductPage::class);
+/** @var ProductDetails $details */
+$details = $viewModels->require(ProductDetails::class);
+/** @var Faq $faq */
+$faq = $viewModels->require(Faq::class);
+$product = $productPage->getProduct();
 
 $sections = [];
+
+// Details: hidden when the long description says nothing more than the short one above the buy box
+$descriptionHtml = $details->getDescriptionHtml($product, $productPage->getShortDescription());
+if ($descriptionHtml !== '') {
+    $sections['description'] = [
+        'title' => __('Details'),
+        'html' => '<div class="prose">' . $descriptionHtml . '</div>',
+    ];
+}
+
+// Product Specifications: label / value table, long notes go elsewhere
+$specRows = $details->getSpecRows($product);
+$disclaimerHtml = $details->getDisclaimerHtml($product);
+if ($specRows || $disclaimerHtml !== '') {
+    ob_start(); ?>
+    <?php if ($specRows): ?>
+        <table class="elme-pdp__spec">
+            <?php foreach ($specRows as $row): ?>
+                <tr>
+                    <th scope="row"><?= $escaper->escapeHtml($row['label']) ?></th>
+                    <td><?= $escaper->escapeHtml($row['value']) ?></td>
+                </tr>
+            <?php endforeach; ?>
+        </table>
+    <?php endif; ?>
+    <?php if ($disclaimerHtml !== ''): ?>
+        <div class="elme-pdp__note prose"><?= /* @noEscape */ $disclaimerHtml ?></div>
+    <?php endif; ?>
+    <?php $sections['product-attributes'] = ['title' => __('Product Specifications'), 'html' => ob_get_clean()];
+}
+
+// Sections other modules add to the detailed_info group keep working
 foreach ($block->getGroupSortedChildNames('detailed_info', '') as $sectionName) {
+    if (in_array($sectionName, ['description', 'product.attributes'], true)) {
+        continue;
+    }
     $sectionBlock = $block->getLayout()->getBlock($sectionName);
-    $html = trim((string) $sectionBlock->toHtml());
+    $html = $sectionBlock ? trim((string) $sectionBlock->toHtml()) : '';
     if ($html !== '') {
-        $sections[$sectionName] = [
-            'title' => $titles[$sectionName] ?? $sectionBlock->getData('title') ?? $sectionName,
+        $sections[str_replace('.', '-', (string) $sectionName)] = [
+            'title' => $sectionBlock->getData('title') ?: $sectionName,
             'html' => $html,
         ];
     }
 }
-// Planned PIM field `care_instructions` (elme-product-data); nothing is rendered while it is empty.
-$care = trim((string) $product->getData('care_instructions'));
-if ($care !== '') {
+
+// Dimensions: labelled lines, unit on every value
+$sizeRows = array_merge($details->getDimensionRows($product), $details->getMeasurementRows($product));
+if ($sizeRows) {
+    ob_start(); ?>
+    <dl class="elme-pdp__dims">
+        <?php foreach ($sizeRows as $row): ?>
+            <div>
+                <dt><?= $escaper->escapeHtml($row['label']) ?></dt>
+                <dd><?= $escaper->escapeHtml(trim($row['value'] . ' ' . $row['unit'])) ?></dd>
+            </div>
+        <?php endforeach; ?>
+    </dl>
+    <?php $sections['dimensions'] = ['title' => __('Dimensions'), 'html' => ob_get_clean()];
+}
+
+// Delivery: shipping cartons, units per carton, handling note; FE-31 adds the logged-in estimate
+$cartons = $details->getCartons($product);
+$unitsPerCarton = $details->getUnitsPerCarton($product);
+$deliveryNote = $details->getDeliveryNote($product);
+$deliveryEstimate = trim((string) $block->getChildHtml('elme.pdp.delivery.estimate'));
+if ($cartons || $unitsPerCarton || $deliveryNote !== '' || $deliveryEstimate !== '') {
+    ob_start(); ?>
+    <div class="elme-pdp__delivery">
+        <?= /* @noEscape */ $deliveryEstimate ?>
+        <?php if ($cartons): ?>
+            <p><?= $escaper->escapeHtml(count($cartons) === 1
+                ? __('Ships in 1 carton (length x width x height):')
+                : __('Ships in %1 cartons (length x width x height):', count($cartons))) ?></p>
+            <ol class="elme-pdp__cartons">
+                <?php foreach ($cartons as $carton): ?>
+                    <li><?= $escaper->escapeHtml($details->formatCarton($carton)) ?></li>
+                <?php endforeach; ?>
+            </ol>
+        <?php endif; ?>
+        <?php if ($unitsPerCarton): ?>
+            <p><?= $escaper->escapeHtml(__('Units per carton: %1', $unitsPerCarton)) ?></p>
+        <?php endif; ?>
+        <?php if ($deliveryNote !== ''): ?>
+            <p class="elme-pdp__notice"><?= $escaper->escapeHtml($deliveryNote) ?></p>
+        <?php endif; ?>
+    </div>
+    <?php $sections['delivery'] = ['title' => __('Delivery'), 'html' => ob_get_clean()];
+}
+
+$careHtml = $details->getCareHtml($product);
+if ($careHtml !== '') {
     $sections['care'] = [
         'title' => __('Care Instructions'),
-        'html' => '<div class="prose">'
-            . $viewModels->require(ProductPage::class)->productAttributeHtml($product, $care, 'care_instructions')
-            . '</div>',
+        'html' => '<div class="prose">' . $careHtml . '</div>',
     ];
 }
+
+// Trade FAQ: rows flagged "Show on product pages" in the FE-47 faqs entry; canonical copy on /faqs
+$faqItems = $faq->getPdpItems();
+if ($faqItems) {
+    ob_start(); ?>
+    <div class="elme-pdp__faq" data-nosnippet>
+        <?php foreach ($faqItems as $item): ?>
+            <details class="elme-pdp__faq-item" id="trade-faq-<?= $escaper->escapeHtmlAttr($item['anchor']) ?>">
+                <summary>
+                    <h3><?= $escaper->escapeHtml($item['question']) ?></h3>
+                    <?= $lucideIcons->plusHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                </summary>
+                <div class="elme-pdp__faq-answer prose">
+                    <?= /* @noEscape */ $item['answer_html'] ?>
+                    <p class="elme-pdp__faq-more">
+                        <a href="<?= $escaper->escapeUrl($item['url']) ?>">
+                            <?= $escaper->escapeHtml(__('More in our FAQs')) ?><span class="sr-only">: <?= $escaper->escapeHtml($item['question']) ?></span>
+                        </a>
+                    </p>
+                </div>
+            </details>
+        <?php endforeach; ?>
+    </div>
+    <?php $sections['trade-faq'] = ['title' => __('Trade FAQ'), 'html' => ob_get_clean()];
+}
+
 if (!$sections) {
     return;
 }
 ?>
 <div class="elme-pdp__sections">
-    <?php foreach ($sections as $name => $section): ?>
-        <details class="elme-pdp__section"
-                 id="<?= $escaper->escapeHtmlAttr(str_replace('.', '-', (string) $name)) ?>">
+    <?php foreach ($sections as $id => $section): ?>
+        <details class="elme-pdp__section" id="<?= $escaper->escapeHtmlAttr($id) ?>">
             <summary>
                 <h2><?= $escaper->escapeHtml($section['title']) ?></h2>
                 <?= $lucideIcons->chevronDownHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
@@ -66,3 +176,24 @@ if (!$sections) {
         </details>
     <?php endforeach; ?>
 </div>
+<script>
+    (() => {
+        // <product url>#dimensions (or a Trade FAQ question id) opens that section
+        const openFromHash = () => {
+            const id = decodeURIComponent(window.location.hash.slice(1));
+            const target = id ? document.getElementById(id) : null;
+            if (!target || !target.closest('.elme-pdp__sections')) {
+                return;
+            }
+            for (let el = target; el; el = el.parentElement ? el.parentElement.closest('details') : null) {
+                if (el.tagName === 'DETAILS') {
+                    el.open = true;
+                }
+            }
+            target.scrollIntoView({ block: 'start' });
+        };
+        openFromHash();
+        window.addEventListener('hashchange', openFromHash);
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

@@ -400,6 +400,8 @@
                 <option value="shipping_returns" label="Shipping &amp; Returns"/>
                 <option value="contact" label="Contact Us"/>
             </field>
+            <field name="show_on_pdp" type="boolean" label="Show on product pages" default="0" width="half"
+                   description="Adds the question to the Trade FAQ row of every product page. Keep it to 5 to 7 ordering, freight and account questions."/>
         </field>
     </type>
 
