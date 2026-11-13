@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- The engine behind ProductSearchInterface. The Search Service later = a new class + this one line. -->
+    <preference for="Elme\Search\Api\ProductSearchInterface" type="Elme\Search\Model\OpenSearch\ProductSearch"/>
+
+    <!-- Facet definitions: etc/elme_search_facets.xml, merged over modules, cached -->
+    <virtualType name="Elme\Search\Model\Facet\Reader" type="Magento\Framework\Config\Reader\Filesystem">
+        <arguments>
+            <argument name="converter" xsi:type="object">Elme\Search\Model\Facet\Converter</argument>
+            <argument name="schemaLocator" xsi:type="object">Elme\Search\Model\Facet\SchemaLocator</argument>
+            <argument name="fileName" xsi:type="string">elme_search_facets.xml</argument>
+            <argument name="idAttributes" xsi:type="array">
+                <item name="/config/facet" xsi:type="string">code</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Elme\Search\Model\Facet\Data" type="Magento\Framework\Config\Data">
+        <arguments>
+            <argument name="reader" xsi:type="object">Elme\Search\Model\Facet\Reader</argument>
+            <argument name="cacheId" xsi:type="string">elme_search_facets</argument>
+        </arguments>
+    </virtualType>
+    <type name="Elme\Search\Model\Facet\FacetConfig">
+        <arguments>
+            <argument name="data" xsi:type="object">Elme\Search\Model\Facet\Data</argument>
+        </arguments>
+    </type>
+
+    <!-- Document field => product attribute code. Field names follow the target model (elme-product-data);
+         attributes missing on this instance are skipped until they exist. -->
+    <type name="Elme\Search\Model\Indexer\DocumentBuilder">
+        <arguments>
+            <argument name="fieldMap" xsi:type="array">
+                <item name="name" xsi:type="string">name</item>
+                <item name="url_key" xsi:type="string">url_key</item>
+                <item name="image" xsi:type="string">small_image</item>
+                <item name="product_type" xsi:type="string">product_type</item>
+                <item name="family_code" xsi:type="string">family_code</item>
+                <item name="family_sort_order" xsi:type="string">family_sort_order</item>
+                <item name="color" xsi:type="string">color</item>
+                <item name="colour_group" xsi:type="string">colour_group</item>
+                <item name="material" xsi:type="string">material</item>
+                <item name="type_detail" xsi:type="string">type_detail</item>
+                <item name="style" xsi:type="string">style</item>
+                <item name="features" xsi:type="string">features</item>
+                <item name="seats" xsi:type="string">seats</item>
+                <item name="width" xsi:type="string">width</item>
+                <item name="depth" xsi:type="string">depth</item>
+                <item name="height" xsi:type="string">height</item>
+                <item name="price" xsi:type="string">price</item>
+                <item name="news_from_date" xsi:type="string">news_from_date</item>
+                <item name="made_to_order" xsi:type="string">made_to_order</item>
+                <item name="condition_code" xsi:type="string">condition_code</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Elme\Search\Model\Indexer\RealtimeUpdater">
+        <arguments>
+            <argument name="productIndexer" xsi:type="object">Elme\Search\Model\Indexer\ProductIndexer\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Magento\Catalog\Model\Product\Action">
+        <plugin name="elme_search_reindex_mass_action" type="Elme\Search\Plugin\ReindexOnMassAction"/>
+    </type>
+
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="elme_search_reindex" xsi:type="object">Elme\Search\Console\Command\Reindex\Proxy</item>
+                <item name="elme_search_query" xsi:type="object">Elme\Search\Console\Command\Query\Proxy</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

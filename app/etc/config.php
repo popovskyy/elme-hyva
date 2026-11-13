@@ -371,6 +371,7 @@ return [
         'Elme_Theme' => 1,
         'Elme_Checkout' => 1,
         'Elme_RecentlyViewed' => 1,
+        'Elme_Search' => 1,
         'Elme_StoreLocator' => 1,
         'Elme_Styleguide' => 1,
         'Elme_MinimumOrder' => 1,

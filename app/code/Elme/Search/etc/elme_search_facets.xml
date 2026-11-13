@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+    Storefront facets (filters) of product listings and search, in display order.
+    code       = facet code in SearchRequest::$filters / ::$ranges, in the URL and the document field.
+    type       = multi (options with counts, OR inside the facet) | range (min / max) | boolean (one option, value 1).
+    label      = storefront label (translated).
+    size       = max options returned (multi), default 50.
+    optionSort = count (default, most items first) | label (A-Z).
+    Other modules can add or change facets with their own etc/elme_search_facets.xml (merged by code).
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Elme_Search:etc/elme_search_facets.xsd">
+    <facet code="colour_group" type="multi" label="Colour" sortOrder="10"/>
+    <facet code="material" type="multi" label="Material" sortOrder="20"/>
+    <facet code="type_detail" type="multi" label="Type" sortOrder="30"/>
+    <facet code="style" type="multi" label="Style" sortOrder="40"/>
+    <facet code="features" type="multi" label="Features" sortOrder="50"/>
+    <facet code="seats" type="multi" label="Seats" sortOrder="60" optionSort="label"/>
+    <facet code="width" type="range" label="Width (cm)" sortOrder="70"/>
+    <facet code="depth" type="range" label="Depth (cm)" sortOrder="80"/>
+    <facet code="in_stock" type="boolean" label="In stock" sortOrder="90"/>
+</config>
