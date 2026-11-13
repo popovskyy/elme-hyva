@@ -1,11 +1,13 @@
 <?php
 /**
- * FE-06: header search form. Autocomplete → FE-22.
- * Native GET to catalogsearch/result with named q; works with JS off.
+ * FE-06: header search form. Native GET to catalogsearch/result with named q; works with JS off.
+ * FE-22: autocomplete dropdown (products, categories, searches, "see all"); component in
+ * html/header/search-autocomplete.phtml, data from elme-search/suggest. No prices.
  */
 
 declare(strict_types=1);
 
+use Elme\Search\Controller\Suggest\Index as SuggestController;
 use Hyva\Theme\Model\ViewModelRegistry;
 use Hyva\Theme\ViewModel\LucideIcons;
 use Magento\Framework\Escaper;
@@ -28,8 +30,18 @@ $helper = $this->helper(SearchHelper::class);
 $placeholder = (string) __('Search products by style, rooms');
 $inputId = (string) ($block->getData('input_id') ?: 'search');
 $minLength = (int) $helper->getMinQueryLength();
+$listboxId = $inputId . '-suggest';
 ?>
-<div class="elme-header-search w-full text-ink">
+<div class="elme-header-search relative w-full text-ink"
+     x-data="initElmeSearchAutocomplete"
+     data-suggest-url="<?= $escaper->escapeUrl($block->getUrl('elme-search/suggest')) ?>"
+     data-result-url="<?= $escaper->escapeUrl($helper->getResultUrl()) ?>"
+     data-min-chars="<?= (int) SuggestController::MIN_LENGTH ?>"
+     data-min-query="<?= $minLength ?>"
+     data-prefix="<?= $escaper->escapeHtmlAttr($listboxId) ?>"
+     @click.outside="close"
+     @focusout="onFocusOut"
+>
     <search title="<?= $escaper->escapeHtmlAttr(__('Store')) ?>" role="search">
         <form
             class="form minisearch relative flex w-full"
@@ -41,9 +53,17 @@ $minLength = (int) $helper->getMinQueryLength();
             </label>
             <input
                 id="<?= $escaper->escapeHtmlAttr($inputId) ?>"
+                x-ref="input"
                 type="search"
                 autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
                 required
+                role="combobox"
+                aria-autocomplete="list"
+                aria-controls="<?= $escaper->escapeHtmlAttr($listboxId) ?>"
+                :aria-expanded="isOpen"
+                :aria-activedescendant="activeId"
                 name="<?= $escaper->escapeHtmlAttr($helper->getQueryParamName()) ?>"
                 value="<?= /** @noEscape */ $helper->getEscapedQueryText() ?>"
                 placeholder="<?= $escaper->escapeHtmlAttr($placeholder) ?>"
@@ -51,6 +71,12 @@ $minLength = (int) $helper->getMinQueryLength();
                 minlength="<?= $escaper->escapeHtmlAttr((string) $minLength) ?>"
                 class="elme-header-search__input form-input grow w-full min-h-11 py-2 ps-11 pe-3
                        text-note text-ink text-ellipsis placeholder:text-placeholder"
+                @input="onInput"
+                @focus="onFocus"
+                @keydown.arrow-down="next"
+                @keydown.arrow-up="prev"
+                @keydown.enter="onEnter"
+                @keydown.escape="onEscape"
             >
             <button
                 type="submit"
@@ -63,4 +89,125 @@ $minLength = (int) $helper->getMinQueryLength();
             </button>
         </form>
     </search>
+
+    <p class="sr-only" role="status" aria-live="polite" x-text="status"></p>
+
+    <div class="elme-search-suggest absolute z-20 top-full inset-x-0 mt-1 xl:start-auto xl:w-full xl:min-w-md
+                bg-surface border border-border shadow-lg overflow-y-auto overscroll-contain"
+         x-cloak
+         x-show="isOpen"
+         x-transition:enter="elme-search-suggest--enter"
+         x-transition:enter-start="elme-search-suggest--from"
+    >
+        <div id="<?= $escaper->escapeHtmlAttr($listboxId) ?>"
+             role="listbox"
+             aria-label="<?= $escaper->escapeHtmlAttr(__('Search suggestions')) ?>"
+             class="elme-search-suggest__list"
+        >
+            <template x-if="hasProducts">
+                <div role="group" aria-labelledby="<?= $escaper->escapeHtmlAttr($listboxId) ?>-products">
+                    <div id="<?= $escaper->escapeHtmlAttr($listboxId) ?>-products" role="presentation"
+                         class="elme-search-suggest__heading">
+                        <?= $escaper->escapeHtml(__('Products')) ?>
+                    </div>
+                    <template x-for="item in products" :key="item.domId">
+                        <a :id="item.domId"
+                           :href="item.url"
+                           role="option"
+                           tabindex="-1"
+                           :aria-selected="isActive"
+                           :data-index="item.index"
+                           @mouseenter="setActive"
+                           class="elme-search-suggest__option flex items-center gap-3 py-2"
+                        >
+                            <span class="shrink-0 flex items-center justify-center size-12 bg-surface-muted overflow-hidden">
+                                <template x-if="hasImage">
+                                    <img :src="item.image" alt="" width="48" height="48" decoding="async"
+                                         class="size-full object-contain">
+                                </template>
+                                <template x-if="hasNoImage">
+                                    <span class="size-full" aria-hidden="true"></span>
+                                </template>
+                            </span>
+                            <span class="min-w-0 flex flex-col gap-0.5">
+                                <span class="text-note text-ink line-clamp-2" x-text="item.name"></span>
+                                <span class="text-label text-ink-muted break-all" x-text="item.sku"></span>
+                            </span>
+                        </a>
+                    </template>
+                </div>
+            </template>
+
+            <template x-if="hasCategories">
+                <div role="group" aria-labelledby="<?= $escaper->escapeHtmlAttr($listboxId) ?>-categories">
+                    <div id="<?= $escaper->escapeHtmlAttr($listboxId) ?>-categories" role="presentation"
+                         class="elme-search-suggest__heading">
+                        <?= $escaper->escapeHtml(__('Categories')) ?>
+                    </div>
+                    <template x-for="item in categories" :key="item.domId">
+                        <a :id="item.domId"
+                           :href="item.url"
+                           role="option"
+                           tabindex="-1"
+                           :aria-selected="isActive"
+                           :data-index="item.index"
+                           @mouseenter="setActive"
+                           class="elme-search-suggest__option flex items-center justify-between gap-3 py-2 text-note"
+                        >
+                            <span class="min-w-0 truncate" x-text="item.name"></span>
+                            <?= $lucideIcons->chevronRightHtml('shrink-0 text-ink-muted', 16, 16, ['aria-hidden' => 'true']) ?>
+                        </a>
+                    </template>
+                </div>
+            </template>
+
+            <template x-if="hasQueries">
+                <div role="group" aria-labelledby="<?= $escaper->escapeHtmlAttr($listboxId) ?>-queries">
+                    <div id="<?= $escaper->escapeHtmlAttr($listboxId) ?>-queries" role="presentation"
+                         class="elme-search-suggest__heading">
+                        <?= $escaper->escapeHtml(__('Searches')) ?>
+                    </div>
+                    <template x-for="item in queries" :key="item.domId">
+                        <a :id="item.domId"
+                           :href="item.url"
+                           role="option"
+                           tabindex="-1"
+                           :aria-selected="isActive"
+                           :data-index="item.index"
+                           @mouseenter="setActive"
+                           class="elme-search-suggest__option flex items-center gap-3 py-2 text-note"
+                        >
+                            <?= $lucideIcons->searchHtml('shrink-0 text-ink-muted', 16, 16, ['aria-hidden' => 'true']) ?>
+                            <span class="min-w-0 truncate" x-text="item.name"></span>
+                        </a>
+                    </template>
+                </div>
+            </template>
+
+            <template x-if="hasSeeAll">
+                <a :id="seeAllId"
+                   :href="seeAllUrl"
+                   role="option"
+                   tabindex="-1"
+                   :aria-selected="isSeeAllActive"
+                   :data-index="seeAll.index"
+                   @mouseenter="setActive"
+                   class="elme-search-suggest__option elme-search-suggest__all sticky bottom-0 flex items-center
+                          justify-between gap-3 mt-2 py-3 border-t border-border text-note font-medium"
+                >
+                    <span class="min-w-0 truncate" x-text="seeAllLabel"></span>
+                    <?= $lucideIcons->arrowRightHtml('shrink-0', 16, 16, ['aria-hidden' => 'true']) ?>
+                </a>
+            </template>
+        </div>
+
+        <template x-if="isEmpty">
+            <div class="px-4 py-3 text-note">
+                <p class="text-ink" x-text="emptyLabel"></p>
+                <p class="mt-1 text-ink-muted">
+                    <?= $escaper->escapeHtml(__('Try a product name, a room or a SKU.')) ?>
+                </p>
+            </div>
+        </template>
+    </div>
 </div>

@@ -73,6 +73,8 @@
             <block name="elme.btn-ripple" template="Magento_Theme::elme/btn-ripple.phtml"/>
             <block name="elme.atc-button" template="Magento_Theme::elme/atc-button.phtml"/>
             <block name="elme.select.js" template="Magento_Theme::elme/select-js.phtml"/>
+            <!-- FE-22: header search autocomplete component (used by both search-form.phtml instances) -->
+            <block name="elme.search.autocomplete" template="Magento_Theme::html/header/search-autocomplete.phtml"/>
         </referenceContainer>
 
         <!-- FE-10: Elme footer (logo, CMS link columns, social, payments) -->

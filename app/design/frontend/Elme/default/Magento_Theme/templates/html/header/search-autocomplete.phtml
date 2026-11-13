@@ -1,0 +1,291 @@
+<?php
+/**
+ * FE-22: header search autocomplete (Alpine, CSP). Rendered once; every search-form.phtml instance
+ * (desktop #search, mobile #search-mobile) uses x-data="initElmeSearchAutocomplete".
+ * Data: GET elme-search/suggest?q= (Elme_Search, ProductSearchInterface::suggest()). No prices.
+ *
+ * ARIA combobox: the input keeps focus, arrows move aria-activedescendant through one flat list
+ * (products, categories, searches, "see all"), Enter opens the active option, Esc closes.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var HyvaCsp $hyvaCsp */
+?>
+<script>
+    function initElmeSearchAutocomplete() {
+        const DEBOUNCE_MS = 150;
+
+        return {
+            query: '',
+            shownQuery: '',
+            open: false,
+            loading: false,
+            products: [],
+            categories: [],
+            queries: [],
+            seeAll: null,
+            optionCount: 0,
+            activeIndex: -1,
+            status: '',
+            suggestUrl: '',
+            resultUrl: '',
+            minChars: 2,
+            minQuery: 3,
+            prefix: '',
+            cache: null,
+            timer: null,
+            request: null,
+
+            init() {
+                const data = this.$root.dataset;
+                this.suggestUrl = data.suggestUrl;
+                this.resultUrl = data.resultUrl;
+                this.minChars = parseInt(data.minChars, 10) || 2;
+                this.minQuery = Math.max(this.minChars, parseInt(data.minQuery, 10) || 3);
+                this.prefix = data.prefix;
+                this.cache = new Map();
+                this.query = this.$refs.input.value || '';
+            },
+
+            trimmed() {
+                return this.query.trim();
+            },
+
+            onInput() {
+                this.query = this.$event.target.value;
+                this.activeIndex = -1;
+                clearTimeout(this.timer);
+                const q = this.trimmed();
+                if (q.length < this.minChars) {
+                    this.abort();
+                    this.apply('', null);
+                    return;
+                }
+                this.timer = setTimeout(() => this.load(q), DEBOUNCE_MS);
+            },
+
+            abort() {
+                if (this.request) {
+                    this.request.abort();
+                    this.request = null;
+                }
+                this.loading = false;
+            },
+
+            async load(q) {
+                if (this.cache.has(q)) {
+                    this.apply(q, this.cache.get(q));
+                    return;
+                }
+                this.abort();
+                const request = new AbortController();
+                this.request = request;
+                this.loading = true;
+                let data = {products: [], categories: [], queries: []};
+                try {
+                    const response = await fetch(this.suggestUrl + '?q=' + encodeURIComponent(q), {
+                        signal: request.signal,
+                        headers: {Accept: 'application/json'}
+                    });
+                    if (response.ok) {
+                        data = await response.json();
+                        this.cache.set(q, data);
+                    }
+                } catch (e) {
+                    if (e.name === 'AbortError') {
+                        return;
+                    }
+                }
+                if (this.request === request) {
+                    this.request = null;
+                    this.loading = false;
+                }
+                if (q === this.trimmed()) {
+                    this.apply(q, data);
+                }
+            },
+
+            searchUrl(q) {
+                return this.resultUrl + '?q=' + encodeURIComponent(q);
+            },
+
+            // One flat option list: index drives the arrow keys, domId drives aria-activedescendant
+            apply(q, data) {
+                let index = 0;
+                const option = (item) => Object.assign(item, {index, domId: this.prefix + '-opt-' + index++});
+                this.products = ((data && data.products) || []).map((p) => option({
+                    url: p.url, name: p.name, sku: p.sku, image: p.image || ''
+                }));
+                this.categories = ((data && data.categories) || []).slice(0, 5).map((c) => option({
+                    url: c.url, name: c.name
+                }));
+                this.queries = ((data && data.queries) || []).slice(0, 3).map((text) => option({
+                    url: this.searchUrl(text), name: text
+                }));
+                const hasResults = index > 0;
+                this.seeAll = hasResults && q.length >= this.minQuery ? option({url: this.searchUrl(q)}) : null;
+                this.optionCount = index;
+                this.shownQuery = q;
+                this.activeIndex = -1;
+                this.status = this.statusText(q);
+                this.open = q !== '' && document.activeElement === this.$refs.input;
+            },
+
+            statusText(q) {
+                if (q === '') {
+                    return '';
+                }
+                if (!this.products.length && !this.categories.length && !this.queries.length) {
+                    return hyva.str('<?= $escaper->escapeJs(__('No results for "%1".')) ?>', q);
+                }
+                return hyva.str(
+                    '<?= $escaper->escapeJs(__('%1 products, %2 categories. Use the up and down arrows to browse.')) ?>',
+                    this.products.length,
+                    this.categories.length
+                );
+            },
+
+            isOpen() {
+                return this.open;
+            },
+
+            isEmpty() {
+                return this.optionCount === 0 && this.shownQuery !== '';
+            },
+
+            hasProducts() {
+                return this.products.length > 0;
+            },
+
+            hasCategories() {
+                return this.categories.length > 0;
+            },
+
+            hasQueries() {
+                return this.queries.length > 0;
+            },
+
+            hasSeeAll() {
+                return this.seeAll !== null;
+            },
+
+            hasImage() {
+                return this.item.image !== '';
+            },
+
+            hasNoImage() {
+                return this.item.image === '';
+            },
+
+            isActive() {
+                return this.item.index === this.activeIndex;
+            },
+
+            isSeeAllActive() {
+                return this.seeAll !== null && this.seeAll.index === this.activeIndex;
+            },
+
+            seeAllId() {
+                return this.seeAll ? this.seeAll.domId : null;
+            },
+
+            seeAllUrl() {
+                return this.seeAll ? this.seeAll.url : this.resultUrl;
+            },
+
+            seeAllLabel() {
+                return hyva.str('<?= $escaper->escapeJs(__('See all results for "%1"')) ?>', this.shownQuery);
+            },
+
+            emptyLabel() {
+                return hyva.str('<?= $escaper->escapeJs(__('No results for "%1"')) ?>', this.shownQuery);
+            },
+
+            activeId() {
+                return this.open && this.activeIndex >= 0 ? this.prefix + '-opt-' + this.activeIndex : null;
+            },
+
+            setActive() {
+                this.activeIndex = parseInt(this.$el.dataset.index, 10);
+            },
+
+            onFocus() {
+                if (this.shownQuery !== '' && this.shownQuery === this.trimmed()) {
+                    this.open = true;
+                }
+            },
+
+            // Close when focus moves to another control (Tab). A tap on an option has no relatedTarget on
+            // some touch browsers, so it is left to click.outside, otherwise the link would vanish first.
+            onFocusOut() {
+                const next = this.$event.relatedTarget;
+                if (next && !this.$root.contains(next)) {
+                    this.close();
+                }
+            },
+
+            close() {
+                this.open = false;
+                this.activeIndex = -1;
+            },
+
+            move(step) {
+                if (!this.optionCount) {
+                    return;
+                }
+                this.open = true;
+                // -1 is the input itself: down from the last option and up from the first go back to it
+                const span = this.optionCount + 1;
+                this.activeIndex = ((this.activeIndex + 1 + step + span) % span) - 1;
+                const id = this.activeId();
+                if (id) {
+                    this.$nextTick(() => {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            el.scrollIntoView({block: 'nearest'});
+                        }
+                    });
+                }
+            },
+
+            next() {
+                this.$event.preventDefault();
+                this.move(1);
+            },
+
+            prev() {
+                this.$event.preventDefault();
+                this.move(-1);
+            },
+
+            onEnter() {
+                const id = this.activeId();
+                const el = id ? document.getElementById(id) : null;
+                if (el && el.href) {
+                    this.$event.preventDefault();
+                    window.location.href = el.href;
+                }
+            },
+
+            // First Esc closes the list; the next one reaches the header (closes the mobile search panel)
+            onEscape() {
+                if (this.open) {
+                    this.$event.stopPropagation();
+                    this.close();
+                }
+            }
+        };
+    }
+
+    window.addEventListener('alpine:init', () => {
+        Alpine.data('initElmeSearchAutocomplete', initElmeSearchAutocomplete);
+    }, {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
