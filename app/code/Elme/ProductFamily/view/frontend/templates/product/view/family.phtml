@@ -1,0 +1,98 @@
+<?php
+/**
+ * Elme FE-28: product family swatches on the PDP. Every option links to the sibling product page.
+ * Colour axes are chips (image or colour), other axes (size, comfort ...) are text buttons.
+ * A value with no sibling in the current combination stays visible, crossed out, and links to
+ * the closest sibling. Look: web/tailwind/elme/family-swatches.css.
+ */
+
+declare(strict_types=1);
+
+use Elme\ProductFamily\ViewModel\ProductFamily;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\ProductPage;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$product = $viewModels->require(ProductPage::class)->getProduct();
+/** @var ProductFamily $family */
+$family = $viewModels->require(ProductFamily::class);
+$axes = $product ? $family->getAxes($product) : [];
+if (!$axes) {
+    return;
+}
+?>
+<div class="elme-family">
+    <?php foreach ($axes as $axis): ?>
+        <?php
+        $labelId = 'elme-family-' . $escaper->escapeHtmlAttr($axis['code']);
+        $isVisual = $axis['visual'];
+        ?>
+        <div class="elme-family__axis" role="group" aria-labelledby="<?= /* @noEscape */ $labelId ?>">
+            <p class="elme-family__label" id="<?= /* @noEscape */ $labelId ?>">
+                <span class="elme-family__name"><?= $escaper->escapeHtml($axis['label']) ?><?= $axis['selectedLabel'] !== '' ? ':' : '' ?></span>
+                <?php if ($axis['selectedLabel'] !== ''): ?>
+                    <span class="elme-family__value"><?= $escaper->escapeHtml($axis['selectedLabel']) ?></span>
+                <?php endif; ?>
+            </p>
+            <ul class="elme-family__list elme-family__list--<?= $isVisual ? 'chips' : 'text' ?>" role="list">
+                <?php foreach ($axis['options'] as $option): ?>
+                    <?php
+                    $label = $option['label'];
+                    $tooltip = $option['note'] !== '' ? $label . ' - ' . $option['note'] : $label;
+                    $state = $option['selected'] ? ' is-selected' : ($option['available'] ? '' : ' is-unavailable');
+                    $class = ($isVisual ? 'elme-swatch' : 'elme-size') . $state;
+                    ?>
+                    <li>
+                        <?php if ($option['selected']): ?>
+                            <?php if ($isVisual): ?>
+                                <span class="<?= /* @noEscape */ $class ?>"
+                                      role="img"
+                                      aria-label="<?= $escaper->escapeHtmlAttr(__('%1, selected', $label)) ?>"
+                                      data-tooltip="<?= $escaper->escapeHtmlAttr($tooltip) ?>"
+                                >
+                            <?php else: ?>
+                                <span class="<?= /* @noEscape */ $class ?>">
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <a href="<?= $escaper->escapeUrl($option['url']) ?>"
+                               class="<?= /* @noEscape */ $class ?>"
+                               aria-label="<?= $escaper->escapeHtmlAttr($option['note'] !== '' ? $label . ', ' . lcfirst($option['note']) : $label) ?>"
+                               <?php if ($isVisual || $option['note'] !== ''): ?>
+                               data-tooltip="<?= $escaper->escapeHtmlAttr($tooltip) ?>"
+                               <?php endif; ?>
+                            >
+                        <?php endif; ?>
+
+                        <?php if ($isVisual): ?>
+                            <?php if ($option['image'] !== ''): ?>
+                                <img src="<?= $escaper->escapeUrl($option['image']) ?>"
+                                     alt=""
+                                     width="56"
+                                     height="56"
+                                     loading="lazy"
+                                     class="elme-swatch__fill"
+                                >
+                            <?php elseif ($option['color'] !== ''): ?>
+                                <span class="elme-swatch__fill" style="background-color: <?= $escaper->escapeHtmlAttr($option['color']) ?>"></span>
+                            <?php else: ?>
+                                <span class="elme-swatch__fill elme-swatch__fill--text" aria-hidden="true"><?= $escaper->escapeHtml(mb_substr($label, 0, 2)) ?></span>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <?= $escaper->escapeHtml($label) ?>
+                            <?php if ($option['selected']): ?>
+                                <span class="sr-only"><?= $escaper->escapeHtml(__(', selected')) ?></span>
+                            <?php endif; ?>
+                        <?php endif; ?>
+
+                        <?= /* @noEscape */ $option['selected'] ? '</span>' : '</a>' ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    <?php endforeach; ?>
+</div>

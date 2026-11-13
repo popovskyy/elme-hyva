@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- The axes of the target model (group "Family & Variants"). family_axes on a product picks and orders them;
+         codes that are not option attributes on this instance are skipped. -->
+    <type name="Elme\ProductFamily\Model\FamilyLoader">
+        <arguments>
+            <argument name="axisCodes" xsi:type="array">
+                <item name="color" xsi:type="string">color</item>
+                <item name="size" xsi:type="string">size</item>
+                <item name="feel" xsi:type="string">feel</item>
+                <item name="chaise_side" xsi:type="string">chaise_side</item>
+                <item name="orientation" xsi:type="string">orientation</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Magento\Catalog\Model\Product">
+        <plugin name="elme_product_family_cache_tag" type="Elme\ProductFamily\Plugin\AddFamilyCacheTag"/>
+    </type>
+    <!-- Axes drawn as colour chips (in addition to any visual swatch attribute) -->
+    <type name="Elme\ProductFamily\ViewModel\ProductFamily">
+        <arguments>
+            <argument name="visualAxes" xsi:type="array">
+                <item name="color" xsi:type="string">color</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

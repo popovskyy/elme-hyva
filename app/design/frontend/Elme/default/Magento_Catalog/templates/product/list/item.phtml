@@ -18,6 +18,7 @@ declare(strict_types=1);
  * customers get a price placeholder that loads their own price after render. FE-70: the Add to Cart button
  * keeps btn-atc (AJAX + animation, Magento_Theme::elme/atc-button.phtml). Look: web/tailwind/elme/product-card.css.
  * FE-73: the heart on the photo opens Add to Shopping List (no core Magento wishlist).
+ * FE-28: family swatches under the stock line (Elme_ProductFamily::product/list/swatches.phtml).
  */
 
 use Elme\LoginOnly\ViewModel\LoginOnly;
@@ -32,6 +33,7 @@ use Magento\Catalog\Block\Product\View;
 use Magento\Catalog\Helper\Output as CatalogOutputHelper;
 use Magento\Catalog\ViewModel\Product\OptionsData as ProductOptionsData;
 use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
 
 // phpcs:disable Magento2.Templates.ThisInTemplate.FoundThis
 // phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
@@ -207,6 +209,15 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
                 <span class="invisible select-none">&nbsp;</span>
             <?php endif; ?>
         </p>
+
+        <?php /* FE-28: family swatches (links to the sibling products), Elme_ProductFamily */ ?>
+        <?php $familySwatches = $block->getLayout()->getBlock('elme.product.family.card')
+            ?: $block->getLayout()->createBlock(
+                Template::class,
+                'elme.product.family.card',
+                ['data' => ['template' => 'Elme_ProductFamily::product/list/swatches.phtml']]
+            ); ?>
+        <?= $familySwatches->setData('product', $product)->toHtml() ?>
 
         <?php if ($product->isAvailable() && !$hideDetails): ?>
             <?= $block->getProductDetailsHtml($product) ?>

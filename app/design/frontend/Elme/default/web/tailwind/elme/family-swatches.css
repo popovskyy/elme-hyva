@@ -1,0 +1,257 @@
+/*
+ * FE-28 product family swatches (Elme_ProductFamily): PDP product/view/family.phtml and the card
+ * product/list/swatches.phtml. Every swatch is a link to a sibling product. Square like the rest of
+ * the theme. A value with no sibling in the current combination is crossed out, never hidden.
+ */
+@layer components {
+    /* ---------- PDP ---------- */
+    /* above the buy box on all widths (buy box is order -1, this block comes first in the DOM) */
+    .elme-family {
+        display: grid;
+        gap: --spacing(5);
+        order: -1;
+    }
+
+    .elme-family__label {
+        margin-bottom: --spacing(2.5);
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+
+        @variant lg {
+            font-size: var(--text-copy-desktop);
+        }
+    }
+
+    .elme-family__name {
+        font-weight: 500;
+        color: var(--color-ink);
+    }
+
+    .elme-family__value {
+        color: var(--color-ink-muted);
+    }
+
+    .elme-family__list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: --spacing(2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    /* text options: equal columns, so a second row lines up with the first */
+    .elme-family__list--text {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(--spacing(24), 1fr));
+
+        > li {
+            display: flex;
+        }
+    }
+
+    /* colour chip: image, colour or the first letters of the name */
+    .elme-swatch {
+        position: relative;
+        display: block;
+        flex-shrink: 0;
+        width: --spacing(12);
+        height: --spacing(12);
+        padding: 2px;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        transition: border-color var(--transition-duration-fast) var(--ease-out-quad);
+
+        @variant lg {
+            width: --spacing(14);
+            height: --spacing(14);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+
+        &.is-selected {
+            border-color: var(--color-ink);
+            box-shadow: inset 0 0 0 1px var(--color-ink);
+        }
+    }
+
+    a.elme-swatch:hover {
+        border-color: var(--color-ink);
+    }
+
+    .elme-swatch__fill {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .elme-swatch__fill--text {
+        display: grid;
+        place-items: center;
+        font-size: var(--text-label);
+        line-height: 1;
+        font-weight: 500;
+        text-transform: uppercase;
+        color: var(--color-ink-muted);
+        background: var(--color-surface-muted);
+    }
+
+    /* crossed out: faded fill with a diagonal line */
+    .elme-swatch.is-unavailable {
+        .elme-swatch__fill {
+            opacity: 0.45;
+        }
+
+        &::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: linear-gradient(
+                to top right,
+                transparent calc(50% - 0.5px),
+                var(--color-ink-muted) 50%,
+                transparent calc(50% + 0.5px)
+            );
+        }
+    }
+
+    /* text option (size, comfort, chaise side ...), as wide as the row allows */
+    .elme-size {
+        display: inline-flex;
+        position: relative;
+        flex: 1;
+        align-items: center;
+        justify-content: center;
+        min-height: --spacing(12);
+        padding: --spacing(2);
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        letter-spacing: 0.02em;
+        text-align: center;
+        color: var(--color-ink);
+        background: transparent;
+        border: 1px solid var(--color-border);
+        transition: border-color var(--transition-duration-fast) var(--ease-out-quad);
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+
+        &.is-selected {
+            font-weight: 500;
+            background: var(--color-surface);
+            border-color: var(--color-ink);
+            box-shadow: inset 0 0 0 1px var(--color-ink);
+        }
+
+        &.is-unavailable {
+            color: var(--color-ink-subtle);
+            text-decoration: line-through;
+            text-decoration-thickness: 1px;
+        }
+    }
+
+    a.elme-size:hover {
+        border-color: var(--color-ink);
+        text-decoration: none;
+
+        &.is-unavailable {
+            text-decoration: line-through;
+        }
+    }
+
+    /* tooltip with the name (and why it is crossed out); touch devices read the label row instead */
+    @media (hover: hover) {
+        .elme-swatch[data-tooltip]:is(:hover, :focus-visible)::after,
+        .elme-size[data-tooltip]:is(:hover, :focus-visible)::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + --spacing(2));
+            left: 50%;
+            z-index: 20;
+            width: max-content;
+            max-width: --spacing(48);
+            padding: --spacing(1) --spacing(2);
+            font-size: var(--text-note);
+            line-height: var(--text-note--line-height);
+            font-weight: 400;
+            text-align: center;
+            text-decoration: none;
+            text-transform: none;
+            color: var(--color-on-primary);
+            background: var(--color-primary);
+            translate: -50% 0;
+            pointer-events: none;
+            animation: elme-tooltip-in var(--transition-duration-fast) var(--ease-out-quad);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .elme-swatch[data-tooltip]::after,
+        .elme-size[data-tooltip]::after {
+            animation: none;
+        }
+    }
+
+    @keyframes elme-tooltip-in {
+        from {
+            opacity: 0;
+            translate: -50% calc(var(--spacing) * 1);
+        }
+    }
+
+    /* ---------- product card ---------- */
+    .elme-card__swatches {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: --spacing(1);
+        margin: --spacing(1) 0 0;
+        padding: 0;
+        list-style: none;
+
+        @variant lg {
+            gap: --spacing(1.5);
+        }
+    }
+
+    .elme-swatch--mini {
+        width: --spacing(6);
+        height: --spacing(6);
+        padding: 1px;
+
+        @variant lg {
+            width: --spacing(7);
+            height: --spacing(7);
+        }
+    }
+
+    .elme-card__swatch-more {
+        padding-inline: --spacing(1);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        color: var(--color-ink-muted);
+
+        &:hover {
+            color: var(--color-ink);
+            text-decoration: underline;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+    }
+
+    .elme-card__family-note {
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        color: var(--color-ink-muted);
+    }
+}

@@ -23,6 +23,9 @@
         "src": "app/code/Elme/QuickOrder"
       },
       {
+        "src": "app/code/Elme/ProductFamily"
+      },
+      {
         "src": "app/code/Elme/RecentlyViewed"
       },
       {

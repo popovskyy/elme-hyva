@@ -1,0 +1,79 @@
+<?php
+/**
+ * Elme FE-28: family swatches on the product card (Magento_Catalog::product/list/item.phtml).
+ * Colour families: small chips, each a link to that colour's product, "+N" to the product page.
+ * Families without colours: "Size: 5 options". Nothing for a product without a family.
+ */
+
+declare(strict_types=1);
+
+use Elme\ProductFamily\ViewModel\ProductFamily;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Catalog\Model\Product;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var Product|null $product */
+$product = $block->getData('product');
+/** @var ProductFamily $family */
+$family = $viewModels->require(ProductFamily::class);
+$swatches = $product ? $family->getCardSwatches($product) : null;
+if (!$swatches) {
+    return;
+}
+?>
+<?php if ($swatches['visual']): ?>
+    <ul class="elme-card__swatches"
+        role="list"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('%1 options for %2', $swatches['label'], $product->getName())) ?>"
+    >
+        <?php foreach ($swatches['options'] as $option): ?>
+            <?php $label = $option['label']; ?>
+            <li>
+                <?php if ($option['selected']): ?>
+                    <span class="elme-swatch elme-swatch--mini is-selected"
+                          role="img"
+                          aria-label="<?= $escaper->escapeHtmlAttr(__('%1, selected', $label)) ?>"
+                          data-tooltip="<?= $escaper->escapeHtmlAttr($label) ?>"
+                    >
+                <?php else: ?>
+                    <a href="<?= $escaper->escapeUrl($option['url']) ?>"
+                       class="elme-swatch elme-swatch--mini"
+                       aria-label="<?= $escaper->escapeHtmlAttr($label) ?>"
+                       data-tooltip="<?= $escaper->escapeHtmlAttr($label) ?>"
+                    >
+                <?php endif; ?>
+                    <?php if ($option['image'] !== ''): ?>
+                        <img src="<?= $escaper->escapeUrl($option['image']) ?>"
+                             alt=""
+                             width="28"
+                             height="28"
+                             loading="lazy"
+                             class="elme-swatch__fill"
+                        >
+                    <?php elseif ($option['color'] !== ''): ?>
+                        <span class="elme-swatch__fill" style="background-color: <?= $escaper->escapeHtmlAttr($option['color']) ?>"></span>
+                    <?php else: ?>
+                        <span class="elme-swatch__fill elme-swatch__fill--text" aria-hidden="true"><?= $escaper->escapeHtml(mb_substr($label, 0, 1)) ?></span>
+                    <?php endif; ?>
+                <?= /* @noEscape */ $option['selected'] ? '</span>' : '</a>' ?>
+            </li>
+        <?php endforeach; ?>
+        <?php if ($swatches['more'] > 0): ?>
+            <li>
+                <a href="<?= $escaper->escapeUrl($product->getProductUrl()) ?>"
+                   class="elme-card__swatch-more"
+                   aria-label="<?= $escaper->escapeHtmlAttr(__('%1 more options on the product page', $swatches['more'])) ?>"
+                >+<?= (int) $swatches['more'] ?></a>
+            </li>
+        <?php endif; ?>
+    </ul>
+<?php else: ?>
+    <p class="elme-card__family-note">
+        <?= $escaper->escapeHtml(__('%1: %2 options', $swatches['label'], $swatches['count'])) ?>
+    </p>
+<?php endif; ?>

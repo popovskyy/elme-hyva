@@ -109,6 +109,9 @@ $buyControls = $product->isSaleable()
         </div>
     <?php endif; ?>
 
+    <?php /* FE-28: family swatches (Elme_ProductFamily), above the buy box on all widths (CSS order) */ ?>
+    <?= $block->getChildHtml('product.info.family') ?>
+
     <div class="elme-pdp__buy"
          <?php if ($isLoggedIn && $buyControls !== ''): ?>
          x-data="initElmePdpBuyBox"
