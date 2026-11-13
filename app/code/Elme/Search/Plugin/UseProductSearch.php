@@ -69,7 +69,8 @@ class UseProductSearch
             $this->currentSearch->markFailed();
             $this->logger->error(
                 'Elme_Search: ProductSearchInterface failed, falling back to Magento catalog search: '
-                . $e->getMessage()
+                . $e->getMessage(),
+                ['exception' => $e]
             );
             return $proceed($searchCriteria);
         }

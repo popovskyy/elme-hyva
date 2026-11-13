@@ -295,9 +295,6 @@ class QueryBuilder
             if (in_array($value, ['1', 'true', 'yes'], true)) {
                 return ['term' => [$field => true]];
             }
-            if (in_array($value, ['0', 'false', 'no'], true)) {
-                return ['term' => [$field => false]];
-            }
         }
         return null;
     }

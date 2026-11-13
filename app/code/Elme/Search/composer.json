@@ -8,6 +8,9 @@
         "magento/module-catalog": "*",
         "magento/module-catalog-inventory": "*",
         "magento/module-catalog-search": "*",
+        "magento/module-eav": "*",
+        "magento/module-indexer": "*",
+        "magento/module-open-search": "*",
         "magento/module-search": "*",
         "magento/module-store": "*",
         "opensearch-project/opensearch-php": "^2.0"
