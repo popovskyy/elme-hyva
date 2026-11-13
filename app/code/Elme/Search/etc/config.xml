@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <elme_search>
+            <general>
+                <engine>magento</engine>
+            </general>
+            <opensearch>
+                <hostname/>
+                <port/>
+                <timeout>5</timeout>
+                <index_prefix>elme_products</index_prefix>
+            </opensearch>
+        </elme_search>
+    </default>
+</config>

@@ -1,0 +1,23 @@
+{
+    "name": "elme/module-search",
+    "description": "Elme Living product search behind our own interface (ProductSearchInterface): OpenSearch adapter now, Search Service later",
+    "type": "magento2-module",
+    "require": {
+        "php": "~8.3.0||~8.4.0",
+        "magento/framework": "*",
+        "magento/module-catalog": "*",
+        "magento/module-catalog-inventory": "*",
+        "magento/module-catalog-search": "*",
+        "magento/module-search": "*",
+        "magento/module-store": "*",
+        "opensearch-project/opensearch-php": "^2.0"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Elme\\Search\\": ""
+        }
+    }
+}
