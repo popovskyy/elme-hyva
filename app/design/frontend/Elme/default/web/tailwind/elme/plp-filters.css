@@ -1,5 +1,5 @@
 /*
- * FE-21 listing filters: Filters button, drawer (native <dialog>, .elme-drawer from components/feedback.css),
+ * FE-21 listing filters: drawer (native <dialog>, .elme-drawer from components/feedback.css),
  * facet accordions, colour swatches, range inputs, selected-filter chips, zero-results state.
  * Motion: transform / opacity only; none with prefers-reduced-motion.
  */
@@ -9,42 +9,10 @@ html.elme-filters-open {
 }
 
 @layer components {
-    /* Filters button: text + count + icon, like the live site's "Filters" trigger */
-    .elme-filters__toggle {
-        display: inline-flex;
-        align-items: center;
-        gap: --spacing(2);
-        min-height: --spacing(11);
-        padding: 0;
-        color: var(--color-ink);
-        font-size: var(--text-copy);
-        background: transparent;
-        border: 0;
-        cursor: pointer;
-
-        &:hover {
-            color: var(--color-link-hover);
-        }
-
-        &:focus-visible {
-            outline: 2px solid var(--color-primary);
-            outline-offset: 2px;
-        }
-    }
-
-    .elme-filters__badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: --spacing(5);
-        height: --spacing(5);
-        padding-inline: --spacing(1.5);
-        font-size: var(--text-note);
-        line-height: 1;
-        font-variant-numeric: tabular-nums;
-        color: var(--color-on-primary);
-        background-color: var(--color-primary);
-        border-radius: 9999px;
+    /* The component root only wraps the quick bar (plp-quickbar.css) and the drawer: no box of its own, so the
+       sticky quick bar sticks relative to #product-list */
+    .elme-filters {
+        display: contents;
     }
 
     /* Drawer: full screen on phones, a left panel from tablet (scrim to the right closes it) */
@@ -410,17 +378,6 @@ html.elme-filters-open {
 
     .elme-filter-chip__icon {
         flex: none;
-    }
-
-    .elme-filter-chips__clear {
-        color: var(--color-ink);
-        font-size: var(--text-note);
-        text-decoration: underline;
-        text-underline-offset: 3px;
-
-        &:hover {
-            color: var(--color-link-hover);
-        }
     }
 
     /* Zero results after filtering */

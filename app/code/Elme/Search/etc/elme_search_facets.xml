@@ -6,17 +6,20 @@
     label      = storefront label (translated).
     size       = max options returned (multi), default 50.
     optionSort = count (default, most items first) | label (A-Z).
+    quick      = true: shown as one-tap chips in the sticky quick bar above the listing (multi: its top options,
+                 boolean: the one option); the drawer still has the whole facet. Default false.
+    quickLimit = max chips of a quick multi facet (selected ones always show), default 4.
     Other modules can add or change facets with their own etc/elme_search_facets.xml (merged by code).
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Elme_Search:etc/elme_search_facets.xsd">
-    <facet code="colour_group" type="multi" label="Colour" sortOrder="10"/>
+    <facet code="colour_group" type="multi" label="Colour" sortOrder="10" quick="true" quickLimit="3"/>
     <facet code="material" type="multi" label="Material" sortOrder="20"/>
-    <facet code="type_detail" type="multi" label="Type" sortOrder="30"/>
+    <facet code="type_detail" type="multi" label="Type" sortOrder="30" quick="true" quickLimit="4"/>
     <facet code="style" type="multi" label="Style" sortOrder="40"/>
     <facet code="features" type="multi" label="Features" sortOrder="50"/>
     <facet code="seats" type="multi" label="Seats" sortOrder="60" optionSort="label"/>
     <facet code="width" type="range" label="Width (cm)" sortOrder="70"/>
     <facet code="depth" type="range" label="Depth (cm)" sortOrder="80"/>
-    <facet code="in_stock" type="boolean" label="In stock" sortOrder="90"/>
+    <facet code="in_stock" type="boolean" label="In stock" sortOrder="90" quick="true"/>
 </config>

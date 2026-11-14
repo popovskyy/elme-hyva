@@ -35,6 +35,9 @@ class ListingFilters implements ArgumentInterface
     /** @var Facet[]|null */
     private ?array $facets = null;
 
+    /** @var array<int, array{code: string, label: string, type: string, chips: array}>|null */
+    private ?array $quickGroups = null;
+
     public function __construct(
         private readonly SearchFacets $searchFacets,
         private readonly FacetConfig $facetConfig,
@@ -115,11 +118,13 @@ class ListingFilters implements ArgumentInterface
     }
 
     /**
+     * @param bool $withoutQuickBar leave out the values the quick bar already shows as chips (they are removed there)
      * @return array<int, array{code: string, facet: string, value: string, url: string}>
      */
-    public function getChips(): array
+    public function getChips(bool $withoutQuickBar = false): array
     {
         $selection = $this->getSelection();
+        $inQuickBar = $withoutQuickBar ? $this->getQuickSelected() : [];
         $chips = [];
         foreach ($this->facetConfig->getFacets() as $code => $definition) {
             $label = (string)__($definition->label);
@@ -135,6 +140,9 @@ class ListingFilters implements ArgumentInterface
                 continue;
             }
             foreach ($selection['filters'][$code] ?? [] as $value) {
+                if (isset($inQuickBar[$code][$value])) {
+                    continue;
+                }
                 $without = $selection;
                 $without['filters'][$code] = array_values(array_diff($selection['filters'][$code], [$value]));
                 $chips[] = [
@@ -146,6 +154,50 @@ class ListingFilters implements ArgumentInterface
             }
         }
         return $chips;
+    }
+
+    /**
+     * One-tap chips of the sticky quick bar, grouped by facet in config order. Only facets marked quick="true" in
+     * elme_search_facets.xml, and only what helps in this listing:
+     * - multi: the top options (quickLimit), selected ones always; skipped when the listing has fewer than two
+     *   options and nothing is selected (a single "Coffee Table" chip filters nothing);
+     * - boolean: the one option, skipped when it would match every product and is not selected.
+     * Each chip links to the listing with that value toggled (a plain link: no JS, nofollow in the template).
+     *
+     * @return array<int, array{code: string, label: string, type: string, chips: array<int, array{label: string, value: string, selected: bool, url: string}>}>
+     */
+    public function getQuickGroups(): array
+    {
+        if ($this->quickGroups !== null) {
+            return $this->quickGroups;
+        }
+        $groups = [];
+        if ($this->searchFacets->isActive()) {
+            foreach ($this->getFacets() as $facet) {
+                $definition = $this->facetConfig->get($facet->code);
+                if ($definition === null || !$definition->quick || $facet->type === Facet::TYPE_RANGE) {
+                    continue;
+                }
+                $chips = [];
+                foreach ($this->pickQuickOptions($facet, $definition) as $option) {
+                    $chips[] = [
+                        'label' => $facet->type === Facet::TYPE_BOOLEAN ? (string)__($facet->label) : $option->label,
+                        'value' => $option->value,
+                        'selected' => $option->selected,
+                        'url' => $this->buildToggleUrl($facet->code, $option->value, $option->selected),
+                    ];
+                }
+                if ($chips !== []) {
+                    $groups[] = [
+                        'code' => $facet->code,
+                        'label' => (string)__($facet->label),
+                        'type' => $facet->type,
+                        'chips' => $chips,
+                    ];
+                }
+            }
+        }
+        return $this->quickGroups = $groups;
     }
 
     /**
@@ -287,6 +339,72 @@ class ListingFilters implements ArgumentInterface
             return $min . "\u{2013}" . $max;
         }
         return $min !== '' ? (string)__('from %1', $min) : (string)__('up to %1', $max);
+    }
+
+    /**
+     * @return FacetOption[]
+     */
+    private function pickQuickOptions(Facet $facet, FacetDefinition $definition): array
+    {
+        $options = $facet->options;
+        $hasSelected = $facet->isSelected();
+        if ($facet->type === Facet::TYPE_BOOLEAN) {
+            $option = $options[0] ?? null;
+            if ($option === null) {
+                return [];
+            }
+            return $option->selected || ($option->count > 0 && $option->count < $this->getTotal()) ? [$option] : [];
+        }
+        if (!$hasSelected && count($options) < 2) {
+            return [];
+        }
+        $limit = max(1, $definition->quickLimit);
+        $picked = [];
+        foreach ($options as $index => $option) {
+            if ($option->selected) {
+                $picked[$index] = true;
+            }
+        }
+        foreach ($options as $index => $option) {
+            if (count($picked) >= $limit) {
+                break;
+            }
+            $picked[$index] = true;
+        }
+        ksort($picked);
+        return array_map(static fn (int $index): FacetOption => $options[$index], array_keys($picked));
+    }
+
+    /**
+     * The current listing with one value of a multi / boolean facet switched on or off.
+     */
+    private function buildToggleUrl(string $code, string $value, bool $selected): string
+    {
+        $selection = $this->getSelection();
+        $values = $selection['filters'][$code] ?? [];
+        $values = $selected
+            ? array_values(array_diff($values, [$value]))
+            : array_values(array_unique(array_merge($values, [$value])));
+        $selection['filters'][$code] = $values;
+        return $this->buildUrl($selection['filters'], $selection['ranges']);
+    }
+
+    /**
+     * Selected values the quick bar shows as chips: [facet code][value] => true.
+     *
+     * @return array<string, array<string, true>>
+     */
+    private function getQuickSelected(): array
+    {
+        $shown = [];
+        foreach ($this->getQuickGroups() as $group) {
+            foreach ($group['chips'] as $chip) {
+                if ($chip['selected']) {
+                    $shown[$group['code']][$chip['value']] = true;
+                }
+            }
+        }
+        return $shown;
     }
 
     /**

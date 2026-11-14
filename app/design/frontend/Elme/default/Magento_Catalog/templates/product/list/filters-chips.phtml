@@ -1,8 +1,9 @@
 <?php
 /**
  * FE-21: selected filters as chips. Server-rendered links, so they work without JS and take no space change
- * after load. Remove links are nofollow (they lead to other filter combinations); Clear all leads to the
- * listing without filters (sort and per page stay).
+ * after load. Remove links are nofollow (they lead to other filter combinations).
+ * FE-110: values that the sticky quick bar shows as chips (Colour, Type, In stock) are not repeated here, so this row
+ * holds the drawer-only filters (Material, Width, Depth, ...); Clear all lives in the quick bar.
  */
 
 declare(strict_types=1);
@@ -22,7 +23,7 @@ $filters = $viewModels->require(ListingFilters::class);
 if (!$filters->isAvailable()) {
     return;
 }
-$chips = $filters->getChips();
+$chips = $filters->getChips(true);
 if ($chips === []) {
     return;
 }
@@ -47,7 +48,4 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
             </li>
         <?php endforeach; ?>
     </ul>
-    <a href="<?= $escaper->escapeUrl($filters->getClearUrl()) ?>" class="elme-filter-chips__clear">
-        <?= $escaper->escapeHtml(__('Clear all')) ?>
-    </a>
 </div>

@@ -1,6 +1,7 @@
 <?php
 /**
- * FE-21: Filters button and filters drawer of a listing.
+ * FE-21: filters drawer of a listing. FE-110: the button that opens it is "All filters" in the sticky quick bar
+ * (child block elme_quickbar, filters-quickbar.phtml), rendered inside this component's root.
  *
  * Facets come from Elme\Search\ViewModel\ListingFilters (SearchFacets of BE-24, order and labels from
  * elme_search_facets.xml); nothing is rendered when the listing does not come from ProductSearchInterface
@@ -45,10 +46,6 @@ $hasSelection = $activeCount > 0;
 $drawerId = 'elme-filters-drawer';
 $titleId = 'elme-filters-title';
 
-$buttonLabel = $activeCount > 0
-    ? __('Filters, %1 active', $activeCount)
-    : __('Filters');
-
 $labels = [
     'many' => (string) __('Show %1 products'),
     'one' => (string) __('Show 1 product'),
@@ -60,19 +57,10 @@ $labels = [
      data-count-url="<?= $escaper->escapeUrl($filters->getCountUrl()) ?>"
      data-total="<?= (int) $total ?>"
      data-labels="<?= $escaper->escapeHtmlAttr(json_encode($labels)) ?>">
-    <button type="button"
-            class="elme-filters__toggle"
-            aria-controls="<?= $escaper->escapeHtmlAttr($drawerId) ?>"
-            aria-expanded="false"
-            :aria-expanded="ariaExpanded"
-            aria-label="<?= $escaper->escapeHtmlAttr($buttonLabel) ?>"
-            @click="openDrawer">
-        <span><?= $escaper->escapeHtml(__('Filters')) ?></span>
-        <?php if ($activeCount > 0): ?>
-            <span class="elme-filters__badge" aria-hidden="true"><?= (int) $activeCount ?></span>
-        <?php endif; ?>
-        <?= $lucideIcons->slidersVerticalHtml('elme-filters__icon', 18, 18, ['aria-hidden' => 'true']) ?>
-    </button>
+    <?php // FE-110: the "All filters" button lives in the sticky quick bar; it opens this drawer. ?>
+    <?= $block->getChildBlock('elme_quickbar')
+        ? $block->getChildBlock('elme_quickbar')->setData('drawer_id', $drawerId)->setData('swatch_facets', $swatchFacets)->toHtml()
+        : '' ?>
 
     <dialog id="<?= $escaper->escapeHtmlAttr($drawerId) ?>"
             class="elme-drawer elme-drawer-start elme-filters__drawer"
@@ -323,7 +311,7 @@ $labels = [
                     drawer.close();
                     hyva.releaseFocus(drawer);
                     document.documentElement.classList.remove('elme-filters-open');
-                    const opener = this.$root.querySelector('.elme-filters__toggle');
+                    const opener = this.$root.querySelector('[data-filters-toggle]');
                     if (opener) {
                         opener.focus();
                     }

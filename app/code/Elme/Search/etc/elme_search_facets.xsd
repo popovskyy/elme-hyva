@@ -40,6 +40,8 @@
                 </xs:restriction>
             </xs:simpleType>
         </xs:attribute>
+        <xs:attribute name="quick" type="xs:boolean"/>
+        <xs:attribute name="quickLimit" type="xs:positiveInteger"/>
         <xs:attribute name="disabled" type="xs:boolean"/>
     </xs:complexType>
 </xs:schema>

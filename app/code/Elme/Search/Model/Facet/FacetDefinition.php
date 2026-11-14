@@ -13,6 +13,7 @@ final class FacetDefinition
 {
     public const SORT_COUNT = 'count';
     public const SORT_LABEL = 'label';
+    public const DEFAULT_QUICK_LIMIT = 4;
 
     public function __construct(
         public readonly string $code,
@@ -20,7 +21,9 @@ final class FacetDefinition
         public readonly string $label = '',
         public readonly int $sortOrder = 0,
         public readonly int $size = 50,
-        public readonly string $optionSort = self::SORT_COUNT
+        public readonly string $optionSort = self::SORT_COUNT,
+        public readonly bool $quick = false,
+        public readonly int $quickLimit = self::DEFAULT_QUICK_LIMIT
     ) {
     }
 }

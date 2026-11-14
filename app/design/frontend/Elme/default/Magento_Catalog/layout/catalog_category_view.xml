@@ -53,6 +53,11 @@
                         <item name="colour_group" xsi:type="string">colour_group</item>
                     </argument>
                 </arguments>
+                <!-- FE-110: sticky quick-filter bar (All filters + one-tap chips); rendered by filters.phtml -->
+                <block class="Magento\Framework\View\Element\Template"
+                       name="elme.listing.quickbar"
+                       as="elme_quickbar"
+                       template="Magento_Catalog::product/list/filters-quickbar.phtml"/>
             </block>
             <block class="Magento\Framework\View\Element\Template"
                    name="elme.listing.filters.chips"

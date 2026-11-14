@@ -32,11 +32,12 @@ class ListingFiltersTest extends TestCase
     {
         $data = $this->createMock(DataInterface::class);
         $data->method('get')->willReturn([
-            'colour_group' => ['type' => 'multi', 'label' => 'Colour', 'sortOrder' => '10'],
-            'type_detail' => ['type' => 'multi', 'label' => 'Type', 'sortOrder' => '30'],
+            'colour_group' => ['type' => 'multi', 'label' => 'Colour', 'sortOrder' => '10', 'quick' => 'true',
+                'quickLimit' => '2'],
+            'type_detail' => ['type' => 'multi', 'label' => 'Type', 'sortOrder' => '30', 'quick' => 'true'],
             'seats' => ['type' => 'multi', 'label' => 'Seats', 'sortOrder' => '60', 'optionSort' => 'label'],
             'width' => ['type' => 'range', 'label' => 'Width (cm)', 'sortOrder' => '70'],
-            'in_stock' => ['type' => 'boolean', 'label' => 'In stock', 'sortOrder' => '90'],
+            'in_stock' => ['type' => 'boolean', 'label' => 'In stock', 'sortOrder' => '90', 'quick' => 'true'],
         ]);
         $current = new CurrentSearch();
         $current->set(
@@ -132,5 +133,86 @@ class ListingFiltersTest extends TestCase
             'https://elme.test/elme-search/listing/count/?category=11',
             $this->filters([])->getCountUrl()
         );
+    }
+
+    public function testQuickBarTakesTopOptionsPerFacetAndTogglesWithPlainLinks(): void
+    {
+        $filters = $this->filters([], [], [], [
+            new Facet('colour_group', 'Colour', Facet::TYPE_MULTI, [
+                new FacetOption('Beige', 'Beige', 5),
+                new FacetOption('Grey', 'Grey', 4),
+                new FacetOption('Green', 'Green', 1),
+            ]),
+            new Facet('type_detail', 'Type', Facet::TYPE_MULTI, [
+                new FacetOption('Buffet', 'Buffet', 7),
+                new FacetOption('Coffee Table', 'Coffee Table', 5),
+            ]),
+            new Facet('seats', 'Seats', Facet::TYPE_MULTI, [
+                new FacetOption('2 Seater', '2 Seater', 3),
+                new FacetOption('3 Seater', '3 Seater', 2),
+            ]),
+            new Facet('in_stock', 'In stock', Facet::TYPE_BOOLEAN, [new FacetOption('1', 'In stock', 4)]),
+        ]);
+        $groups = $filters->getQuickGroups();
+        $this->assertSame(['colour_group', 'type_detail', 'in_stock'], array_column($groups, 'code'));
+        // quickLimit 2 on Colour, the rest stays in the drawer
+        $this->assertSame(['Beige', 'Grey'], array_column($groups[0]['chips'], 'label'));
+        $this->assertSame(self::BASE . '?colour_group=Beige', $groups[0]['chips'][0]['url']);
+        $this->assertSame(self::BASE . '?type_detail=Buffet', $groups[1]['chips'][0]['url']);
+        $this->assertSame('In stock', $groups[2]['chips'][0]['label']);
+        $this->assertSame(self::BASE . '?in_stock=1', $groups[2]['chips'][0]['url']);
+    }
+
+    public function testQuickChipOfSelectedValueRemovesItAndKeepsOtherFilters(): void
+    {
+        $filters = $this->filters(
+            ['type_detail' => ['Buffet', 'Coffee Table'], 'width' => '50-120', 'product_list_order' => 'name'],
+            ['type_detail' => ['Buffet', 'Coffee Table']],
+            ['width' => ['min' => 50.0, 'max' => 120.0]],
+            [new Facet('type_detail', 'Type', Facet::TYPE_MULTI, [
+                new FacetOption('Buffet', 'Buffet', 7, true),
+                new FacetOption('Coffee Table', 'Coffee Table', 5, true),
+                new FacetOption('Side Table', 'Side Table', 2),
+            ])]
+        );
+        $chips = $filters->getQuickGroups()[0]['chips'];
+        $this->assertTrue($chips[0]['selected']);
+        $this->assertSame(self::BASE . '?type_detail=Coffee%20Table&width=50-120&product_list_order=name', $chips[0]['url']);
+        $this->assertSame(
+            self::BASE . '?type_detail[]=Buffet&type_detail[]=Coffee%20Table&type_detail[]=Side%20Table&width=50-120'
+                . '&product_list_order=name',
+            $chips[2]['url']
+        );
+        // the two selected types sit in the quick bar; only the range chip is left below the toolbar
+        $this->assertSame(3, $filters->getActiveCount());
+        $this->assertSame(['width'], array_column($filters->getChips(true), 'code'));
+        $this->assertCount(3, $filters->getChips());
+    }
+
+    public function testQuickBarSkipsFacetsThatFilterNothing(): void
+    {
+        $filters = $this->filters([], [], [], [
+            // one type only, and in stock matches every product (total is 12)
+            new Facet('type_detail', 'Type', Facet::TYPE_MULTI, [new FacetOption('Buffet', 'Buffet', 12)]),
+            new Facet('in_stock', 'In stock', Facet::TYPE_BOOLEAN, [new FacetOption('1', 'In stock', 12)]),
+            new Facet('colour_group', 'Colour', Facet::TYPE_MULTI, [new FacetOption('Beige', 'Beige', 6)]),
+        ]);
+        $this->assertSame([], $filters->getQuickGroups());
+        $this->assertTrue($filters->isAvailable());
+    }
+
+    public function testSelectedValueBeyondTheLimitStillGetsAChip(): void
+    {
+        $filters = $this->filters(
+            ['colour_group' => 'Green'],
+            ['colour_group' => ['Green']],
+            [],
+            [new Facet('colour_group', 'Colour', Facet::TYPE_MULTI, [
+                new FacetOption('Beige', 'Beige', 5),
+                new FacetOption('Grey', 'Grey', 4),
+                new FacetOption('Green', 'Green', 1, true),
+            ])]
+        );
+        $this->assertSame(['Beige', 'Green'], array_column($filters->getQuickGroups()[0]['chips'], 'label'));
     }
 }
