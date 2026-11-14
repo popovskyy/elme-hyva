@@ -51,7 +51,8 @@ $sorterId = 'sorter-' . uniqid();
                         <?php if ($block->isOrderCurrent($orderCode) && $orderCode !== 'price'): ?>
                             selected="selected"
                         <?php endif; ?>>
-                        <?= $escaper->escapeHtml(__($orderLabel)) ?>
+                        <?php // FE-21: the merchandised order is the default; "Position" means nothing to a buyer ?>
+                        <?= $escaper->escapeHtml($orderCode === 'position' ? __('Recommended') : __($orderLabel)) ?>
                     </option>
                 <?php endif; ?>
             <?php endforeach; ?>
