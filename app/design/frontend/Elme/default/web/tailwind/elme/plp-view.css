@@ -1,0 +1,195 @@
+/*
+ * FE-87 "View as: Grid | List" on the category and search listing.
+ * Magento_Catalog::product/list/toolbar.phtml sets #product-list[data-plp-view="list"]; the cards are the same
+ * markup in both views (Magento_Catalog::product/list/item.phtml), so a list row has what the card has.
+ */
+@layer components {
+    .elme-view-switch {
+        display: flex;
+        align-items: center;
+        gap: --spacing(1);
+        font-size: var(--text-copy);
+        color: var(--color-ink);
+
+        @variant md {
+            gap: --spacing(3);
+        }
+    }
+
+    .elme-view-switch__label {
+        display: none;
+        white-space: nowrap;
+
+        @variant md {
+            display: inline;
+        }
+    }
+
+    .elme-view-switch__btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: --spacing(1.5);
+        min-width: --spacing(11);
+        min-height: --spacing(11);
+        color: var(--color-ink-muted);
+        cursor: pointer;
+        transition: color var(--transition-duration-fast) var(--ease-out-quad);
+
+        /* Phones: icon only, the word stays for screen readers. */
+        & > span {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+            white-space: nowrap;
+
+            @variant md {
+                position: static;
+                width: auto;
+                height: auto;
+                overflow: visible;
+                clip-path: none;
+            }
+        }
+
+        @variant md {
+            min-width: 0;
+        }
+
+        &:hover {
+            color: var(--color-ink);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+    }
+
+    /* The pressed look follows the attribute the early script sets, so it is right before Alpine starts. */
+    #product-list:not([data-plp-view="list"]) .elme-view-switch__btn--grid,
+    #product-list[data-plp-view="list"] .elme-view-switch__btn--list {
+        color: var(--color-ink);
+        box-shadow: inset 0 -2px 0 currentcolor;
+
+        /* From md the word is visible and carries the mark; on phones the icon button does. */
+        @variant md {
+            box-shadow: none;
+            text-decoration: underline;
+            text-underline-offset: --spacing(1.5);
+        }
+    }
+}
+
+/*
+ * List rows. Not in a layer on purpose: these rules replace Tailwind utilities that sit on the card
+ * (grid columns, flex-col, paddings), and utilities win over anything inside @layer components.
+ */
+#product-list[data-plp-view="list"] {
+    & .products > ul {
+        grid-template-columns: minmax(0, 1fr);
+        gap: --spacing(3);
+    }
+
+    & .elme-card {
+        flex-direction: row;
+    }
+
+    & .elme-card__media {
+        flex: 0 0 auto;
+        align-self: flex-start;
+        width: --spacing(32);
+
+        @variant md {
+            width: --spacing(40);
+        }
+
+        @variant lg {
+            width: --spacing(44);
+        }
+    }
+
+    & .elme-card__heart {
+        top: --spacing(1);
+        inset-inline-end: --spacing(1);
+        width: --spacing(9);
+        height: --spacing(9);
+    }
+
+    & .elme-card__badge {
+        top: --spacing(1);
+        left: --spacing(1);
+    }
+
+    & .product-info {
+        min-width: 0;
+        padding: --spacing(3);
+
+        @variant md {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            grid-auto-flow: row dense;
+            align-content: center;
+            gap: --spacing(1) --spacing(6);
+            padding: --spacing(4) --spacing(6);
+
+            & > * {
+                grid-column: 1;
+            }
+
+            /* Guests have no stepper and no button, so no column is kept for them. */
+            &:has(> .elme-card__actions) {
+                grid-template-columns: minmax(0, 1fr) --spacing(56);
+            }
+        }
+
+        @variant lg {
+            grid-template-columns: minmax(0, 1fr) --spacing(44);
+            column-gap: --spacing(8);
+
+            &:has(> .elme-card__actions) {
+                grid-template-columns: minmax(0, 1fr) --spacing(44) --spacing(80);
+            }
+
+            & > .elme-card__price,
+            & > .elme-card__stock,
+            & > .elme-card__moq {
+                grid-column: 2;
+            }
+        }
+    }
+
+    /* Rows are one per line: nothing to keep level, so the reserved lines of the grid card go. */
+    & .elme-card__name {
+        min-height: 0;
+    }
+
+    & .elme-card__stock[aria-hidden="true"],
+    & .elme-card__moq.invisible {
+        display: none;
+    }
+
+    & .elme-card__price {
+        @variant lg {
+            margin-top: 0;
+        }
+    }
+
+    & .product-info > .elme-card__actions {
+        @variant md {
+            grid-column: -2;
+            grid-row: 1 / span 5;
+            align-self: center;
+            margin-top: 0;
+            padding-top: 0;
+        }
+
+        @variant lg {
+            &:has(.elme-qty) {
+                grid-template-columns: auto minmax(0, 1fr);
+            }
+        }
+    }
+}

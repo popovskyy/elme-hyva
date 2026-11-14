@@ -5,6 +5,10 @@
  * CSP-safe Alpine; scroll-to-grid on page changes (QA #1). No JSON-LD (FE-55).
  * Sort and per-page URLs come from ListingFilters::getToolbarUrlParts(), so a filtered listing keeps the stable
  * facet query (config order, code[]= for several values) and the other parameters sorted by name.
+ * FE-87: "View as: Grid | List". The switch is client side: the same cards, laid out by
+ * #product-list[data-plp-view] (web/tailwind/elme/plp-view.css). The choice sits in the session cookie
+ * elme_plp_view, so there is no reload, no second cached copy of the page, and it follows the customer
+ * through paging, filtering and other listings.
  */
 
 declare(strict_types=1);
@@ -12,6 +16,7 @@ declare(strict_types=1);
 use Elme\Search\ViewModel\ListingFilters;
 use Hyva\Theme\Model\ViewModelRegistry;
 use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
 use Magento\Catalog\Block\Product\ProductList\Toolbar;
 use Magento\Framework\Escaper;
 
@@ -25,6 +30,8 @@ $toolbarOptionsJson = $block->getWidgetOptionsJson($additionalOptions);
 /** @var ListingFilters $listingFilters */
 $listingFilters = $viewModels->require(ListingFilters::class);
 $urlPartsJson = (string) json_encode($listingFilters->getToolbarUrlParts(), JSON_UNESCAPED_SLASHES);
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
 ?>
 <?php if ($block->getCollection()->getSize()): ?>
     <?php if ($block->getIsBottom()): ?>
@@ -48,14 +55,54 @@ $urlPartsJson = (string) json_encode($listingFilters->getToolbarUrlParts(), JSON
             <div class="order-1"><?= /** @noEscape */ $filtersHtml ?></div>
         <?php endif ?>
         <?php if ($block->isExpanded()): ?>
-            <div class="order-3 basis-full md:order-2 md:basis-auto">
-                <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/amount.phtml')) ?>
+            <?php // Phones: amount and the view switch share the second row. From md: one row, in DOM order. ?>
+            <div class="order-3 basis-full flex items-center justify-between gap-x-6 md:contents">
+                <div class="md:order-2">
+                    <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/amount.phtml')) ?>
+                </div>
+                <div class="elme-view-switch md:order-3 md:ms-auto"
+                     role="group"
+                     aria-label="<?= $escaper->escapeHtmlAttr(__('View as')) ?>"
+                     x-data="initElmePlpViewSwitch"
+                >
+                    <span class="elme-view-switch__label" aria-hidden="true"><?= $escaper->escapeHtml(__('View as')) ?></span>
+                    <button type="button"
+                            class="elme-view-switch__btn elme-view-switch__btn--grid"
+                            data-view="grid"
+                            aria-pressed="true"
+                            :aria-pressed="gridPressed"
+                            @click="setView"
+                    >
+                        <?= $lucideIcons->layoutGridHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                        <span><?= $escaper->escapeHtml(__('Grid')) ?></span>
+                    </button>
+                    <button type="button"
+                            class="elme-view-switch__btn elme-view-switch__btn--list"
+                            data-view="list"
+                            aria-pressed="false"
+                            :aria-pressed="listPressed"
+                            @click="setView"
+                    >
+                        <?= $lucideIcons->layoutListHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                        <span><?= $escaper->escapeHtml(__('List')) ?></span>
+                    </button>
+                </div>
             </div>
-            <div class="order-2 ms-auto md:order-3">
+            <div class="order-2 ms-auto md:order-4 md:ms-0">
                 <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/sorter.phtml')) ?>
             </div>
         <?php endif ?>
     </div>
+    <?php // FE-87: runs before the cards are parsed, so a customer who chose List never sees the grid first. ?>
+    <script>
+        (function () {
+            const list = document.getElementById('product-list');
+            if (list && /(?:^|;\s*)elme_plp_view=list(?:;|$)/.test(document.cookie)) {
+                list.dataset.plpView = 'list';
+            }
+        })();
+    </script>
+    <?php $hyvaCsp->registerInlineScript() ?>
     <?= $block->getChildHtml('elme_filters_chips') ?>
     <?php endif ?>
     <?php // Register Alpine once on the top toolbar (rendered before the bottom one). ?>
@@ -216,9 +263,46 @@ $urlPartsJson = (string) json_encode($listingFilters->getToolbarUrlParts(), JSON
             }
         };
     }
+    /**
+     * FE-87: Grid / List. The view is an attribute on #product-list; CSS does the rest.
+     */
+    function initElmePlpViewSwitch() {
+        return {
+            view: 'grid',
+
+            init() {
+                const list = document.getElementById('product-list');
+                this.view = list && list.dataset.plpView === 'list' ? 'list' : 'grid';
+            },
+
+            gridPressed() {
+                return this.view === 'grid' ? 'true' : 'false';
+            },
+
+            listPressed() {
+                return this.view === 'list' ? 'true' : 'false';
+            },
+
+            setView() {
+                const view = this.$event.currentTarget.dataset.view === 'list' ? 'list' : 'grid';
+                if (view === this.view) {
+                    return;
+                }
+                this.view = view;
+                const list = document.getElementById('product-list');
+                if (list) {
+                    list.dataset.plpView = view;
+                }
+                hyva.setSessionCookie('elme_plp_view', view);
+            }
+        };
+    }
     window.addEventListener(
         'alpine:init',
-        () => Alpine.data('initElmeProductListToolbar', initElmeProductListToolbar),
+        () => {
+            Alpine.data('initElmeProductListToolbar', initElmeProductListToolbar);
+            Alpine.data('initElmePlpViewSwitch', initElmePlpViewSwitch);
+        },
         {once: true}
     );
 </script>

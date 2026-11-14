@@ -173,7 +173,7 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
             <?= /* @noEscape */ $productName ?>
         </a>
 
-        <p class="text-note text-ink-muted">
+        <p class="elme-card__sku text-note text-ink-muted">
             <span class="sr-only"><?= $escaper->escapeHtml(__('SKU')) ?></span>
             <?= $escaper->escapeHtml($product->getSku()) ?>
         </p>

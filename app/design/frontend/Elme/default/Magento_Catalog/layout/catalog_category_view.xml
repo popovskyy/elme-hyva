@@ -40,7 +40,7 @@
 
         <move element="breadcrumbs" destination="category.banner" before="-"/>
 
-        <!-- FE-20: hide list/grid mode switcher (Elme is grid-only); pager jump for first/last/ellipsis. -->
+        <!-- FE-20: no core list/grid mode (product_list_mode); FE-87 switches the view client side in the toolbar. -->
         <referenceBlock name="product_list_toolbar">
             <action method="disableViewSwitcher"/>
             <!-- FE-21: Filters button + drawer and selected-filter chips (facets from Elme_Search, D2) -->
