@@ -156,7 +156,7 @@ $labels = [
                                                value="<?= $escaper->escapeHtmlAttr($selMin) ?>"
                                                placeholder="<?= $escaper->escapeHtmlAttr($min) ?>">
                                     </label>
-                                    <span class="elme-filters__range-sep" aria-hidden="true">–</span>
+                                    <span class="elme-filters__range-sep" aria-hidden="true">&ndash;</span>
                                     <label class="elme-filters__range-field">
                                         <span class="elme-filters__range-label"><?= $escaper->escapeHtml(__('To')) ?></span>
                                         <input type="number"
@@ -173,7 +173,7 @@ $labels = [
                                 <?php if ($min !== '' && $max !== ''): ?>
                                     <p class="elme-filters__range-hint">
                                         <?= $escaper->escapeHtml(__('In this list:')) ?>
-                                        <span data-hint="min"><?= $escaper->escapeHtml($min) ?></span>–<span data-hint="max"><?= $escaper->escapeHtml($max) ?></span>
+                                        <span data-hint="min"><?= $escaper->escapeHtml($min) ?></span>&ndash;<span data-hint="max"><?= $escaper->escapeHtml($max) ?></span>
                                     </p>
                                 <?php endif; ?>
                             <?php else: ?>

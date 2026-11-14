@@ -92,7 +92,7 @@ class ListingFiltersTest extends TestCase
         $this->assertCount(3, $chips);
         $this->assertSame(['Type', 'Buffet'], [$chips[0]['facet'], $chips[0]['value']]);
         $this->assertSame(self::BASE . '?type_detail=Dining%20Table&width=50-120.5', $chips[0]['url']);
-        $this->assertSame('50–120.5', $chips[2]['value']);
+        $this->assertSame("50\u{2013}120.5", $chips[2]['value']);
         $this->assertSame(self::BASE . '?type_detail[]=Buffet&type_detail[]=Dining%20Table', $chips[2]['url']);
     }
 
@@ -110,6 +110,20 @@ class ListingFiltersTest extends TestCase
         $this->assertCount(1, $facets);
         $this->assertSame(['2 Seater', '10 Seater'], array_map(static fn ($o) => $o->label, $facets[0]->options));
         $this->assertTrue($filters->isAvailable());
+    }
+
+    public function testToolbarPartsKeepTheStableFacetQuery(): void
+    {
+        $filters = $this->filters(
+            ['p' => '2', 'type_detail' => ['Dining Table', 'Bed Frame, Storage Bed'], 'product_list_order' => 'name'],
+            ['type_detail' => ['Dining Table', 'Bed Frame, Storage Bed']]
+        );
+        $this->assertSame([
+            'base' => self::BASE,
+            'facets' => 'type_detail[]=Bed%20Frame%2C%20Storage%20Bed&type_detail[]=Dining%20Table',
+            'kept' => ['product_list_order' => 'name'],
+            'page' => 2,
+        ], $filters->getToolbarUrlParts());
     }
 
     public function testCountUrlCarriesCategory(): void

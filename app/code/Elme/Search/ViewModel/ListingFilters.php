@@ -227,31 +227,35 @@ class ListingFilters implements ArgumentInterface
      */
     public function buildUrl(array $filters, array $ranges): string
     {
-        $parts = [];
-        foreach ($this->facetConfig->getFacets() as $code => $definition) {
-            if ($definition->type === Facet::TYPE_RANGE) {
-                if (isset($ranges[$code])) {
-                    $value = $this->formatRangeParam($ranges[$code]);
-                    if ($value !== '') {
-                        $parts[] = rawurlencode($code) . '=' . rawurlencode($value);
-                    }
-                }
-                continue;
-            }
-            $values = $this->sortValues(array_values(array_unique($filters[$code] ?? [])));
-            if (count($values) === 1) {
-                $parts[] = rawurlencode($code) . '=' . rawurlencode($values[0]);
-            } else {
-                foreach ($values as $value) {
-                    $parts[] = rawurlencode($code) . '[]=' . rawurlencode($value);
-                }
-            }
-        }
+        $parts = $this->buildFacetParts($filters, $ranges);
         $kept = http_build_query($this->getKeptParams(), '', '&', PHP_QUERY_RFC3986);
         if ($kept !== '') {
             $parts[] = $kept;
         }
         return $this->getBaseUrl() . ($parts !== [] ? '?' . implode('&', $parts) : '');
+    }
+
+    /**
+     * What the toolbar (sort, per page) builds its URLs from, so changing the sort keeps the stable URL form of
+     * buildUrl(): the base URL, the facet query of the current selection exactly as buildUrl() writes it, the other
+     * parameters (name => value, sorted by name, without "p") and the current page.
+     *
+     * @return array{base: string, facets: string, kept: array<string, string>, page: int}
+     */
+    public function getToolbarUrlParts(): array
+    {
+        $selection = $this->getSelection();
+        $kept = [];
+        foreach ($this->getKeptInputs() as $input) {
+            $kept[$input['name']] = $input['value'];
+        }
+        $page = $this->getQueryParams()[self::PAGE_PARAM] ?? 1;
+        return [
+            'base' => $this->getBaseUrl(),
+            'facets' => implode('&', $this->buildFacetParts($selection['filters'], $selection['ranges'])),
+            'kept' => $kept,
+            'page' => is_scalar($page) && ctype_digit((string)$page) ? max(1, (int)$page) : 1,
+        ];
     }
 
     public function isOptionHidden(int $index, Facet $facet): bool
@@ -280,7 +284,7 @@ class ListingFilters implements ArgumentInterface
         $min = $this->formatNumber($range['min'] ?? null);
         $max = $this->formatNumber($range['max'] ?? null);
         if ($min !== '' && $max !== '') {
-            return $min . '–' . $max;
+            return $min . "\u{2013}" . $max;
         }
         return $min !== '' ? (string)__('from %1', $min) : (string)__('up to %1', $max);
     }
@@ -339,6 +343,38 @@ class ListingFilters implements ArgumentInterface
         $min = $this->formatNumber($range['min'] ?? null);
         $max = $this->formatNumber($range['max'] ?? null);
         return $min === '' && $max === '' ? '' : $min . '-' . $max;
+    }
+
+    /**
+     * Facet parameters in config order: one value as a scalar, several as code[]=, ranges as code=min-max.
+     *
+     * @param array<string, string[]> $filters
+     * @param array<string, array{min: ?float, max: ?float}> $ranges
+     * @return string[]
+     */
+    private function buildFacetParts(array $filters, array $ranges): array
+    {
+        $parts = [];
+        foreach ($this->facetConfig->getFacets() as $code => $definition) {
+            if ($definition->type === Facet::TYPE_RANGE) {
+                if (isset($ranges[$code])) {
+                    $value = $this->formatRangeParam($ranges[$code]);
+                    if ($value !== '') {
+                        $parts[] = rawurlencode($code) . '=' . rawurlencode($value);
+                    }
+                }
+                continue;
+            }
+            $values = $this->sortValues(array_values(array_unique($filters[$code] ?? [])));
+            if (count($values) === 1) {
+                $parts[] = rawurlencode($code) . '=' . rawurlencode($values[0]);
+            } else {
+                foreach ($values as $value) {
+                    $parts[] = rawurlencode($code) . '[]=' . rawurlencode($value);
+                }
+            }
+        }
+        return $parts;
     }
 
     private function getQueryParams(): array

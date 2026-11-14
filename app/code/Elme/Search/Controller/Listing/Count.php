@@ -11,6 +11,8 @@ use Elme\Search\Api\SearchUnavailableException;
 use Elme\Search\Model\Config;
 use Elme\Search\Model\SkuQuery;
 use Elme\Search\Model\Storefront\RequestFactory;
+use Magento\Catalog\Model\Category;
+use Magento\Catalog\Model\Product;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Json;
@@ -26,6 +28,8 @@ use Psr\Log\LoggerInterface;
  * {"total": 12, "facets": {"<code>": {"<value>": 3}}, "ranges": {"<code>": {"min": 34, "max": 240}}}.
  * total is null when the engine is off or cannot answer (the drawer then shows "Show products").
  * No prices and nothing per customer, so the answer may be cached publicly; never a page for search engines.
+ * The cached answer carries catalog cache tags, so cache:flush and saving the category or its products purge it
+ * (Varnish and the built-in page cache only clean tagged entries).
  */
 class Count implements HttpGetActionInterface
 {
@@ -97,6 +101,12 @@ class Count implements HttpGetActionInterface
         $data['facets'] = (object)$data['facets'];
         $data['ranges'] = (object)$data['ranges'];
 
+        $tags = [Product::CACHE_TAG];
+        if ($categoryId !== null) {
+            $tags[] = Category::CACHE_TAG . '_' . $categoryId;
+            $tags[] = Product::CACHE_PRODUCT_CATEGORY_TAG . '_' . $categoryId;
+        }
+        $result->setHeader('X-Magento-Tags', implode(',', $tags), true);
         $result->setHeader('Cache-Control', 'public, max-age=' . self::CACHE_SECONDS, true);
         $result->setHeader('Pragma', 'cache', true);
         return $result->setData($data);
