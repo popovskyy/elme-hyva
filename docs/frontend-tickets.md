@@ -44,7 +44,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-18 | Category page: banner, title, breadcrumbs, description | 4 PLP & search | FE-04 | To do |
 | FE-19 | Product card (shared tile) | 4 PLP & search | FE-02, FE-53 | Done |
 | FE-20 | PLP toolbar: sort, per page, pagination | 4 PLP & search | FE-18 | To do |
-| FE-21 | Layered navigation (filters) | 4 PLP & search | FE-18, D2 | In review |
+| FE-21 | Layered navigation (filters) | 4 PLP & search | FE-18, D2 | Done |
 | FE-22 | Search autocomplete in header | 4 PLP & search | FE-06, D1 | To do |
 | FE-23 | Search results page + no-results state | 4 PLP & search | FE-19, FE-21, D1 | To do |
 | FE-24 | Recently viewed categories / products | 4 PLP & search | FE-19 | To do |
