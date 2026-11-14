@@ -164,7 +164,15 @@ in it. Start set: colour_group, material, type_detail, style, features, seats, w
 3. Magento's layered navigation gets empty buckets (it shows no filters). Facets come from
    `Elme\Search\ViewModel\SearchFacets` (`isActive()`, `getFacets()`, `getTotal()`, `getSelection()`); render it
    after the product list has loaded (FE-21 / FE-23).
-4. Errors: if `ProductSearchInterface` throws (OpenSearch down, index missing), the page uses Magento catalog search
+4. Filters (FE-21): `ViewModel\ListingFilters` turns the facets into the drawer, chips, the Filters count and
+   URLs (facets in config order, values of one facet sorted A-Z, one value scalar / several `code[]=`, ranges
+   `code=min-max`, then the other parameters sorted by name; `p` dropped). The drawer asks
+   `GET /elme-search/listing/count?category=<id>&q=&<facet params>` (`Controller\Listing\Count`) for
+   "Show N products" and live option counts: `{"total", "facets": {code: {value: count}}, "ranges": {code: {min, max}}}`,
+   `X-Robots-Tag: noindex`, total null when the engine is off. `Plugin\NoindexFilteredListing`: any facet
+   parameter in the URL makes the category / search page `NOINDEX,FOLLOW` and strips core's `?p=` from the
+   category canonical (`catalog/seo/category_canonical_tag` is on by default in `etc/config.xml`).
+5. Errors: if `ProductSearchInterface` throws (OpenSearch down, index missing), the page uses Magento catalog search
    and one error per request goes to `var/log/system.log` (`Elme_Search: ProductSearchInterface failed ...`).
    When the whole `elme_opensearch` container is down, Magento's own catalog search fails too (core behaviour).
 
