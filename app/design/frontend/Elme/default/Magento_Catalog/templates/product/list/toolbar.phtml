@@ -45,15 +45,13 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
             <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/limiter.phtml')) ?>
     </div>
     <?php else: ?>
-    <?php // FE-21: Filters button left, amount, sort right; selected-filter chips below. ?>
-    <?php $filtersHtml = trim((string) $block->getChildHtml('elme_filters')) ?>
+    <?php // FE-21 / FE-110: amount, view switch and sort; selected-filter chips below. ?>
+    <?php // FE-110: the quick bar (+ drawer) is a direct child of #product-list, so it can stay sticky over the whole grid. ?>
+    <?= /** @noEscape */ trim((string) $block->getChildHtml('elme_filters')) ?>
     <div x-data="initElmeProductListToolbar"
          data-toolbar-options="<?= $escaper->escapeHtmlAttr($toolbarOptionsJson) ?>"
          data-url-parts="<?= $escaper->escapeHtmlAttr($urlPartsJson) ?>"
          class="toolbar toolbar-products elme-plp-toolbar flex flex-wrap items-center gap-x-6 gap-y-3 min-h-10">
-        <?php if ($filtersHtml !== ''): ?>
-            <div class="order-1"><?= /** @noEscape */ $filtersHtml ?></div>
-        <?php endif ?>
         <?php if ($block->isExpanded()): ?>
             <?php // Phones: amount and the view switch share the second row. From md: one row, in DOM order. ?>
             <div class="order-3 basis-full flex items-center justify-between gap-x-6 md:contents">

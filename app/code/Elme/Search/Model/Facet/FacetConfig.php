@@ -39,7 +39,9 @@ class FacetConfig
                 (string)($row['label'] ?? $code),
                 (int)($row['sortOrder'] ?? 0),
                 (int)($row['size'] ?? 50),
-                (string)($row['optionSort'] ?? FacetDefinition::SORT_COUNT)
+                (string)($row['optionSort'] ?? FacetDefinition::SORT_COUNT),
+                filter_var($row['quick'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                max(1, (int)($row['quickLimit'] ?? FacetDefinition::DEFAULT_QUICK_LIMIT))
             );
         }
         uasort($facets, static fn (FacetDefinition $a, FacetDefinition $b): int => $a->sortOrder <=> $b->sortOrder);

@@ -5,6 +5,7 @@
  * See COPYING.txt for license details.
  */
 
+use Elme\Search\ViewModel\ListingFilters;
 use Hyva\Theme\Model\ViewModelRegistry;
 use Hyva\Theme\ViewModel\CurrentCategory;
 use Hyva\Theme\ViewModel\ProductListItem;
@@ -21,6 +22,8 @@ use Magento\Framework\Escaper;
 $productViewModel         = $viewModels->require(ProductPage::class);
 $productListItemViewModel = $viewModels->require(ProductListItem::class);
 $currentCategoryViewModel = $viewModels->require(CurrentCategory::class);
+/** @var ListingFilters $listingFilters Elme: FE-21 / FE-110 */
+$listingFilters = $viewModels->require(ListingFilters::class);
 
 $eagerLoadImagesCount = (int) ($block->getData('eager_load_images_count') ?? 3);
 $productCollection = $block->getLoadedProductCollection();
@@ -28,17 +31,15 @@ $productCollection = $block->getLoadedProductCollection();
 ?>
 <?php if (!$productCollection->count()): ?>
     <?php
-    // Elme: FE-21 - a filtered listing with no products keeps the Filters button and the chips, says so and
-    // offers Clear all (HTTP 200; the filtered URL is noindex anyway).
+    // Elme: FE-21 - a filtered listing with no products keeps the filters (FE-110: the quick bar with its Clear all, the
+    // drawer, the chips of drawer-only filters), says so and offers Clear all (HTTP 200; the filtered URL is noindex).
     $toolbar = $block->getChildBlock('toolbar');
-    $filtersHtml = $toolbar ? (string) $toolbar->getChildHtml('elme_filters') : '';
+    $filtersHtml = $toolbar ? trim((string) $toolbar->getChildHtml('elme_filters')) : '';
     $chipsHtml = $toolbar ? (string) $toolbar->getChildHtml('elme_filters_chips') : '';
     ?>
-    <?php if (trim($chipsHtml) !== ''): ?>
+    <?php if ($filtersHtml !== '' && $listingFilters->getActiveCount() > 0): ?>
         <section class="py-8" id="product-list" aria-label="<?= $escaper->escapeHtmlAttr(__('Product list')) ?>" tabindex="-1">
-            <div class="elme-plp-toolbar flex flex-wrap items-center gap-x-6 gap-y-3 min-h-10">
-                <?= /* @noEscape */ $filtersHtml ?>
-            </div>
+            <?= /* @noEscape */ $filtersHtml ?>
             <?= /* @noEscape */ $chipsHtml ?>
             <div class="elme-filters-empty">
                 <p class="elme-filters-empty__title"><?= $escaper->escapeHtml(__('No products match these filters')) ?></p>
