@@ -166,10 +166,12 @@ in it. Start set: colour_group, material, type_detail, style, features, seats, w
    after the product list has loaded (FE-21 / FE-23).
 4. Filters (FE-21): `ViewModel\ListingFilters` turns the facets into the drawer, chips, the Filters count and
    URLs (facets in config order, values of one facet sorted A-Z, one value scalar / several `code[]=`, ranges
-   `code=min-max`, then the other parameters sorted by name; `p` dropped). The drawer asks
+   `code=min-max`, then the other parameters sorted by name; `p` dropped). The toolbar builds its sort and
+   per-page URLs from `getToolbarUrlParts()`, so they keep the same form. The drawer asks
    `GET /elme-search/listing/count?category=<id>&q=&<facet params>` (`Controller\Listing\Count`) for
    "Show N products" and live option counts: `{"total", "facets": {code: {value: count}}, "ranges": {code: {min, max}}}`,
-   `X-Robots-Tag: noindex`, total null when the engine is off. `Plugin\NoindexFilteredListing`: any facet
+   `X-Robots-Tag: noindex`, total null when the engine is off; cached publicly for 5 minutes with the tags
+   `cat_p`, `cat_c_<id>`, `cat_c_p_<id>`, so `cache:flush` and catalog saves purge it. `Plugin\NoindexFilteredListing`: any facet
    parameter in the URL makes the category / search page `NOINDEX,FOLLOW` and strips core's `?p=` from the
    category canonical (`catalog/seo/category_canonical_tag` is on by default in `etc/config.xml`).
 5. Errors: if `ProductSearchInterface` throws (OpenSearch down, index missing), the page uses Magento catalog search
