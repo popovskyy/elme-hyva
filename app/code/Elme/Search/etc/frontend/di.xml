@@ -4,4 +4,14 @@
     <type name="Magento\Search\Api\SearchInterface">
         <plugin name="elme_search_use_product_search" type="Elme\Search\Plugin\UseProductSearch"/>
     </type>
+    <!-- FE-21: filtered listings (any facet parameter) are NOINDEX,FOLLOW -->
+    <type name="Magento\Catalog\Controller\Category\View">
+        <plugin name="elme_search_noindex_filtered" type="Elme\Search\Plugin\NoindexFilteredListing"/>
+    </type>
+    <type name="Magento\CatalogSearch\Controller\Result\Index">
+        <plugin name="elme_search_noindex_filtered" type="Elme\Search\Plugin\NoindexFilteredListing"/>
+    </type>
+    <type name="Magento\Catalog\Helper\Category">
+        <plugin name="elme_search_noindex_filtered" type="Elme\Search\Plugin\NoindexFilteredListing"/>
+    </type>
 </config>

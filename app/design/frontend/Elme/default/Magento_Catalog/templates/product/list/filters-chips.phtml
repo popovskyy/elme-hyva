@@ -1,0 +1,53 @@
+<?php
+/**
+ * FE-21: selected filters as chips. Server-rendered links, so they work without JS and take no space change
+ * after load. Remove links are nofollow (they lead to other filter combinations); Clear all leads to the
+ * listing without filters (sort and per page stay).
+ */
+
+declare(strict_types=1);
+
+use Elme\Search\ViewModel\ListingFilters;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var ListingFilters $filters */
+$filters = $viewModels->require(ListingFilters::class);
+if (!$filters->isAvailable()) {
+    return;
+}
+$chips = $filters->getChips();
+if ($chips === []) {
+    return;
+}
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+?>
+<div class="elme-filter-chips">
+    <ul class="elme-filter-chips__list" aria-label="<?= $escaper->escapeHtmlAttr(__('Selected filters')) ?>">
+        <?php foreach ($chips as $chip): ?>
+            <?php
+            $text = $chip['value'] !== '' ? $chip['facet'] . ': ' . $chip['value'] : $chip['facet'];
+            $name = $chip['value'] !== '' ? $chip['facet'] . ' ' . $chip['value'] : $chip['facet'];
+            ?>
+            <li>
+                <a href="<?= $escaper->escapeUrl($chip['url']) ?>"
+                   rel="nofollow"
+                   class="elme-filter-chip"
+                   aria-label="<?= $escaper->escapeHtmlAttr(__('Remove filter: %1', $name)) ?>">
+                    <span class="elme-filter-chip__text"><?= $escaper->escapeHtml($text) ?></span>
+                    <?= $lucideIcons->xHtml('elme-filter-chip__icon', 14, 14, ['aria-hidden' => 'true']) ?>
+                </a>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+    <a href="<?= $escaper->escapeUrl($filters->getClearUrl()) ?>" class="elme-filter-chips__clear">
+        <?= $escaper->escapeHtml(__('Clear all')) ?>
+    </a>
+</div>

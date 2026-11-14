@@ -6,7 +6,7 @@
  * and one hero image. BreadcrumbList stays on the breadcrumbs block (FE-55 consolidates later).
  */
 -->
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="category.view.container" htmlClass="category-view">
@@ -43,6 +43,30 @@
         <!-- FE-20: hide list/grid mode switcher (Elme is grid-only); pager jump for first/last/ellipsis. -->
         <referenceBlock name="product_list_toolbar">
             <action method="disableViewSwitcher"/>
+            <!-- FE-21: Filters button + drawer and selected-filter chips (facets from Elme_Search, D2) -->
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.listing.filters"
+                   as="elme_filters"
+                   template="Magento_Catalog::product/list/filters.phtml">
+                <arguments>
+                    <argument name="swatch_facets" xsi:type="array">
+                        <item name="colour_group" xsi:type="string">colour_group</item>
+                    </argument>
+                </arguments>
+            </block>
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.listing.filters.chips"
+                   as="elme_filters_chips"
+                   template="Magento_Catalog::product/list/filters-chips.phtml"/>
+        </referenceBlock>
+
+        <!-- FE-21: filters live in a drawer, so the empty left sidebar of layered navigation goes -->
+        <referenceBlock name="catalog.leftnav" remove="true"/>
+        <referenceBlock name="category.products.list">
+            <arguments>
+                <!-- the list classes stay literal here so Tailwind finds them -->
+                <argument name="grid_columns_class" xsi:type="string">sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4</argument>
+            </arguments>
         </referenceBlock>
     </body>
 </page>

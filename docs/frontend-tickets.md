@@ -44,7 +44,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-18 | Category page: banner, title, breadcrumbs, description | 4 PLP & search | FE-04 | To do |
 | FE-19 | Product card (shared tile) | 4 PLP & search | FE-02, FE-53 | Done |
 | FE-20 | PLP toolbar: sort, per page, pagination | 4 PLP & search | FE-18 | To do |
-| FE-21 | Layered navigation (filters) | 4 PLP & search | FE-18, D2 | To do |
+| FE-21 | Layered navigation (filters) | 4 PLP & search | FE-18, D2 | Done |
 | FE-22 | Search autocomplete in header | 4 PLP & search | FE-06, D1 | To do |
 | FE-23 | Search results page + no-results state | 4 PLP & search | FE-19, FE-21, D1 | To do |
 | FE-24 | Recently viewed categories / products | 4 PLP & search | FE-19 | To do |
@@ -472,6 +472,7 @@ Production category page: banner with title and breadcrumbs, a Filters button th
 - [ ] Selecting two values in one filter shows products with either value; counts update
 - [ ] Chips show the selection; removing one chip updates the grid; Clear all resets
 - [ ] Filtered URL can be shared and opens with the same filters
+- [ ] Width / Depth From-To filter the grid by size in cm (bounds included, either bound may be empty); the chip reads "Width (cm): 50-120", "from 50" or "up to 120"
 - [ ] Drawer: Apply/Close work, focus trapped, Esc closes
 
 ### FE-22 Search autocomplete
@@ -1083,7 +1084,7 @@ Production audit on 22 Oct 2026, logged out, 1440 px and 390 px. Each ticket fix
 
 **QA:**
 
-- [ ] Width (cm) options read 30–39, 40–49, … 221–230
+- [ ] Width / Depth From-To show the smallest and largest size of the current listing as placeholders, and the hint updates with the other filters
 - [ ] Apply button count matches the grid after applying
 - [ ] Default sort of /new.html is position, not name
 
@@ -1189,7 +1190,7 @@ The ids D1...D15 belong to this file. The backend team's replatform documents (P
 | # | Decision | Production today | Options | Affects |
 | --- | --- | --- | --- | --- |
 | D1 | Search and recommendations engine | Algolia InstantSearch + Algolia Recommend | Keep Algolia (Hyvä compat module) · native OpenSearch + Hyvä autocomplete, related/upsell from admin. Backend plan (9 Nov 2026, not built): a separate Search Service builds the index from Magento product data and Shipment Service stock (replatform D26); which engine the storefront talks to is still open | FE-17, FE-22, FE-23, FE-30 |
-| D2 | Layered navigation | Aheadworks Layered Navigation | Aheadworks + Hyvä compat · Hyvä native filters with our own ranges and chips | FE-21, FE-23 |
+| D2 | Layered navigation | Aheadworks Layered Navigation | **Decided (14 Nov 2026):** native filters from `Elme_Search` facets (drawer, chips, live count), no Aheadworks. Width and Depth are From/To number inputs in cm, not 10 cm checkbox bands: buyers look for a size that fits a space ("up to 120"), bands would be about 20 checkboxes per filter and need a new band facet type in `Elme_Search` | FE-21, FE-23, UX-04 |
 | D3 | Menu source | Snowdog Menu (built in admin) | **Decided:** Snowdog Menu (`snowdog/module-menu` ≥2.24, native Hyvä templates; no separate compat module). Local patch for Symfony `execute(): int` on Magento 2.4.9. | FE-08, FE-09 |
 | D4 | Product reviews | Yotpo enabled, not visible to guests | Keep Yotpo · drop reviews | FE-25, FE-43 |
 | D5 | Lookbook hotspots | MGS Lookbook | **Decided:** Content Studio type `lookbook` (FE-57) | FE-49, FE-16 |

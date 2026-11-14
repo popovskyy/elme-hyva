@@ -1,11 +1,16 @@
 <?php
 /**
- * FE-20: PLP toolbar shell (sort / amount / pager / limiter).
+ * FE-20: PLP toolbar shell (sort / amount / pager / limiter). FE-21: Filters button and chips on the top toolbar
+ * (child blocks elme_filters / elme_filters_chips, layout catalog_category_view.xml).
  * CSP-safe Alpine; scroll-to-grid on page changes (QA #1). No JSON-LD (FE-55).
+ * Sort and per-page URLs come from ListingFilters::getToolbarUrlParts(), so a filtered listing keeps the stable
+ * facet query (config order, code[]= for several values) and the other parameters sorted by name.
  */
 
 declare(strict_types=1);
 
+use Elme\Search\ViewModel\ListingFilters;
+use Hyva\Theme\Model\ViewModelRegistry;
 use Hyva\Theme\ViewModel\HyvaCsp;
 use Magento\Catalog\Block\Product\ProductList\Toolbar;
 use Magento\Framework\Escaper;
@@ -13,54 +18,69 @@ use Magento\Framework\Escaper;
 /** @var Escaper $escaper */
 /** @var Toolbar $block */
 /** @var HyvaCsp $hyvaCsp */
+/** @var ViewModelRegistry $viewModels */
 
 $additionalOptions = ['page' => 'p'];
 $toolbarOptionsJson = $block->getWidgetOptionsJson($additionalOptions);
+/** @var ListingFilters $listingFilters */
+$listingFilters = $viewModels->require(ListingFilters::class);
+$urlPartsJson = (string) json_encode($listingFilters->getToolbarUrlParts(), JSON_UNESCAPED_SLASHES);
 ?>
 <?php if ($block->getCollection()->getSize()): ?>
+    <?php if ($block->getIsBottom()): ?>
     <div x-data="initElmeProductListToolbar"
          data-toolbar-options="<?= $escaper->escapeHtmlAttr($toolbarOptionsJson) ?>"
+         data-url-parts="<?= $escaper->escapeHtmlAttr($urlPartsJson) ?>"
          class="toolbar toolbar-products elme-plp-toolbar grid grid-cols-4 sm:grid-cols-8 md:grid-cols-4
             lg:grid-cols-8 grid-flow-row gap-2 items-center min-h-10">
-        <?php if ($block->getIsBottom()): ?>
             <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/amount.phtml')) ?>
             <?= $block->getPagerHtml() ?>
             <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/limiter.phtml')) ?>
-        <?php else: ?>
-            <?php if ($block->isExpanded()): ?>
+    </div>
+    <?php else: ?>
+    <?php // FE-21: Filters button left, amount, sort right; selected-filter chips below. ?>
+    <?php $filtersHtml = trim((string) $block->getChildHtml('elme_filters')) ?>
+    <div x-data="initElmeProductListToolbar"
+         data-toolbar-options="<?= $escaper->escapeHtmlAttr($toolbarOptionsJson) ?>"
+         data-url-parts="<?= $escaper->escapeHtmlAttr($urlPartsJson) ?>"
+         class="toolbar toolbar-products elme-plp-toolbar flex flex-wrap items-center gap-x-6 gap-y-3 min-h-10">
+        <?php if ($filtersHtml !== ''): ?>
+            <div class="order-1"><?= /** @noEscape */ $filtersHtml ?></div>
+        <?php endif ?>
+        <?php if ($block->isExpanded()): ?>
+            <div class="order-3 basis-full md:order-2 md:basis-auto">
                 <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/amount.phtml')) ?>
+            </div>
+            <div class="order-2 ms-auto md:order-3">
                 <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/sorter.phtml')) ?>
-            <?php endif ?>
+            </div>
         <?php endif ?>
     </div>
+    <?= $block->getChildHtml('elme_filters_chips') ?>
+    <?php endif ?>
     <?php // Register Alpine once on the top toolbar (rendered before the bottom one). ?>
     <?php if (!$block->getIsBottom()): ?>
 <script>
     function initElmeProductListToolbar() {
         return {
             options: {},
+            urlParts: {base: '', facets: '', kept: {}, page: 1},
 
             init() {
                 const raw = JSON.parse(this.$root.dataset.toolbarOptions || '{}');
                 this.options = raw.productListToolbarForm || {};
+                this.urlParts = Object.assign(this.urlParts, JSON.parse(this.$root.dataset.urlParts || '{}'));
                 this.scrollToGridIfPaged();
             },
 
+            /**
+             * Parameters other than the facets (sort, limit, search text), plus the page when it is above 1.
+             */
             getUrlParams() {
-                const decode = window.decodeURIComponent;
-                const urlPaths = this.options.url.split('?');
-                const urlParams = urlPaths[1] ? urlPaths[1].split('&') : [];
-                const params = {};
-                let parameters;
-                let i;
-
-                for (i = 0; i < urlParams.length; i++) {
-                    parameters = urlParams[i].split('=');
-                    params[decode(parameters[0])] = parameters[1] !== undefined
-                        ? decode(parameters[1].replace(/\+/g, '%20'))
-                        : '';
+                const params = Object.assign({}, this.urlParts.kept || {});
+                if (this.urlParts.page > 1) {
+                    params[this.options.page] = String(this.urlParts.page);
                 }
-
                 return params;
             },
 
@@ -69,12 +89,39 @@ $toolbarOptionsJson = $block->getWidgetOptionsJson($additionalOptions);
             },
 
             getCurrentPage() {
-                return this.getUrlParams()[this.options.page] || 1;
+                return this.urlParts.page || 1;
+            },
+
+            /**
+             * PHP rawurlencode(): encodeURIComponent leaves ! ' ( ) * as they are.
+             */
+            encode(value) {
+                return encodeURIComponent(value)
+                    .replace(/[!'()*]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase());
+            },
+
+            /**
+             * Same form as Elme\Search\ViewModel\ListingFilters::buildUrl(): the facet query first, then the
+             * other parameters sorted by name; no p=1.
+             */
+            buildUrl(paramData) {
+                const parts = this.urlParts.facets ? [this.urlParts.facets] : [];
+                Object.keys(paramData)
+                    .filter((name) => !(name === this.options.page && String(paramData[name]) === '1'))
+                    .sort((a, b) => (a < b ? -1 : (a > b ? 1 : 0)))
+                    .forEach((name) => parts.push(this.encode(name) + '=' + this.encode(paramData[name])));
+                return this.urlParts.base + (parts.length ? '?' + parts.join('&') : '');
+            },
+
+            go(paramData) {
+                if (this.options.post) {
+                    hyva.postForm({action: this.urlParts.base, data: paramData, skipUenc: true});
+                    return;
+                }
+                location.href = this.buildUrl(paramData);
             },
 
             changeUrl(paramName, paramValue, defaultValue) {
-                const urlPaths = this.options.url.split('?');
-                const baseUrl = urlPaths[0];
                 const paramData = this.getUrlParams();
                 const currentPage = this.getCurrentPage();
                 let newPage;
@@ -91,27 +138,17 @@ $toolbarOptionsJson = $block->getWidgetOptionsJson($additionalOptions);
 
                 paramData[paramName] = paramValue;
 
-                if (this.options.post) {
-                    hyva.postForm({action: baseUrl, data: paramData, skipUenc: true});
-                    return;
-                }
-
-                if (paramValue === defaultValue.toString()) {
+                if (!this.options.post && paramValue === defaultValue.toString()) {
                     delete paramData[paramName];
                 }
 
-                const query = Object.keys(paramData).length === 0
-                    ? ''
-                    : '?' + (new URLSearchParams(paramData));
-                location.href = baseUrl + query;
+                this.go(paramData);
             },
 
             /**
              * Price low/high are two select options that map to product_list_order=price + product_list_dir.
              */
             changeSortWithDir(order, dir) {
-                const urlPaths = this.options.url.split('?');
-                const baseUrl = urlPaths[0];
                 const paramData = this.getUrlParams();
 
                 paramData[this.options.order] = order;
@@ -124,15 +161,7 @@ $toolbarOptionsJson = $block->getWidgetOptionsJson($additionalOptions);
                     delete paramData[this.options.direction];
                 }
 
-                if (this.options.post) {
-                    hyva.postForm({action: baseUrl, data: paramData, skipUenc: true});
-                    return;
-                }
-
-                const query = Object.keys(paramData).length === 0
-                    ? ''
-                    : '?' + (new URLSearchParams(paramData));
-                location.href = baseUrl + query;
+                this.go(paramData);
             },
 
             onSortChange() {
@@ -145,24 +174,15 @@ $toolbarOptionsJson = $block->getWidgetOptionsJson($additionalOptions);
                     this.changeSortWithDir('price', 'desc');
                     return;
                 }
-                // Leaving a price sort: drop dir so it does not stick on name/sku/…
+                // Leaving a price sort: drop dir so it does not stick on name/sku/...
                 const paramData = this.getUrlParams();
                 if (paramData[this.options.direction]) {
-                    const urlPaths = this.options.url.split('?');
-                    const baseUrl = urlPaths[0];
                     paramData[this.options.order] = value;
                     delete paramData[this.options.direction];
                     if (value === this.options.orderDefault.toString()) {
                         delete paramData[this.options.order];
                     }
-                    if (this.options.post) {
-                        hyva.postForm({action: baseUrl, data: paramData, skipUenc: true});
-                        return;
-                    }
-                    const query = Object.keys(paramData).length === 0
-                        ? ''
-                        : '?' + (new URLSearchParams(paramData));
-                    location.href = baseUrl + query;
+                    this.go(paramData);
                     return;
                 }
                 this.changeUrl(this.options.order, value, this.options.orderDefault);

@@ -1,0 +1,442 @@
+/*
+ * FE-21 listing filters: Filters button, drawer (native <dialog>, .elme-drawer from components/feedback.css),
+ * facet accordions, colour swatches, range inputs, selected-filter chips, zero-results state.
+ * Motion: transform / opacity only; none with prefers-reduced-motion.
+ */
+
+html.elme-filters-open {
+    overflow: hidden;
+}
+
+@layer components {
+    /* Filters button: text + count + icon, like the live site's "Filters" trigger */
+    .elme-filters__toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: --spacing(2);
+        min-height: --spacing(11);
+        padding: 0;
+        color: var(--color-ink);
+        font-size: var(--text-copy);
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+
+        &:hover {
+            color: var(--color-link-hover);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+    }
+
+    .elme-filters__badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: --spacing(5);
+        height: --spacing(5);
+        padding-inline: --spacing(1.5);
+        font-size: var(--text-note);
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        color: var(--color-on-primary);
+        background-color: var(--color-primary);
+        border-radius: 9999px;
+    }
+
+    /* Drawer: full screen on phones, a left panel from tablet (scrim to the right closes it) */
+    .elme-filters__drawer {
+        position: fixed;
+        width: 100%;
+        background-color: var(--color-surface);
+        transform: translateX(-100%);
+        transition: transform var(--transition-duration-slow) var(--ease-out-quint);
+
+        &::backdrop {
+            background-color: color-mix(in oklab, var(--color-ink) 40%, transparent);
+            opacity: 0;
+            transition: opacity var(--transition-duration-slow) var(--ease-out-quad);
+        }
+
+        &.is-shown {
+            transform: none;
+        }
+
+        &.is-shown::backdrop {
+            opacity: 1;
+        }
+    }
+
+    @variant md {
+        .elme-filters__drawer {
+            width: min(100% - --spacing(12), 26rem);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .elme-filters__drawer,
+        .elme-filters__drawer::backdrop {
+            transition: none;
+        }
+    }
+
+    .elme-filters__form {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
+    .elme-filters__close {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: --spacing(11);
+        min-height: --spacing(11);
+        margin-inline-end: calc(--spacing(3) * -1);
+        padding: 0;
+        color: var(--color-ink);
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: -2px;
+        }
+    }
+
+    .elme-filters__body {
+        padding-block: 0;
+    }
+
+    /* One facet = disclosure button + fieldset */
+    .elme-filters__facet {
+        border-block-end: 1px solid var(--color-border);
+    }
+
+    .elme-filters__facet-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: --spacing(3);
+        width: 100%;
+        min-height: --spacing(14);
+        padding: 0;
+        color: var(--color-ink);
+        font-size: var(--text-copy);
+        text-align: start;
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: -2px;
+        }
+    }
+
+    .elme-filters__facet-selected {
+        color: var(--color-ink-subtle);
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* Plus that turns into a minus: the vertical bar folds away */
+    .elme-filters__facet-icon {
+        position: relative;
+        flex: none;
+        width: --spacing(4);
+        height: --spacing(4);
+
+        &::before,
+        &::after {
+            content: "";
+            position: absolute;
+            inset-inline: 0;
+            top: 50%;
+            height: 1px;
+            margin-top: -0.5px;
+            background-color: currentColor;
+            transition: transform var(--transition-duration-base) var(--ease-out-quart);
+        }
+
+        &::after {
+            transform: rotate(90deg);
+        }
+    }
+
+    .elme-filters__facet-toggle[aria-expanded="true"] .elme-filters__facet-icon::after {
+        transform: rotate(0deg);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .elme-filters__facet-icon::before,
+        .elme-filters__facet-icon::after {
+            transition: none;
+        }
+    }
+
+    .elme-filters__panel {
+        min-width: 0;
+        margin: 0;
+        padding: 0 0 --spacing(5);
+        border: 0;
+
+        &[hidden] {
+            display: none;
+        }
+    }
+
+    .elme-filters__options {
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .elme-filters__option[hidden] {
+        display: none;
+    }
+
+    .elme-filters__option-label {
+        display: flex;
+        align-items: center;
+        gap: --spacing(3);
+        min-height: --spacing(11);
+        color: var(--color-ink);
+        font-size: var(--text-copy);
+        cursor: pointer;
+    }
+
+    .elme-filters__checkbox:not(.sr-only) {
+        flex: none;
+        width: --spacing(5);
+        height: --spacing(5);
+        margin: 0;
+        accent-color: var(--color-primary);
+    }
+
+    .elme-filters__option-text {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .elme-filters__count {
+        flex: none;
+        color: var(--color-ink-subtle);
+        font-size: var(--text-note);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .elme-filters__option.is-empty .elme-filters__option-text,
+    .elme-filters__option.is-empty .elme-swatch {
+        opacity: 0.45;
+    }
+
+    /* Colour: a swatch tile + name + count; the checkbox is visually hidden, the tile shows the state */
+    .elme-filters__options--swatch {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: --spacing(4);
+    }
+
+    .elme-filters__options--swatch .elme-filters__option-label {
+        gap: --spacing(2.5);
+        border-radius: 1px;
+
+        &:has(:focus-visible) {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+    }
+
+    .elme-swatch {
+        position: relative;
+        flex: none;
+        width: --spacing(8);
+        height: --spacing(8);
+        border: 1px solid color-mix(in oklab, var(--color-ink) 15%, transparent);
+        box-shadow: inset 0 0 0 2px var(--color-surface);
+        transition: box-shadow var(--transition-duration-fast) var(--ease-out-quad);
+    }
+
+    .elme-filters__option-label:has(:checked) .elme-swatch {
+        border-color: var(--color-primary);
+        box-shadow: inset 0 0 0 2px var(--color-surface), 0 0 0 1px var(--color-primary);
+    }
+
+    .elme-filters__option-label:has(:checked) .elme-filters__option-text {
+        font-weight: 500;
+    }
+
+    .elme-swatch--beige { background-color: var(--color-swatch-beige); }
+    .elme-swatch--brown { background-color: var(--color-swatch-brown); }
+    .elme-swatch--white { background-color: var(--color-swatch-white); }
+    .elme-swatch--black { background-color: var(--color-swatch-black); }
+    .elme-swatch--red { background-color: var(--color-swatch-red); }
+    .elme-swatch--green { background-color: var(--color-swatch-green); }
+    .elme-swatch--light-grey { background-color: var(--color-swatch-light-grey); }
+    .elme-swatch--mid-grey { background-color: var(--color-swatch-mid-grey); }
+    .elme-swatch--yellow { background-color: var(--color-swatch-yellow); }
+    .elme-swatch--charcoal { background-color: var(--color-swatch-charcoal); }
+    .elme-swatch--blue { background-color: var(--color-swatch-blue); }
+    .elme-swatch--other { background-color: var(--color-swatch-other); }
+
+    .elme-filters__more {
+        margin-top: --spacing(2);
+        padding: 0;
+        color: var(--color-ink);
+        font-size: var(--text-note);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+
+        &:hover {
+            color: var(--color-link-hover);
+        }
+
+        [hidden] {
+            display: none;
+        }
+    }
+
+    /* Range: From / To number inputs */
+    .elme-filters__range {
+        display: flex;
+        align-items: flex-end;
+        gap: --spacing(3);
+    }
+
+    .elme-filters__range-field {
+        display: flex;
+        flex: 1 1 0;
+        flex-direction: column;
+        gap: --spacing(1);
+        min-width: 0;
+    }
+
+    .elme-filters__range-label {
+        color: var(--color-ink-muted);
+        font-size: var(--text-note);
+    }
+
+    .elme-filters__range-input {
+        width: 100%;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .elme-filters__range-sep {
+        padding-block-end: --spacing(3.5);
+        color: var(--color-ink-subtle);
+    }
+
+    .elme-filters__range-hint {
+        margin: --spacing(2) 0 0;
+        color: var(--color-ink-subtle);
+        font-size: var(--text-note);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .elme-filters__footer {
+        display: flex;
+        gap: --spacing(3);
+        padding-block-end: max(--spacing(5), env(safe-area-inset-bottom));
+    }
+
+    .elme-filters__clear {
+        flex: 1 1 0;
+    }
+
+    .elme-filters__apply {
+        flex: 2 1 0;
+        font-variant-numeric: tabular-nums;
+
+        &[aria-busy="true"] span {
+            opacity: 0.6;
+        }
+    }
+
+    /* Selected-filter chips under the toolbar */
+    .elme-filter-chips {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: --spacing(2) --spacing(4);
+        margin-top: --spacing(3);
+    }
+
+    .elme-filter-chips__list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: --spacing(2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .elme-filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: --spacing(2);
+        min-height: --spacing(9);
+        padding-inline: --spacing(3);
+        color: var(--color-ink);
+        font-size: var(--text-note);
+        text-decoration: none;
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-border);
+        transition: border-color var(--transition-duration-fast) var(--ease-out-quad);
+
+        &:hover {
+            border-color: var(--color-primary);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+    }
+
+    .elme-filter-chip__text {
+        overflow-wrap: anywhere;
+    }
+
+    .elme-filter-chip__icon {
+        flex: none;
+    }
+
+    .elme-filter-chips__clear {
+        color: var(--color-ink);
+        font-size: var(--text-note);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+
+        &:hover {
+            color: var(--color-link-hover);
+        }
+    }
+
+    /* Zero results after filtering */
+    .elme-filters-empty {
+        margin-top: --spacing(8);
+        padding: --spacing(8) --spacing(5);
+        text-align: center;
+        color: var(--color-ink-muted);
+        background-color: var(--color-surface);
+    }
+
+    .elme-filters-empty__title {
+        margin: 0 0 --spacing(2);
+        color: var(--color-ink);
+        font-family: var(--font-heading);
+        font-size: var(--text-h4);
+        line-height: var(--text-h4--line-height);
+    }
+}

@@ -1,7 +1,7 @@
 <?php
 /**
- * FE-20: Sort select. Price low–high / high–low only when logged in (LoginOnly strips price for guests).
- * No direction toggle — those are separate options. Labels are not headings.
+ * FE-20: Sort select. Price low-high / high-low only when logged in (LoginOnly strips price for guests).
+ * No direction toggle: those are separate options. Labels are not headings.
  */
 
 declare(strict_types=1);
@@ -51,7 +51,8 @@ $sorterId = 'sorter-' . uniqid();
                         <?php if ($block->isOrderCurrent($orderCode) && $orderCode !== 'price'): ?>
                             selected="selected"
                         <?php endif; ?>>
-                        <?= $escaper->escapeHtml(__($orderLabel)) ?>
+                        <?php // FE-21: the merchandised order is the default; "Position" means nothing to a buyer ?>
+                        <?= $escaper->escapeHtml($orderCode === 'position' ? __('Recommended') : __($orderLabel)) ?>
                     </option>
                 <?php endif; ?>
             <?php endforeach; ?>
