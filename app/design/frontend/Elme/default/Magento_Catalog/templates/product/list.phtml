@@ -1,0 +1,108 @@
+<?php
+/**
+ * Hyvä Themes - https://hyva.io
+ * Copyright © Hyvä Themes. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\CurrentCategory;
+use Hyva\Theme\ViewModel\ProductListItem;
+use Hyva\Theme\ViewModel\ProductPage;
+use Magento\Catalog\Block\Product\ListProduct;
+use Magento\Framework\Escaper;
+
+/** @var ListProduct $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var ProductPage $productViewModel */
+/** @var CurrentCategory $currentCategoryViewModel */
+
+$productViewModel         = $viewModels->require(ProductPage::class);
+$productListItemViewModel = $viewModels->require(ProductListItem::class);
+$currentCategoryViewModel = $viewModels->require(CurrentCategory::class);
+
+$eagerLoadImagesCount = (int) ($block->getData('eager_load_images_count') ?? 3);
+$productCollection = $block->getLoadedProductCollection();
+
+?>
+<?php if (!$productCollection->count()): ?>
+    <?php
+    // Elme: FE-21 - a filtered listing with no products keeps the Filters button and the chips, says so and
+    // offers Clear all (HTTP 200; the filtered URL is noindex anyway).
+    $toolbar = $block->getChildBlock('toolbar');
+    $filtersHtml = $toolbar ? (string) $toolbar->getChildHtml('elme_filters') : '';
+    $chipsHtml = $toolbar ? (string) $toolbar->getChildHtml('elme_filters_chips') : '';
+    ?>
+    <?php if (trim($chipsHtml) !== ''): ?>
+        <section class="py-8" id="product-list" aria-label="<?= $escaper->escapeHtmlAttr(__('Product list')) ?>" tabindex="-1">
+            <div class="elme-plp-toolbar flex flex-wrap items-center gap-x-6 gap-y-3 min-h-10">
+                <?= /* @noEscape */ $filtersHtml ?>
+            </div>
+            <?= /* @noEscape */ $chipsHtml ?>
+            <div class="elme-filters-empty">
+                <p class="elme-filters-empty__title"><?= $escaper->escapeHtml(__('No products match these filters')) ?></p>
+                <p><?= $escaper->escapeHtml(__('Remove a filter above or clear them all.')) ?></p>
+            </div>
+        </section>
+    <?php else: ?>
+    <div class="message info empty">
+        <div>
+            <?= $escaper->escapeHtml(__('We can\'t find products matching the selection.')) ?>
+        </div>
+    </div>
+    <?php endif; ?>
+<?php else: ?>
+    <section class="py-8" id="product-list" aria-label="<?= $escaper->escapeHtmlAttr(__('Product list')) ?>" tabindex="-1">
+        <?= $block->getToolbarHtml() ?>
+        <?= $block->getAdditionalHtml() ?>
+        <?php
+        if ($block->getMode() == 'grid') {
+            $viewMode         = 'grid';
+            $imageDisplayArea = 'category_page_grid';
+            $showDescription  = false;
+            $templateType     = \Magento\Catalog\Block\Product\ReviewRendererInterface::SHORT_VIEW;
+        } else {
+            $viewMode         = 'list';
+            $imageDisplayArea = 'category_page_list';
+            $showDescription  = true;
+            $templateType     = \Magento\Catalog\Block\Product\ReviewRendererInterface::FULL_VIEW;
+        }
+        /**
+         * Position for actions regarding image size changing in vde if needed
+         */
+        $pos = $block->getPositioned();
+        ?>
+        <div class="products wrapper mode-<?= /* @noEscape */$viewMode ?> products-<?= /* @noEscape */$viewMode ?>">
+            <ul
+                role="list"
+                class="mx-auto pt-4 pb-12 grid gap-4 grid-cols-1 <?= /* @noEscape */$viewMode === 'grid'
+                    /* Elme: FE-21 - layout argument grid_columns_class (category page: no sidebar, full width) */
+                    ? $escaper->escapeHtmlAttr(
+                        $block->getData('grid_columns_class') ?: 'sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'
+                    )
+                    : '' ?>"
+            >
+                <?php
+                /** @var \Magento\Catalog\Model\Product $product */
+                foreach (array_values($productCollection->getItems()) as $i => $product):
+                    if ($i < $eagerLoadImagesCount) {
+                        $product->setData('image_custom_attributes', ['loading' => 'eager', 'fetchpriority' => 'high']);
+                    }
+                    ?>
+                    <li class="flex flex-col">
+                        <?= $productListItemViewModel->getItemHtml(
+                            $product,
+                            $block,
+                            $viewMode,
+                            $templateType,
+                            $imageDisplayArea,
+                            $showDescription
+                        ); ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+        <?= $block->getChildBlock('toolbar')->setIsBottom(true)->toHtml() ?>
+    </section>
+<?php endif; ?>

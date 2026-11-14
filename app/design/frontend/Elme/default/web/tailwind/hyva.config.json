@@ -78,7 +78,19 @@
         "info-ground": "#E1E7EC",
         "info-mark": "#4E6579",
         "info-text": "#3E5161",
-        "promo": "#CB4867"
+        "promo": "#CB4867",
+        "swatch-beige": "#C9B894",
+        "swatch-brown": "#7A5A3C",
+        "swatch-white": "#F5F5F1",
+        "swatch-black": "#1C1C1C",
+        "swatch-red": "#B84848",
+        "swatch-green": "#6B8068",
+        "swatch-light-grey": "#C5C7CC",
+        "swatch-mid-grey": "#9A9EA2",
+        "swatch-yellow": "#D4A650",
+        "swatch-charcoal": "#2A2D30",
+        "swatch-blue": "#4A6B8C",
+        "swatch-other": "#CCCCCC"
       },
       "text": {
         "display": "2.25rem",

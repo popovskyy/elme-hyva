@@ -13,5 +13,11 @@
                 <index_prefix>elme_products</index_prefix>
             </opensearch>
         </elme_search>
+        <catalog>
+            <seo>
+                <!-- FE-21: filtered listings are noindex and point at the clean category URL -->
+                <category_canonical_tag>1</category_canonical_tag>
+            </seo>
+        </catalog>
     </default>
 </config>

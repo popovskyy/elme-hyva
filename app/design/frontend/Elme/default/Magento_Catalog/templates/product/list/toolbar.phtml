@@ -1,6 +1,7 @@
 <?php
 /**
- * FE-20: PLP toolbar shell (sort / amount / pager / limiter).
+ * FE-20: PLP toolbar shell (sort / amount / pager / limiter). FE-21: Filters button and chips on the top toolbar
+ * (child blocks elme_filters / elme_filters_chips, layout catalog_category_view.xml).
  * CSP-safe Alpine; scroll-to-grid on page changes (QA #1). No JSON-LD (FE-55).
  */
 
@@ -18,21 +19,32 @@ $additionalOptions = ['page' => 'p'];
 $toolbarOptionsJson = $block->getWidgetOptionsJson($additionalOptions);
 ?>
 <?php if ($block->getCollection()->getSize()): ?>
+    <?php if ($block->getIsBottom()): ?>
     <div x-data="initElmeProductListToolbar"
          data-toolbar-options="<?= $escaper->escapeHtmlAttr($toolbarOptionsJson) ?>"
          class="toolbar toolbar-products elme-plp-toolbar grid grid-cols-4 sm:grid-cols-8 md:grid-cols-4
             lg:grid-cols-8 grid-flow-row gap-2 items-center min-h-10">
-        <?php if ($block->getIsBottom()): ?>
             <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/amount.phtml')) ?>
             <?= $block->getPagerHtml() ?>
             <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/limiter.phtml')) ?>
-        <?php else: ?>
-            <?php if ($block->isExpanded()): ?>
+    </div>
+    <?php else: ?>
+    <?php // FE-21: Filters button left, amount, sort right; selected-filter chips below. ?>
+    <div x-data="initElmeProductListToolbar"
+         data-toolbar-options="<?= $escaper->escapeHtmlAttr($toolbarOptionsJson) ?>"
+         class="toolbar toolbar-products elme-plp-toolbar flex flex-wrap items-center gap-x-6 gap-y-3 min-h-10">
+        <div class="order-1"><?= $block->getChildHtml('elme_filters') ?></div>
+        <?php if ($block->isExpanded()): ?>
+            <div class="order-3 basis-full md:order-2 md:basis-auto">
                 <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/amount.phtml')) ?>
+            </div>
+            <div class="order-2 ms-auto md:order-3">
                 <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/sorter.phtml')) ?>
-            <?php endif ?>
+            </div>
         <?php endif ?>
     </div>
+    <?= $block->getChildHtml('elme_filters_chips') ?>
+    <?php endif ?>
     <?php // Register Alpine once on the top toolbar (rendered before the bottom one). ?>
     <?php if (!$block->getIsBottom()): ?>
 <script>
