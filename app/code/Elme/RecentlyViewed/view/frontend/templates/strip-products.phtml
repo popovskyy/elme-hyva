@@ -157,6 +157,11 @@ $trackId = $sectionId . '-track';
                             return;
                         }
                         track.innerHTML = html;
+                        // Hyva caches tile HTML with the form key of whoever rendered it first and fixes form keys
+                        // only on page load; without this Add to Cart here says the session has expired
+                        if (window.hyva && typeof hyva.initFormKey === 'function') {
+                            hyva.initFormKey();
+                        }
                         if (window.Alpine && typeof Alpine.initTree === 'function') {
                             Alpine.initTree(track);
                         }
