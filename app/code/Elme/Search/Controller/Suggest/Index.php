@@ -20,8 +20,8 @@ use Psr\Log\LoggerInterface;
  *
  * Response: {"products": [{"id", "sku", "name", "url", "image"}], "categories": [{"id", "name", "url"}],
  * "queries": ["..."]}. No prices (they are per customer), so the answer is the same for everyone and may be
- * cached publicly for a few minutes. When the engine cannot answer, the lists are empty: the form still submits
- * to the search results page.
+ * cached publicly for a few minutes. When the engine cannot answer, the lists are empty and the status is 503, so
+ * the autocomplete shows nothing instead of "No results"; the form still submits to the search results page.
  */
 class Index implements HttpGetActionInterface
 {
@@ -42,7 +42,8 @@ class Index implements HttpGetActionInterface
     public function execute(): Json
     {
         $result = $this->jsonFactory->create();
-        $query = trim(mb_substr((string) $this->request->getParam('q', ''), 0, self::MAX_LENGTH));
+        $query = $this->request->getParam('q');
+        $query = is_scalar($query) ? trim(mb_substr((string) $query, 0, self::MAX_LENGTH)) : '';
         $data = ['products' => [], 'categories' => [], 'queries' => []];
 
         if (mb_strlen($query) < self::MIN_LENGTH) {
@@ -58,6 +59,7 @@ class Index implements HttpGetActionInterface
         } catch (SearchUnavailableException $e) {
             $this->logger->error('Elme_Search: suggest failed: ' . $e->getMessage());
             $result->setHeader('Cache-Control', 'no-store', true);
+            $result->setHttpResponseCode(503);
             return $result->setData($data);
         }
 

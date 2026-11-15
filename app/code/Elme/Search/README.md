@@ -156,7 +156,8 @@ in it. Start set: colour_group, material, type_detail, style, features, seats, w
    - select / multiselect: the option label as it is, one value per parameter: `?colour_group=Green`, several
      values as an array `?colour_group[]=Green&colour_group[]=Blue`. A scalar value is never split: labels
      contain commas ("Bed Frame, Storage Bed"), so `?type_detail=Bed%20Frame%2C%20Storage%20Bed` is one value.
-   - boolean: `?in_stock=1`
+   - boolean: `?in_stock=1` (`true` / `yes` are read as `1`; any other value, e.g. `?in_stock=0`, is not a
+     selection)
    - range: `?width=50-120` (`50-` / `-120` for open bounds).
 2. The answer goes back to Magento as its own search result (page ids + total). The product collection loads those
    ids in that order, so the toolbar, pager and product list templates stay as they are.
@@ -167,15 +168,21 @@ in it. Start set: colour_group, material, type_detail, style, features, seats, w
 4. Filters (FE-21): `ViewModel\ListingFilters` turns the facets into the drawer, chips, the Filters count and
    URLs (facets in config order, values of one facet sorted A-Z, one value scalar / several `code[]=`, ranges
    `code=min-max`, then the other parameters sorted by name; `p` dropped). The toolbar builds its sort and
-   per-page URLs from `getToolbarUrlParts()`, so they keep the same form. The drawer asks
+   per-page URLs from `getToolbarUrlParts()` and the pager its page links from `getPageUrl()`
+   (`Plugin\StablePagerUrl`), so they keep the same form. The drawer asks
    `GET /elme-search/listing/count?category=<id>&q=&<facet params>` (`Controller\Listing\Count`) for
    "Show N products" and live option counts: `{"total", "facets": {code: {value: count}}, "ranges": {code: {min, max}}}`,
    `X-Robots-Tag: noindex`, total null when the engine is off; cached publicly for 5 minutes with the tags
-   `cat_p`, `cat_c_<id>`, `cat_c_p_<id>`, so `cache:flush` and catalog saves purge it. `Plugin\NoindexFilteredListing`: any facet
-   parameter in the URL makes the category / search page `NOINDEX,FOLLOW` and strips core's `?p=` from the
-   category canonical (`catalog/seo/category_canonical_tag` is on by default in `etc/config.xml`).
+   `cat_p`, `cat_c_<id>`, `cat_c_p_<id>`, so `cache:flush` and catalog saves purge it. Any facet parameter in the URL
+   (`Model\Storefront\FilteredListing`) makes the page `NOINDEX,FOLLOW`: `Plugin\NoindexFilteredListing` for
+   the category page, where it also strips core's `?p=` from the canonical (`catalog/seo/category_canonical_tag`
+   is on by default in `etc/config.xml`), and `Observer\NoindexFilteredSearch` for search results (that controller
+   renders inside `execute()`, so a plugin after it comes too late).
 5. Errors: if `ProductSearchInterface` throws (OpenSearch down, index missing), the page uses Magento catalog search
    and one error per request goes to `var/log/system.log` (`Elme_Search: ProductSearchInterface failed ...`).
+   That page has no facets and ignores the filters in the URL, so it is sent with no-cache headers
+   (`Plugin\NoCacheOnSearchFailure`) and never lands in Varnish. The autocomplete endpoint answers 503 with empty
+   lists; the dropdown then stays closed instead of saying "No results".
    When the whole `elme_opensearch` container is down, Magento's own catalog search fails too (core behaviour).
 
 ## Indexing
@@ -190,7 +197,9 @@ in it. Start set: colour_group, material, type_detail, style, features, seats, w
   mass actions update the affected documents right away. A failure while saving is logged, never thrown.
 - Category moved, enabled / disabled, anchor changed: after Magento's "Category Products" indexer has run,
   `Plugin\InvalidateOnCategoryReindex` marks our indexer invalid and the cron rebuilds it (within a minute or two).
-  In "Update by Schedule" that is after every category save.
+  In "Update by Schedule" that is after every category save. Magento's "Product Categories" indexer (one
+  product's status, visibility or categories changed) extends the same class and is skipped: our mview already
+  follows those products.
 - An update during a full rebuild is written to the live index and to the one being built, so it survives the swap.
 - A rebuild that was killed leaves `elme_products_<store>_v...` without an alias: the next rebuild deletes those
   leftovers only when they are older than one hour (a rebuild still running is not touched).

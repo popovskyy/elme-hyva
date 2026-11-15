@@ -97,13 +97,14 @@ class ListingFiltersTest extends TestCase
         $this->assertSame(self::BASE . '?type_detail[]=Buffet&type_detail[]=Dining%20Table', $chips[2]['url']);
     }
 
-    public function testEmptyRowsAreDroppedAndLabelSortIsNatural(): void
+    public function testEmptyRowsAreDroppedAndOptionOrderIsKept(): void
     {
         $filters = $this->filters([], [], [], [
             new Facet('colour_group', 'Colour', Facet::TYPE_MULTI, [new FacetOption('Green', 'Green', 0)]),
             new Facet('seats', 'Seats', Facet::TYPE_MULTI, [
-                new FacetOption('10 Seater', '10 Seater', 1),
                 new FacetOption('2 Seater', '2 Seater', 3),
+                new FacetOption('4 Seater', '4 Seater', 0),
+                new FacetOption('10 Seater', '10 Seater', 1),
             ]),
             new Facet('width', 'Width (cm)', Facet::TYPE_RANGE, [], 80.0, 80.0),
         ]);
@@ -125,6 +126,18 @@ class ListingFiltersTest extends TestCase
             'kept' => ['product_list_order' => 'name'],
             'page' => 2,
         ], $filters->getToolbarUrlParts());
+    }
+
+    public function testPageUrlKeepsTheStableFormAndDropsPageOne(): void
+    {
+        $filters = $this->filters(
+            ['q' => 'oak', 'type_detail' => ['Dining Table', 'Buffet'], 'p' => '3', 'product_list_order' => 'name'],
+            ['type_detail' => ['Dining Table', 'Buffet']]
+        );
+        $facets = 'type_detail[]=Buffet&type_detail[]=Dining%20Table';
+
+        $this->assertSame(self::BASE . '?' . $facets . '&p=2&product_list_order=name&q=oak', $filters->getPageUrl(2));
+        $this->assertSame(self::BASE . '?' . $facets . '&product_list_order=name&q=oak', $filters->getPageUrl(1));
     }
 
     public function testCountUrlCarriesCategory(): void

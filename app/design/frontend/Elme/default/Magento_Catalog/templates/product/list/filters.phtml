@@ -110,7 +110,7 @@ $labels = [
                                 data-open="<?= $isOpen ? '1' : '0' ?>"
                                 @click="toggleFacet">
                             <span class="elme-filters__facet-label">
-                                <?= $escaper->escapeHtml(__($facet->label)) ?>
+                                <?= $escaper->escapeHtml($facet->label) ?>
                                 <?php if ($selectedCount > 0): ?>
                                     <span class="elme-filters__facet-selected">
                                         (<?= (int) $selectedCount ?>)
@@ -122,7 +122,7 @@ $labels = [
                         <fieldset id="<?= $escaper->escapeHtmlAttr($panelId) ?>"
                                   class="elme-filters__panel"
                                   <?= $isOpen ? '' : 'hidden' ?>>
-                            <legend class="sr-only"><?= $escaper->escapeHtml(__($facet->label)) ?></legend>
+                            <legend class="sr-only"><?= $escaper->escapeHtml($facet->label) ?></legend>
 
                             <?php if ($facet->type === Facet::TYPE_RANGE): ?>
                                 <?php
@@ -170,7 +170,7 @@ $labels = [
                                     <?php foreach ($facet->options as $optionIndex => $option): ?>
                                         <?php
                                         $optionLabel = $facet->type === Facet::TYPE_BOOLEAN
-                                            ? __($facet->label)
+                                            ? $facet->label
                                             : $option->label;
                                         ?>
                                         <li class="elme-filters__option<?= $option->count === 0 && !$option->selected ? ' is-empty' : '' ?>"

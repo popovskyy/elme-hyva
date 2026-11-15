@@ -125,7 +125,7 @@ class ProductSearch implements ProductSearchInterface
 
     /**
      * RequestFactory turns collapse off for any looksLikeSku token ("l-shaped", "3-seater"). Keep collapse on
-     * unless the index actually has that SKU or a SKU prefix (real list: Z-ARDTBL, 218AREDIN…).
+     * unless the index actually has that SKU or a SKU prefix (real list: Z-ARDTBL, 218AREDIN...).
      */
     private function resolveCollapse(SearchRequest $request): SearchRequest
     {

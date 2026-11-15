@@ -24,7 +24,8 @@ use Psr\Log\LoggerInterface;
  * the product collection loads exactly those ids in that order and the toolbar / pager work unchanged.
  * With engine = magento this plugin does nothing.
  *
- * If ProductSearchInterface fails, the page falls back to Magento's search and one error is logged.
+ * If ProductSearchInterface fails, the page falls back to Magento's search and one error is logged. That page is
+ * not cached (Plugin\NoCacheOnSearchFailure).
  */
 class UseProductSearch
 {

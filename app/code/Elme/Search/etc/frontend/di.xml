@@ -4,12 +4,17 @@
     <type name="Magento\Search\Api\SearchInterface">
         <plugin name="elme_search_use_product_search" type="Elme\Search\Plugin\UseProductSearch"/>
     </type>
-    <!-- FE-21: filtered listings (any facet parameter) are NOINDEX,FOLLOW -->
+    <!-- A listing that fell back to Magento's search (engine failed) is not cached -->
+    <type name="Magento\Framework\View\Layout">
+        <plugin name="elme_search_no_cache_on_failure" type="Elme\Search\Plugin\NoCacheOnSearchFailure"/>
+    </type>
+    <!-- FE-21: filtered category pages (any facet parameter) are NOINDEX,FOLLOW; search results: events.xml -->
     <type name="Magento\Catalog\Controller\Category\View">
         <plugin name="elme_search_noindex_filtered" type="Elme\Search\Plugin\NoindexFilteredListing"/>
     </type>
-    <type name="Magento\CatalogSearch\Controller\Result\Index">
-        <plugin name="elme_search_noindex_filtered" type="Elme\Search\Plugin\NoindexFilteredListing"/>
+    <!-- Listing pager links in the stable URL form (ListingFilters) -->
+    <type name="Magento\Theme\Block\Html\Pager">
+        <plugin name="elme_search_stable_pager_url" type="Elme\Search\Plugin\StablePagerUrl"/>
     </type>
     <type name="Magento\Catalog\Helper\Category">
         <plugin name="elme_search_noindex_filtered" type="Elme\Search\Plugin\NoindexFilteredListing"/>

@@ -26,6 +26,7 @@ class IndexTest extends TestCase
     private Json&MockObject $json;
     private array $data = [];
     private array $headers = [];
+    private ?int $status = null;
 
     protected function setUp(): void
     {
@@ -34,6 +35,10 @@ class IndexTest extends TestCase
         $this->json = $this->createMock(Json::class);
         $this->json->method('setData')->willReturnCallback(function ($data) {
             $this->data = $data;
+            return $this->json;
+        });
+        $this->json->method('setHttpResponseCode')->willReturnCallback(function ($code) {
+            $this->status = $code;
             return $this->json;
         });
         $this->json->method('setHeader')->willReturnCallback(function ($name, $value) {
@@ -63,6 +68,16 @@ class IndexTest extends TestCase
     public function testShortQueryDoesNotSearch(): void
     {
         $this->request->method('getParam')->willReturn(' v ');
+        $this->search->expects($this->never())->method('suggest');
+
+        $this->controller()->execute();
+
+        $this->assertSame(['products' => [], 'categories' => [], 'queries' => []], $this->data);
+    }
+
+    public function testArrayQueryIsNoQuery(): void
+    {
+        $this->request->method('getParam')->willReturn(['vase']);
         $this->search->expects($this->never())->method('suggest');
 
         $this->controller()->execute();
@@ -100,5 +115,6 @@ class IndexTest extends TestCase
 
         $this->assertSame(['products' => [], 'categories' => [], 'queries' => []], $this->data);
         $this->assertSame('no-store', $this->headers['Cache-Control']);
+        $this->assertSame(503, $this->status);
     }
 }

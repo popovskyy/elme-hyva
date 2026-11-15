@@ -219,18 +219,14 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
                     this.changeSortWithDir('price', 'desc');
                     return;
                 }
-                // Leaving a price sort: drop dir so it does not stick on name/sku/...
-                const paramData = this.getUrlParams();
-                if (paramData[this.options.direction]) {
-                    paramData[this.options.order] = value;
-                    delete paramData[this.options.direction];
-                    if (value === this.options.orderDefault.toString()) {
-                        delete paramData[this.options.order];
-                    }
-                    this.go(paramData);
-                    return;
-                }
-                this.changeUrl(this.options.order, value, this.options.orderDefault);
+                // Only price has two directions in the select. Every other sort runs in its natural direction,
+                // sent when the page default is the other one: search results default to desc (for relevance),
+                // which would list Product Name Z-A. Also drops the direction left over from a price sort.
+                this.changeSortWithDir(value, this.naturalDirection(value));
+            },
+
+            naturalDirection(order) {
+                return ['relevance', 'newest', 'news_from_date', 'created_at'].indexOf(order) === -1 ? 'asc' : 'desc';
             },
 
             onLimitChange() {

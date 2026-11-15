@@ -39,11 +39,11 @@ $sorterId = 'sorter-' . uniqid();
                     <?php if ($loginOnly->isLoggedIn()): ?>
                         <option value="price_asc"
                             <?php if ($isPriceAsc): ?>selected="selected"<?php endif; ?>>
-                            <?= $escaper->escapeHtml(__('Price low–high')) ?>
+                            <?= $escaper->escapeHtml(__('Price low-high')) ?>
                         </option>
                         <option value="price_desc"
                             <?php if ($isPriceDesc): ?>selected="selected"<?php endif; ?>>
-                            <?= $escaper->escapeHtml(__('Price high–low')) ?>
+                            <?= $escaper->escapeHtml(__('Price high-low')) ?>
                         </option>
                     <?php endif; ?>
                 <?php else: ?>

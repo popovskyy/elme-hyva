@@ -88,7 +88,7 @@ use Magento\Framework\View\Element\Template;
                 const request = new AbortController();
                 this.request = request;
                 this.loading = true;
-                let data = {products: [], categories: [], queries: []};
+                let data = null;
                 try {
                     const response = await fetch(this.suggestUrl + '?q=' + encodeURIComponent(q), {
                         signal: request.signal,
@@ -107,9 +107,12 @@ use Magento\Framework\View\Element\Template;
                     this.request = null;
                     this.loading = false;
                 }
-                if (q === this.trimmed()) {
-                    this.apply(q, data);
+                if (q !== this.trimmed()) {
+                    return;
                 }
+                // Not answered (HTTP error, offline): show nothing. "No results" would be a wrong answer, and
+                // Enter still submits the form to the search results page.
+                this.apply(data ? q : '', data);
             },
 
             searchUrl(q) {

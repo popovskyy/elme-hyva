@@ -56,7 +56,8 @@ class ListingFilters implements ArgumentInterface
 
     /**
      * Facets to render, in config order, without empty rows: a multi / boolean facet needs an option with items
-     * (or a selected one), a range needs a span (or a selection).
+     * (or a selected one), a range needs a span (or a selection). Options stay in the order the engine gave
+     * (by count or by label, etc/elme_search_facets.xml), labels as it translated them.
      *
      * @return Facet[]
      */
@@ -80,10 +81,6 @@ class ListingFilters implements ArgumentInterface
             ));
             if ($options === []) {
                 continue;
-            }
-            if ($this->facetConfig->get($facet->code)?->optionSort === FacetDefinition::SORT_LABEL) {
-                // "2 Seater" before "10 Seater"
-                usort($options, static fn (FacetOption $a, FacetOption $b): int => strnatcasecmp($a->label, $b->label));
             }
             $facets[] = new Facet(
                 $facet->code,
@@ -181,7 +178,7 @@ class ListingFilters implements ArgumentInterface
                 $chips = [];
                 foreach ($this->pickQuickOptions($facet, $definition) as $option) {
                     $chips[] = [
-                        'label' => $facet->type === Facet::TYPE_BOOLEAN ? (string)__($facet->label) : $option->label,
+                        'label' => $facet->type === Facet::TYPE_BOOLEAN ? $facet->label : $option->label,
                         'value' => $option->value,
                         'selected' => $option->selected,
                         'url' => $this->buildToggleUrl($facet->code, $option->value, $option->selected),
@@ -190,7 +187,7 @@ class ListingFilters implements ArgumentInterface
                 if ($chips !== []) {
                     $groups[] = [
                         'code' => $facet->code,
-                        'label' => (string)__($facet->label),
+                        'label' => $facet->label,
                         'type' => $facet->type,
                         'chips' => $chips,
                     ];
@@ -279,12 +276,24 @@ class ListingFilters implements ArgumentInterface
      */
     public function buildUrl(array $filters, array $ranges): string
     {
-        $parts = $this->buildFacetParts($filters, $ranges);
-        $kept = http_build_query($this->getKeptParams(), '', '&', PHP_QUERY_RFC3986);
-        if ($kept !== '') {
-            $parts[] = $kept;
+        return $this->joinUrl($this->buildFacetParts($filters, $ranges), $this->getKeptParams());
+    }
+
+    /**
+     * The current listing (same filters, sort, per page) on another page, in the stable URL form. The pager uses it
+     * (Plugin\StablePagerUrl) instead of core's "_current" query, which repeats the request as it came in
+     * (code[0]=...&code[1]=... in the order of ticking). The page number sorts by name with the other parameters,
+     * as in the toolbar script; no p=1.
+     */
+    public function getPageUrl(int $page): string
+    {
+        $selection = $this->getSelection();
+        $params = $this->getKeptParams();
+        if ($page > 1) {
+            $params[self::PAGE_PARAM] = (string)$page;
+            ksort($params);
         }
-        return $this->getBaseUrl() . ($parts !== [] ? '?' . implode('&', $parts) : '');
+        return $this->joinUrl($this->buildFacetParts($selection['filters'], $selection['ranges']), $params);
     }
 
     /**
@@ -493,6 +502,19 @@ class ListingFilters implements ArgumentInterface
             }
         }
         return $parts;
+    }
+
+    /**
+     * @param string[] $facetParts encoded facet parameters (buildFacetParts)
+     * @param array<string, string|array> $params the other parameters, already sorted by name
+     */
+    private function joinUrl(array $facetParts, array $params): string
+    {
+        $query = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+        if ($query !== '') {
+            $facetParts[] = $query;
+        }
+        return $this->getBaseUrl() . ($facetParts !== [] ? '?' . implode('&', $facetParts) : '');
     }
 
     private function getQueryParams(): array

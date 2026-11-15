@@ -19,7 +19,7 @@ use Magento\Framework\App\RequestInterface;
  * - select / multiselect: the option label as it is, one value per parameter. One value: ?<code>=Green;
  *   several: ?<code>[]=Green&<code>[]=Blue. A scalar value is never split, because labels contain commas
  *   ("Bed Frame, Storage Bed").
- * - boolean: ?in_stock=1
+ * - boolean: ?in_stock=1 (true / yes are read as 1; anything else is not a selection)
  * - range: ?width=50-120 / ?width=50- / ?width=-120
  */
 class RequestFactory
@@ -36,6 +36,9 @@ class RequestFactory
     ];
 
     private const MAX_PAGE_SIZE = 10000;
+
+    /** URL values that switch a boolean facet on; the selection then carries '1' */
+    private const BOOLEAN_ON = ['1', 'true', 'yes'];
 
     public function __construct(
         private readonly RequestInterface $httpRequest,
@@ -123,6 +126,11 @@ class RequestFactory
                 array_map(static fn ($v): string => is_scalar($v) ? trim((string)$v) : '', $values),
                 static fn (string $v): bool => $v !== ''
             ));
+            if ($facet->type === Facet::TYPE_BOOLEAN) {
+                // One spelling for "on" and nothing for the rest (?in_stock=0), so the chips, the active count and
+                // the toggle links show what the engine applies
+                $values = array_intersect(array_map('strtolower', $values), self::BOOLEAN_ON) !== [] ? ['1'] : [];
+            }
             if ($values !== []) {
                 $filters[$facet->code] = $values;
             }

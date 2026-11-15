@@ -6,6 +6,7 @@ namespace Elme\Search\Plugin;
 
 use Elme\Search\Model\Indexer\ProductIndexer;
 use Magento\Catalog\Model\Indexer\Category\Product as CategoryProductIndexer;
+use Magento\Catalog\Model\Indexer\Product\Category as ProductCategoryIndexer;
 use Magento\Framework\Indexer\IndexerRegistry;
 use Psr\Log\LoggerInterface;
 
@@ -17,6 +18,10 @@ use Psr\Log\LoggerInterface;
  * After Magento's indexer has run for categories (on save or from its mview), mark ours invalid: the cron
  * indexer_reindex_all_invalid rebuilds it (new index + alias swap), by then from the updated category index.
  * A full Magento reindex needs nothing here: Magento invalidates dependent indexers itself.
+ *
+ * Magento's "Product Categories" indexer extends the "Category Products" class, so it inherits this plugin. It
+ * runs for single products (status, visibility, category assignment), which our own mview already follows, so
+ * it is skipped: one product edit must not rebuild the whole index.
  */
 class InvalidateOnCategoryReindex
 {
@@ -31,24 +36,27 @@ class InvalidateOnCategoryReindex
      */
     public function afterExecute(CategoryProductIndexer $subject, $result)
     {
-        $this->invalidate();
+        $this->invalidate($subject);
         return $result;
     }
 
     public function afterExecuteList(CategoryProductIndexer $subject, $result)
     {
-        $this->invalidate();
+        $this->invalidate($subject);
         return $result;
     }
 
     public function afterExecuteRow(CategoryProductIndexer $subject, $result)
     {
-        $this->invalidate();
+        $this->invalidate($subject);
         return $result;
     }
 
-    private function invalidate(): void
+    private function invalidate(CategoryProductIndexer $subject): void
     {
+        if ($subject instanceof ProductCategoryIndexer) {
+            return;
+        }
         try {
             $indexer = $this->indexerRegistry->get(ProductIndexer::INDEXER_ID);
             if (!$indexer->isInvalid()) {

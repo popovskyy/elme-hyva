@@ -100,6 +100,19 @@ class RequestFactoryTest extends TestCase
         $this->assertSame(['colour_group' => ['Engineered Wood Frame, Metal Frame', 'Oak']], $request->filters);
     }
 
+    public function testBooleanFacetIsOneOrNotSelected(): void
+    {
+        $criteria = $this->criteria(['category_ids' => '14'], [], 0, 24);
+
+        $this->assertSame([], $this->factory(['in_stock' => '0'])->fromCriteria($criteria, 1)->filters);
+        $this->assertSame([], $this->factory(['in_stock' => 'no'])->fromCriteria($criteria, 1)->filters);
+        $this->assertSame(['in_stock' => ['1']], $this->factory(['in_stock' => 'TRUE'])->fromCriteria($criteria, 1)->filters);
+        $this->assertSame(
+            ['in_stock' => ['1']],
+            $this->factory(['in_stock' => ['0', 'yes']])->fromCriteria($criteria, 1)->filters
+        );
+    }
+
     public function testSearchPageRelevanceIsAlwaysBestFirst(): void
     {
         $criteria = $this->criteria(['search_term' => ' sofa '], ['relevance' => 'ASC'], 0, 12);
