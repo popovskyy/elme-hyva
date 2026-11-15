@@ -6,7 +6,7 @@
     </type>
 
     <type name="Magento\Checkout\Controller\Index\Index">
-        <plugin name="elme_quick_order_rebuild_quote" type="Elme\QuickOrder\Plugin\RebuildQuoteOnCheckoutPlugin"/>
+        <plugin name="elme_quick_order_rebuild_quote" sortOrder="10" type="Elme\QuickOrder\Plugin\RebuildQuoteOnCheckoutPlugin"/>
     </type>
 
     <type name="Elme\LoginOnly\Observer\RedirectGuests">

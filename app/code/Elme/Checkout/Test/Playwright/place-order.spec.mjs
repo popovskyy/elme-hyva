@@ -224,6 +224,76 @@ test('empty order details leave no empty labels', async ({ page, request }) => {
     expect(email).not.toContain('Delivery instructions');
 });
 
+test('a pick still waiting behind a running save goes before the order', async ({ page }) => {
+    await login(page);
+    await addProduct(page);
+    await openCheckout(page);
+    await chooseMethods(page);
+
+    const calls = [];
+    page.on('request', (call) => {
+        const action = call.url().match(/elme_checkout\/action\/(\w+)/)?.[1];
+        if (action) {
+            calls.push(`${action} ${new URLSearchParams(call.postData()).get('data')}`);
+        }
+    });
+    // The first save is slow, as a carrier can be
+    let delayed = false;
+    await page.route('**/elme_checkout/action/shippingmethod', async (route) => {
+        if (!delayed) {
+            delayed = true;
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+        }
+        await route.continue();
+    });
+
+    await page.evaluate(() => {
+        const store = Alpine.store('elmeCheckout');
+        const rate = {carrier_code: 'flatrate', method_code: 'flatrate'};
+        store.pick('shippingmethod', 'first', {...rate, pick: 'first'}, 'delivery');
+        store.pick('shippingmethod', 'skipped', {...rate, pick: 'skipped'}, 'delivery');
+        store.pick('shippingmethod', 'last', {...rate, pick: 'last'}, 'delivery');
+        store.placeOrder();
+    });
+
+    await expect(page).toHaveURL(/checkout\/onepage\/success/, { timeout: 60_000 });
+    expect(calls.map((call) => call.replace(/ .*"pick":"(\w+)".*/, ' $1').replace(/ \{.*/, ''))).toEqual([
+        'shippingmethod first',
+        'shippingmethod last',
+        'placeorder',
+    ]);
+});
+
+test('a refused place order asks for nothing more; a lost answer asks for the state', async ({ page }) => {
+    await login(page);
+    await addProduct(page);
+    await openCheckout(page);
+    await chooseMethods(page);
+
+    const stateCalls = [];
+    page.on('request', (call) => {
+        if (call.url().includes('elme_checkout/action/state')) {
+            stateCalls.push(call.url());
+        }
+    });
+    const placeOrder = () => page.evaluate(() => Alpine.store('elmeCheckout').placeOrder());
+
+    await page.route('**/elme_checkout/action/placeorder', (route) => route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: false, message: 'Refused for the test.' }),
+    }));
+    await placeOrder();
+    await expect(page.locator('#elme-checkout-message')).toContainText('Refused for the test.');
+    expect(stateCalls).toHaveLength(0);
+
+    await page.unroute('**/elme_checkout/action/placeorder');
+    await page.route('**/elme_checkout/action/placeorder', (route) => route.abort());
+    await placeOrder();
+    await expect(page.locator('#elme-checkout-message')).toContainText('Something went wrong');
+    expect(stateCalls).toHaveLength(1);
+});
+
 test('a double click on Place order creates one order', async ({ page }) => {
     await login(page);
     await addProduct(page);

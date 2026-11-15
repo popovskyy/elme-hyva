@@ -225,6 +225,16 @@ class QuoteAddressesTest extends TestCase
         $this->assertSame(3, $this->billing->getCustomerAddressId());
     }
 
+    public function testPickingABillingAddressDoesNotAskTheCarriers(): void
+    {
+        $this->shipping->addData(['firstname' => 'Delivery', 'collect_shipping_rates' => 1]);
+        $this->addressBook->method('getAddress')->willReturn($this->saved(3));
+
+        $this->service()->selectBilling($this->quote, 3);
+
+        $this->assertFalse($this->shipping->getCollectShippingRates());
+    }
+
     public function testChangingDeliveryLeavesAPickedBillingAddressAlone(): void
     {
         $this->shipping->addData(['firstname' => 'Old', 'same_as_billing' => 0]);
@@ -263,6 +273,24 @@ class QuoteAddressesTest extends TestCase
         $this->assertSame(0, $this->shipping->getSaveInAddressBook());
         $this->assertSame('New', $this->shipping->getFirstname());
         $this->assertSame('AU', $this->shipping->getCountryId());
+    }
+
+    public function testNewAddressKeepsNothingOfTheSavedAddressItReplaces(): void
+    {
+        $this->shipping->addData([
+            'firstname' => 'Old',
+            'middlename' => 'Q',
+            'prefix' => 'Dr',
+            'suffix' => 'Jr',
+            'fax' => '02 9000 0000',
+            'vat_id' => '51824753556',
+        ]);
+
+        $this->service()->setNewShipping($this->quote, ['firstname' => 'New', 'street_1' => '9 Road'], false);
+
+        foreach (['middlename', 'prefix', 'suffix', 'fax', 'vat_id'] as $field) {
+            $this->assertNull($this->shipping->getData($field), $field);
+        }
     }
 
     public function testNewAddressNotSavedToTheBookHasNoLink(): void

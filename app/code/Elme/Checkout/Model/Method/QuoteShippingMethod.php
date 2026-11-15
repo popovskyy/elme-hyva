@@ -36,7 +36,9 @@ class QuoteShippingMethod
      * Brings the chosen method in line: one that is gone is cleared, a single rate is chosen for the customer, and a
      * new price is saved (the order takes the saved one). Pass $ratesFresh when this request already asked the
      * carriers (address change, delivery pick, or initialize); page load and the place-order validator leave it false
-     * so the carriers are asked. A carrier problem must not cost the customer the checkout page.
+     * so the carriers are asked. Rates that came back different are saved even when the method stays, so a later
+     * action that reuses the stored rates (payment, details, billing) lists what this request showed.
+     * A carrier problem must not cost the customer the checkout page.
      */
     public function refresh(Quote $quote, bool $ratesFresh = false): void
     {
@@ -52,22 +54,27 @@ class QuoteShippingMethod
             }
 
             $savedPrice = (float) $shipping->getBaseShippingAmount();
+            $ratesChanged = false;
             if (!$ratesFresh) {
+                $stored = $this->getPrices($quote);
                 $this->collectRates($quote);
+                $ratesChanged = $stored !== $this->getPrices($quote);
             }
             $rates = $this->getRates($quote);
+            $next = count($rates) === 1 ? $this->getCode($rates[0]) : '';
+            $priceChanged = false;
             foreach ($rates as $rate) {
                 if ($this->getCode($rate) === $current) {
-                    if (abs((float) $rate->getBaseAmount() - $savedPrice) > self::PRICE_PRECISION) {
-                        $this->write($quote, $shipping, $current);
-                    }
-                    return;
+                    $next = $current;
+                    $priceChanged = abs((float) $rate->getBaseAmount() - $savedPrice) > self::PRICE_PRECISION;
+                    break;
                 }
             }
 
-            $next = count($rates) === 1 ? $this->getCode($rates[0]) : '';
-            if ($next !== $current) {
+            if ($next !== $current || $priceChanged) {
                 $this->write($quote, $shipping, $next);
+            } elseif ($ratesChanged) {
+                $this->save($quote, $shipping);
             }
         } catch (Throwable $exception) {
             $this->logger->error(
@@ -179,9 +186,33 @@ class QuoteShippingMethod
             $assignment->getShipping()->setMethod($code);
         }
 
+        $quote->setTotalsCollectedFlag(false);
+        $this->save($quote, $shipping);
+    }
+
+    /**
+     * Saves the quote with the rates now on the address, without asking the carriers again.
+     */
+    private function save(Quote $quote, QuoteAddress $shipping): void
+    {
         $this->ratesFreshness->mark();
         $shipping->setCollectShippingRates(false);
-        $quote->setTotalsCollectedFlag(false)->collectTotals();
+        $quote->collectTotals();
         $this->cartRepository->save($quote);
+    }
+
+    /**
+     * @param Quote $quote
+     * @return array<string, string> rate code => base price
+     */
+    private function getPrices(Quote $quote): array
+    {
+        $prices = [];
+        foreach ($this->getRates($quote) as $rate) {
+            $prices[$this->getCode($rate)] = number_format((float) $rate->getBaseAmount(), 4, '.', '');
+        }
+        ksort($prices);
+
+        return $prices;
     }
 }

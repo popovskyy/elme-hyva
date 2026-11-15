@@ -5,9 +5,9 @@ declare(strict_types=1);
 // Test data for checkout e2e. Safe to re-run. Local only; global-setup.mjs runs it before the tests.
 //
 // Accounts (FE-79):
-// - e2e-checkout@example.com  — Roman's manual storefront account. Seed keeps it; never clears its cart.
-// - e2e-placeorder@example.com — place-order, carrier-calls, closed-apis. Cart cleared every run.
-// - e2e-qty@example.com        — qty-rules, heart, shopping-lists, quick-order-cart, header-counters
+// - e2e-checkout@example.com  - Roman's manual storefront account. Seed keeps it; never clears its cart.
+// - e2e-placeorder@example.com - place-order, carrier-calls, closed-apis. Cart cleared every run.
+// - e2e-qty@example.com        - qty-rules, heart, shopping-lists, quick-order-cart, header-counters
 //                                (seed-qty-rules.php).
 
 use Magento\Catalog\Api\ProductRepositoryInterface;
@@ -32,7 +32,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 const E2E_SKU = 'E2E-CHECKOUT';
 const E2E_PASSWORD = 'E2eCheckout!2026';
-/** Roman's manual test account — do not clear cart_list or deactivate the quote. */
+/** Roman's manual test account - do not clear cart_list or deactivate the quote. */
 const E2E_MANUAL_EMAIL = 'e2e-checkout@example.com';
 /** Specs that place orders or need a clean cart. */
 const E2E_PLACEORDER_EMAIL = 'e2e-placeorder@example.com';

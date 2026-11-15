@@ -158,8 +158,6 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
         return {
             dialogGroup: '',
             formOpen: false,
-            picks: {shipping: null, billing: null},
-            saving: {shipping: false, billing: false},
 
             store() {
                 return Alpine.store('elmeCheckout');
@@ -298,7 +296,8 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
                 return this.addresses();
             },
             checkedId(group) {
-                return this.picks[group] !== null ? this.picks[group] : this[group]().address_id;
+                const picked = this.store().pickedCode('address.' + group);
+                return picked !== undefined ? picked : this[group]().address_id;
             },
             isChecked() {
                 const group = this.$el.dataset.group;
@@ -310,30 +309,15 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
             },
             pick() {
                 const group = this.$el.dataset.group;
-                this.picks[group] = Number(this.$el.value);
-                // The own card has nothing to save: it is what the quote holds until another card is picked
-                if (this.picks[group] === 0) {
-                    this.picks[group] = null;
+                const key = 'address.' + group;
+                const addressId = Number(this.$el.value);
+                // The own card has nothing to save: it is what the quote holds until another card is saved
+                if (addressId === 0) {
+                    this.store().unpick(key);
                     return;
                 }
-                this.savePick(group);
-            },
-            async savePick(group) {
-                if (this.saving[group]) {
-                    return;
-                }
-                this.saving[group] = true;
-
                 const action = group === 'shipping' ? 'shippingaddress' : 'billingaddress';
-                let addressId;
-                let saved;
-                do {
-                    addressId = this.picks[group];
-                    saved = await this.store().call(action, {address_id: addressId}, 'address');
-                } while (saved && this.picks[group] !== addressId);
-
-                this.picks[group] = null;
-                this.saving[group] = false;
+                this.store().pick(action, addressId, {address_id: addressId}, 'address', key);
             },
             focusCheckedRadio(listRef) {
                 this.focusWhenShown(() => {

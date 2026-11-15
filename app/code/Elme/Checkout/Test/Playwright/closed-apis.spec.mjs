@@ -52,3 +52,18 @@ test('a logged-in customer cannot place an order past the checkout', async ({ pa
     expect(response.status()).toBeGreaterThanOrEqual(400);
     expect(await response.text()).not.toMatch(/^"?\d+"?$/);
 });
+
+test('core checkout/onepage/saveOrder places no order', async ({ page }) => {
+    await page.goto('/customer/account/login');
+    await page.locator('#email').fill(EMAIL);
+    await page.locator('#pass').fill(PASSWORD);
+    await page.getByRole('button', { name: 'Sign In', exact: true }).click();
+    await expect(page).not.toHaveURL(/customer\/account\/login/);
+
+    const formKey = await page.evaluate(() => hyva.getFormKey());
+    const response = await page.request.post('/checkout/onepage/saveOrder', {
+        form: { form_key: formKey, 'payment[method]': 'checkmo' },
+    });
+
+    expect(await response.text()).not.toContain('"success":true');
+});

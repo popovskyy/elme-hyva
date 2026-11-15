@@ -23,6 +23,9 @@ use Magento\Framework\Escaper;
             loading: {},
             queue: Promise.resolve(),
             picks: {},
+            pickSending: {},
+            pickRuns: {},
+            unanswered: false,
             sectionErrors: state.errors,
             fieldErrors: {},
             message: '',
@@ -60,8 +63,8 @@ use Magento\Framework\Escaper;
                 return Boolean(this.loading[code]);
             },
 
-            pickedCode(sectionCode) {
-                return this.picks[sectionCode]?.code;
+            pickedCode(key) {
+                return this.picks[key]?.code;
             },
 
             /**
@@ -104,30 +107,55 @@ use Magento\Framework\Escaper;
              * While one save runs only the latest pick is kept, so the last one always wins.
              *
              * @param {string} action
-             * @param {string} code what the list shows as checked until the save is done, see pickedCode()
+             * @param {string|number} code what the list shows as checked until the save is done, see pickedCode()
              * @param {Object} data
              * @param {string} sectionCode
+             * @param {string} key one per radio list; the section code unless the section has several lists
              */
-            async pick(action, code, data, sectionCode) {
-                const isSaving = Boolean(this.picks[sectionCode]);
-                this.picks[sectionCode] = {code, data};
-                if (isSaving) {
+            pick(action, code, data, sectionCode, key = sectionCode) {
+                if (this.placing) {
                     return;
                 }
+                const isSaving = Boolean(this.picks[key]);
+                this.picks[key] = {action, code, data};
+                if (!isSaving) {
+                    this.pickRuns[key] = this.savePicks(sectionCode, key);
+                }
+            },
 
+            /**
+             * Drops a pick that waits behind a running save; the running one stays.
+             */
+            unpick(key) {
+                if (this.pickSending[key]) {
+                    this.picks[key] = this.pickSending[key];
+                }
+            },
+
+            /**
+             * @returns {Promise<boolean>} false when the server refused the last pick it was sent
+             */
+            async savePicks(sectionCode, key) {
                 let current;
                 let saved;
                 do {
-                    current = this.picks[sectionCode];
-                    saved = await this.call(action, current.data, sectionCode);
-                } while (saved && this.picks[sectionCode] !== current);
+                    current = this.picks[key];
+                    this.pickSending[key] = current;
+                    // enqueue(), not call(): a pick made before Place order still has to reach the order, see placeOrder()
+                    saved = await this.enqueue(current.action, current.data, sectionCode);
+                } while (saved && this.picks[key] !== current);
 
-                delete this.picks[sectionCode];
+                delete this.picks[key];
+                delete this.pickSending[key];
+                delete this.pickRuns[key];
+
+                return saved;
             },
 
             /**
              * The flag goes up before anything else, so double clicks and Enter spam send one request. It stays up while
-             * the browser goes to the success page. Changes made just before still go first, through the queue of call().
+             * the browser goes to the success page. Changes made just before still go first: picks still being saved are
+             * waited for (a refused one stops the order), the rest goes through the queue of call().
              */
             async placeOrder() {
                 if (this.placing) {
@@ -135,12 +163,16 @@ use Magento\Framework\Escaper;
                 }
                 this.placing = true;
 
-                const checks = await Promise.all(this.beforePlaceOrderChecks.map((check) => check()));
+                const checks = await Promise.all([
+                    ...Object.values(this.pickRuns),
+                    ...this.beforePlaceOrderChecks.map((check) => check())
+                ]);
                 if (checks.every(Boolean)) {
                     const agreements = Object.keys(this.acceptedAgreements).filter((id) => this.acceptedAgreements[id]);
                     const placed = await this.call('placeorder', {agreements}, 'placeorder');
-                    // Answer lost after the order was created: state redirects to success when the session has it
-                    if (!placed && !this.leaving) {
+                    // Answer lost after the order was created: state redirects to success when the session has it.
+                    // A refusal the server did answer already carries the state.
+                    if (!placed && !this.leaving && this.unanswered) {
                         const message = this.message;
                         const fieldErrors = this.fieldErrors;
                         const sectionErrors = this.sectionErrors;
@@ -197,6 +229,7 @@ use Magento\Framework\Escaper;
                 this.fieldErrors = {};
                 this.message = '';
                 this.errorSection = '';
+                this.unanswered = false;
 
                 // Place order talks to payment / ERP and may sit longer than a section save
                 const timeoutMs = action === 'placeorder' ? 60000 : 20000;
@@ -236,6 +269,7 @@ use Magento\Framework\Escaper;
                         this.message = result.message;
                     }
                 } catch (error) {
+                    this.unanswered = true;
                     this.message = '<?= $escaper->escapeJs(__('Something went wrong. Please try again.')) ?>';
                 } finally {
                     window.clearTimeout(timer);

@@ -145,6 +145,28 @@ class QuoteShippingMethodTest extends TestCase
     }
 
     /**
+     * Payment, details and billing reuse the stored rates: they must list what this page load showed.
+     */
+    public function testRatesThatCameBackDifferentAreSavedWhileNothingIsChosen(): void
+    {
+        $rate = static fn (string $carrier, float $price): array => [$carrier => [new DataObject([
+            'carrier' => $carrier,
+            'method' => $carrier,
+            'error_message' => '',
+            'price' => $price,
+        ])]];
+        $stored = $rate('flatrate', 20.0) + $rate('freeshipping', 0.0);
+        $collected = $rate('flatrate', 35.0) + $rate('freeshipping', 0.0);
+        $this->shipping->method('getGroupedAllShippingRates')->willReturnOnConsecutiveCalls($stored, $collected, $collected);
+        $this->cartRepository->expects($this->once())->method('save');
+
+        $this->service()->refresh($this->quote);
+
+        $this->assertEmpty($this->shipping->getShippingMethod());
+        $this->assertFalse($this->shipping->getCollectShippingRates());
+    }
+
+    /**
      * Core's save handler applies the assignment's method over the address, whatever the address says.
      */
     public function testClearingAlsoClearsTheShippingAssignment(): void

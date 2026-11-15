@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Elme\Checkout\Controller\Action;
 
+use Elme\Checkout\Api\CheckoutManagementInterface;
 use Elme\Checkout\Api\Data\CheckoutStateInterface;
 use Elme\Checkout\Exception\CheckoutInputException;
+use Elme\Checkout\Model\PlacedOrderRecovery;
 use InvalidArgumentException;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Model\Session as CustomerSession;
@@ -43,7 +45,9 @@ abstract class AbstractAction implements HttpPostActionInterface, CsrfAwareActio
         protected readonly UrlInterface $urlBuilder,
         private readonly Json $json,
         private readonly LoggerInterface $logger,
-        private readonly FormKeyValidator $formKeyValidator
+        private readonly FormKeyValidator $formKeyValidator,
+        protected readonly CheckoutManagementInterface $checkoutManagement,
+        private readonly PlacedOrderRecovery $placedOrderRecovery
     ) {
     }
 
@@ -96,6 +100,17 @@ abstract class AbstractAction implements HttpPostActionInterface, CsrfAwareActio
     protected function resolveEmptyCart(): ?JsonResult
     {
         return null;
+    }
+
+    /**
+     * For resolveEmptyCart(): the cart is gone because it became an order and the session still holds that order
+     * (lost place-order answer, second click, pageshow), so the customer goes to the success page.
+     */
+    protected function redirectToPlacedOrder(): ?JsonResult
+    {
+        return $this->placedOrderRecovery->getSuccessUrl() !== null
+            ? $this->redirectTo('checkout/onepage/success')
+            : null;
     }
 
     /**

@@ -38,7 +38,7 @@ A section called `foo`:
 
 2. **Action**, if the customer can change something: add the method to `CheckoutManagementInterface`, then
    `Controller/Action/Foo.php` extends `AbstractAction`, and its `run(int $cartId)` reads `getPayload()` and calls the
-   service. See `State.php` for the constructor. Throw `Exception/CheckoutInputException` for bad input: it carries the
+   service through `$this->checkoutManagement` (no constructor needed). Throw `Exception/CheckoutInputException` for bad input: it carries the
    section code and the field errors to the store.
 
 3. **Template**: `templates/section/foo.phtml`, added to the `elme.checkout.sections` container in
@@ -122,7 +122,8 @@ Country is fixed to AU: `general/country/allow` in `etc/config.xml`, `QuoteAddre
 
 - **Every state checks the methods again** (`refresh()` in `buildState()`): a method that is gone is cleared, a single rate
   or method is chosen for the customer, and a new price of the chosen rate is saved. So an address or cart change needs
-  no code of its own. Nothing is saved when nothing changed.
+  no code of its own. Nothing is saved when nothing changed; rates that came back different are saved even when
+  the method stays, so actions that reuse the stored rates list what the page showed.
 - **One carrier request per action:** mutating actions build the state from the same quote they changed and pass a
   rates-fresh marker so `refresh()` reuses the rates already on the address. Page load asks the carriers once. Payment,
   details and billing do not ask. Core's quote `SaveHandler` would ask again through `ShippingAddressManagement::assign()`
@@ -171,6 +172,8 @@ Core's `QuoteManagement` sets the checkout session's last-order data, and `etc/f
 - **The checkout page is the only way to order:** the validators run in `CheckoutManagement`, so
   `Plugin/RefuseApiOrderPlugin` refuses `CartManagementInterface::placeOrder()` for customers and guests in REST, SOAP and
   GraphQL. Admin and integration tokens stay allowed. Guests have no access to these APIs at all, see `Elme_LoginOnly`.
+  `Plugin/RefuseOnepageOrderPlugin` closes core's `checkout/onepage/saveOrder`, which submits the session quote
+  directly. Multishipping is off (`multishipping/options/checkout_multiple`, `Elme_Theme`); keep it off.
 - **Errors:** a `CheckoutInputException` shows in its section, other exceptions in the message at the top. `showError()`
   in the store scrolls there and moves the focus to the first invalid field.
 - **Agreements** come from Magento (Stores > Terms and Conditions; Stores > Configuration > Sales > Checkout > Enable

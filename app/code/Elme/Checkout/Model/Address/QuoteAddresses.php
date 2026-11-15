@@ -32,8 +32,11 @@ class QuoteAddresses
      */
     private const FOLLOWED_FIELDS = [
         'customer_address_id',
+        'prefix',
         'firstname',
+        'middlename',
         'lastname',
+        'suffix',
         'company',
         'street',
         'city',
@@ -42,7 +45,15 @@ class QuoteAddresses
         'postcode',
         'country_id',
         'telephone',
+        'fax',
+        'vat_id',
     ];
+
+    /**
+     * What a saved address can carry and the checkout form does not ask for: cleared when the form is filled in, or
+     * the new address would keep them from the saved address the quote held before.
+     */
+    private const FIELDS_NOT_IN_FORM = ['prefix', 'middlename', 'suffix', 'fax', 'vat_id'];
 
     public function __construct(
         private readonly AddressBook $addressBook,
@@ -163,7 +174,10 @@ class QuoteAddresses
     public function selectBilling(Quote $quote, int $addressId): void
     {
         $this->importSaved($quote, $quote->getBillingAddress(), $this->getUsableSaved($quote, $addressId));
-        $quote->getShippingAddress()->setSameAsBilling(0);
+        $shipping = $quote->getShippingAddress();
+        $shipping->setSameAsBilling(0);
+        // A billing address does not change delivery rates; a leftover collect_shipping_rates must not ask the carriers
+        $shipping->setCollectShippingRates(false);
         $this->save($quote);
     }
 
@@ -224,14 +238,16 @@ class QuoteAddresses
             return !$wasFollowing;
         }
 
-        $before = $billing->getData();
+        $changed = !$wasFollowing;
         foreach (self::FOLLOWED_FIELDS as $field) {
-            $billing->setData($field, $shipping->getData($field));
+            if ($billing->getData($field) != $shipping->getData($field)) {
+                $billing->setData($field, $shipping->getData($field));
+                $changed = true;
+            }
         }
         $billing->setEmail($quote->getCustomerEmail())->setSaveInAddressBook(0);
 
-        return !$wasFollowing || array_intersect_key($before, array_flip(self::FOLLOWED_FIELDS))
-            != array_intersect_key($billing->getData(), array_flip(self::FOLLOWED_FIELDS));
+        return $changed;
     }
 
     /**
@@ -328,6 +344,9 @@ class QuoteAddresses
             ->setPostcode($this->text($fields, 'postcode'))
             ->setCountryId(self::COUNTRY_ID)
             ->setTelephone($this->text($fields, 'telephone'));
+        foreach (self::FIELDS_NOT_IN_FORM as $field) {
+            $address->setData($field, null);
+        }
     }
 
     /**

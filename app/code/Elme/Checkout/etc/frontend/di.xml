@@ -3,9 +3,12 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <type name="Magento\Checkout\Model\Type\Onepage">
         <plugin name="elme_checkout_keep_quote_addresses" type="Elme\Checkout\Plugin\KeepQuoteAddressesPlugin"/>
+        <!-- Core's checkout/onepage/saveOrder would place an order without the place-order validators -->
+        <plugin name="elme_checkout_refuse_onepage_order" type="Elme\Checkout\Plugin\RefuseOnepageOrderPlugin"/>
     </type>
     <type name="Magento\Checkout\Controller\Index\Index">
-        <plugin name="elme_checkout_redirect_to_success_when_order_placed"
+        <!-- After Elme_QuickOrder has rebuilt the quote from the cart (sortOrder 10): it must see the cart of today -->
+        <plugin name="elme_checkout_redirect_to_success_when_order_placed" sortOrder="20"
                 type="Elme\Checkout\Plugin\RedirectToSuccessWhenOrderPlacedPlugin"/>
     </type>
     <type name="Magento\Quote\Model\ShippingAddressManagementInterface">
