@@ -1,0 +1,94 @@
+<?php
+/**
+ * FE-111: one helper for "something flies to a header icon", shared by the shopping-list hearts (FE-78,
+ * Elme_QuickOrder::js/lists-store.phtml) and Add to Cart (elme/atc-button.phtml). Look: elme/motion-burst.css.
+ *
+ *   window.elmeFly(from, to, {content, className, onLand, timeout})
+ *       from = element or rect, to = rect (from elmeFly.target). Appends a decorative .elme-fly to body,
+ *       runs it along a curve (x and y on two nested boxes with different easing), removes it and calls onLand.
+ *       onLand also runs after `timeout` ms (default 1200) when the animation never ends (tab in the background).
+ *   window.elmeFly.target(el)   el's rect when it is visible on the screen, else null
+ *   window.elmeFly.burst(x, y, className)   ring + seven dots over that point (fixed, never clipped), removed after
+ *   window.elmeFly.reduced()    prefers-reduced-motion
+ *
+ * Plain JS, no Alpine (CSP-safe).
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<script>
+    (function () {
+        const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        function target(el) {
+            if (!el || !el.offsetParent) {
+                return null;
+            }
+            const rect = el.getBoundingClientRect();
+            return rect.width && rect.height && rect.bottom > 0 && rect.top < window.innerHeight
+                && rect.right > 0 && rect.left < window.innerWidth ? rect : null;
+        }
+
+        function fly(from, to, options) {
+            const opts = options || {};
+            const onLand = typeof opts.onLand === 'function' ? opts.onLand : () => {};
+            const box = from instanceof Element ? from.getBoundingClientRect() : from;
+            const x0 = box.left + box.width / 2;
+            const y0 = box.top + box.height / 2;
+            const flyer = document.createElement('div');
+            flyer.className = 'elme-fly' + (opts.className ? ' ' + opts.className : '');
+            flyer.setAttribute('aria-hidden', 'true');
+            flyer.style.left = x0 + 'px';
+            flyer.style.top = y0 + 'px';
+            flyer.style.setProperty('--dx', (to.left + to.width / 2 - x0) + 'px');
+            flyer.style.setProperty('--dy', (to.top + to.height / 2 - y0) + 'px');
+            const lane = document.createElement('div');
+            lane.className = 'elme-fly__y';
+            if (opts.content) {
+                lane.appendChild(opts.content);
+            }
+            flyer.appendChild(lane);
+            let landed = false;
+            const land = () => {
+                if (!landed) {
+                    landed = true;
+                    flyer.remove();
+                    onLand();
+                }
+            };
+            flyer.addEventListener('animationend', (event) => {
+                if (event.target === flyer) {
+                    land();
+                }
+            });
+            setTimeout(land, opts.timeout || 1200);
+            document.body.appendChild(flyer);
+        }
+
+        function burst(x, y, className) {
+            const layer = document.createElement('div');
+            layer.className = 'elme-burst' + (className ? ' ' + className : '');
+            layer.setAttribute('aria-hidden', 'true');
+            layer.style.left = x + 'px';
+            layer.style.top = y + 'px';
+            layer.innerHTML = '<span class="elme-burst__ring"></span><i></i><i></i><i></i><i></i><i></i><i></i><i></i>';
+            document.body.appendChild(layer);
+            // --transition-duration-slow + the 60ms dot delay, with room to spare
+            setTimeout(() => layer.remove(), 700);
+        }
+
+        fly.target = target;
+        fly.burst = burst;
+        fly.reduced = reduced;
+        window.elmeFly = fly;
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

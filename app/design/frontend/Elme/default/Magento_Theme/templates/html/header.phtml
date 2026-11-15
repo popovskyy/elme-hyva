@@ -46,7 +46,12 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
             cartLoaded: false,
             cartBumped: false,
             qoCount: 0,
-            qoBumped: false,
+            qoPrev: 0,
+            cartRolling: false,
+            cartSquashed: false,
+            cartFlights: 0,
+            qoPending: null,
+            cartTimer: null,
             listsCount: 0,
             listsPrev: 0,
             listsRolling: false,
@@ -278,22 +283,87 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
 
             applyQoCount(value) {
                 const count = parseInt(value, 10) || 0;
+                // FE-111: an added item is flying here; the number changes when it lands
+                if (this.cartFlights > 0) {
+                    this.qoPending = count;
+                    return;
+                }
                 const previous = this.qoCount;
-                const bumped = this.cartLoaded && count > previous;
-                this.qoCount = count;
-                // Added to cart while the row is hidden: bring it back, then bump the count once it is in view
-                if (this.cartLoaded && count !== previous && this.headerHidden) {
+                if (!this.cartLoaded || count === previous) {
+                    this.qoCount = count;
+                    this.cartLoaded = true;
+                    return;
+                }
+                // Changed while the row is hidden: bring it back, then animate the count once it is in view
+                if (this.headerHidden) {
                     this.setHidden(false);
                     const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 200;
-                    setTimeout(() => {
-                        this.cartBumped = bumped;
-                        this.qoBumped = bumped;
-                    }, delay);
-                } else {
-                    this.cartBumped = bumped;
-                    this.qoBumped = bumped;
+                    setTimeout(() => this.showQoCount(count, false), delay);
+                    return;
                 }
+                this.showQoCount(count, false);
+            },
+
+            // 0 -> n pops the badge in, n -> m rolls the number up; a landing also squashes the icon
+            showQoCount(count, squash) {
+                const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                 this.cartLoaded = true;
+                this.qoPrev = this.qoCount;
+                this.qoCount = count;
+                this.cartRolling = false;
+                this.cartBumped = false;
+                this.cartSquashed = false;
+                if (reduced) {
+                    return;
+                }
+                this.$nextTick(() => requestAnimationFrame(() => {
+                    this.cartBumped = this.qoPrev === 0 && count > 0;
+                    this.cartRolling = this.qoPrev > 0 && count > 0 && count !== this.qoPrev;
+                    this.cartSquashed = squash;
+                }));
+            },
+
+            // FE-111 (elme/atc-button.phtml): an item is on its way to the cart icon. Show the row, keep it
+            // shown while the item flies, and hold the count until it lands.
+            cartLanding() {
+                this.cartFlights++;
+                this.holdUntil = performance.now() + 1000;
+                this.setHidden(false);
+                clearTimeout(this.cartTimer);
+                // it never lands (tab in the background): count anyway
+                this.cartTimer = setTimeout(() => this.landCart(true), 1600);
+            },
+
+            landCart(timeout) {
+                this.cartFlights = timeout === true ? 0 : Math.max(0, this.cartFlights - 1);
+                if (this.cartFlights === 0) {
+                    clearTimeout(this.cartTimer);
+                    this.cartTimer = null;
+                }
+                const count = this.qoPending;
+                this.qoPending = null;
+                if (count !== null && count !== this.qoCount) {
+                    this.showQoCount(count, timeout !== true);
+                    return;
+                }
+                if (timeout !== true && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                    this.cartSquashed = false;
+                    this.$nextTick(() => requestAnimationFrame(() => {
+                        this.cartSquashed = true;
+                    }));
+                }
+            },
+
+            cartRollEnd() {
+                this.cartRolling = false;
+            },
+
+            cartSquashEnd() {
+                this.cartSquashed = false;
+            },
+
+            cartIconClass() {
+                return {'is-squashed': this.cartSquashed};
             },
 
             summaryCount() {
@@ -305,12 +375,11 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
             },
 
             cartBadgeClass() {
-                return {'is-bumped': this.cartBumped};
+                return {'is-bumped': this.cartBumped, 'is-rolling': this.cartRolling};
             },
 
             clearBump() {
                 this.cartBumped = false;
-                this.qoBumped = false;
             },
 
             countLabel(count) {
@@ -404,6 +473,8 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
      @elme-qo-count.window="setQoCount"
      @elme-lists.window="setListsCount"
      @elme-lists-landed.window="landLists"
+     @elme-cart-landing.window="cartLanding"
+     @elme-cart-landed.window="landCart"
      @keydown.escape.window="searchEscape"
      @keydown.window="searchShortcut"
 >
@@ -515,16 +586,22 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
                         :aria-label="cartAriaLabel"
                     >
                 <?php endif; ?>
-                        <span class="elme-header__icon" aria-hidden="true">
+                        <!-- FE-111: an added item lands here: the icon squashes, the number rolls up (0 -> 1 pops) -->
+                        <span class="elme-header__icon"
+                              aria-hidden="true"
+                              :class="cartIconClass"
+                              @animationend.self="cartSquashEnd">
                             <?= $lucideIcons->shoppingCartHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
                             <span
-                                class="elme-header__badge"
+                                class="elme-header__badge elme-header__badge--roll"
                                 :class="cartBadgeClass"
-                                x-text="summaryCount"
                                 x-show="hasSummaryCount"
                                 x-cloak
-                                @animationend="clearBump"
-                            ></span>
+                                @animationend.self="clearBump"
+                            >
+                                <span class="elme-header__roll-out" x-show="cartRolling" x-text="qoPrev"></span>
+                                <span class="elme-header__roll-in" x-text="summaryCount" @animationend="cartRollEnd"></span>
+                            </span>
                         </span>
                         <span class="elme-header__label"><?= $escaper->escapeHtml(__('Cart')) ?></span>
                 <?= $showMiniCart ? '</button>' : '</a>' ?>

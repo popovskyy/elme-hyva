@@ -2,7 +2,8 @@
 /**
  * FE-27: sticky add-to-cart after the buy box leaves the viewport. Logged-in only.
  * Visual repeat of name/price only (no headings, no itemprop). Button clicks the main ATC so qty
- * and FE-70 stay in one place. Compact stepper mirrors the buy-box qty.
+ * and FE-70 stay in one place. Compact stepper mirrors the buy-box qty. FE-111: the click names
+ * this button as the origin, so sending / Added, the burst and the flight play here.
  */
 
 declare(strict_types=1);
@@ -86,8 +87,10 @@ $imageUrl = $imageBlock ? (string) $imageBlock->getImageUrl() : '';
             <a href="#elme-pdp-section-delivery" class="elme-sticky-atc__jump" data-jump="elme-pdp-section-delivery"><?= $escaper->escapeHtml(__('Delivery')) ?></a>
         </nav>
 
+        <?php /* FE-111: btn-atc for the look only (type=button, no form): the main ATC plays its states here */ ?>
         <button type="button"
-                class="btn btn-primary elme-sticky-atc__btn"
+                class="btn btn-primary btn-atc elme-sticky-atc__btn"
+                x-ref="btn"
                 @click="submit"
                 :aria-label="ariaLabel"
         >

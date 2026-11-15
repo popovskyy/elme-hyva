@@ -143,13 +143,14 @@ for ($i = 1; $i <= 40; $i++) {
             <?php endforeach; ?>
             <div>
                 <p class="<?= /* @noEscape */ $captionClass ?>">
-                    <?= $escaper->escapeHtml(__('Add to Cart, live (.btn-atc): sending until the server answers, then "Added" for 1.5s')) ?>
+                    <?= $escaper->escapeHtml(__('Add to Cart, live (.btn-atc): a spinner on the icon until the server answers, then a burst, "Added" for 1.6s and the item flies to the header cart')) ?>
                 </p>
                 <?php if ($atcDemoProduct): ?>
                     <p class="max-w-2xl mb-4 text-ink-subtle">
                         <?= $escaper->escapeHtml(__(
-                            'The first two really add %1 to your cart (full and icon-only button). '
-                            . 'The third posts a product that does not exist, so the server refuses it: no "Added", an error toast.',
+                            'The first two really add %1 to your cart (full and icon-only button); with no product image '
+                            . 'here, a dot flies to the cart. The third posts a product that does not exist, so the server '
+                            . 'refuses it: the button shakes, no "Added", an error toast.',
                             $atcDemoProduct->getName()
                         )) ?>
                     </p>

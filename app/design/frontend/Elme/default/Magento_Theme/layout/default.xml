@@ -67,10 +67,12 @@
         <!-- FE-04: breadcrumbs live inside <main>, before the H1, on every layout; the skip link lands on the H1 -->
         <move element="breadcrumbs" destination="columns.top" before="-"/>
         <move element="skip_to_content.target" destination="columns.top" before="page.main.title"/>
-        <!-- FE-03: toast stack; FE-60: button ripple; FE-59: custom select; FE-70: animated AJAX add to cart -->
+        <!-- FE-03: toast stack; FE-60: button ripple; FE-59: custom select; FE-70: animated AJAX add to cart;
+             FE-111: window.elmeFly (hearts + add to cart fly to the header) -->
         <referenceContainer name="before.body.end">
             <block name="elme.toast-stack" template="Magento_Theme::elme/toast-stack.phtml"/>
             <block name="elme.btn-ripple" template="Magento_Theme::elme/btn-ripple.phtml"/>
+            <block name="elme.fly" template="Magento_Theme::elme/fly.phtml"/>
             <block name="elme.atc-button" template="Magento_Theme::elme/atc-button.phtml"/>
             <block name="elme.select.js" template="Magento_Theme::elme/select-js.phtml"/>
             <!-- FE-22: header search autocomplete component (used by both search-form.phtml instances) -->

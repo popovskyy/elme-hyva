@@ -1,17 +1,27 @@
 <?php
 /**
- * FE-70: animated Add to Cart button + AJAX add to cart.
+ * FE-70: AJAX add to cart; FE-111: its motion (look: elme/add-to-cart.css + elme/motion-burst.css).
  *
  * Opt in with the class `btn-atc` on a submit button of an add to cart form (PLP tile form, PDP
  * #product_addtocart_form via form="…"). One delegated submit listener, no Alpine, no per-button
  * handlers (CSP-safe, same pattern as btn-ripple.phtml).
  *
- * Flow: submit -> button goes to "sending" at once (aria-busy; cart slides to the centre, a dot drops
- * into it until the server answers, at least one full drop) -> POST with X-Requested-With, so
- * Magento's cart/add answers JSON -> read the "messages" section (cart/add puts its result there)
- * -> "success" (cart leaves right, check + "Added" comes in from the left, 2.2s) only when the
- * server confirmed it with its success message; otherwise back to idle and the error goes to the
- * toast stack.
+ * Flow: submit -> button goes to "sending" at once (aria-busy; the cart icon crossfades to a small
+ * spinner, the label stays) -> POST with X-Requested-With, so Magento's cart/add answers JSON -> read
+ * the "messages" section (cart/add puts its result there) -> "success" only when the server confirmed
+ * it with its success message: the check springs in with "Added" (1.6s), a ring + dots burst over it
+ * and, 140ms later, a round product thumbnail (a primary dot without an image) flies to the header
+ * cart (window.elmeFly, elme/fly.phtml). Otherwise the button shakes, goes back to idle and the error
+ * goes to the toast stack. Reduced motion: plain crossfades, no burst, no flight.
+ *
+ * Header (html/header.phtml): `elme-cart-landing` as soon as a flight is coming (the row slides back
+ * in and the new count waits), `elme-cart-landed` when it arrives (icon squash, number rolls). No
+ * flight (mobile menu or a dialog open, icon off-screen) = landed at once. The count itself always
+ * comes from the server (section quick_order).
+ *
+ * Another control may press the button for the customer (PDP sticky bar): it sets
+ * button.elmeAtcOrigin = itself around button.click(). The states then play on that control too, and
+ * the burst and the flight start from it.
  *
  * Requests run one after another, so quick clicks on many tiles never race on the quote and every
  * result belongs to the right button. Clicks are never blocked: the button just shows its place in
@@ -38,10 +48,9 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
 ?>
 <template id="elme-atc-stage">
     <span class="btn-atc__stage" aria-hidden="true">
-        <span class="btn-atc__cart"><?= $lucideIcons->shoppingCartHtml('', 24, 24) ?></span>
-        <span class="btn-atc__dot"></span>
+        <span class="btn-atc__spin elme-spinner"></span>
         <span class="btn-atc__done">
-            <?= $lucideIcons->checkHtml('', 24, 24) ?>
+            <span class="btn-atc__check"><?= $lucideIcons->checkHtml('', 24, 24) ?></span>
             <span class="btn-atc__done-label"><?= $escaper->escapeHtml(__('Added')) ?></span>
         </span>
     </span>
@@ -50,10 +59,17 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
 <script>
     (function () {
         const SELECTOR = '.btn-atc';
-        const HOLD_MS = 2200;
-        // at least --atc-slide + --atc-drop (elme/add-to-cart.css): a fast answer still shows the
-        // cart slide in and one dot drop before "Added"
-        const MIN_SENDING_MS = 1650;
+        const HOLD_MS = 1600;
+        // just enough that a fast answer does not flash the spinner
+        const MIN_SENDING_MS = 300;
+        // --transition-duration-slow: the error shake
+        const SHAKE_MS = 300;
+        // the item leaves while the burst plays (same as the heart)
+        const FLY_DELAY_MS = 140;
+        // the header row slides back in (--transition-duration-fast) before the cart icon is measured
+        const REVEAL_MS = 220;
+        const CART_ICON = '#menu-cart-icon .elme-header__icon';
+        const IMAGE = '.elme-card__media img, .elme-look-thumb img, .elme-sticky-atc__thumb';
         const TEXT = {
             added: '<?= $escaper->escapeJs(__('Added to cart')) ?>',
             failed: '<?= $escaper->escapeJs(__('We couldn\'t add this item to your cart. Please try again.')) ?>'
@@ -61,6 +77,7 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
 
         const queue = [];
         let running = false;
+        const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         function findButton(form, submitter) {
             if (submitter) {
@@ -86,32 +103,34 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
             }
         }
 
-        // Where the idle cart icon sits, so the stage cart starts there and slides to the centre;
-        // icon-only buttons (label hidden at this breakpoint) drop the "Added" text.
+        // Where the idle cart icon sits (from the button centre, unscaled: the press scale may still
+        // run), so the spinner and the check take its spot; icon-only buttons (label hidden at this
+        // breakpoint) drop the "Added" text.
         function measure(btn) {
             const rect = btn.getBoundingClientRect();
+            const scale = btn.offsetWidth ? rect.width / btn.offsetWidth : 1;
             const icon = btn.querySelector(':scope > svg');
             const label = btn.querySelector(':scope > span:not(.btn-atc__stage, .btn-ripple)');
-            const fromX = icon
-                ? (icon.getBoundingClientRect().left + icon.getBoundingClientRect().width / 2)
-                    - (rect.left + rect.width / 2)
-                : 0;
-            btn.style.setProperty('--atc-from-x', Math.round(fromX) + 'px');
-            btn.style.setProperty('--atc-exit-x', Math.round(rect.width / 2 + 24) + 'px');
             btn.toggleAttribute('data-atc-compact', !label || label.getClientRects().length === 0);
+            let iconX = 0;
+            let size = 0;
+            if (icon) {
+                const box = icon.getBoundingClientRect();
+                iconX = (box.left + box.width / 2 - (rect.left + rect.width / 2)) / scale;
+                size = box.width / scale;
+                btn.style.setProperty('--atc-icon-size', Math.round(size) + 'px');
+            }
+            btn.style.setProperty('--atc-icon-x', Math.round(iconX) + 'px');
+            // check + "Added" are centred in the stage: move them so the check sits on the icon
+            const done = btn.querySelector('.btn-atc__done');
+            const doneX = done ? iconX + (done.offsetWidth - size) / 2 : iconX;
+            btn.style.setProperty('--atc-done-x', Math.round(doneX) + 'px');
         }
 
         function setState(btn, state) {
             if (state === 'sending') {
                 ensureStage(btn);
-                // pressed again during "Added": the cart is out on the right, put it back on the idle
-                // icon without a slide, so it comes in from the left again
-                if (btn.dataset.atcState === 'success') {
-                    btn.dataset.atcState = 'idle';
-                }
                 measure(btn);
-                // apply the start position before the state switch so the slide animates
-                void btn.offsetWidth;
             }
             btn.dataset.atcState = state;
             if (state === 'sending') {
@@ -119,6 +138,87 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
             } else {
                 btn.removeAttribute('aria-busy');
             }
+        }
+
+        // the state now on every control of the job, back to idle after `ms` (each keeps its own timer)
+        function show(views, state, ms) {
+            views.forEach((view) => {
+                clearTimeout(view.atcTimer);
+                setState(view, state);
+                if (ms) {
+                    view.atcTimer = setTimeout(() => setState(view, 'idle'), ms);
+                }
+            });
+        }
+
+        // which burst colours read on the control right now: charcoal fill, sage hover fill, or light
+        function burstTone(el) {
+            const color = getComputedStyle(el).backgroundColor || '';
+            const parts = (color.match(/[\d.]+/g) || []).map(Number);
+            if (parts.length < 3 || parts[3] === 0) {
+                return '';
+            }
+            const unit = color.indexOf('color(') === 0 ? 1 : 255;
+            const lum = (0.2126 * parts[0] + 0.7152 * parts[1] + 0.0722 * parts[2]) / unit;
+            if (lum < 0.3) {
+                return 'elme-burst--on-dark';
+            }
+            return lum < 0.8 ? 'elme-burst--on-mid' : '';
+        }
+
+        function cartTarget() {
+            if (document.documentElement.classList.contains('elme-mobile-menu-open')
+                || document.querySelector('dialog[open]')) {
+                return null;
+            }
+            return window.elmeFly.target(document.querySelector(CART_ICON));
+        }
+
+        // a loaded image of this product next to the control (its URL is reused: no new request)
+        function sourceImage(origin) {
+            const selector = origin.getAttribute('data-atc-image');
+            const scope = origin.closest('.elme-card, .elme-look-card, .elme-sticky-atc');
+            const img = selector
+                ? document.querySelector(selector)
+                : (scope ? scope.querySelector(IMAGE) : null);
+            return img && img.complete && img.naturalWidth ? img : null;
+        }
+
+        function flyer(origin) {
+            const body = document.createElement('span');
+            body.className = 'elme-fly__body';
+            const img = sourceImage(origin);
+            if (img) {
+                const copy = document.createElement('img');
+                copy.src = img.currentSrc || img.src;
+                copy.alt = '';
+                copy.decoding = 'async';
+                body.appendChild(copy);
+            }
+            return {body: body, className: img ? 'elme-fly--thumb' : 'elme-fly--thumb elme-fly--dot'};
+        }
+
+        function landed() {
+            window.dispatchEvent(new CustomEvent('elme-cart-landed'));
+        }
+
+        // the burst on the check, then the item flies to the header cart
+        function celebrate(origin, headerWasHidden) {
+            const from = window.elmeFly.target(origin);
+            if (from) {
+                const check = origin.querySelector('.btn-atc__check');
+                const box = check ? check.getBoundingClientRect() : from;
+                window.elmeFly.burst(box.left + box.width / 2, box.top + box.height / 2, burstTone(origin));
+            }
+            setTimeout(() => {
+                const to = cartTarget();
+                if (!to || !origin.isConnected || !window.elmeFly.target(origin)) {
+                    landed();
+                    return;
+                }
+                const item = flyer(origin);
+                window.elmeFly(origin, to, {className: item.className, content: item.body, onLand: landed});
+            }, headerWasHidden ? Math.max(FLY_DELAY_MS, REVEAL_MS) : FLY_DELAY_MS);
         }
 
         function announce(text) {
@@ -202,23 +302,30 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
         }
 
         function finish(job, result) {
-            const btn = job.btn;
             const wait = Math.max(0, MIN_SENDING_MS - (Date.now() - job.startedAt));
+            const flies = result.ok && !result.redirect && !reduced() && Boolean(window.elmeFly);
+            let headerWasHidden = false;
+            if (flies) {
+                headerWasHidden = Boolean(document.querySelector('.page-header.is-hidden'));
+                // before run() reloads the sections: the header holds the new count until this lands
+                window.dispatchEvent(new CustomEvent('elme-cart-landing'));
+            }
             setTimeout(() => {
-                btn.atcPending = false;
+                job.btn.atcPending = false;
                 if (!result.ok) {
-                    setState(btn, 'idle');
+                    show(job.views, reduced() ? 'idle' : 'error', reduced() ? 0 : SHAKE_MS);
                     return;
                 }
-                setState(btn, 'success');
+                show(job.views, 'success', result.redirect ? 0 : HOLD_MS);
                 announce(TEXT.added);
                 // Admin "After adding a product redirect to Shopping Cart" = Yes
                 if (result.redirect) {
                     window.location.assign(result.redirect);
                     return;
                 }
-                clearTimeout(btn.atcTimer);
-                btn.atcTimer = setTimeout(() => setState(btn, 'idle'), HOLD_MS);
+                if (flies) {
+                    celebrate(job.origin, headerWasHidden);
+                }
             }, wait);
         }
 
@@ -244,15 +351,24 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
             if (!btn || !window.fetch || !window.FormData || !window.BASE_URL) {
                 return;
             }
+            const origin = btn.elmeAtcOrigin && btn.elmeAtcOrigin.isConnected ? btn.elmeAtcOrigin : btn;
+            btn.elmeAtcOrigin = null;
             event.preventDefault();
             if (btn.atcPending) {
                 return;
             }
             btn.atcPending = true;
-            clearTimeout(btn.atcTimer);
-            setState(btn, 'sending');
+            const views = origin === btn ? [btn] : [btn, origin];
+            show(views, 'sending', 0);
             // read the form now: qty or options changed later belong to the next click
-            queue.push({ btn: btn, url: form.action, body: new FormData(form), startedAt: Date.now() });
+            queue.push({
+                btn: btn,
+                origin: origin,
+                views: views,
+                url: form.action,
+                body: new FormData(form),
+                startedAt: Date.now()
+            });
             run();
         });
     })();

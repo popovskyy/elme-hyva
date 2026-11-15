@@ -417,7 +417,10 @@ $loginOnly = $viewModels->require(LoginOnly::class);
                 submit() {
                     const btn = document.getElementById('product-addtocart-button');
                     if (btn) {
+                        // FE-111: the submit runs inside click(); elme/atc-button.phtml plays the motion here
+                        btn.elmeAtcOrigin = this.$refs.btn || null;
                         btn.click();
+                        btn.elmeAtcOrigin = null;
                     }
                 },
 

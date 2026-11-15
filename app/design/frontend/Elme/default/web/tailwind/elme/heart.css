@@ -2,7 +2,8 @@
  * FE-78: the heart that saves a product to a shopping list (tile .elme-card__heart, PDP .elme-save), look 1 "Burst"
  * of docs/design/heart-save-options.html. window.elmeHearts (Elme_QuickOrder::js/lists-store.phtml) sets
  * .is-saved and plays .is-saving / .is-removing / .is-failing. Transform and opacity only; reduced motion keeps
- * the colour change and nothing else.
+ * the colour change and nothing else. The keyframes, the flyer (.elme-fly--heart) and the header landing (squash,
+ * badge roll) are shared with Add to Cart: motion-burst.css (FE-111).
  */
 @layer components {
     [data-elme-heart] {
@@ -118,148 +119,13 @@
         animation: elme-heart-shake var(--transition-duration-slow) var(--ease-out-quad);
     }
 
-    @keyframes elme-heart-pop {
-        0% {
-            transform: scale(.85);
-            animation-timing-function: var(--ease-out-quart);
-        }
-        45% {
-            transform: scale(1.2);
-            animation-timing-function: var(--ease-in-out-cubic);
-        }
-        100% {
-            transform: scale(1);
-        }
-    }
-
-    @keyframes elme-heart-ring {
-        from {
-            transform: scale(.35);
-            opacity: .9;
-        }
-        to {
-            transform: scale(1.45);
-            opacity: 0;
-        }
-    }
-
-    @keyframes elme-heart-dot {
-        0% {
-            transform: rotate(var(--a)) translateY(-6px) scale(1);
-            opacity: 1;
-        }
-        100% {
-            transform: rotate(var(--a)) translateY(-21px) scale(.2);
-            opacity: 0;
-        }
-    }
-
     @keyframes elme-heart-shrink {
         45% {
             transform: scale(.8);
         }
     }
 
-    @keyframes elme-heart-shake {
-        20% { transform: translateX(-3px); }
-        40% { transform: translateX(3px); }
-        60% { transform: translateX(-2px); }
-        80% { transform: translateX(2px); }
-    }
-
-    /* the small heart that flies to the header: x and y on two boxes with different easing make the curve */
-    .elme-heart-fly {
-        position: fixed;
-        z-index: 60;
-        pointer-events: none;
-        color: var(--color-primary);
-        animation: elme-heart-fly-x var(--transition-duration-long) var(--ease-in-out-cubic) forwards;
-
-        & svg {
-            display: block;
-            width: --spacing(4);
-            height: --spacing(4);
-            margin: --spacing(-2) 0 0 --spacing(-2);
-            opacity: 1;
-            animation: elme-heart-fly-s var(--transition-duration-long) var(--ease-in-out-cubic) forwards;
-        }
-
-        & path {
-            fill: currentColor;
-            stroke: none;
-        }
-    }
-
-    .elme-heart-fly__y {
-        animation: elme-heart-fly-y var(--transition-duration-long) var(--ease-out-quart) forwards;
-    }
-
-    @keyframes elme-heart-fly-x {
-        to { transform: translateX(var(--dx)); }
-    }
-
-    @keyframes elme-heart-fly-y {
-        to { transform: translateY(var(--dy)); }
-    }
-
-    @keyframes elme-heart-fly-s {
-        80% { opacity: 1; }
-        100% {
-            transform: scale(.6);
-            opacity: 0;
-        }
-    }
-
-    /* where the heart lands: the header lists icon squashes, its number rolls up */
-    .elme-header__icon.is-squashed {
-        animation: elme-heart-squash var(--transition-duration-slow) var(--ease-out-quart);
-    }
-
-    @keyframes elme-heart-squash {
-        30% { transform: scale(1.22, .8); }
-        60% { transform: scale(.92, 1.08); }
-    }
-
-    .elme-header__badge--roll {
-        overflow: hidden;
-
-        & span {
-            display: block;
-        }
-    }
-
-    .elme-header__badge--roll.is-rolling {
-        & .elme-header__roll-out {
-            position: absolute;
-            inset: 0;
-            animation: elme-badge-roll-out var(--transition-duration-base) var(--ease-out-quart) forwards;
-        }
-
-        & .elme-header__roll-in {
-            animation: elme-badge-roll-in var(--transition-duration-base) var(--ease-out-quart);
-        }
-    }
-
-    @keyframes elme-badge-roll-out {
-        to {
-            transform: translateY(-100%);
-            opacity: 0;
-        }
-    }
-
-    @keyframes elme-badge-roll-in {
-        from {
-            transform: translateY(100%);
-            opacity: 0;
-        }
-    }
-
     @media (prefers-reduced-motion: reduce) {
-        .elme-header__icon.is-squashed,
-        .elme-header__badge--roll.is-rolling span {
-            animation: none;
-        }
-
         .elme-heart__icon,
         [data-elme-heart]:active .elme-heart__icon {
             transform: none;
@@ -269,10 +135,6 @@
         [data-elme-heart] .elme-heart__ring,
         [data-elme-heart] .elme-heart__dots i {
             animation: none !important;
-        }
-
-        .elme-heart-fly {
-            display: none;
         }
     }
 }
