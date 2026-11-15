@@ -7,7 +7,8 @@ const EMAIL = 'e2e-qty@example.com';
 const PASSWORD = 'E2eCheckout!2026';
 const SKU = 'E2E-NO-MOQ';
 const LIST = 'E2E Counters';
-const PLP = '/flowers-plants.html';
+// Any category of the local catalog that lists products
+const PLP = process.env.E2E_PLP || '/furniture.html';
 
 const magento = (...args) => execFileSync(
     'docker',
@@ -31,7 +32,12 @@ async function login(page) {
     await expect(page).not.toHaveURL(/customer\/account\/login/);
 }
 
-const formKey = async (page) => (await page.context().cookies()).find((cookie) => cookie.name === 'form_key').value;
+// From the page, not the cookie jar: login deletes the form_key cookie and hyva.getFormKey() makes a new one only
+// when something on the next page asks for it
+const formKey = async (page) => {
+    await page.waitForLoadState('load');
+    return page.evaluate(() => hyva.getFormKey());
+};
 
 const post = async (page, path, data) => (await page.request.post(path, {
     data: { form_key: await formKey(page), ...data },
@@ -242,6 +248,10 @@ for (const fullPageOn of [true, false]) {
             magento(fullPageOn ? 'cache:enable' : 'cache:disable', 'full_page');
             magento('cache:flush', 'full_page');
             banVarnish();
+        });
+        // Leave the page cache on for whatever runs next, also when the matrix fails
+        test.afterAll(() => {
+            magento('cache:enable', 'full_page');
         });
 
         test(`header counters matrix (${fullPageOn ? 'Varnish/FPC on' : 'FPC off'})`, async ({ page, browser }) => {

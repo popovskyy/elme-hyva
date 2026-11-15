@@ -10,6 +10,7 @@ declare(strict_types=1);
 // - e2e-qty@example.com        - qty-rules, heart, shopping-lists, quick-order-cart, header-counters
 //                                (seed-qty-rules.php).
 
+use Elme\MinimumOrder\Model\MinimumOrderValue;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Catalog\Model\Product\Visibility;
@@ -32,6 +33,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 const E2E_SKU = 'E2E-CHECKOUT';
 const E2E_PASSWORD = 'E2eCheckout!2026';
+const E2E_MINIMUM_ORDER = 50.0;
 /** Roman's manual test account - do not clear cart_list or deactivate the quote. */
 const E2E_MANUAL_EMAIL = 'e2e-checkout@example.com';
 /** Specs that place orders or need a clean cart. */
@@ -109,6 +111,13 @@ $ensureCustomer = static function (
             ->setIsDefaultShipping(true)->setIsDefaultBilling(true);
         $addressRepository->save($address);
         $customer = $customers->get($email, $websiteId);
+    }
+
+    // One E2E product ($100) must be enough to order: the store default minimum is $500 (Elme_MinimumOrder)
+    $minimum = $customer->getCustomAttribute(MinimumOrderValue::ATTRIBUTE_CODE)?->getValue();
+    if ($minimum === null || (float) $minimum !== E2E_MINIMUM_ORDER) {
+        $customer->setCustomAttribute(MinimumOrderValue::ATTRIBUTE_CODE, E2E_MINIMUM_ORDER);
+        $customer = $customers->save($customer);
     }
 
     return $customer;

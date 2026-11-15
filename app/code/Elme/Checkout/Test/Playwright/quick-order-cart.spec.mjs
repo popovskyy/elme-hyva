@@ -20,7 +20,12 @@ async function login(page) {
     await expect(page).not.toHaveURL(/customer\/account\/login/);
 }
 
-const formKey = async (page) => (await page.context().cookies()).find((cookie) => cookie.name === 'form_key').value;
+// From the page, not the cookie jar: login deletes the form_key cookie and hyva.getFormKey() makes a new one only
+// when something on the next page asks for it
+const formKey = async (page) => {
+    await page.waitForLoadState('load');
+    return page.evaluate(() => hyva.getFormKey());
+};
 
 const productId = async (page, sku) => {
     await page.goto(`/${sku.toLowerCase()}.html`);

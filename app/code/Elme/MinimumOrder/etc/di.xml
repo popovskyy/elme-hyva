@@ -8,4 +8,9 @@
             </argument>
         </arguments>
     </type>
+    <!-- Core's own check (before /checkout opens) answers with the customer's minimum too -->
+    <type name="Magento\Quote\Model\Quote">
+        <plugin name="elme_minimum_order_use_customer_minimum"
+                type="Elme\MinimumOrder\Plugin\UseCustomerMinimumPlugin"/>
+    </type>
 </config>

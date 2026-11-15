@@ -14,9 +14,22 @@ async function login(page) {
     await expect(page).not.toHaveURL(/customer\/account\/login/);
 }
 
+// Starts from an empty cart: a test that stops before the order (or fails) leaves its row for the next one, and
+// a second add still in flight when /checkout opens makes the cart differ from the quote
 async function addProduct(page) {
     await page.goto(PRODUCT_URL);
+    // From the page, not the cookie jar: login deletes the cookie and hyva.getFormKey() makes a new one on demand
+    const formKey = await page.evaluate(() => hyva.getFormKey());
+    await page.request.post('/quick-order/cart/save', {
+        data: { form_key: formKey, mode: 'replace', items: [] },
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    });
+
+    const added = page.waitForResponse(
+        (answer) => answer.url().includes('/checkout/cart/add') && answer.request().method() === 'POST',
+    );
     await page.locator('#product-addtocart-button').click();
+    await added;
     await expect(page.locator('#menu-cart-icon')).toContainText('1', { timeout: 15_000 });
 }
 
@@ -88,6 +101,14 @@ async function findEmailHtml(request, number) {
 
 const detailsSaved = (page) => page.waitForResponse((answer) => answer.url().includes('elme_checkout/action/details'));
 const instructionsField = (page) => page.locator('#elme-checkout-instructions');
+// The field sits behind "Add delivery instructions" until there is something in it
+async function openInstructions(page) {
+    const toggle = page.locator('.elme-checkout-details__toggle');
+    if (await toggle.isVisible()) {
+        await toggle.click();
+    }
+    await expect(instructionsField(page)).toBeVisible();
+}
 const placeOrderButton = (page) => page.locator('[data-checkout-section="agreements"] [data-place-order]');
 
 test('order details are kept, checked, and reach My Orders and the email', async ({ page, request }) => {
@@ -97,6 +118,7 @@ test('order details are kept, checked, and reach My Orders and the email', async
     await chooseMethods(page);
     await expect(page.locator('#elme-checkout-reference')).toHaveCount(0);
 
+    await openInstructions(page);
     const saved = detailsSaved(page);
     await instructionsField(page).fill('  <b>Front door</b>\nRing twice  ');
     await instructionsField(page).blur();
@@ -151,6 +173,7 @@ test('the last change goes with the order, even with the focus still in the fiel
     await openCheckout(page);
     await chooseMethods(page);
 
+    await openInstructions(page);
     await instructionsField(page).fill(instructions);
     await placeOrderButton(page).dispatchEvent('click');
 
@@ -170,6 +193,7 @@ test('a long link in the instructions wraps in My Orders, the email and admin', 
     await addProduct(page);
     await openCheckout(page);
     await chooseMethods(page);
+    await openInstructions(page);
     await instructionsField(page).fill(link);
     await placeOrderButton(page).click();
     await expect(page).toHaveURL(/checkout\/onepage\/success/, { timeout: 60_000 });

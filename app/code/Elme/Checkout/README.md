@@ -212,7 +212,9 @@ bin/clinotty bash -c "vendor/bin/phpunit -c dev/tests/unit/phpunit.xml.dist app/
 ```
 
 End to end, on the host, against the local site (login, add a product, saved address, place order, success page, My
-Orders, email in Mailpit; double click). It creates a test customer and product and places real local orders:
+Orders, email in Mailpit; double click). It creates a test customer and product and places real local orders. The
+seed gives the test customers a minimum order value of their own ($50), so one $100 test product can be ordered
+whatever the store default is:
 
 ```
 cd app/code/Elme/Checkout/Test/Playwright

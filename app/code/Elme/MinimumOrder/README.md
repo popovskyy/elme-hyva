@@ -38,6 +38,11 @@ Customer section data `minimum_order` returns the same keys for the logged-in qu
 minimum it throws `CheckoutInputException` with `Add %1 more to place your order.` using the remaining
 amount. Magento's own address minimum check is not the Elme place-order path; this validator is.
 
+Core still asks `Quote::validateMinimumAmount()` before it opens `/checkout` (and in a few other places), and on its
+own it only knows the store default. `Plugin\UseCustomerMinimumPlugin` answers with the customer's status from
+`MinimumOrderValue`, so a customer whose own minimum is below the store default reaches the checkout, and one whose
+minimum is above it is stopped at the same amount everywhere.
+
 ## Tests
 
 ```

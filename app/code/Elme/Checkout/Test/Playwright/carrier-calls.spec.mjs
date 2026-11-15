@@ -184,7 +184,9 @@ test('a delivery price that changed before Place order refuses the order once', 
     try {
         const before = calls().length;
         await placeOrderButton(page).click();
-        await expect(deliverySection(page).locator('[role="alert"]')).toContainText('Your delivery options have changed');
+        // The first request after configure() also rebuilds the config cache it cleaned: 6 s and more in developer mode
+        await expect(deliverySection(page).locator('[role="alert"]'))
+            .toContainText('Your delivery options have changed', { timeout: 20_000 });
         await expect(page).toHaveURL(/\/checkout/);
         await expect(deliverySection(page)).toContainText('$15.00');
         await expect(counted).toBeChecked();

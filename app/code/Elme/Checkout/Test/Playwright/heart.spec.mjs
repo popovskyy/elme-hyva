@@ -7,7 +7,8 @@ const EMAIL = 'e2e-qty@example.com';
 const PASSWORD = 'E2eCheckout!2026';
 const LIST = 'E2E Showroom';
 const OTHER = 'E2E Warehouse';
-const PLP = '/flowers-plants.html';
+// Any category of the local catalog that lists products
+const PLP = process.env.E2E_PLP || '/furniture.html';
 const SAVE_URL = /\/quick-order\/list\/save/;
 
 async function login(page) {

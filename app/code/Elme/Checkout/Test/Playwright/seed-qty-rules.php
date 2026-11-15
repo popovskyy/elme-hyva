@@ -5,6 +5,7 @@ declare(strict_types=1);
 // Test data of qty-rules.spec.mjs, run by seed.php: a product with MOQ 6, one without, one that gets its MOQ during a
 // test, and their own customer with an empty cart, so these tests leave the checkout tests alone. Safe to re-run.
 
+use Elme\MinimumOrder\Model\MinimumOrderValue;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\Catalog\Model\ProductFactory;
@@ -52,6 +53,12 @@ try {
     $qtyCustomer = $om->get(CustomerInterfaceFactory::class)->create();
     $qtyCustomer->setWebsiteId($websiteId)->setStoreId(1)->setEmail($qtyEmail)->setFirstname('E2E')->setLastname('Qty');
     $qtyCustomer = $om->get(AccountManagementInterface::class)->createAccount($qtyCustomer, E2E_PASSWORD);
+}
+
+// As in seed.php: the store default minimum ($500) must not stand between a test cart and /checkout
+if ((float) $qtyCustomer->getCustomAttribute(MinimumOrderValue::ATTRIBUTE_CODE)?->getValue() !== E2E_MINIMUM_ORDER) {
+    $qtyCustomer->setCustomAttribute(MinimumOrderValue::ATTRIBUTE_CODE, E2E_MINIMUM_ORDER);
+    $qtyCustomer = $customers->save($qtyCustomer);
 }
 
 if (!$qtyCustomer->getAddresses()) {

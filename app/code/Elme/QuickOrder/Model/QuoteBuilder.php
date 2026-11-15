@@ -55,6 +55,11 @@ class QuoteBuilder
             }
         }
 
+        // A customer without an open quote (first checkout, or the one after an order) gets a new one, and a new quote
+        // has no addresses yet. Totals are collected per address, so without them the quote would be saved with a
+        // subtotal of 0 and the minimum order check would send the customer back to the cart.
+        $quote->getBillingAddress();
+        $quote->getShippingAddress();
         $quote->collectTotals();
         // Stock and qty checks that only run with the quote (e.g. stock reserved since the cart was read)
         $removed = false;
