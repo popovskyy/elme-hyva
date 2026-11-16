@@ -181,13 +181,15 @@
         "out-quart": "cubic-bezier(.165, .84, .44, 1)",
         "out-quint": "cubic-bezier(.23, 1, .32, 1)",
         "in-out-cubic": "cubic-bezier(.645, .045, .355, 1)",
-        "in-quart": "cubic-bezier(.895, .03, .685, .22)"
+        "in-quart": "cubic-bezier(.895, .03, .685, .22)",
+        "soft": "cubic-bezier(.4, 0, .2, 1)"
       },
       "transition-duration": {
         "micro": "120ms",
         "fast": "180ms",
         "base": "240ms",
         "slow": "300ms",
+        "calm": "450ms",
         "long": "600ms"
       }
     }
