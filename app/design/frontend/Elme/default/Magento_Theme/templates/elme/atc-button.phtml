@@ -1,6 +1,6 @@
 <?php
 /**
- * FE-70: AJAX add to cart; FE-111: its motion (look: elme/add-to-cart.css + elme/motion-burst.css).
+ * FE-70: AJAX add to cart; FE-111: its motion (look: elme/add-to-cart.css, flyer: elme/motion-burst.css).
  *
  * Opt in with the class `btn-atc` on a submit button of an add to cart form (PLP tile form, PDP
  * #product_addtocart_form via form="…"). One delegated submit listener, no Alpine, no per-button
@@ -9,10 +9,10 @@
  * Flow: submit -> button goes to "sending" at once (aria-busy; the cart icon crossfades to a small
  * spinner, the label stays) -> POST with X-Requested-With, so Magento's cart/add answers JSON -> read
  * the "messages" section (cart/add puts its result there) -> "success" only when the server confirmed
- * it with its success message: the check springs in with "Added" (1.6s), a ring + dots burst over it
- * and, 140ms later, a round product thumbnail (a primary dot without an image) flies to the header
- * cart (window.elmeFly, elme/fly.phtml). Otherwise the button shakes, goes back to idle and the error
- * goes to the toast stack. Reduced motion: plain crossfades, no burst, no flight.
+ * it with its success message: the button fills olive, a check draws itself with "Added" (1.6s) and,
+ * 140ms later, a round product thumbnail (a primary dot without an image) flies to the header cart
+ * (window.elmeFly, elme/fly.phtml). Otherwise the button shakes, goes back to idle and the error goes
+ * to the toast stack. Reduced motion: plain crossfades, no sweep, no flight.
  *
  * Header (html/header.phtml): `elme-cart-landing` as soon as a flight is coming (the row slides back
  * in and the new count waits), `elme-cart-landed` when it arrives (icon squash, number rolls). No
@@ -21,7 +21,7 @@
  *
  * Another control may press the button for the customer (PDP sticky bar): it sets
  * button.elmeAtcOrigin = itself around button.click(). The states then play on that control too, and
- * the burst and the flight start from it.
+ * the flight starts from it.
  *
  * Requests run one after another, so quick clicks on many tiles never race on the quote and every
  * result belongs to the right button. Clicks are never blocked: the button just shows its place in
@@ -48,6 +48,7 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
 ?>
 <template id="elme-atc-stage">
     <span class="btn-atc__stage" aria-hidden="true">
+        <span class="btn-atc__fill"></span>
         <span class="btn-atc__spin elme-spinner"></span>
         <span class="btn-atc__done">
             <span class="btn-atc__check"><?= $lucideIcons->checkHtml('', 24, 24) ?></span>
@@ -64,7 +65,7 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
         const MIN_SENDING_MS = 300;
         // --transition-duration-slow: the error shake
         const SHAKE_MS = 300;
-        // the item leaves while the burst plays (same as the heart)
+        // the item leaves while the olive fill sweeps (same timing as the heart)
         const FLY_DELAY_MS = 140;
         // the header row slides back in (--transition-duration-fast) before the cart icon is measured
         const REVEAL_MS = 220;
@@ -151,21 +152,6 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
             });
         }
 
-        // which burst colours read on the control right now: charcoal fill, sage hover fill, or light
-        function burstTone(el) {
-            const color = getComputedStyle(el).backgroundColor || '';
-            const parts = (color.match(/[\d.]+/g) || []).map(Number);
-            if (parts.length < 3 || parts[3] === 0) {
-                return '';
-            }
-            const unit = color.indexOf('color(') === 0 ? 1 : 255;
-            const lum = (0.2126 * parts[0] + 0.7152 * parts[1] + 0.0722 * parts[2]) / unit;
-            if (lum < 0.3) {
-                return 'elme-burst--on-dark';
-            }
-            return lum < 0.8 ? 'elme-burst--on-mid' : '';
-        }
-
         function cartTarget() {
             if (document.documentElement.classList.contains('elme-mobile-menu-open')
                 || document.querySelector('dialog[open]')) {
@@ -202,14 +188,8 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
             window.dispatchEvent(new CustomEvent('elme-cart-landed'));
         }
 
-        // the burst on the check, then the item flies to the header cart
+        // while the button fills olive, the item flies to the header cart
         function celebrate(origin, headerWasHidden) {
-            const from = window.elmeFly.target(origin);
-            if (from) {
-                const check = origin.querySelector('.btn-atc__check');
-                const box = check ? check.getBoundingClientRect() : from;
-                window.elmeFly.burst(box.left + box.width / 2, box.top + box.height / 2, burstTone(origin));
-            }
             setTimeout(() => {
                 const to = cartTarget();
                 if (!to || !origin.isConnected || !window.elmeFly.target(origin)) {

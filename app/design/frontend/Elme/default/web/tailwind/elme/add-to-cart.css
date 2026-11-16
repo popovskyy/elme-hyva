@@ -5,13 +5,14 @@
  * - press: scale .97 (micro);
  * - sending: the cart icon crossfades to a small spinner in the same spot, the label stays readable (aria-busy;
  *   components/button.css leaves its own spinner off .btn-atc);
- * - success: check + "Added" crossfade in where icon + label were, the check springs 0.85 > 1.2 > 1. The ring and the
- *   dots are a separate layer over the page (.elme-burst, motion-burst.css), so the button keeps its overflow and
- *   no card clips them. Compact buttons (label hidden at this width, data-atc-compact) show the check only;
+ * - success ("olive fill", Roman's pick): the button fills olive from left to right, the old icon + label leave
+ *   first (quick, a little up), then a check draws itself where the icon was, settles 0.85 > 1, and "Added" comes
+ *   in from below. White on olive. Compact buttons (label hidden at this width, data-atc-compact) show the check
+ *   only. After the hold the olive fades back to charcoal. Everything stays inside the button: nothing to clip;
  * - error: the button shakes, then idle.
  * The idle icon + label stay in the flow (only faded), so the button never changes size; the stage is an overlay.
- * --atc-icon-x / --atc-icon-size / --atc-done-x come from the script (where the idle icon sits). Transform and opacity
- * only.
+ * --atc-icon-x / --atc-icon-size / --atc-done-x come from the script (where the idle icon sits). Transform and
+ * opacity, plus the check's stroke-dashoffset (paint only, a 20px icon).
  */
 .btn-atc {
     transition:
@@ -23,14 +24,26 @@
 
     /* idle content: icon + label */
     & > :not(.btn-atc__stage, .btn-ripple) {
-        transition: opacity var(--transition-duration-base) var(--ease-out-quad);
+        transition:
+            opacity var(--transition-duration-base) var(--ease-out-quad),
+            translate var(--transition-duration-base) var(--ease-out-quart);
     }
 
     /* sending: only the icon gives way to the spinner */
-    &[data-atc-state="sending"] > svg,
-    &[data-atc-state="success"] > :not(.btn-atc__stage, .btn-ripple) {
+    &[data-atc-state="sending"] > svg {
         opacity: 0;
         transition-duration: var(--transition-duration-fast);
+    }
+
+    /* success: the old content leaves first, so the two labels never sit on top of each other */
+    &[data-atc-state="success"] {
+        border-color: var(--color-olive);
+
+        & > :not(.btn-atc__stage, .btn-ripple) {
+            opacity: 0;
+            translate: 0 --spacing(-1);
+            transition-duration: var(--transition-duration-micro);
+        }
     }
 
     &[data-atc-state="error"] {
@@ -48,6 +61,31 @@
 
     & > * {
         grid-area: 1 / 1;
+    }
+
+    /* over the fill */
+    & > :not(.btn-atc__fill) {
+        position: relative;
+    }
+}
+
+/* --- success: the olive fill ----------------------------------------------------------------------------------- */
+.btn-atc__fill {
+    position: absolute;
+    inset: 0;
+    background: var(--color-olive);
+    transform: scaleX(0);
+    transform-origin: left;
+    opacity: 0;
+    /* back to idle: the olive fades, then its width resets unseen */
+    transition:
+        opacity var(--transition-duration-base) var(--ease-out-quad),
+        transform 0s linear var(--transition-duration-base);
+
+    [data-atc-state="success"] & {
+        opacity: 1;
+        transform: scaleX(1);
+        transition: transform var(--transition-duration-long) var(--ease-out-quint);
     }
 }
 
@@ -75,17 +113,24 @@
     align-items: center;
     gap: --spacing(1.5);
     white-space: nowrap;
+    color: var(--color-on-primary);
     translate: var(--atc-done-x, 0) 0;
     opacity: 0;
     transition: opacity var(--transition-duration-base) var(--ease-out-quad);
 
     [data-atc-state="success"] & {
         opacity: 1;
-        transition-duration: var(--transition-duration-fast);
+        transition: opacity var(--transition-duration-fast) var(--ease-out-quad) calc(var(--transition-duration-micro) / 2);
     }
 
     [data-atc-compact] & .btn-atc__done-label {
         display: none;
+    }
+}
+
+.btn-atc__done-label {
+    [data-atc-state="success"] & {
+        animation: elme-atc-label-in var(--transition-duration-base) var(--ease-out-quart) calc(var(--transition-duration-micro) / 2) backwards;
     }
 }
 
@@ -97,16 +142,56 @@
         height: var(--atc-icon-size, --spacing(5));
     }
 
+    /* the check path is ~23 long: one dash + a gap longer than the path, so nothing shows before it draws */
+    & path {
+        stroke-dasharray: 24 26;
+    }
+
     [data-atc-state="success"] & {
-        animation: elme-heart-pop var(--transition-duration-slow);
+        animation: elme-atc-settle var(--transition-duration-slow) var(--ease-out-quart) calc(var(--transition-duration-micro) / 2) backwards;
+    }
+
+    [data-atc-state="success"] & path {
+        animation: elme-atc-draw var(--transition-duration-slow) var(--ease-out-quart) calc(var(--transition-duration-micro) / 2) backwards;
+    }
+}
+
+@keyframes elme-atc-label-in {
+    from {
+        opacity: 0;
+        translate: 0 --spacing(1);
+    }
+}
+
+@keyframes elme-atc-settle {
+    from {
+        transform: scale(.85);
+    }
+}
+
+@keyframes elme-atc-draw {
+    from {
+        stroke-dashoffset: 25;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    /* plain crossfades: spinner > check > idle */
+    /* plain crossfades: spinner > check > idle, the olive fades in instead of sweeping */
     .btn-atc[data-atc-state="error"],
-    [data-atc-state="success"] .btn-atc__check {
+    [data-atc-state="success"] .btn-atc__check,
+    [data-atc-state="success"] .btn-atc__check path,
+    [data-atc-state="success"] .btn-atc__done-label {
         animation: none;
+    }
+
+    .btn-atc[data-atc-state="success"] > :not(.btn-atc__stage, .btn-ripple) {
+        translate: none;
+    }
+
+    .btn-atc__fill,
+    [data-atc-state="success"] .btn-atc__fill {
+        transform: none;
+        transition: opacity var(--transition-duration-base) var(--ease-out-quad);
     }
 
     [data-atc-state="sending"] .btn-atc__spin {

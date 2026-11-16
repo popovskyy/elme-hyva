@@ -1,11 +1,10 @@
 /**
  * FE-111: motion shared by the shopping-list heart (FE-78, heart.css) and Add to Cart (add-to-cart.css):
- * - the save burst: pop (spring 0.85 > 1.2 > 1), ring, seven dots, shake for an error;
+ * - the heart's save burst keyframes: pop (spring 0.85 > 1.2 > 1), ring, seven dots; shake for an error (heart and
+ *   Add to Cart);
  * - .elme-fly: what travels to a header icon (window.elmeFly, Magento_Theme::elme/fly.phtml). x and y run on two
  *   nested boxes with different easing, which makes the curve. --heart = the small filled heart (lists),
  *   --thumb = a round product thumbnail or a primary dot (cart);
- * - .elme-burst: a ring + dots layer fixed over a point of the page (window.elmeFly.burst), so no button or card
- *   overflow clips it and nothing in the layout moves;
  * - the landing: the header icon squashes, its number rolls up.
  * Transform and opacity only. Reduced motion: none of it plays (the scripts skip it, these rules are the guard).
  */
@@ -132,7 +131,10 @@
     }
 
     @keyframes elme-fly-pop {
-        from { scale: 0; }
+        from {
+            scale: .5;
+            opacity: 0;
+        }
     }
 
     @keyframes elme-fly-thumb {
@@ -144,68 +146,6 @@
             transform: scale(.5);
             opacity: 0;
         }
-    }
-
-    /* --- burst layer ------------------------------------------------------------------------------------------- */
-    /* default colours = the heart's, for a light surface */
-    .elme-burst {
-        --elme-burst-ring: var(--color-secondary);
-        --elme-burst-1: var(--color-olive);
-        --elme-burst-2: var(--color-secondary);
-        --elme-burst-3: var(--color-tertiary);
-        --elme-burst-4: var(--color-accent);
-        position: fixed;
-        z-index: 60;
-        width: 0;
-        height: 0;
-        pointer-events: none;
-
-        & > * {
-            position: absolute;
-            border-radius: 9999px;
-            opacity: 0;
-        }
-    }
-
-    .elme-burst__ring {
-        left: --spacing(-3.75);
-        top: --spacing(-3.75);
-        width: --spacing(7.5);
-        height: --spacing(7.5);
-        border: 1.5px solid var(--elme-burst-ring);
-        animation: elme-heart-ring var(--transition-duration-slow) var(--ease-out-quart);
-    }
-
-    /* seven dots on a circle; the colours read on the surface the burst plays over */
-    .elme-burst i {
-        left: --spacing(-0.625);
-        top: --spacing(-0.625);
-        width: --spacing(1.25);
-        height: --spacing(1.25);
-        background: var(--elme-dot, var(--elme-burst-1));
-        animation: elme-heart-dot var(--transition-duration-slow) var(--ease-out-quart) 60ms backwards;
-
-        &:nth-of-type(1) { --a: 0deg; }
-        &:nth-of-type(2) { --a: 51deg; --elme-dot: var(--elme-burst-2); }
-        &:nth-of-type(3) { --a: 103deg; --elme-dot: var(--elme-burst-3); }
-        &:nth-of-type(4) { --a: 154deg; --elme-dot: var(--elme-burst-4); }
-        &:nth-of-type(5) { --a: 206deg; }
-        &:nth-of-type(6) { --a: 257deg; --elme-dot: var(--elme-burst-2); }
-        &:nth-of-type(7) { --a: 309deg; --elme-dot: var(--elme-burst-3); }
-    }
-
-    /* on the charcoal primary button: olive does not read there, white does */
-    .elme-burst--on-dark {
-        --elme-burst-1: var(--color-on-primary);
-    }
-
-    /* on the sage hover fill of the primary button: sage and sand disappear, the darker set reads */
-    .elme-burst--on-mid {
-        --elme-burst-ring: var(--color-primary);
-        --elme-burst-1: var(--color-olive);
-        --elme-burst-2: var(--color-primary);
-        --elme-burst-3: var(--color-on-primary);
-        --elme-burst-4: var(--color-accent-dark);
     }
 
     /* --- landing: the header icon squashes, its number rolls up ------------------------------------------------ */
@@ -258,8 +198,7 @@
             animation: none;
         }
 
-        .elme-fly,
-        .elme-burst {
+        .elme-fly {
             display: none;
         }
     }

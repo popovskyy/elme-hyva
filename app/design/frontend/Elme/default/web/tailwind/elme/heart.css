@@ -3,7 +3,7 @@
  * of docs/design/heart-save-options.html. window.elmeHearts (Elme_QuickOrder::js/lists-store.phtml) sets
  * .is-saved and plays .is-saving / .is-removing / .is-failing. Transform and opacity only; reduced motion keeps
  * the colour change and nothing else. The keyframes, the flyer (.elme-fly--heart) and the header landing (squash,
- * badge roll) are shared with Add to Cart: motion-burst.css (FE-111).
+ * badge roll) live in motion-burst.css (FE-111); Add to Cart shares the shake, the flight and the landing.
  */
 @layer components {
     [data-elme-heart] {

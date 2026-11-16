@@ -8,7 +8,6 @@
  *       runs it along a curve (x and y on two nested boxes with different easing), removes it and calls onLand.
  *       onLand also runs after `timeout` ms (default 1200) when the animation never ends (tab in the background).
  *   window.elmeFly.target(el)   el's rect when it is visible on the screen, else null
- *   window.elmeFly.burst(x, y, className)   ring + seven dots over that point (fixed, never clipped), removed after
  *   window.elmeFly.reduced()    prefers-reduced-motion
  *
  * Plain JS, no Alpine (CSP-safe).
@@ -73,20 +72,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             document.body.appendChild(flyer);
         }
 
-        function burst(x, y, className) {
-            const layer = document.createElement('div');
-            layer.className = 'elme-burst' + (className ? ' ' + className : '');
-            layer.setAttribute('aria-hidden', 'true');
-            layer.style.left = x + 'px';
-            layer.style.top = y + 'px';
-            layer.innerHTML = '<span class="elme-burst__ring"></span><i></i><i></i><i></i><i></i><i></i><i></i><i></i>';
-            document.body.appendChild(layer);
-            // --transition-duration-slow + the 60ms dot delay, with room to spare
-            setTimeout(() => layer.remove(), 700);
-        }
-
         fly.target = target;
-        fly.burst = burst;
         fly.reduced = reduced;
         window.elmeFly = fly;
     })();
