@@ -5,7 +5,12 @@ declare(strict_types=1);
 namespace Elme\ProductFamily\ViewModel;
 
 use Elme\ProductFamily\Model\AxisBuilder;
+use Elme\ProductFamily\Model\ColourCounter;
+use Elme\ProductFamily\Model\ConfigurationPicker;
 use Elme\ProductFamily\Model\FamilyLoader;
+use Elme\ProductFamily\Model\LeadTime\LeadTimeProviderInterface;
+use Elme\ProductFamily\Model\ProductGroupBuilder;
+use Elme\ProductFamily\Model\SiblingOrder;
 use Magento\Catalog\Helper\Image as ImageHelper;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ResourceModel\Eav\Attribute as CatalogAttribute;
@@ -26,7 +31,12 @@ use Magento\Swatches\Model\Swatch;
  */
 class ProductFamily implements ArgumentInterface, IdentityInterface
 {
+    public const AVAILABILITY_QUICK_SHIP = 'quick_ship';
+    public const AVAILABILITY_MADE_TO_ORDER = 'made_to_order';
+
     private const SWATCH_PX = 112;
+    private const CONFIGURATION_PX = 320;
+    private const STRUCTURED_DATA_PX = 800;
 
     /** @var array<int, array> */
     private array $axesByProduct = [];
@@ -46,8 +56,187 @@ class ProductFamily implements ArgumentInterface, IdentityInterface
         private readonly ImageHelper $imageHelper,
         private readonly SwatchesHelper $swatchesHelper,
         private readonly SwatchMedia $swatchMedia,
+        private readonly SiblingOrder $siblingOrder,
+        private readonly ConfigurationPicker $configurationPicker,
+        private readonly ColourCounter $colourCounter,
+        private readonly ProductGroupBuilder $productGroupBuilder,
+        private readonly LeadTimeProviderInterface $leadTimeProvider,
         private readonly array $visualAxes = []
     ) {
+    }
+
+    /**
+     * Every member of the family of the product, in a fixed order (family_sort_order, then SKU), for
+     * the sibling picker. Empty for a product without siblings.
+     * Each row: id, sku, name, url, selected, option (values of the axes that vary, "Muse Flax / Left"),
+     * values (axis code => label), image / color (chip fill), madeToOrder, availability
+     * ("quick_ship" | "made_to_order"), conditionCode, leadTime (array with weeks and label, or null).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getSiblings(Product $product): array
+    {
+        $context = $this->familyContext($product);
+        if (!$context) {
+            return [];
+        }
+        ['members' => $members, 'definitions' => $definitions, 'rows' => $rows] = $context;
+
+        $varying = $this->varyingCodes($definitions, $rows);
+        $colourDefinition = $this->colourDefinition($definitions);
+        $optionSwatches = $colourDefinition
+            ? $this->optionSwatches(array_values(array_unique(array_column(array_column($rows, 'values'), $colourDefinition['code']))))
+            : [];
+
+        $siblings = [];
+        foreach ($this->siblingOrder->sort($rows) as $id) {
+            $member = $members[$id];
+            $labels = [];
+            foreach ($definitions as $definition) {
+                $value = $rows[$id]['values'][$definition['code']];
+                if ($value !== '') {
+                    $labels[$definition['code']] = $definition['labels'][$value] ?? $value;
+                }
+            }
+            $optionLabels = array_values(array_intersect_key($labels, array_flip($varying)));
+            $swatch = $colourDefinition ? ($optionSwatches[$rows[$id]['values'][$colourDefinition['code']]] ?? null) : null;
+            $madeToOrder = (bool) $member->getData(FamilyLoader::ATTR_MADE_TO_ORDER);
+            $leadTime = $this->leadTimeProvider->getLeadTime($member);
+
+            $siblings[] = [
+                'id' => $id,
+                'sku' => (string) $member->getSku(),
+                'name' => (string) $member->getName(),
+                'url' => (string) $member->getProductUrl(),
+                'selected' => $id === (int) $product->getId(),
+                'option' => $optionLabels ? implode(' / ', $optionLabels) : (string) $member->getName(),
+                'values' => $labels,
+                'madeToOrder' => $madeToOrder,
+                'availability' => $madeToOrder ? self::AVAILABILITY_MADE_TO_ORDER : self::AVAILABILITY_QUICK_SHIP,
+                'conditionCode' => $this->optionText($member, FamilyLoader::ATTR_CONDITION),
+                'leadTime' => $leadTime ? $leadTime->toArray() : null,
+            ] + $this->chipFill($member, $swatch);
+        }
+
+        return $siblings;
+    }
+
+    /**
+     * The other configurations of the same design (modules, armchair, ottoman, 2 to 6 seaters): the
+     * products that share `range` but not family_code, one per family_code, the one in the current
+     * colour when there is one. Each row: id, sku, name, url, image, colour. Empty without a range.
+     *
+     * @return array<int, array{id: int, sku: string, name: string, url: string, image: string, colour: string}>
+     */
+    public function getConfigurations(Product $product): array
+    {
+        $range = trim((string) $product->getData(FamilyLoader::ATTR_RANGE));
+        if ($range === '') {
+            return [];
+        }
+        $rangeTag = FamilyLoader::rangeCacheTag($range);
+        $this->identities[$rangeTag] = $rangeTag;
+
+        $products = $this->familyLoader->getRangeProducts($range);
+        $candidates = [];
+        foreach ($products as $id => $member) {
+            $sort = $member->getData(FamilyLoader::ATTR_SORT);
+            $candidates[$id] = [
+                'sku' => (string) $member->getSku(),
+                'family' => trim((string) $member->getData(FamilyLoader::ATTR_CODE)),
+                'colour' => trim((string) $member->getData($this->colourCode())),
+                'sort' => $sort === null || $sort === '' ? null : (int) $sort,
+            ];
+        }
+
+        $configurations = [];
+        $picked = $this->configurationPicker->pick(
+            $candidates,
+            (int) $product->getId(),
+            (string) $product->getData(FamilyLoader::ATTR_CODE),
+            trim((string) $product->getData($this->colourCode()))
+        );
+        foreach ($picked as $id) {
+            $member = $products[$id];
+            $this->identities[$id] = Product::CACHE_TAG . '_' . $id;
+            $configurations[] = [
+                'id' => $id,
+                'sku' => (string) $member->getSku(),
+                'name' => (string) $member->getName(),
+                'url' => (string) $member->getProductUrl(),
+                'image' => $this->memberImage($member, self::CONFIGURATION_PX),
+                'colour' => $this->optionText($member, $this->colourCode()),
+            ];
+        }
+
+        return $configurations;
+    }
+
+    /**
+     * "N colours available" for the product card: different colours in the family of the product.
+     * Zero without a family; it comes from the same family query as the swatches.
+     */
+    public function getColourCount(Product $product): int
+    {
+        $members = $this->familyLoader->getMembers((string) $product->getData(FamilyLoader::ATTR_CODE));
+        if (count($members) < 2) {
+            return 0;
+        }
+        $familyTag = FamilyLoader::cacheTag((string) $product->getData(FamilyLoader::ATTR_CODE));
+        $this->identities[$familyTag] = $familyTag;
+
+        return $this->colourCounter->count(array_map(
+            fn (Product $member): string => (string) $member->getData($this->colourCode()),
+            $members
+        ));
+    }
+
+    /**
+     * The family as schema.org ProductGroup data (productGroupID, variesBy, hasVariant), without
+     * "@context" and price. Null for a product without siblings.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getProductGroup(Product $product): ?array
+    {
+        $context = $this->familyContext($product);
+        if (!$context) {
+            return null;
+        }
+        ['members' => $members, 'definitions' => $definitions, 'rows' => $rows] = $context;
+
+        $varying = $this->varyingCodes($definitions, $rows);
+        $axisLabels = [];
+        $labelsByCode = [];
+        foreach ($definitions as $definition) {
+            $labelsByCode[$definition['code']] = $definition['labels'];
+            if (in_array($definition['code'], $varying, true)) {
+                $axisLabels[$definition['code']] = $definition['label'];
+            }
+        }
+
+        $variants = [];
+        foreach ($this->siblingOrder->sort($rows) as $id) {
+            $values = [];
+            foreach ($axisLabels as $code => $label) {
+                $value = $rows[$id]['values'][$code];
+                $values[$code] = $value === '' ? '' : ($labelsByCode[$code][$value] ?? $value);
+            }
+            $variants[] = [
+                'sku' => (string) $members[$id]->getSku(),
+                'name' => (string) $members[$id]->getName(),
+                'url' => (string) $members[$id]->getProductUrl(),
+                'image' => $this->memberImage($members[$id], self::STRUCTURED_DATA_PX),
+                'values' => $values,
+            ];
+        }
+
+        return $this->productGroupBuilder->build(
+            trim((string) $product->getData(FamilyLoader::ATTR_CODE)),
+            (string) $product->getName(),
+            $variants,
+            $axisLabels
+        );
     }
 
     /**
@@ -63,28 +252,11 @@ class ProductFamily implements ArgumentInterface, IdentityInterface
             return $this->axesByProduct[$productId];
         }
 
-        $members = $this->familyLoader->getMembers((string) $product->getData(FamilyLoader::ATTR_CODE));
-        if (count($members) < 2 || !isset($members[$productId])) {
+        $context = $this->familyContext($product);
+        if (!$context) {
             return $this->axesByProduct[$productId] = [];
         }
-
-        $familyTag = FamilyLoader::cacheTag((string) $product->getData(FamilyLoader::ATTR_CODE));
-        $this->identities[$familyTag] = $familyTag;
-        $definitions = $this->axisDefinitions($members[$productId]);
-        $rows = [];
-        foreach ($members as $id => $member) {
-            $values = [];
-            foreach ($definitions as $definition) {
-                $values[$definition['code']] = (string) $member->getData($definition['code']);
-            }
-            $sort = $member->getData(FamilyLoader::ATTR_SORT);
-            $rows[$id] = [
-                'sku' => (string) $member->getSku(),
-                'sort' => $sort === null || $sort === '' ? null : (int) $sort,
-                'values' => $values,
-            ];
-            $this->identities[$id] = Product::CACHE_TAG . '_' . $id;
-        }
+        ['members' => $members, 'definitions' => $definitions, 'rows' => $rows] = $context;
 
         $axes = $this->axisBuilder->build($definitions, $rows, $productId);
         $labelsByCode = array_column($definitions, 'labels', 'code');
@@ -274,14 +446,108 @@ class ProductFamily implements ArgumentInterface, IdentityInterface
         return ['image' => '', 'color' => ''];
     }
 
-    private function imageUrl(Product $member, string $role, string $file): string
+    /**
+     * The product image of a member (small image, else thumbnail) at a square size; '' without one.
+     */
+    private function memberImage(Product $member, int $size): string
+    {
+        foreach (['small_image', 'thumbnail'] as $role) {
+            $file = (string) $member->getData($role);
+            if ($file !== '' && $file !== 'no_selection') {
+                return $this->imageUrl($member, $role, $file, $size);
+            }
+        }
+        return '';
+    }
+
+    /**
+     * Members of the family of the product, the axes in family_axes order, and per member its axis
+     * values and sort order. Null without a family (fewer than two members, or the product is not one).
+     *
+     * @return array{members: array<int, Product>, definitions: array, rows: array<int, array{sku: string, sort: ?int, values: array<string, string>}>}|null
+     */
+    private function familyContext(Product $product): ?array
+    {
+        $productId = (int) $product->getId();
+        $code = (string) $product->getData(FamilyLoader::ATTR_CODE);
+        $members = $this->familyLoader->getMembers($code);
+        if (count($members) < 2 || !isset($members[$productId])) {
+            return null;
+        }
+
+        $familyTag = FamilyLoader::cacheTag($code);
+        $this->identities[$familyTag] = $familyTag;
+        $definitions = $this->axisDefinitions($members[$productId]);
+        $rows = [];
+        foreach ($members as $id => $member) {
+            $values = [];
+            foreach ($definitions as $definition) {
+                $values[$definition['code']] = (string) $member->getData($definition['code']);
+            }
+            $sort = $member->getData(FamilyLoader::ATTR_SORT);
+            $rows[$id] = [
+                'sku' => (string) $member->getSku(),
+                'sort' => $sort === null || $sort === '' ? null : (int) $sort,
+                'values' => $values,
+            ];
+            $this->identities[$id] = Product::CACHE_TAG . '_' . $id;
+        }
+
+        return ['members' => $members, 'definitions' => $definitions, 'rows' => $rows];
+    }
+
+    /**
+     * Axes on which the members differ.
+     *
+     * @return string[]
+     */
+    private function varyingCodes(array $definitions, array $rows): array
+    {
+        $varying = [];
+        foreach ($definitions as $definition) {
+            $code = $definition['code'];
+            $values = array_unique(array_column(array_column($rows, 'values'), $code));
+            if (count(array_filter($values, static fn (string $value): bool => $value !== '')) > 1) {
+                $varying[] = $code;
+            }
+        }
+        return $varying;
+    }
+
+    private function colourCode(): string
+    {
+        $codes = array_values($this->visualAxes);
+        return $codes ? (string) $codes[0] : 'color';
+    }
+
+    private function colourDefinition(array $definitions): ?array
+    {
+        foreach ($definitions as $definition) {
+            if ($definition['code'] === $this->colourCode()) {
+                return $definition;
+            }
+        }
+        return null;
+    }
+
+    private function optionText(Product $member, string $code): string
+    {
+        try {
+            $text = $member->getAttributeText($code);
+        } catch (\Exception) {
+            return '';
+        }
+        return is_array($text) ? implode(', ', $text) : (string) $text;
+    }
+
+    private function imageUrl(Product $member, string $role, string $file, int $size = self::SWATCH_PX): string
     {
         try {
             return (string) $this->imageHelper
                 ->init($member, 'elme_family_swatch', [
                     'type' => $role,
-                    'width' => self::SWATCH_PX,
-                    'height' => self::SWATCH_PX,
+                    'width' => $size,
+                    'height' => $size,
                 ])
                 ->setImageFile($file)
                 ->getUrl();

@@ -8,7 +8,7 @@ use Elme\ProductFamily\Model\FamilyLoader;
 use Magento\Catalog\Model\Product;
 
 /**
- * Adds the family tag (old and new family_code) to a product's identities, so saving a product
+ * Adds the family tag (old and new family_code) and the range tag (old and new range) to a product's identities, so saving a product
  * purges the pages of every sibling that shows its swatch, also when it joins or leaves a family.
  */
 class AddFamilyCacheTag
@@ -25,6 +25,13 @@ class AddFamilyCacheTag
         ];
         foreach (array_unique(array_filter($codes)) as $code) {
             $result[] = FamilyLoader::cacheTag($code);
+        }
+        $ranges = [
+            trim((string) $subject->getData(FamilyLoader::ATTR_RANGE)),
+            trim((string) $subject->getOrigData(FamilyLoader::ATTR_RANGE)),
+        ];
+        foreach (array_unique(array_filter($ranges)) as $range) {
+            $result[] = FamilyLoader::rangeCacheTag($range);
         }
         return $result;
     }

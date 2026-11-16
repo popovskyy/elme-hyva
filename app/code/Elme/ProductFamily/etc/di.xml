@@ -14,6 +14,8 @@
             </argument>
         </arguments>
     </type>
+    <preference for="Elme\ProductFamily\Model\LeadTime\LeadTimeProviderInterface"
+                type="Elme\ProductFamily\Model\LeadTime\DefaultLeadTimeProvider"/>
     <type name="Magento\Catalog\Model\Product">
         <plugin name="elme_product_family_cache_tag" type="Elme\ProductFamily\Plugin\AddFamilyCacheTag"/>
     </type>
