@@ -1,0 +1,99 @@
+/*
+ * FE-23: search results page. The results are the PLP list (plp-filters.css, product-card.css); this file is only the
+ * no-results state.
+ */
+@layer components {
+    .elme-search-empty {
+        margin-block: --spacing(8) --spacing(12);
+        padding: --spacing(8) --spacing(5);
+        text-align: center;
+        color: var(--color-ink-muted);
+        background-color: var(--color-surface);
+
+        @media (min-width: 768px) {
+            padding: --spacing(12) --spacing(8);
+        }
+    }
+
+    .elme-search-empty__title {
+        margin: 0 0 --spacing(2);
+        color: var(--color-ink);
+        font-family: var(--font-heading);
+        font-size: var(--text-h2);
+        line-height: var(--text-h2--line-height);
+
+        @media (min-width: 1025px) {
+            font-size: var(--text-h2-desktop);
+        }
+    }
+
+    .elme-search-empty__query {
+        margin: 0 0 --spacing(4);
+        overflow-wrap: anywhere;
+    }
+
+    .elme-search-empty__tips {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(1);
+        margin: 0 0 --spacing(8);
+        padding: 0;
+        list-style: none;
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+    }
+
+    .elme-search-empty__note {
+        margin: 0 0 --spacing(8);
+    }
+
+    .elme-search-empty__subtitle {
+        margin: 0 0 --spacing(4);
+        color: var(--color-ink);
+        font-family: var(--font-heading);
+        font-size: var(--text-h3);
+        line-height: var(--text-h3--line-height);
+
+        @media (min-width: 1025px) {
+            font-size: var(--text-h3-desktop);
+        }
+    }
+
+    .elme-search-empty__categories {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: --spacing(2) --spacing(3);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .elme-search-empty__category {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: --spacing(2) --spacing(5);
+        border: 1px solid var(--color-border);
+        color: var(--color-ink);
+        background-color: var(--color-page);
+        text-decoration: none;
+        transition:
+            border-color var(--transition-duration-fast) var(--ease-out-quart),
+            background-color var(--transition-duration-fast) var(--ease-out-quart);
+
+        &:hover {
+            border-color: var(--color-ink);
+            background-color: var(--color-surface-muted);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            transition: none;
+        }
+    }
+}
