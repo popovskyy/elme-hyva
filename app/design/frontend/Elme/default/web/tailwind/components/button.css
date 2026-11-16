@@ -13,6 +13,11 @@
     --btn-hover-bg: color-mix(in srgb, var(--color-primary) 20%, #0000);
     --btn-active-bg: color-mix(in srgb, var(--color-primary) 30%, #0000);
     --btn-color: var(--color-fg);
+    /* Elme FE-112: leave uses --transition-duration-slow; hover/focus sets --btn-hover-duration to calm */
+    --btn-hover-duration: var(--transition-duration-slow);
+    --btn-color-duration: var(--btn-hover-duration);
+    --btn-color-delay: 0s;
+    --btn-color-ease: var(--ease-soft);
     display: inline-flex;
     justify-content: center;
     align-items: center;
@@ -32,13 +37,41 @@
     user-select: none;
     vertical-align: middle;
     transition:
-        color var(--default-transition-duration) var(--default-transition-timing-function),
-        background-color var(--default-transition-duration) var(--default-transition-timing-function),
-        border-color var(--default-transition-duration) var(--default-transition-timing-function),
-        outline-color var(--default-transition-duration) var(--default-transition-timing-function),
+        color var(--btn-color-duration) var(--btn-color-ease) var(--btn-color-delay),
+        background-color var(--btn-hover-duration) var(--ease-soft),
+        border-color var(--btn-hover-duration) var(--ease-soft),
+        outline-color var(--btn-hover-duration) var(--ease-soft),
         scale var(--transition-duration-fast) var(--ease-out-quint);
 
-    &:hover {
+    /* Elme FE-112 look 1: slow colour crossfade; hover only when the pointer can hover (no stuck tap state) */
+    @media (hover: hover) {
+        &:hover:not(
+            :disabled,
+            [aria-disabled="true"],
+            .is-loading,
+            [aria-busy="true"],
+            .is-done,
+            [data-atc-state="sending"],
+            [data-atc-state="success"]
+        ) {
+            --btn-hover-duration: var(--transition-duration-calm);
+            border-color: var(--btn-hover-stroke, var(--btn-stroke));
+            background-color: var(--btn-hover-bg, var(--btn-bg));
+            color: var(--btn-hover-color, var(--btn-color));
+            text-decoration-line: var(--btn-hover-decoration, none);
+        }
+    }
+
+    &:focus-visible:not(
+        :disabled,
+        [aria-disabled="true"],
+        .is-loading,
+        [aria-busy="true"],
+        .is-done,
+        [data-atc-state="sending"],
+        [data-atc-state="success"]
+    ) {
+        --btn-hover-duration: var(--transition-duration-calm);
         border-color: var(--btn-hover-stroke, var(--btn-stroke));
         background-color: var(--btn-hover-bg, var(--btn-bg));
         color: var(--btn-hover-color, var(--btn-color));
@@ -120,7 +153,7 @@
 
 /*
  * Elme FE-60: ink bubble from the exact pointer-down point (span.btn-ripple, see elme/btn-ripple.phtml).
- * Light sweep (::before) lives on .btn-primary / .btn-secondary below.
+ * FE-112 look 1: no sheen layer; ::before stays free.
  */
 .btn-ripple {
     position: absolute;
@@ -169,8 +202,8 @@
         align-items: center;
         gap: --spacing(1.5);
         transition-property: opacity, visibility;
-        transition-duration: var(--default-transition-duration);
-        transition-timing-function: var(--default-transition-timing-function);
+        transition-duration: var(--transition-duration-fast);
+        transition-timing-function: var(--ease-soft);
     }
 
     & > .btn-swap-done,
@@ -207,46 +240,16 @@
     --btn-active-bg: var(--color-primary);
     --btn-active-color: var(--color-on-primary);
 
-    /* Elme FE-60: light sheen sweeps across on hover (demo B); ::after stays free for loading spinner */
+    /* Elme FE-112 look 1: bg/label invert — label colour switches in a short mid window */
+    --btn-color-duration: calc(var(--btn-hover-duration) * 0.3);
+    --btn-color-delay: calc(var(--btn-hover-duration) * 0.2);
+    --btn-color-ease: linear;
+
+    /* Elme: clip for click ripple (FE-60); no sheen layer after FE-112 */
     position: relative;
     overflow: hidden;
     isolation: isolate;
     -webkit-tap-highlight-color: transparent;
-
-    &::before {
-        content: "";
-        position: absolute;
-        top: -40%;
-        bottom: -40%;
-        left: -35%;
-        width: 42%;
-        background: linear-gradient(
-            105deg,
-            transparent 0%,
-            color-mix(in srgb, var(--color-on-primary) 0%, transparent) 35%,
-            color-mix(in srgb, var(--color-on-primary) 38%, transparent) 50%,
-            color-mix(in srgb, var(--color-on-primary) 0%, transparent) 65%,
-            transparent 100%
-        );
-        transform: translateX(-120%) skewX(-18deg);
-        transition: transform var(--transition-duration-slow) var(--ease-out-quint);
-        z-index: 0;
-        pointer-events: none;
-    }
-
-    &:is(:hover, :focus-visible)::before {
-        transform: translateX(320%) skewX(-18deg);
-    }
-
-    &:is(:disabled, [aria-disabled="true"], .is-loading, [aria-busy="true"])::before {
-        content: none;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        &::before {
-            content: none;
-        }
-    }
 }
 
 /* Elme: transparent with a charcoal outline, fills charcoal on hover (@button__border / @button__hover__background) */
@@ -265,51 +268,40 @@
     --btn-active-bg: var(--color-primary);
     --btn-active-color: var(--color-on-primary);
 
-    /* Elme FE-60: same light sweep once the fill is on; ink switches to on-primary on hover */
+    /* Elme FE-112 look 1: same mid-label switch when fill and ink invert */
+    --btn-color-duration: calc(var(--btn-hover-duration) * 0.3);
+    --btn-color-delay: calc(var(--btn-hover-duration) * 0.2);
+    --btn-color-ease: linear;
+
     position: relative;
     overflow: hidden;
     isolation: isolate;
     -webkit-tap-highlight-color: transparent;
 
-    &::before {
-        content: "";
-        position: absolute;
-        top: -40%;
-        bottom: -40%;
-        left: -35%;
-        width: 42%;
-        background: linear-gradient(
-            105deg,
-            transparent 0%,
-            color-mix(in srgb, var(--color-on-primary) 0%, transparent) 35%,
-            color-mix(in srgb, var(--color-on-primary) 45%, transparent) 50%,
-            color-mix(in srgb, var(--color-on-primary) 0%, transparent) 65%,
-            transparent 100%
-        );
-        transform: translateX(-120%) skewX(-18deg);
-        transition: transform var(--transition-duration-slow) var(--ease-out-quint);
-        z-index: 0;
-        pointer-events: none;
-        opacity: 0;
+    @media (hover: hover) {
+        &:hover:not(
+            :disabled,
+            [aria-disabled="true"],
+            .is-loading,
+            [aria-busy="true"],
+            .is-done,
+            [data-atc-state="sending"],
+            [data-atc-state="success"]
+        ) {
+            --btn-ripple: color-mix(in srgb, var(--color-on-primary) 35%, transparent);
+        }
     }
 
-    &:is(:hover, :focus-visible) {
+    &:focus-visible:not(
+        :disabled,
+        [aria-disabled="true"],
+        .is-loading,
+        [aria-busy="true"],
+        .is-done,
+        [data-atc-state="sending"],
+        [data-atc-state="success"]
+    ) {
         --btn-ripple: color-mix(in srgb, var(--color-on-primary) 35%, transparent);
-
-        &::before {
-            opacity: 1;
-            transform: translateX(320%) skewX(-18deg);
-        }
-    }
-
-    &:is(:disabled, [aria-disabled="true"], .is-loading, [aria-busy="true"])::before {
-        content: none;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        &::before {
-            content: none;
-        }
     }
 }
 
@@ -343,6 +335,16 @@
 
     text-decoration-line: underline;
     text-underline-offset: 0.25em;
+}
+
+/* Elme FE-112: reduced motion — short colour crossfade only; overrides primary/secondary mid-label calc */
+@media (prefers-reduced-motion: reduce) {
+    .btn {
+        --btn-hover-duration: var(--transition-duration-fast);
+        --btn-color-duration: var(--transition-duration-fast);
+        --btn-color-delay: 0s;
+        --btn-color-ease: var(--ease-soft);
+    }
 }
 
 .btn-size-lg {

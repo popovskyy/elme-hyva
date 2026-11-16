@@ -16,11 +16,12 @@
  * opacity, plus the check's stroke-dashoffset (paint only, a 20px icon).
  */
 .btn-atc {
+    /* Elme FE-112: same calm colour crossfade vars as .btn (leave = slow, hover sets calm) */
     transition:
-        color var(--default-transition-duration) var(--default-transition-timing-function),
-        background-color var(--default-transition-duration) var(--default-transition-timing-function),
-        border-color var(--default-transition-duration) var(--default-transition-timing-function),
-        outline-color var(--default-transition-duration) var(--default-transition-timing-function),
+        color var(--btn-color-duration) var(--btn-color-ease) var(--btn-color-delay),
+        background-color var(--btn-hover-duration) var(--ease-soft),
+        border-color var(--btn-hover-duration) var(--ease-soft),
+        outline-color var(--btn-hover-duration) var(--ease-soft),
         scale var(--transition-duration-micro) var(--ease-out-quad);
 
     /* idle content: icon + label */
