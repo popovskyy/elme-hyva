@@ -13,6 +13,18 @@
         --anchor-offset: 0px;
     }
 
+    /* A field inside the sticky row is always on screen, but the browser still applies scroll-padding-top
+       to it: focusing the header search scrolled the page up, and so did every typed character. Inside the
+       header there is nothing to clear, so drop the padding while focus is there, and let the fields' own
+       scroll margin cover the whole viewport so focusing them never scrolls the page. */
+    html:has(.page-header :focus) {
+        scroll-padding-top: 0;
+    }
+
+    .page-header :is(input, select, textarea) {
+        scroll-margin-top: -100dvh;
+    }
+
     .page-header {
         position: sticky;
         top: calc(var(--elme-promo-h, 0px) * -1);

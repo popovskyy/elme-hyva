@@ -412,7 +412,7 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
                 this.$nextTick(() => {
                     const input = document.getElementById('search-mobile');
                     if (input) {
-                        input.focus();
+                        input.focus({preventScroll: true});
                         input.select();
                     }
                 });
@@ -430,7 +430,7 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
                 const toggle = [...this.$root.querySelectorAll('[data-elme-search-toggle]')]
                     .find((el) => el.offsetParent !== null);
                 if (toggle) {
-                    toggle.focus();
+                    toggle.focus({preventScroll: true});
                 }
             },
 
@@ -450,7 +450,7 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
                 e.preventDefault();
                 const desktop = document.getElementById('search');
                 if (desktop && desktop.offsetParent !== null) {
-                    desktop.focus();
+                    desktop.focus({preventScroll: true});
                     desktop.select();
                     return;
                 }
