@@ -557,16 +557,16 @@ $heartHtml = static function (string $sku, string $name, string $extra = '') use
 
                             <?php if ($isLoggedIn): ?>
                                 <button type="button"
-                                        class="btn btn-primary elme-look__add-all"
+                                        class="btn btn-primary btn-atc elme-look__add-all"
                                         data-add-all-id="<?= $escaper->escapeHtmlAttr($sectionId) ?>-add-all"
                                         data-adding-text="<?= $escaper->escapeHtmlAttr(__('Adding %1 of %2...')) ?>"
                                         data-added-text="<?= $escaper->escapeHtmlAttr(__('Added %1 of %2:')) ?>"
                                         data-none-text="<?= $escaper->escapeHtmlAttr(__('Nothing was added.')) ?>"
                                         data-skipped-text="<?= $escaper->escapeHtmlAttr(__('Not added:')) ?>"
                                         data-failed-text="<?= $escaper->escapeHtmlAttr(__('not added, try it on its own')) ?>"
-                                        :disabled="isAdding"
-                                        :aria-busy="isAdding"
                                         @click="addLook">
+                                    <?php /* FE-111: btn-atc look (spinner on the icon, olive "Added", items fly to the cart), elmeAtc in lookbook-js */ ?>
+                                    <?= $lucideIcons->shoppingCartHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
                                     <span x-text="addLookLabel"
                                           data-label="<?= $escaper->escapeHtmlAttr(__('Add this look')) ?>"><?= $escaper->escapeHtml(__('Add this look')) ?></span>
                                     <span class="elme-look__add-count"><?= $escaper->escapeHtml(

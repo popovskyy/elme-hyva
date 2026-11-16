@@ -3,7 +3,7 @@
  * FE-27 / FE-70: logged-in PDP add to cart. Heart = shopping list (FE-78); no core wishlist.
  * Button label shows line total once the customer price and qty are known ("Add 12 to cart · $264.00");
  * server HTML keeps a price-free "Add to Cart" so FPC never leaks Pronto prices. btn-atc stays for
- * the AJAX Added animation.
+ * the AJAX Added animation; data-atc-image = the main gallery image that flies to the cart (FE-111).
  */
 
 declare(strict_types=1);
@@ -63,6 +63,7 @@ $ariaLabel = $isCartConfigure || !$product
     class="btn btn-primary elme-pdp__atc<?= $isCartConfigure ? '' : ' btn-atc' ?>"
     id="product-addtocart-button"
     data-addto="cart"
+    <?php if (!$isCartConfigure): ?>data-atc-image=".elme-gallery__track img"<?php endif; ?>
     data-label-idle="<?= $escaper->escapeHtmlAttr($buttonLabel) ?>"
     data-label-add="<?= $escaper->escapeHtmlAttr(__('Add %1 to cart · %2')) ?>"
 >

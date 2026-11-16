@@ -7,6 +7,8 @@
  *   from md (non-modal, outside click / Esc close), a bottom sheet below md (modal, focus trapped, drag the handle
  *   down to close). One card open on the page. Add this look posts every addable item at its MOQ, one after another,
  *   and reads each result from the messages section (as FE-70 does), then names what it added and what it skipped.
+ *   Its button plays the Add to Cart motion (FE-111, window.elmeAtc): spinner while adding, olive "Added" and the
+ *   added items' thumbnails fly to the header cart; a shake when nothing went in.
  * initLookbookBuy: the card's form: MOQ stepper, price (ex GST, loaded after render), and for a configurable the
  *   option picker that switches price, stock, MOQ and the heart to the chosen child.
  */
@@ -395,10 +397,6 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                     this.closePin();
                 },
 
-                isAdding() {
-                    return this.adding;
-                },
-
                 addLookLabel() {
                     return this.addingLabel || this.$el.dataset.label || this.$el.textContent;
                 },
@@ -420,25 +418,41 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                     } catch (e) {
                         all = [];
                     }
-                    const items = all.filter((item) => item.reason === '' && item.add_url);
+                    // add_all is in pin order: the index finds the row thumbnail that flies to the cart
+                    const items = all
+                        .map((item, index) => Object.assign({ pinIndex: index }, item))
+                        .filter((item) => item.reason === '' && item.add_url);
                     const added = [];
+                    const flyers = [];
                     const skipped = all
                         .filter((item) => item.reason !== '')
                         .map((item) => item.name + ' (' + item.reason + ')');
+                    const atc = window.elmeAtc;
 
                     this.adding = true;
                     this.statusShown = false;
+                    if (atc) {
+                        atc.sending(button);
+                    }
                     for (let k = 0; k < items.length; k++) {
                         this.addingLabel = hyva.str(text.addingText, k + 1, items.length);
                         const result = await addItem(items[k]);
                         if (result.ok) {
                             added.push(items[k].name + ' × ' + formatQty(items[k].qty));
+                            flyers.push(this.$root.querySelector(
+                                '.elme-look-row[data-pin-index="' + items[k].pinIndex + '"] .elme-look-thumb img'
+                            ));
                         } else {
                             skipped.push(items[k].name + ' (' + (result.message || text.failedText) + ')');
                         }
                     }
                     this.adding = false;
                     this.addingLabel = '';
+                    // FE-111: "Added" + the items fly to the header cart, or a shake when nothing went in;
+                    // before the section reload, so the header waits for the landings
+                    if (atc) {
+                        atc.done(button, added.length > 0, flyers);
+                    }
                     if (added.length) {
                         window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
                     }

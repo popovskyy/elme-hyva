@@ -1,17 +1,30 @@
 <?php
 /**
- * FE-70: animated Add to Cart button + AJAX add to cart.
+ * FE-70: AJAX add to cart; FE-111: its motion (look: elme/add-to-cart.css, flyer: elme/motion-burst.css).
  *
  * Opt in with the class `btn-atc` on a submit button of an add to cart form (PLP tile form, PDP
  * #product_addtocart_form via form="…"). One delegated submit listener, no Alpine, no per-button
  * handlers (CSP-safe, same pattern as btn-ripple.phtml).
  *
- * Flow: submit -> button goes to "sending" at once (aria-busy; cart slides to the centre, a dot drops
- * into it until the server answers, at least one full drop) -> POST with X-Requested-With, so
- * Magento's cart/add answers JSON -> read the "messages" section (cart/add puts its result there)
- * -> "success" (cart leaves right, check + "Added" comes in from the left, 2.2s) only when the
- * server confirmed it with its success message; otherwise back to idle and the error goes to the
- * toast stack.
+ * Flow: submit -> button goes to "sending" at once (aria-busy; the cart icon crossfades to a small
+ * spinner, the label stays) -> POST with X-Requested-With, so Magento's cart/add answers JSON -> read
+ * the "messages" section (cart/add puts its result there) -> "success" only when the server confirmed
+ * it with its success message: the button fills olive, a check draws itself with "Added" (1.6s) and,
+ * 140ms later, a round product thumbnail (a primary dot without an image) flies to the header cart
+ * (window.elmeFly, elme/fly.phtml). Otherwise the button shakes, goes back to idle and the error goes
+ * to the toast stack. Reduced motion: plain crossfades, no sweep, no flight.
+ *
+ * Header (html/header.phtml): `elme-cart-landing` as soon as a flight is coming (the row slides back
+ * in and the new count waits), `elme-cart-landed` when it arrives (icon squash, number rolls). No
+ * flight (mobile menu or a dialog open, icon off-screen) = landed at once. The count itself always
+ * comes from the server (section quick_order).
+ *
+ * Another control may press the button for the customer (PDP sticky bar): it sets
+ * button.elmeAtcOrigin = itself around button.click(). The states then play on that control too, and
+ * the flight starts from it.
+ *
+ * A control that adds several items on its own (lookbook "Add this look") uses window.elmeAtc
+ * (sending / done) for the same states, and gets one flyer per added item.
  *
  * Requests run one after another, so quick clicks on many tiles never race on the quote and every
  * result belongs to the right button. Clicks are never blocked: the button just shows its place in
@@ -38,10 +51,10 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
 ?>
 <template id="elme-atc-stage">
     <span class="btn-atc__stage" aria-hidden="true">
-        <span class="btn-atc__cart"><?= $lucideIcons->shoppingCartHtml('', 24, 24) ?></span>
-        <span class="btn-atc__dot"></span>
+        <span class="btn-atc__fill"></span>
+        <span class="btn-atc__spin elme-spinner"></span>
         <span class="btn-atc__done">
-            <?= $lucideIcons->checkHtml('', 24, 24) ?>
+            <span class="btn-atc__check"><?= $lucideIcons->checkHtml('', 24, 24) ?></span>
             <span class="btn-atc__done-label"><?= $escaper->escapeHtml(__('Added')) ?></span>
         </span>
     </span>
@@ -50,10 +63,20 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
 <script>
     (function () {
         const SELECTOR = '.btn-atc';
-        const HOLD_MS = 2200;
-        // at least --atc-slide + --atc-drop (elme/add-to-cart.css): a fast answer still shows the
-        // cart slide in and one dot drop before "Added"
-        const MIN_SENDING_MS = 1650;
+        const HOLD_MS = 1600;
+        // just enough that a fast answer does not flash the spinner
+        const MIN_SENDING_MS = 300;
+        // --transition-duration-slow: the error shake
+        const SHAKE_MS = 300;
+        // the item leaves while the olive fill sweeps (same timing as the heart)
+        const FLY_DELAY_MS = 140;
+        // several items (Add this look): one flyer after another, at most this many
+        const STAGGER_MS = 90;
+        const MAX_FLYERS = 5;
+        // the header row slides back in (--transition-duration-fast) before the cart icon is measured
+        const REVEAL_MS = 220;
+        const CART_ICON = '#menu-cart-icon .elme-header__icon';
+        const IMAGE = '.elme-card__media img, .elme-look-thumb img, .elme-sticky-atc__thumb';
         const TEXT = {
             added: '<?= $escaper->escapeJs(__('Added to cart')) ?>',
             failed: '<?= $escaper->escapeJs(__('We couldn\'t add this item to your cart. Please try again.')) ?>'
@@ -61,6 +84,7 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
 
         const queue = [];
         let running = false;
+        const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         function findButton(form, submitter) {
             if (submitter) {
@@ -86,32 +110,33 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
             }
         }
 
-        // Where the idle cart icon sits, so the stage cart starts there and slides to the centre;
-        // icon-only buttons (label hidden at this breakpoint) drop the "Added" text.
+        // Where the idle cart icon sits (from the button centre, unscaled: the press scale may still
+        // run), so the spinner takes its spot while the label stays. Check + "Added" are centred in the
+        // button (the idle icon is often off centre: a long or min-width label, PDP); icon-only buttons
+        // (label hidden at this breakpoint) drop the "Added" text and put the check on the icon.
         function measure(btn) {
             const rect = btn.getBoundingClientRect();
+            const scale = btn.offsetWidth ? rect.width / btn.offsetWidth : 1;
             const icon = btn.querySelector(':scope > svg');
             const label = btn.querySelector(':scope > span:not(.btn-atc__stage, .btn-ripple)');
-            const fromX = icon
-                ? (icon.getBoundingClientRect().left + icon.getBoundingClientRect().width / 2)
-                    - (rect.left + rect.width / 2)
-                : 0;
-            btn.style.setProperty('--atc-from-x', Math.round(fromX) + 'px');
-            btn.style.setProperty('--atc-exit-x', Math.round(rect.width / 2 + 24) + 'px');
-            btn.toggleAttribute('data-atc-compact', !label || label.getClientRects().length === 0);
+            const compact = !label || label.getClientRects().length === 0;
+            btn.toggleAttribute('data-atc-compact', compact);
+            let iconX = 0;
+            let size = 0;
+            if (icon) {
+                const box = icon.getBoundingClientRect();
+                iconX = (box.left + box.width / 2 - (rect.left + rect.width / 2)) / scale;
+                size = box.width / scale;
+                btn.style.setProperty('--atc-icon-size', Math.round(size) + 'px');
+            }
+            btn.style.setProperty('--atc-icon-x', Math.round(iconX) + 'px');
+            btn.style.setProperty('--atc-done-x', compact ? Math.round(iconX) + 'px' : '0px');
         }
 
         function setState(btn, state) {
             if (state === 'sending') {
                 ensureStage(btn);
-                // pressed again during "Added": the cart is out on the right, put it back on the idle
-                // icon without a slide, so it comes in from the left again
-                if (btn.dataset.atcState === 'success') {
-                    btn.dataset.atcState = 'idle';
-                }
                 measure(btn);
-                // apply the start position before the state switch so the slide animates
-                void btn.offsetWidth;
             }
             btn.dataset.atcState = state;
             if (state === 'sending') {
@@ -119,6 +144,78 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
             } else {
                 btn.removeAttribute('aria-busy');
             }
+        }
+
+        // the state now on every control of the job, back to idle after `ms` (each keeps its own timer)
+        function show(views, state, ms) {
+            views.forEach((view) => {
+                clearTimeout(view.atcTimer);
+                setState(view, state);
+                if (ms) {
+                    view.atcTimer = setTimeout(() => setState(view, 'idle'), ms);
+                }
+            });
+        }
+
+        function cartTarget() {
+            if (document.documentElement.classList.contains('elme-mobile-menu-open')
+                || document.querySelector('dialog[open]')) {
+                return null;
+            }
+            return window.elmeFly.target(document.querySelector(CART_ICON));
+        }
+
+        // a loaded image of this product next to the control (its URL is reused: no new request)
+        function sourceImage(origin) {
+            const selector = origin.getAttribute('data-atc-image');
+            const scope = origin.closest('.elme-card, .elme-look-card, .elme-sticky-atc');
+            return selector
+                ? document.querySelector(selector)
+                : (scope ? scope.querySelector(IMAGE) : null);
+        }
+
+        function flyer(img) {
+            const body = document.createElement('span');
+            body.className = 'elme-fly__body';
+            if (img) {
+                const copy = document.createElement('img');
+                copy.src = img.currentSrc || img.src;
+                copy.alt = '';
+                copy.decoding = 'async';
+                body.appendChild(copy);
+            }
+            return {body: body, className: img ? 'elme-fly--thumb' : 'elme-fly--thumb elme-fly--dot'};
+        }
+
+        function landed() {
+            window.dispatchEvent(new CustomEvent('elme-cart-landed'));
+        }
+
+        function loaded(img) {
+            return img && img.complete && img.naturalWidth ? img : null;
+        }
+
+        // Before the sections reload: the header shows its row and holds the new count, one landing per flyer
+        function expectLandings(count) {
+            const headerWasHidden = Boolean(document.querySelector('.page-header.is-hidden'));
+            for (let k = 0; k < count; k++) {
+                window.dispatchEvent(new CustomEvent('elme-cart-landing'));
+            }
+            return headerWasHidden;
+        }
+
+        // while the button fills olive, the items fly to the header cart (several: one after another)
+        function celebrate(origin, headerWasHidden, images) {
+            const start = headerWasHidden ? Math.max(FLY_DELAY_MS, REVEAL_MS) : FLY_DELAY_MS;
+            images.forEach((img, k) => setTimeout(() => {
+                const to = cartTarget();
+                if (!to || !origin.isConnected || !window.elmeFly.target(origin)) {
+                    landed();
+                    return;
+                }
+                const item = flyer(loaded(img));
+                window.elmeFly(origin, to, {className: item.className, content: item.body, onLand: landed});
+            }, start + k * STAGGER_MS));
         }
 
         function announce(text) {
@@ -202,25 +299,52 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
         }
 
         function finish(job, result) {
-            const btn = job.btn;
             const wait = Math.max(0, MIN_SENDING_MS - (Date.now() - job.startedAt));
+            const flies = result.ok && !result.redirect && !reduced() && Boolean(window.elmeFly);
+            // before run() reloads the sections: the header holds the new count until this lands
+            const headerWasHidden = flies && expectLandings(1);
             setTimeout(() => {
-                btn.atcPending = false;
+                job.btn.atcPending = false;
                 if (!result.ok) {
-                    setState(btn, 'idle');
+                    show(job.views, reduced() ? 'idle' : 'error', reduced() ? 0 : SHAKE_MS);
                     return;
                 }
-                setState(btn, 'success');
+                show(job.views, 'success', result.redirect ? 0 : HOLD_MS);
                 announce(TEXT.added);
                 // Admin "After adding a product redirect to Shopping Cart" = Yes
                 if (result.redirect) {
                     window.location.assign(result.redirect);
                     return;
                 }
-                clearTimeout(btn.atcTimer);
-                btn.atcTimer = setTimeout(() => setState(btn, 'idle'), HOLD_MS);
+                if (flies) {
+                    celebrate(job.origin, headerWasHidden, [sourceImage(job.origin)]);
+                }
             }, wait);
         }
+
+        // For a control that adds on its own, not through a form (lookbook "Add this look", several items):
+        //   elmeAtc.sending(btn)          spinner + aria-busy, call it on the click
+        //   elmeAtc.done(btn, ok, images) ok: "Added" + one flyer per image (null = a dot), max MAX_FLYERS;
+        //                                 not ok: shake, then idle. Call it before the section reload.
+        window.elmeAtc = {
+            sending(btn) {
+                show([btn], 'sending', 0);
+            },
+            done(btn, ok, images) {
+                if (!ok) {
+                    show([btn], reduced() ? 'idle' : 'error', reduced() ? 0 : SHAKE_MS);
+                    return;
+                }
+                const list = (images || []).slice(0, MAX_FLYERS);
+                const flies = list.length > 0 && !reduced() && Boolean(window.elmeFly);
+                const headerWasHidden = flies && expectLandings(list.length);
+                show([btn], 'success', HOLD_MS);
+                announce(TEXT.added);
+                if (flies) {
+                    celebrate(btn, headerWasHidden, list);
+                }
+            }
+        };
 
         async function run() {
             if (running) {
@@ -244,15 +368,24 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
             if (!btn || !window.fetch || !window.FormData || !window.BASE_URL) {
                 return;
             }
+            const origin = btn.elmeAtcOrigin && btn.elmeAtcOrigin.isConnected ? btn.elmeAtcOrigin : btn;
+            btn.elmeAtcOrigin = null;
             event.preventDefault();
             if (btn.atcPending) {
                 return;
             }
             btn.atcPending = true;
-            clearTimeout(btn.atcTimer);
-            setState(btn, 'sending');
+            const views = origin === btn ? [btn] : [btn, origin];
+            show(views, 'sending', 0);
             // read the form now: qty or options changed later belong to the next click
-            queue.push({ btn: btn, url: form.action, body: new FormData(form), startedAt: Date.now() });
+            queue.push({
+                btn: btn,
+                origin: origin,
+                views: views,
+                url: form.action,
+                body: new FormData(form),
+                startedAt: Date.now()
+            });
             run();
         });
     })();

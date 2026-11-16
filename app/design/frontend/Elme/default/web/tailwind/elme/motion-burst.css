@@ -1,0 +1,205 @@
+/**
+ * FE-111: motion shared by the shopping-list heart (FE-78, heart.css) and Add to Cart (add-to-cart.css):
+ * - the heart's save burst keyframes: pop (spring 0.85 > 1.2 > 1), ring, seven dots; shake for an error (heart and
+ *   Add to Cart);
+ * - .elme-fly: what travels to a header icon (window.elmeFly, Magento_Theme::elme/fly.phtml). x and y run on two
+ *   nested boxes with different easing, which makes the curve. --heart = the small filled heart (lists),
+ *   --thumb = a round product thumbnail or a primary dot (cart);
+ * - the landing: the header icon squashes, its number rolls up.
+ * Transform and opacity only. Reduced motion: none of it plays (the scripts skip it, these rules are the guard).
+ */
+@layer components {
+    @keyframes elme-heart-pop {
+        0% {
+            transform: scale(.85);
+            animation-timing-function: var(--ease-out-quart);
+        }
+        45% {
+            transform: scale(1.2);
+            animation-timing-function: var(--ease-in-out-cubic);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    @keyframes elme-heart-ring {
+        from {
+            transform: scale(.35);
+            opacity: .9;
+        }
+        to {
+            transform: scale(1.45);
+            opacity: 0;
+        }
+    }
+
+    @keyframes elme-heart-dot {
+        0% {
+            transform: rotate(var(--a)) translateY(-6px) scale(1);
+            opacity: 1;
+        }
+        100% {
+            transform: rotate(var(--a)) translateY(-21px) scale(.2);
+            opacity: 0;
+        }
+    }
+
+    @keyframes elme-heart-shake {
+        20% { transform: translateX(-3px); }
+        40% { transform: translateX(3px); }
+        60% { transform: translateX(-2px); }
+        80% { transform: translateX(2px); }
+    }
+
+    /* --- flyer ------------------------------------------------------------------------------------------------- */
+    .elme-fly {
+        position: fixed;
+        z-index: 60;
+        pointer-events: none;
+        animation: elme-fly-x var(--transition-duration-long) var(--ease-in-out-cubic) forwards;
+    }
+
+    .elme-fly__y {
+        animation: elme-fly-y var(--transition-duration-long) var(--ease-out-quart) forwards;
+    }
+
+    @keyframes elme-fly-x {
+        to { transform: translateX(var(--dx)); }
+    }
+
+    @keyframes elme-fly-y {
+        to { transform: translateY(var(--dy)); }
+    }
+
+    /* lists: the filled heart, shrinks to .6 and fades at the end */
+    .elme-fly--heart {
+        color: var(--color-primary);
+
+        & svg {
+            display: block;
+            width: --spacing(4);
+            height: --spacing(4);
+            margin: --spacing(-2) 0 0 --spacing(-2);
+            opacity: 1;
+            animation: elme-fly-heart var(--transition-duration-long) var(--ease-in-out-cubic) forwards;
+        }
+
+        & path {
+            fill: currentColor;
+            stroke: none;
+        }
+    }
+
+    @keyframes elme-fly-heart {
+        80% { opacity: 1; }
+        100% {
+            transform: scale(.6);
+            opacity: 0;
+        }
+    }
+
+    /* cart: a round product thumbnail (or a primary dot) pops in, flies, shrinks to .5 and fades */
+    .elme-fly--thumb .elme-fly__body {
+        display: block;
+        width: --spacing(10);
+        height: --spacing(10);
+        margin: --spacing(-5) 0 0 --spacing(-5);
+        overflow: hidden;
+        border: 1px solid var(--color-border);
+        border-radius: 9999px;
+        background: var(--color-surface);
+        box-shadow: var(--shadow-md);
+        animation:
+            elme-fly-pop var(--transition-duration-fast) var(--ease-out-quart) backwards,
+            elme-fly-thumb var(--transition-duration-long) var(--ease-in-out-cubic) forwards;
+
+        & img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
+    .elme-fly--dot .elme-fly__body {
+        width: --spacing(4);
+        height: --spacing(4);
+        margin: --spacing(-2) 0 0 --spacing(-2);
+        border-color: var(--color-surface);
+        background: var(--color-primary);
+    }
+
+    @keyframes elme-fly-pop {
+        from {
+            scale: .5;
+            opacity: 0;
+        }
+    }
+
+    @keyframes elme-fly-thumb {
+        75% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(.5);
+            opacity: 0;
+        }
+    }
+
+    /* --- landing: the header icon squashes, its number rolls up ------------------------------------------------ */
+    .elme-header__icon.is-squashed {
+        animation: elme-heart-squash var(--transition-duration-slow) var(--ease-out-quart);
+    }
+
+    @keyframes elme-heart-squash {
+        30% { transform: scale(1.22, .8); }
+        60% { transform: scale(.92, 1.08); }
+    }
+
+    .elme-header__badge--roll {
+        overflow: hidden;
+
+        & span {
+            display: block;
+        }
+    }
+
+    .elme-header__badge--roll.is-rolling {
+        & .elme-header__roll-out {
+            position: absolute;
+            inset: 0;
+            animation: elme-badge-roll-out var(--transition-duration-base) var(--ease-out-quart) forwards;
+        }
+
+        & .elme-header__roll-in {
+            animation: elme-badge-roll-in var(--transition-duration-base) var(--ease-out-quart);
+        }
+    }
+
+    @keyframes elme-badge-roll-out {
+        to {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+    }
+
+    @keyframes elme-badge-roll-in {
+        from {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .elme-header__icon.is-squashed,
+        .elme-header__badge--roll.is-rolling span {
+            animation: none;
+        }
+
+        .elme-fly {
+            display: none;
+        }
+    }
+}
