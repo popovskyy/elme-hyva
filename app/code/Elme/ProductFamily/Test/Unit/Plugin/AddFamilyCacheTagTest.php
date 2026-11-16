@@ -23,6 +23,20 @@ class AddFamilyCacheTagTest extends TestCase
         self::assertMatchesRegularExpression('/^[a-z0-9_]+$/', FamilyLoader::cacheTag('ARES-DT #1'));
     }
 
+    public function testAddsOldAndNewRangeTags(): void
+    {
+        $product = $this->createStub(Product::class);
+        $product->method('getData')->willReturnMap([[FamilyLoader::ATTR_RANGE, null, '6']]);
+        $product->method('getOrigData')->willReturnMap([[FamilyLoader::ATTR_RANGE, '63']]);
+
+        $result = (new AddFamilyCacheTag())->afterGetIdentities($product, ['cat_p_1']);
+
+        self::assertSame(
+            ['cat_p_1', FamilyLoader::rangeCacheTag('6'), FamilyLoader::rangeCacheTag('63')],
+            $result
+        );
+    }
+
     public function testNoTagWithoutFamily(): void
     {
         $product = $this->createStub(Product::class);

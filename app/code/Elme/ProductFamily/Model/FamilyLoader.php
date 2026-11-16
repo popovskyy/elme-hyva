@@ -6,6 +6,7 @@ namespace Elme\ProductFamily\Model;
 
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
+use Magento\Catalog\Model\Product\Type;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\Catalog\Model\ResourceModel\Product\Collection;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
@@ -25,10 +26,16 @@ class FamilyLoader
     public const ATTR_CODE = 'family_code';
     public const ATTR_AXES = 'family_axes';
     public const ATTR_SORT = 'family_sort_order';
+    public const ATTR_RANGE = 'range';
+    public const ATTR_MADE_TO_ORDER = 'made_to_order';
+    public const ATTR_CONDITION = 'condition_code';
     public const CACHE_TAG = 'elme_pf';
 
     /** @var array<string, array<int, Product>> */
     private array $cache = [];
+
+    /** @var array<string, array<int, Product>> */
+    private array $rangeCache = [];
 
     /** @var Collection[] */
     private array $listings = [];
@@ -124,6 +131,38 @@ class FamilyLoader
     }
 
     /**
+     * Enabled, visible simple products of one range (the configurations of a design share it), keyed
+     * by product id. One query per range for the request.
+     *
+     * @return array<int, Product>
+     */
+    public function getRangeProducts(string $range): array
+    {
+        $range = trim($range);
+        if ($range === '') {
+            return [];
+        }
+        if (!isset($this->rangeCache[$range])) {
+            $this->rangeCache[$range] = [];
+            $collection = $this->createCollection();
+            $collection->addAttributeToFilter(self::ATTR_RANGE, ['eq' => $range]);
+            /** @var Product $product */
+            foreach ($collection as $product) {
+                $this->rangeCache[$range][(int) $product->getId()] = $product;
+            }
+        }
+        return $this->rangeCache[$range];
+    }
+
+    /**
+     * Cache tag of a range: the configurations of a page carry it.
+     */
+    public static function rangeCacheTag(string $range): string
+    {
+        return self::CACHE_TAG . '_r_' . md5(trim($range));
+    }
+
+    /**
      * @param string[] $familyCodes
      */
     private function load(array $familyCodes): void
@@ -132,17 +171,8 @@ class FamilyLoader
             $this->cache[$code] = [];
         }
 
-        $collection = $this->collectionFactory->create();
-        $collection->setStoreId((int) $this->storeManager->getStore()->getId());
-        $collection->addStoreFilter();
-        $collection->addAttributeToSelect(array_merge(
-            ['name', 'url_key', 'small_image', 'thumbnail', 'swatch_image', self::ATTR_CODE, self::ATTR_AXES, self::ATTR_SORT],
-            array_keys($this->getAxisAttributes())
-        ));
+        $collection = $this->createCollection();
         $collection->addAttributeToFilter(self::ATTR_CODE, ['in' => $familyCodes]);
-        $collection->addAttributeToFilter('status', Status::STATUS_ENABLED);
-        $collection->setVisibility($this->visibility->getVisibleInSiteIds());
-        $collection->addUrlRewrite();
 
         /** @var Product $product */
         foreach ($collection as $product) {
@@ -151,5 +181,39 @@ class FamilyLoader
                 $this->cache[$code][(int) $product->getId()] = $product;
             }
         }
+    }
+
+    /**
+     * Enabled, visible simple products of this store with everything a picker, a chip or a card needs.
+     * Configurables (old data) are never members: every variant is its own simple product.
+     */
+    private function createCollection(): Collection
+    {
+        $collection = $this->collectionFactory->create();
+        $collection->setStoreId((int) $this->storeManager->getStore()->getId());
+        $collection->addStoreFilter();
+        $collection->addAttributeToSelect(array_merge(
+            ['name', 'url_key', 'small_image', 'thumbnail', 'swatch_image', self::ATTR_CODE, self::ATTR_AXES, self::ATTR_SORT],
+            $this->existingAttributes([self::ATTR_RANGE, self::ATTR_MADE_TO_ORDER, self::ATTR_CONDITION]),
+            array_keys($this->getAxisAttributes())
+        ));
+        $collection->addAttributeToFilter('type_id', ['eq' => Type::TYPE_SIMPLE]);
+        $collection->addAttributeToFilter('status', Status::STATUS_ENABLED);
+        $collection->setVisibility($this->visibility->getVisibleInSiteIds());
+        $collection->addUrlRewrite();
+
+        return $collection;
+    }
+
+    /**
+     * @param string[] $codes
+     * @return string[] the codes that exist as product attributes on this instance
+     */
+    private function existingAttributes(array $codes): array
+    {
+        return array_values(array_filter($codes, function (string $code): bool {
+            $attribute = $this->eavConfig->getAttribute(Product::ENTITY, $code);
+            return $attribute && $attribute->getId();
+        }));
     }
 }
