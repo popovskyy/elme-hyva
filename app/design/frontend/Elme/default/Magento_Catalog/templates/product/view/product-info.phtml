@@ -74,10 +74,20 @@ $buyControls = $product->isSaleable()
         <?php endif; ?>
 
         <div class="elme-pdp__meta">
-            <p>
-                <?= $escaper->escapeHtml(__('SKU')) ?>
-                <span class="text-ink" itemprop="sku"><?= $escaper->escapeHtml($product->getSku()) ?></span>
-            </p>
+            <?php $sku = (string) $product->getSku(); ?>
+            <?php if ($sku !== ''): ?>
+                <p>
+                    <?= $escaper->escapeHtml(__('SKU')) ?>
+                    <button type="button"
+                            class="elme-copy-sku text-ink"
+                            data-sku="<?= $escaper->escapeHtmlAttr($sku) ?>"
+                            aria-label="<?= $escaper->escapeHtmlAttr(__('Copy SKU %1', $sku)) ?>">
+                        <span class="elme-copy-sku__text" itemprop="sku"><?= $escaper->escapeHtml($sku) ?></span>
+                        <span class="elme-copy-sku__done" aria-hidden="true"><?= $escaper->escapeHtml(__('Copied')) ?></span>
+                    </button>
+                </p>
+            <?php endif; ?>
+
             <?php if ($stockLevel): ?>
                 <p class="elme-card__stock--<?= /* @noEscape */ $stockLevel ?> flex items-center gap-1.5 font-medium">
                     <span class="size-1.5 shrink-0 rounded-full bg-current" aria-hidden="true"></span>

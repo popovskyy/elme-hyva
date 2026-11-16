@@ -82,7 +82,14 @@ $homeUrl = $block->getBaseUrl();
                                 <div class="elme-cart__info">
                                     <a class="elme-cart__name" :href="item.url" x-show="hasUrl" x-text="item.name"></a>
                                     <p class="elme-cart__name" x-show="hasNoUrl" x-text="item.name"></p>
-                                    <p class="elme-cart__sku" x-text="item.sku"></p>
+                                    <p class="elme-cart__sku">
+                                        <button type="button"
+                                                class="elme-copy-sku"
+                                                :data-sku="item.sku">
+                                            <span class="elme-copy-sku__text" x-text="item.sku"></span>
+                                            <span class="elme-copy-sku__done" aria-hidden="true"><?= $escaper->escapeHtml(__('Copied')) ?></span>
+                                        </button>
+                                    </p>
                                     <p class="elme-cart__stock" :class="stockClass" x-show="hasStockLabel">
                                         <span class="elme-cart__dot" aria-hidden="true"></span>
                                         <span x-text="stockLabel"></span>

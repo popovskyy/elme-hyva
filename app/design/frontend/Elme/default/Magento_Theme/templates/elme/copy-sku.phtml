@@ -1,0 +1,139 @@
+<?php
+/**
+ * FE-99: one delegated activator for .elme-copy-sku buttons (PDP, card, cart, order).
+ * CSP-safe (no Alpine). Copies data-sku (trimmed) and shows "Copied" briefly with aria-live.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+
+$copiedLabel = (string) __('Copied');
+$copyLabel = (string) __('Copy SKU %1');
+?>
+<p id="elme-copy-sku-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+<script>
+    (function () {
+        const SELECTOR = '.elme-copy-sku';
+        const COPIED_MS = 1600;
+        const copiedLabel = '<?= $escaper->escapeJs($copiedLabel) ?>';
+        const copyLabelTpl = '<?= $escaper->escapeJs($copyLabel) ?>';
+        const timers = new WeakMap();
+        const statusEl = document.getElementById('elme-copy-sku-status');
+
+        function skuOf(btn) {
+            return String(btn.getAttribute('data-sku') || btn.dataset.sku || '').trim();
+        }
+
+        function ensureAriaLabel(btn) {
+            const sku = skuOf(btn);
+            if (!sku) {
+                return;
+            }
+            btn.setAttribute('aria-label', hyva.str(copyLabelTpl, sku));
+        }
+
+        function setCopiedUi(btn, on) {
+            btn.classList.toggle('is-copied', on);
+            const done = btn.querySelector('.elme-copy-sku__done');
+            if (done) {
+                done.setAttribute('aria-hidden', on ? 'false' : 'true');
+            }
+        }
+
+        function announce(message) {
+            if (!statusEl) {
+                return;
+            }
+            statusEl.textContent = '';
+            // Force a DOM change so polite live regions re-announce the same phrase
+            requestAnimationFrame(function () {
+                statusEl.textContent = message;
+            });
+        }
+
+        function writeClipboard(sku) {
+            if (navigator.clipboard && window.isSecureContext && navigator.clipboard.writeText) {
+                return navigator.clipboard.writeText(sku);
+            }
+            return new Promise(function (resolve, reject) {
+                const area = document.createElement('textarea');
+                area.value = sku;
+                area.setAttribute('readonly', '');
+                area.style.position = 'fixed';
+                area.style.top = '0';
+                area.style.left = '0';
+                area.style.opacity = '0';
+                document.body.appendChild(area);
+                area.focus();
+                area.select();
+                try {
+                    if (!document.execCommand('copy')) {
+                        reject(new Error('copy failed'));
+                        return;
+                    }
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                } finally {
+                    area.remove();
+                }
+            });
+        }
+
+        function flashCopied(btn) {
+            const prev = timers.get(btn);
+            if (prev) {
+                clearTimeout(prev);
+            }
+            setCopiedUi(btn, true);
+            announce(copiedLabel);
+            timers.set(btn, setTimeout(function () {
+                setCopiedUi(btn, false);
+                if (statusEl && statusEl.textContent === copiedLabel) {
+                    statusEl.textContent = '';
+                }
+                timers.delete(btn);
+            }, COPIED_MS));
+        }
+
+        function activate(btn, event) {
+            const sku = skuOf(btn);
+            if (!sku) {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            writeClipboard(sku).then(function () {
+                flashCopied(btn);
+            }).catch(function () {
+                // Keep silent on failure; trade users can still select the text
+            });
+        }
+
+        // <button> fires click on Enter and Space; one handler covers tap and keyboard
+        document.addEventListener('click', function (event) {
+            const btn = event.target.closest(SELECTOR);
+            if (!btn || btn.disabled) {
+                return;
+            }
+            activate(btn, event);
+        });
+
+        document.addEventListener('focusin', function (event) {
+            const btn = event.target.closest(SELECTOR);
+            if (btn) {
+                ensureAriaLabel(btn);
+            }
+        });
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

@@ -173,10 +173,20 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
             <?= /* @noEscape */ $productName ?>
         </a>
 
-        <p class="elme-card__sku text-note text-ink-muted">
-            <span class="sr-only"><?= $escaper->escapeHtml(__('SKU')) ?></span>
-            <?= $escaper->escapeHtml($product->getSku()) ?>
-        </p>
+        <?php $cardSku = (string) $product->getSku(); ?>
+        <?php if ($cardSku !== ''): ?>
+            <p class="elme-card__sku text-note text-ink-muted">
+                <span class="sr-only"><?= $escaper->escapeHtml(__('SKU')) ?></span>
+                <button type="button"
+                        class="elme-copy-sku"
+                        data-sku="<?= $escaper->escapeHtmlAttr($cardSku) ?>"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Copy SKU %1', $cardSku)) ?>">
+                    <span class="elme-copy-sku__text"><?= $escaper->escapeHtml($cardSku) ?></span>
+                    <span class="elme-copy-sku__done" aria-hidden="true"><?= $escaper->escapeHtml(__('Copied')) ?></span>
+                </button>
+            </p>
+        <?php endif; ?>
+
 
         <?php if ($showDescription): ?>
             <div class="text-note text-ink-muted">
