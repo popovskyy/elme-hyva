@@ -58,7 +58,13 @@ use Magento\Framework\View\Element\Template;
                 return this.query.trim();
             },
 
+            // Tell the desktop mega menu to close its panel (it opens on hover and would cover the suggestions)
+            announceFocus() {
+                window.dispatchEvent(new CustomEvent('elme-search-focus'));
+            },
+
             onInput() {
+                this.announceFocus();
                 this.query = this.$event.target.value;
                 this.activeIndex = -1;
                 clearTimeout(this.timer);
@@ -220,6 +226,7 @@ use Magento\Framework\View\Element\Template;
             },
 
             onFocus() {
+                this.announceFocus();
                 if (this.shownQuery !== '' && this.shownQuery === this.trimmed()) {
                     this.open = true;
                 }

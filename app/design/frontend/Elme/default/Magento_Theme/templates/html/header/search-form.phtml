@@ -73,6 +73,7 @@ $listboxId = $inputId . '-suggest';
                        text-note text-ink text-ellipsis placeholder:text-placeholder"
                 @input="onInput"
                 @focus="onFocus"
+                @click="onFocus"
                 @keydown.arrow-down="next"
                 @keydown.arrow-up="prev"
                 @keydown.enter="onEnter"

@@ -63,6 +63,13 @@ $menuClass = $menu->getCssClass() ?: 'main-menu';
                             return;
                         }
                         this.closeAll(true);
+                    },
+                    // The header search was focused or typed in: its suggestions must not sit under an open panel
+                    ['@elme-search-focus.window']() {
+                        if (this.openId === null) {
+                            return;
+                        }
+                        this.closeAll(true);
                     }
                 },
 
