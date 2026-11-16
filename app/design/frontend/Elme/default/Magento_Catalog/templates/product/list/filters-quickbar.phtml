@@ -62,7 +62,7 @@ $buttonLabel = $activeCount > 0
                            class="elme-quick<?= $chip['selected'] ? ' is-on' : '' ?>"
                            data-quick-chip>
                             <?php if ($isSwatch): ?>
-                                <span class="elme-swatch elme-swatch--chip elme-swatch--<?= $escaper->escapeHtmlAttr($colourSwatch->getSwatchName($chip['label'])) ?>"
+                                <span class="elme-filter-swatch elme-filter-swatch--chip elme-filter-swatch--<?= $escaper->escapeHtmlAttr($colourSwatch->getSwatchName($chip['label'])) ?>"
                                       aria-hidden="true"></span>
                             <?php endif; ?>
                             <span class="elme-quick__text"><?= $escaper->escapeHtml($chip['label']) ?></span>

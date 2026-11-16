@@ -144,7 +144,7 @@
     }
 
     /* Colour dot in a chip: the drawer's swatch colours, but a small flat square */
-    .elme-swatch.elme-swatch--chip {
+    .elme-filter-swatch.elme-filter-swatch--chip {
         width: --spacing(3.5);
         height: --spacing(3.5);
         box-shadow: none;

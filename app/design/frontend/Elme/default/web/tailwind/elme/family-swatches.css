@@ -222,14 +222,9 @@
     }
 
     .elme-swatch--mini {
-        width: --spacing(6);
-        height: --spacing(6);
+        width: --spacing(8);
+        height: --spacing(8);
         padding: 1px;
-
-        @variant lg {
-            width: --spacing(7);
-            height: --spacing(7);
-        }
     }
 
     .elme-card__swatch-more {

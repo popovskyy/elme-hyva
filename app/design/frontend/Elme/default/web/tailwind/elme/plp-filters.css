@@ -202,7 +202,7 @@ html.elme-filters-open {
     }
 
     .elme-filters__option.is-empty .elme-filters__option-text,
-    .elme-filters__option.is-empty .elme-swatch {
+    .elme-filters__option.is-empty .elme-filter-swatch {
         opacity: 0.45;
     }
 
@@ -223,7 +223,9 @@ html.elme-filters-open {
         }
     }
 
-    .elme-swatch {
+    /* Own class: .elme-swatch is the product family swatch (family-swatches.css) */
+    .elme-filter-swatch {
+        display: block;
         position: relative;
         flex: none;
         width: --spacing(8);
@@ -233,7 +235,7 @@ html.elme-filters-open {
         transition: box-shadow var(--transition-duration-fast) var(--ease-out-quad);
     }
 
-    .elme-filters__option-label:has(:checked) .elme-swatch {
+    .elme-filters__option-label:has(:checked) .elme-filter-swatch {
         border-color: var(--color-primary);
         box-shadow: inset 0 0 0 2px var(--color-surface), 0 0 0 1px var(--color-primary);
     }
@@ -242,18 +244,18 @@ html.elme-filters-open {
         font-weight: 500;
     }
 
-    .elme-swatch--beige { background-color: var(--color-swatch-beige); }
-    .elme-swatch--brown { background-color: var(--color-swatch-brown); }
-    .elme-swatch--white { background-color: var(--color-swatch-white); }
-    .elme-swatch--black { background-color: var(--color-swatch-black); }
-    .elme-swatch--red { background-color: var(--color-swatch-red); }
-    .elme-swatch--green { background-color: var(--color-swatch-green); }
-    .elme-swatch--light-grey { background-color: var(--color-swatch-light-grey); }
-    .elme-swatch--mid-grey { background-color: var(--color-swatch-mid-grey); }
-    .elme-swatch--yellow { background-color: var(--color-swatch-yellow); }
-    .elme-swatch--charcoal { background-color: var(--color-swatch-charcoal); }
-    .elme-swatch--blue { background-color: var(--color-swatch-blue); }
-    .elme-swatch--other { background-color: var(--color-swatch-other); }
+    .elme-filter-swatch--beige { background-color: var(--color-swatch-beige); }
+    .elme-filter-swatch--brown { background-color: var(--color-swatch-brown); }
+    .elme-filter-swatch--white { background-color: var(--color-swatch-white); }
+    .elme-filter-swatch--black { background-color: var(--color-swatch-black); }
+    .elme-filter-swatch--red { background-color: var(--color-swatch-red); }
+    .elme-filter-swatch--green { background-color: var(--color-swatch-green); }
+    .elme-filter-swatch--light-grey { background-color: var(--color-swatch-light-grey); }
+    .elme-filter-swatch--mid-grey { background-color: var(--color-swatch-mid-grey); }
+    .elme-filter-swatch--yellow { background-color: var(--color-swatch-yellow); }
+    .elme-filter-swatch--charcoal { background-color: var(--color-swatch-charcoal); }
+    .elme-filter-swatch--blue { background-color: var(--color-swatch-blue); }
+    .elme-filter-swatch--other { background-color: var(--color-swatch-other); }
 
     .elme-filters__more {
         margin-top: --spacing(2);

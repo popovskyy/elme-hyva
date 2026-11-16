@@ -184,7 +184,7 @@ $labels = [
                                                        value="<?= $escaper->escapeHtmlAttr($option->value) ?>"
                                                        <?= $option->selected ? 'checked' : '' ?>>
                                                 <?php if ($isSwatch): ?>
-                                                    <span class="elme-swatch elme-swatch--<?= $escaper->escapeHtmlAttr($colourSwatch->getSwatchName($option->label)) ?>"
+                                                    <span class="elme-filter-swatch elme-filter-swatch--<?= $escaper->escapeHtmlAttr($colourSwatch->getSwatchName($option->label)) ?>"
                                                           aria-hidden="true"></span>
                                                 <?php endif; ?>
                                                 <span class="elme-filters__option-text"><?= $escaper->escapeHtml($optionLabel) ?></span>
