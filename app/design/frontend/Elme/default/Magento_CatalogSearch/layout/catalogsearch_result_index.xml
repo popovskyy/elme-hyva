@@ -2,14 +2,45 @@
 <!--
 /**
  * UX-02: same guest trade banner as PLP, above search results.
+ * FE-23: the results page is the PLP: one column, same toolbar, filters drawer, quick bar and chips (facets from
+ * Elme_Search, D2), same grid. Search results are not meant for Google: NOINDEX,FOLLOW.
  */
 -->
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <meta name="robots" content="NOINDEX,FOLLOW"/>
+    </head>
     <body>
         <!-- FE-87: Grid / List is a client-side switch in the toolbar; the server always renders the grid -->
         <referenceBlock name="product_list_toolbar">
             <action method="disableViewSwitcher"/>
+            <!-- FE-23: same Filters button + drawer, sticky quick bar and chips as the category page (FE-21, FE-110) -->
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.listing.filters"
+                   as="elme_filters"
+                   template="Magento_Catalog::product/list/filters.phtml">
+                <arguments>
+                    <argument name="swatch_facets" xsi:type="array">
+                        <item name="colour_group" xsi:type="string">colour_group</item>
+                    </argument>
+                </arguments>
+                <block class="Magento\Framework\View\Element\Template"
+                       name="elme.listing.quickbar"
+                       as="elme_quickbar"
+                       template="Magento_Catalog::product/list/filters-quickbar.phtml"/>
+            </block>
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.listing.filters.chips"
+                   as="elme_filters_chips"
+                   template="Magento_Catalog::product/list/filters-chips.phtml"/>
+        </referenceBlock>
+        <referenceBlock name="catalog.leftnav" remove="true"/>
+        <referenceBlock name="search_result_list">
+            <arguments>
+                <!-- the list classes stay literal here so Tailwind finds them -->
+                <argument name="grid_columns_class" xsi:type="string">sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4</argument>
+            </arguments>
         </referenceBlock>
         <referenceContainer name="content">
             <block class="Elme\LoginOnly\Block\HideForLoggedIn"
