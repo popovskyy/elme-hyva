@@ -6,9 +6,10 @@
  * - sending: the cart icon crossfades to a small spinner in the same spot, the label stays readable (aria-busy;
  *   components/button.css leaves its own spinner off .btn-atc);
  * - success ("olive fill", Roman's pick): the button fills olive from left to right, the old icon + label leave
- *   first (quick, a little up), then a check draws itself where the icon was, settles 0.85 > 1, and "Added" comes
- *   in from below. White on olive. Compact buttons (label hidden at this width, data-atc-compact) show the check
- *   only. After the hold the olive fades back to charcoal. Everything stays inside the button: nothing to clip;
+ *   first (quick, a little up), then check + "Added", centred in the button: the check draws itself and settles
+ *   0.85 > 1, "Added" comes in from below. White on olive. Compact buttons (label hidden at this width,
+ *   data-atc-compact) show the check only, on the icon spot. After the hold the olive fades back to charcoal.
+ *   Everything stays inside the button: nothing to clip;
  * - error: the button shakes, then idle.
  * The idle icon + label stay in the flow (only faded), so the button never changes size; the stage is an overlay.
  * --atc-icon-x / --atc-icon-size / --atc-done-x come from the script (where the idle icon sits). Transform and
@@ -107,7 +108,7 @@
     }
 }
 
-/* --- success: check + "Added", the check where the icon was ---------------------------------------------------- */
+/* --- success: check + "Added", centred (compact: the check on the icon spot) ----------------------------------- */
 .btn-atc__done {
     display: inline-flex;
     align-items: center;

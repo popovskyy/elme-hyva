@@ -105,14 +105,16 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
         }
 
         // Where the idle cart icon sits (from the button centre, unscaled: the press scale may still
-        // run), so the spinner and the check take its spot; icon-only buttons (label hidden at this
-        // breakpoint) drop the "Added" text.
+        // run), so the spinner takes its spot while the label stays. Check + "Added" are centred in the
+        // button (the idle icon is often off centre: a long or min-width label, PDP); icon-only buttons
+        // (label hidden at this breakpoint) drop the "Added" text and put the check on the icon.
         function measure(btn) {
             const rect = btn.getBoundingClientRect();
             const scale = btn.offsetWidth ? rect.width / btn.offsetWidth : 1;
             const icon = btn.querySelector(':scope > svg');
             const label = btn.querySelector(':scope > span:not(.btn-atc__stage, .btn-ripple)');
-            btn.toggleAttribute('data-atc-compact', !label || label.getClientRects().length === 0);
+            const compact = !label || label.getClientRects().length === 0;
+            btn.toggleAttribute('data-atc-compact', compact);
             let iconX = 0;
             let size = 0;
             if (icon) {
@@ -122,10 +124,7 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
                 btn.style.setProperty('--atc-icon-size', Math.round(size) + 'px');
             }
             btn.style.setProperty('--atc-icon-x', Math.round(iconX) + 'px');
-            // check + "Added" are centred in the stage: move them so the check sits on the icon
-            const done = btn.querySelector('.btn-atc__done');
-            const doneX = done ? iconX + (done.offsetWidth - size) / 2 : iconX;
-            btn.style.setProperty('--atc-done-x', Math.round(doneX) + 'px');
+            btn.style.setProperty('--atc-done-x', compact ? Math.round(iconX) + 'px' : '0px');
         }
 
         function setState(btn, state) {
