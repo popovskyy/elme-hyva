@@ -106,8 +106,8 @@ $cleanTitle = trim((string) preg_replace('/\{.*?\}/', '', $titleRaw));
                             <span class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__item-text">
                                 <?= $escaper->escapeHtml($nodeTitle) ?>
                             </span>
-                            <span class="elme-mobile-menu__chevron" aria-hidden="true">
-                                <?= $lucideIcons->chevronRightHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                            <span class="elme-mobile-menu__chevron corner-leaf-sm" aria-hidden="true">
+                                <?= $lucideIcons->chevronRightHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
                             </span>
                         </button>
                         <?= /* @noEscape */ $block->renderSubmenu($children, $node, $childrenLevel) ?>

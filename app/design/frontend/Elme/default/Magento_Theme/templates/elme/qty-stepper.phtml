@@ -66,12 +66,12 @@ $buttonClass = 'flex items-center justify-center w-11 shrink-0 text-h3 text-ink 
         class="<?= $block->getData('show_label') ? 'field-label' : 'sr-only' ?>"
     ><?= $escaper->escapeHtml($label) ?></label>
     <div
-        class="inline-flex h-(--form-height) border bg-surface transition-colors"
+        class="corner-leaf inline-flex h-(--form-height) border bg-surface transition-colors"
         :class="stepperClasses"
     >
         <button
             type="button"
-            class="<?= $escaper->escapeHtmlAttr($buttonClass) ?>"
+            class="<?= $escaper->escapeHtmlAttr($buttonClass) ?> rounded-bl-[inherit]"
             aria-label="<?= $escaper->escapeHtmlAttr(__('Decrease quantity by %1', $moq)) ?>"
             aria-controls="<?= $escaper->escapeHtmlAttr($inputId) ?>"
             @click="decrement"
@@ -99,7 +99,7 @@ $buttonClass = 'flex items-center justify-center w-11 shrink-0 text-h3 text-ink 
         >
         <button
             type="button"
-            class="<?= $escaper->escapeHtmlAttr($buttonClass) ?>"
+            class="<?= $escaper->escapeHtmlAttr($buttonClass) ?> rounded-tr-[inherit]"
             aria-label="<?= $escaper->escapeHtmlAttr(__('Increase quantity by %1', $moq)) ?>"
             aria-controls="<?= $escaper->escapeHtmlAttr($inputId) ?>"
             @click="increment"

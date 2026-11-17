@@ -98,13 +98,96 @@
         padding: 0;
     }
 
-    /* Koala list: type only, no rules between rows or around the chrome. */
+    /* Rows and tiles: logo + charcoal close tile, search field, rows with hairlines and a
+       chevron in a sand tile, account links with icon tiles, phone and email at the bottom. */
     .elme-mobile-menu .elme-drawer__header,
     .elme-mobile-menu .elme-drawer__footer,
     .elme-mobile-menu__sub-header,
-    .elme-mobile-menu__list > li,
     .elme-mobile-menu__footer-list > li {
         border: 0;
+    }
+
+    .elme-mobile-menu .elme-drawer__header {
+        padding-block: --spacing(2);
+        padding-inline: --spacing(5) --spacing(4);
+        min-height: --spacing(15);
+    }
+
+    .elme-mobile-menu__logo {
+        display: block;
+        width: auto;
+        height: --spacing(6.5);
+    }
+
+    .elme-mobile-menu__close {
+        display: inline-grid;
+        place-items: center;
+        width: --spacing(11);
+        height: --spacing(11);
+        padding: 0;
+        border: 0;
+        background-color: var(--color-primary);
+        color: var(--color-on-primary);
+        cursor: pointer;
+        transition: background-color var(--transition-duration-slow) var(--ease-soft);
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+
+        @media (hover: hover) {
+            &:hover {
+                background-color: var(--color-olive);
+            }
+        }
+    }
+
+    .elme-mobile-menu__search {
+        display: block;
+        padding: --spacing(1) --spacing(4) --spacing(3);
+
+        form {
+            position: relative;
+        }
+    }
+
+    .elme-mobile-menu__search-icon {
+        position: absolute;
+        inset-block: 0;
+        inset-inline-start: --spacing(3.5);
+        margin-block: auto;
+        color: var(--color-ink-subtle);
+        pointer-events: none;
+    }
+
+    .elme-mobile-menu__search-input {
+        width: 100%;
+        height: --spacing(12);
+        padding-inline: --spacing(11) --spacing(3);
+        border: 0;
+        border-radius: 0 var(--radius-leaf) 0 var(--radius-leaf);
+        background-color: var(--color-surface-muted);
+        color: var(--color-ink);
+        font-size: var(--text-base);
+
+        &::placeholder {
+            color: var(--color-placeholder);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: -2px;
+        }
+    }
+
+    .elme-mobile-menu__list {
+        padding-inline: --spacing(4);
+    }
+
+    .elme-mobile-menu__list > li {
+        border: 0;
+        border-block-end: 1px solid var(--color-border);
     }
 
     .elme-mobile-nav .main-menu__link::before,
@@ -122,13 +205,13 @@
         justify-content: space-between;
         gap: --spacing(3);
         width: 100%;
-        min-height: --spacing(11);
-        padding-block: --spacing(4);
-        padding-inline: --spacing(5);
+        min-height: --spacing(14);
+        padding-block: --spacing(3);
+        padding-inline: --spacing(1);
         margin: 0;
         color: var(--color-ink);
-        font-size: var(--text-base);
-        line-height: var(--text-base--line-height);
+        font-size: var(--text-h3);
+        line-height: var(--text-h3--line-height);
         font-weight: 500;
         text-align: start;
         text-decoration: none;
@@ -144,22 +227,30 @@
         text-decoration: none;
     }
 
+    .elme-mobile-menu__row:active {
+        background-color: var(--color-surface-muted);
+    }
+
     .elme-mobile-menu__chevron {
-        display: inline-flex;
-        color: var(--color-primary);
+        display: inline-grid;
+        place-items: center;
         flex-shrink: 0;
+        width: --spacing(8);
+        height: --spacing(8);
+        background-color: var(--color-surface-muted);
+        color: var(--color-primary);
     }
 
     .elme-mobile-menu__view-all {
         display: flex;
         align-items: center;
         width: 100%;
-        min-height: --spacing(11);
-        padding-block: --spacing(4);
-        padding-inline: --spacing(5);
+        min-height: --spacing(14);
+        padding-block: --spacing(3);
+        padding-inline: --spacing(1);
         color: var(--color-ink);
-        font-size: var(--text-base);
-        font-weight: 500;
+        font-size: var(--text-h3);
+        font-weight: 600;
         text-decoration: underline;
         text-underline-offset: 0.15em;
     }
@@ -169,11 +260,62 @@
     }
 
     .elme-mobile-menu__footer {
-        padding: 0;
+        padding: --spacing(5) --spacing(4) --spacing(4);
     }
 
     .elme-mobile-menu__footer-list {
+        gap: --spacing(1);
         background-color: var(--color-surface);
+    }
+
+    .elme-mobile-menu__footer-link {
+        display: flex;
+        align-items: center;
+        gap: --spacing(3);
+        min-height: --spacing(12);
+        color: var(--color-ink);
+        font-size: var(--text-base);
+        font-weight: 500;
+        text-decoration: none;
+
+        &:hover {
+            color: var(--color-ink);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+    }
+
+    .elme-mobile-menu__tile {
+        display: inline-grid;
+        place-items: center;
+        flex-shrink: 0;
+        width: --spacing(10);
+        height: --spacing(10);
+        background-color: var(--color-sand-light);
+        color: var(--color-ink);
+    }
+
+    .elme-mobile-menu__contact {
+        display: grid;
+        gap: --spacing(0.5);
+        margin: --spacing(4) 0 0;
+        padding-inline: --spacing(1);
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+
+        a {
+            justify-self: start;
+            color: var(--color-ink-muted);
+            text-decoration: none;
+
+            &:hover {
+                color: var(--color-ink);
+                text-decoration: underline;
+            }
+        }
     }
 
     html.elme-mobile-menu-open {

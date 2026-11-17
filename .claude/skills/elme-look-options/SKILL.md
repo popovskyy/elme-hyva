@@ -26,6 +26,8 @@ content. Do not invent products, prices, or category names.
 Colours and type come from `app/design/frontend/Elme/default/web/tailwind/hyva.config.json`
 (`tokens.values` and `fonts`). Load the fonts listed there (Figtree) with relative
 `@font-face` paths into the theme `web/fonts/` files. Do not add a new palette.
+Buttons, chips, selects and other controls in every variant keep the leaf corners
+(CLAUDE.md, "Leaf corners"), unless the shape itself is what the user is choosing.
 
 ## 2. Write one page
 

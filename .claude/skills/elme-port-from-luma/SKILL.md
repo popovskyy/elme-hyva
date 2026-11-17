@@ -45,6 +45,11 @@ a different page.
   (desktop 1025) / `3xl:` (1920). No hex values, no arbitrary px in templates: if a value is missing,
   add a token to `web/tailwind/hyva.config.json` → `tokens.values`. Map old LESS variables with
   `references/tokens-map.md`. Write mobile first.
+- **Shape:** the old site is square everywhere; here everything you press gets leaf corners
+  (top-right and bottom-left rounded): `.btn` already has them, other controls use `corner-leaf`
+  (50px high) or `corner-leaf-sm` (40-44px) from `web/tailwind/elme/leaf.css`, or
+  `border-radius: 0 var(--radius-leaf) 0 var(--radius-leaf)` in a partial. Text inputs, cards and
+  images stay square. Rule in CLAUDE.md, "Leaf corners".
 - **JS:** Alpine, CSP-compatible (`hyva-alpine-component` skill). jQuery widgets, `x-magento-init`,
   Knockout and RequireJS do not exist here. Private content (customer, cart) comes from Hyvä's
   `private-content-loaded` event, not `customer-data.js`.

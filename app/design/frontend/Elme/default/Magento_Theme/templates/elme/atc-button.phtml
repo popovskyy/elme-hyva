@@ -40,7 +40,9 @@ use Hyva\Theme\Model\ViewModelRegistry;
 use Hyva\Theme\ViewModel\HyvaCsp;
 use Hyva\Theme\ViewModel\LucideIcons;
 use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
 
+/** @var Template $block */
 /** @var Escaper $escaper */
 /** @var ViewModelRegistry $viewModels */
 
@@ -77,7 +79,12 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
         const REVEAL_MS = 220;
         const CART_ICON = '#menu-cart-icon .elme-header__icon';
         const IMAGE = '.elme-card__media img, .elme-look-thumb img, .elme-sticky-atc__thumb';
+        // the "Added to cart" bar (toast-stack.phtml): product photo, name and a link to the cart
+        const CART_URL = '<?= $escaper->escapeJs($block->getUrl('quick_order/cart')) ?>';
+        const TOAST_MS = 5000;
+        const NAME = '.elme-card__name, .elme-sticky-atc__name, [data-atc-name]';
         const TEXT = {
+            viewCart: '<?= $escaper->escapeJs(__('View cart')) ?>',
             added: '<?= $escaper->escapeJs(__('Added to cart')) ?>',
             failed: '<?= $escaper->escapeJs(__('We couldn\'t add this item to your cart. Please try again.')) ?>'
         };
@@ -237,6 +244,26 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
             return (doc.body.textContent || '').trim();
         }
 
+        // the product name next to the control: its card or the sticky bar, else the page title (PDP)
+        function sourceName(origin) {
+            const scope = origin.closest('.elme-card, .elme-look-card, .elme-sticky-atc');
+            const el = scope ? scope.querySelector(NAME) : document.querySelector('main h1');
+            return el ? el.textContent.replace(/\s+/g, ' ').trim() : '';
+        }
+
+        // replaces the sr-only "Added to cart": the toast is a polite live region of its own
+        function addedToast(name, img) {
+            const photo = loaded(img);
+            window.dispatchEvent(new CustomEvent('elme-toast', { detail: {
+                type: 'success',
+                title: TEXT.added,
+                text: name,
+                image: photo ? (photo.currentSrc || photo.src) : '',
+                link: { url: CART_URL, label: TEXT.viewCart },
+                hideAfter: TOAST_MS
+            } }));
+        }
+
         function isCartUrl(url) {
             try {
                 return /\/checkout\/cart\/?$/.test(new URL(url, window.location.href).pathname);
@@ -310,12 +337,13 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
                     return;
                 }
                 show(job.views, 'success', result.redirect ? 0 : HOLD_MS);
-                announce(TEXT.added);
                 // Admin "After adding a product redirect to Shopping Cart" = Yes
                 if (result.redirect) {
+                    announce(TEXT.added);
                     window.location.assign(result.redirect);
                     return;
                 }
+                addedToast(sourceName(job.origin), sourceImage(job.origin));
                 if (flies) {
                     celebrate(job.origin, headerWasHidden, [sourceImage(job.origin)]);
                 }
@@ -339,7 +367,7 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
                 const flies = list.length > 0 && !reduced() && Boolean(window.elmeFly);
                 const headerWasHidden = flies && expectLandings(list.length);
                 show([btn], 'success', HOLD_MS);
-                announce(TEXT.added);
+                addedToast('', list.find(Boolean) || null);
                 if (flies) {
                     celebrate(btn, headerWasHidden, list);
                 }

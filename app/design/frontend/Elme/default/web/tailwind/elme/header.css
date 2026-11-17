@@ -304,6 +304,8 @@
     .elme-header-search__input {
         background-color: var(--color-page);
         border-color: transparent;
+        /* leaf corners like the buttons (elme/leaf.css) */
+        border-radius: 0 var(--radius-leaf) 0 var(--radius-leaf);
         transition: border-color var(--transition-duration-fast) var(--ease-out-quad), background-color var(--transition-duration-fast) var(--ease-out-quad), box-shadow var(--transition-duration-fast) var(--ease-out-quad);
 
         &:hover {

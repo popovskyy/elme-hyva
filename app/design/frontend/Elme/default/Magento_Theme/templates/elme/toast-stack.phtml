@@ -1,10 +1,14 @@
 <?php
 /**
- * Ephemeral toast stack (FE-03 / FE-41).
+ * Ephemeral toast stack (FE-03 / FE-41), a charcoal bar at the bottom (web/tailwind/components/messages.css).
  * Dispatch: window.dispatchEvent(new CustomEvent('elme-toast', {
- *   detail: { type: 'success'|'error'|'notice'|'warning', text: '...', hideAfter: 4000 }
+ *   detail: {
+ *     type: 'success'|'error'|'notice'|'warning', text: '...', hideAfter: 4000,
+ *     title: 'Added to cart',                     // optional bold first line, text becomes the second
+ *     image: 'https://.../thumb.jpg',             // optional product photo in place of the status badge
+ *     link: { url: '/quick-order/cart/', label: 'View cart' } // optional action on the right
+ *   }
  * }))
- * Fixed under --elme-header-row-bottom so toasts never cover the header.
  */
 
 declare(strict_types=1);
@@ -34,11 +38,23 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
         <div
             class="message"
             :class="toastClass"
+            :style="toastStyle"
             role="status"
             :aria-live="toastLive"
         >
-            <span class="message__badge" aria-hidden="true"></span>
-            <span class="message__text" x-text="toast.text"></span>
+            <template x-if="toast.image">
+                <img class="elme-toast__thumb" :src="toast.image" alt="" width="56" height="56">
+            </template>
+            <template x-if="hasBadge">
+                <span class="message__badge" aria-hidden="true"></span>
+            </template>
+            <span class="elme-toast__body">
+                <span class="elme-toast__title" x-show="toast.title" x-text="toast.title"></span>
+                <span class="message__text" x-show="toast.text" x-text="toast.text"></span>
+            </span>
+            <template x-if="toast.link">
+                <a class="elme-toast__link" :href="toastLinkUrl" x-text="toastLinkLabel"></a>
+            </template>
             <button
                 type="button"
                 class="message__close"
@@ -48,6 +64,9 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             >
                 <?= $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']); ?>
             </button>
+            <template x-if="toast.hideAfter">
+                <span class="elme-toast__timer" aria-hidden="true"></span>
+            </template>
         </div>
     </template>
 </div>
@@ -67,15 +86,20 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
 
             pushToast(detail) {
                 const text = (detail.text || '').trim();
-                if (!text) return;
+                const title = (detail.title || '').trim();
+                if (!text && !title) return;
 
                 const id = this.nextId++;
                 const type = detail.type || 'notice';
                 const hideAfter = detail.hideAfter === 0
                     ? 0
                     : (detail.hideAfter || this.defaultHideAfter);
+                const image = detail.image || '';
+                const link = detail.link && detail.link.url && detail.link.label
+                    ? { url: detail.link.url, label: detail.link.label }
+                    : null;
 
-                this.toasts.push({ id, type, text, leaving: false });
+                this.toasts.push({ id, type, text, title, image, link, hideAfter, leaving: false });
 
                 if (hideAfter > 0) {
                     setTimeout(() => this.removeById(id), hideAfter);
@@ -98,7 +122,30 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
             },
 
             toastClass() {
-                return this.toast.leaving ? this.toast.type + ' is-leaving' : this.toast.type;
+                const toast = this.toast;
+                return [
+                    toast.type,
+                    toast.title ? 'has-title' : '',
+                    toast.image ? 'has-image' : '',
+                    toast.leaving ? 'is-leaving' : ''
+                ].join(' ').trim();
+            },
+
+            // the sage line under the bar runs for as long as the toast stays
+            toastStyle() {
+                return this.toast.hideAfter ? '--toast-life: ' + this.toast.hideAfter + 'ms' : '';
+            },
+
+            hasBadge() {
+                return !this.toast.image;
+            },
+
+            toastLinkUrl() {
+                return this.toast.link ? this.toast.link.url : '';
+            },
+
+            toastLinkLabel() {
+                return this.toast.link ? this.toast.link.label : '';
             },
 
             toastLive() {

@@ -1,0 +1,59 @@
+/*
+ * Leaf shapes: the Elme rule for anything you press (see CLAUDE.md, "Leaf corners").
+ *
+ * corner-leaf / corner-leaf-sm: top-right and bottom-left rounded, like the leaf in the logo and the message
+ * marks. .btn has them already (components/button.css, --btn-radius); these are for tiles that are not a .btn
+ * (pager squares, mobile menu tiles).
+ *
+ * .elme-band-leaves: sage promo band with the message leaf art scattered over it (silhouettes behind, line art
+ * in front). One or two blocks per page, not every section.
+ */
+
+@utility corner-leaf {
+    border-radius: 0 var(--radius-leaf) 0 var(--radius-leaf);
+}
+
+@utility corner-leaf-sm {
+    border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm);
+}
+
+@layer components {
+    .elme-band-leaves {
+        position: relative;
+        isolation: isolate;
+        overflow: clip;
+        background-color: var(--color-secondary);
+        color: var(--color-on-secondary);
+
+        &::before,
+        &::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            mask-repeat: repeat;
+            mask-size: --spacing(140) --spacing(46);
+        }
+
+        &::before {
+            background-color: color-mix(in srgb, var(--color-olive) 22%, var(--color-secondary));
+            mask-image: var(--message-leaves-back);
+            mask-position: left --spacing(-10) top --spacing(6);
+        }
+
+        &::after {
+            background-color: color-mix(in srgb, var(--color-olive) 45%, var(--color-secondary));
+            mask-image: var(--message-leaves-front);
+            mask-position: left --spacing(24) top --spacing(-8);
+        }
+    }
+}
+
+/* On the sage band the primary button would hover to the band colour: hover to white instead. Unlayered, like
+   .btn-on-dark, so it wins over the values btn-primary sets on itself. */
+.elme-band-leaves .btn-primary {
+    --btn-hover-stroke: var(--color-surface);
+    --btn-hover-bg: var(--color-surface);
+    --btn-hover-color: var(--color-ink);
+}

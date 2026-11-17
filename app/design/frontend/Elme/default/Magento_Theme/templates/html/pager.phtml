@@ -25,13 +25,17 @@ $paginationUrlAnchor = $block->hasData('pagination_url_anchor')
 
 $pagerIconSize = 20;
 
-// Elme: 40px squares with a sage border, charcoal border on the current page, charcoal prev/next (old _pages.less)
-$pagerItemClass = 'inline-flex items-center justify-center gap-1 min-w-10 h-10 px-2 border text-label no-underline'
-    . ' transition-colors aria-disabled:opacity-50 aria-disabled:pointer-events-none';
-$pagerPageClass = $pagerItemClass . ' border-secondary text-ink hover:border-primary active:bg-surface-muted'
-    . ' aria-[current=page]:border-primary aria-[current=page]:font-bold';
-$pagerArrowClass = $pagerItemClass . ' border-primary bg-primary text-on-primary'
-    . ' hover:border-secondary hover:bg-secondary active:bg-primary';
+// Elme: 44px white squares with leaf corners (web/tailwind/elme/leaf.css), charcoal on the current page,
+// the arrow you cannot use is faded
+$pagerItemClass = 'corner-leaf-sm inline-flex items-center justify-center gap-1 min-w-11 h-11 px-2'
+    . ' text-copy font-medium no-underline bg-surface text-ink'
+    . ' transition-colors duration-(--transition-duration-slow) ease-(--ease-soft)'
+    . ' hover:bg-sand-light active:bg-sand-light'
+    . ' focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary'
+    . ' aria-disabled:opacity-45 aria-disabled:pointer-events-none';
+$pagerPageClass = $pagerItemClass
+    . ' aria-[current=page]:bg-primary aria-[current=page]:text-on-primary aria-[current=page]:pointer-events-none';
+$pagerArrowClass = $pagerItemClass;
 ?>
 <?php if ($block->getCollection()->getSize()): ?>
 
@@ -64,7 +68,7 @@ $pagerArrowClass = $pagerItemClass . ' border-primary bg-primary text-on-primary
 
     <div class="flex justify-center order-2 col-span-4">
         <?php if ($block->getLastPageNum() > 1): ?>
-            <nav class="pages flex gap-1 justify-center" aria-label="pagination">
+            <nav class="pages flex gap-2 justify-center" aria-label="pagination">
                 <?php
                     $previousLabel = $block->getAnchorTextForPrevious() ?: __('Previous Page');
                     $previousPageUrl = $block->isFirstPage()
@@ -88,7 +92,7 @@ $pagerArrowClass = $pagerItemClass . ' border-primary bg-primary text-on-primary
                     <?= $block->getAnchorTextForPrevious() ? $escaper->escapeHtml($previousLabel) : '' ?>
                 </a>
 
-                <ol class="inline-flex gap-1">
+                <ol class="inline-flex gap-2">
                     <?php if ($block->canShowFirst()): ?>
                         <li class="item hidden sm:block md:hidden lg:block">
                             <a

@@ -158,7 +158,9 @@
         "3xl": "0px",
         "4xl": "0px",
         "menu": "0px",
-        "menu-promo": "0px"
+        "menu-promo": "0px",
+        "leaf": "16px",
+        "leaf-sm": "10px"
       },
       "form": {
         "radius": "1px",
