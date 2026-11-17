@@ -160,6 +160,8 @@
         width: --spacing(12);
         min-width: 0;
         border: 0;
+        /* the stepper carries the leaf; the field in the middle stays square */
+        border-radius: 0;
         padding: 0;
         background: transparent;
         text-align: center;
