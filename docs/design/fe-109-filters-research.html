@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PLP filters - research and review (FE-109)</title>
+<style>
+@font-face { font-family: "Figtree"; src: url("../../app/design/frontend/Elme/default/web/fonts/generated/figtree-latin-300-900-normal.woff2") format("woff2"); font-weight: 300 900; font-display: swap; }
+:root {
+  --ink: #3A3935; --ink-muted: #605E55; --page: #F5F4EF; --surface: #FFFFFF; --surface-muted: #F1F0EA;
+  --border: #D8D5CE; --olive: #647455; --error-text: #8A3A30; --success-text: #4A5740;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 15px/1.5 Figtree, ui-sans-serif, system-ui, sans-serif; }
+.page { max-width: 1520px; margin: 0 auto; padding: 48px 40px 120px; }
+h1 { margin: 0 0 12px; font-size: 36px; font-weight: 500; line-height: 1.1; }
+h2 { margin: 64px 0 12px; font-size: 26px; font-weight: 500; line-height: 1.2; }
+h3 { margin: 40px 0 6px; font-size: 20px; font-weight: 500; }
+p, li { max-width: 80ch; }
+.lead { color: var(--ink-muted); font-size: 16px; }
+a { color: var(--ink); text-underline-offset: 3px; }
+table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: 13.5px; }
+th, td { padding: 10px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--border); }
+th { background: var(--surface-muted); font-weight: 600; }
+td:first-child { font-weight: 600; white-space: nowrap; }
+.wrap { overflow-x: auto; border: 1px solid var(--border); }
+.site { margin-top: 48px; padding-top: 8px; border-top: 1px solid var(--border); }
+.site h3 { margin-top: 24px; }
+.url { color: var(--ink-muted); font-size: 13px; }
+.shots { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; margin: 16px 0; align-items: start; }
+.shots figure { margin: 0; }
+.shots img { display: block; width: 100%; height: auto; border: 1px solid var(--border); }
+figcaption { margin-top: 6px; color: var(--ink-muted); font-size: 12.5px; }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.facts li { padding: 6px 0; border-bottom: 1px solid var(--surface-muted); }
+.facts b { font-weight: 600; }
+.verdict { margin: 12px 0 0; padding: 12px 16px; background: var(--surface); border-inline-start: 3px solid var(--olive); }
+.bad { color: var(--error-text); }
+.good { color: var(--success-text); }
+ol.issues li, ul.keep li { margin: 6px 0; }
+@media (max-width: 900px) { .shots, .facts { grid-template-columns: 1fr; } .page { padding: 24px 16px 80px; } }
+</style>
+</head>
+<body>
+<main class="page">
+<h1>PLP filters: research and review</h1>
+<p class="lead">FE-109, steps 1 and 2. Eight furniture and homewares stores captured on 17 Nov 2026 at 1440 px (desktop) and 375 px (phone): the top of a sofa listing, the same page three screens down, 250 px back up, and the filters opened. Then our current build (FE-21 drawer + FE-110 quick bar) and the production site, measured the same way. The options to choose from are in <a href="fe-109-filters-options.html">fe-109-filters-options.html</a>.</p>
+<p class="lead">RH, Zara Home, Faire, Made, Temple &amp; Webster, Crate &amp; Barrel and Habitat block headless browsers (403 / bot check), so they are not in this list.</p>
+
+<h2>At a glance</h2>
+<div class="wrap">
+<table>
+<thead><tr><th>Store</th><th>Desktop filters</th><th>Sticky after 3 screens</th><th>Applied filters</th><th>Apply</th><th>Phone</th><th>Ranges / colour</th></tr></thead>
+<tbody>
+<tr><td>Article</td><td>Left sidebar, open lists with counts, Sort as radios in the sidebar</td><td class="bad">Desktop: nothing. Phone: title + Filters pill</td><td>Ticks only</td><td>Instant</td><td>Drawer from right, accordions, Done</td><td>Price slider + inputs; colour as text</td></tr>
+<tr><td>Castlery</td><td>Left sidebar, "Hide filters", open facets</td><td>Desktop: sidebar tail sticks. Phone: Filters | Sort bar</td><td>Ticks only</td><td>Desktop instant; phone Apply with "426 results"</td><td>Full-screen sheet, 2-column options, Reset / Apply</td><td>Length (cm) slider; round swatches</td></tr>
+<tr><td>IKEA</td><td>Sticky column of closed accordions + promoted "Number of seats" pills with counts</td><td class="good">Both: facet list / facet pills always there</td><td>Pills above list</td><td>Instant</td><td>Sticky row of facet pills, each opens its own bottom sheet</td><td>Size and colour sheets</td></tr>
+<tr><td>Pottery Barn</td><td>Sidebar + sticky top bar (In stock, On sale, count, Sort)</td><td class="good">Both: bar sticks</td><td>Ticks only</td><td>Instant</td><td>151 px sticky block (count, toggles, Filters, Sort)</td><td>Colour dots with names and counts</td></tr>
+<tr><td>West Elm AU</td><td>Same platform as Pottery Barn</td><td class="good">Both: bar sticks</td><td>Ticks only</td><td>Instant</td><td>Same as Pottery Barn</td><td>Same</td></tr>
+<tr><td>Coco Republic</td><td>Top row of dropdowns (Colour, Material, Price, Brand, Sale, Availability) + Sort</td><td class="bad">Neither</td><td>Count in the Filter button</td><td>Phone: "Filter items 135"</td><td>Full-screen sheet, accordions</td><td>Dropdowns</td></tr>
+<tr><td>Freedom</td><td>Sticky "Filter | 1258 products | Sort" bar + sticky column of closed accordions</td><td class="good">Both</td><td>Ticks only</td><td>Phone: "Show 1258 results"</td><td>Sticky "Filter &amp; Sort | count" bar, drawer with Sort inside</td><td>Dimensions facet</td></tr>
+<tr><td>GlobeWest (trade)</td><td>Row of dropdowns (Price, Colour, Family, Shape, Size) + Filters sidebar toggle</td><td>Desktop: no. Phone: "Browse by | Sort" bar</td><td>Ticks only</td><td>"Apply filters" on phone</td><td>Sheet with Apply filters</td><td>W x D x H on every card</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>Stores</h2>
+<p class="lead">Desktop images: top left = first screen, top right = three screens down, bottom left = 250 px back up, bottom right = filters opened (or the top again when the filters are already visible). Phone images: the same four, left to right.</p>
+
+<section class="site">
+<h3>1. Article</h3>
+<p class="url">article.com/browse/12/sofas-sofas (US, direct to consumer)</p>
+<div class="shots">
+<figure><img src="fe-109-filters/research/article-desk.jpg" alt="Article desktop: sidebar Sort and Filter, then the same page scrolled with an empty sidebar column" loading="lazy"><figcaption>Desktop 1440</figcaption></figure>
+<figure><img src="fe-109-filters/research/article-phone.jpg" alt="Article phone: Filters pill sticky with the title, drawer from the right" loading="lazy"><figcaption>Phone 375</figcaption></figure>
+</div>
+<ul class="facts">
+<li><b>Where:</b> desktop left sidebar "Sort &amp; Filter", every facet open, counts next to options.</li>
+<li><b>Sort:</b> radio list at the top of the sidebar, no separate control.</li>
+<li><b>On scroll:</b> desktop sidebar scrolls away; phone keeps "Sofas &amp; Loveseats + FILTERS" stuck under the header, which hides on scroll down and returns on scroll up.</li>
+<li><b>Apply:</b> instant; the phone drawer closes with "Done".</li>
+<li><b>Ranges:</b> price slider with two typed inputs.</li>
+<li><b>Empty / loading:</b> list fades while it reloads.</li>
+</ul>
+<p class="verdict">Phone bar is clean and always there. Desktop loses every filter after the first screen, which is the thing to avoid.</p>
+</section>
+
+<section class="site">
+<h3>2. Castlery</h3>
+<p class="url">castlery.com/au/sofas/all-sofas</p>
+<div class="shots">
+<figure><img src="fe-109-filters/research/castlery-desk.jpg" alt="Castlery desktop: sidebar with Length slider and colour swatches" loading="lazy"><figcaption>Desktop 1440</figcaption></figure>
+<figure><img src="fe-109-filters/research/castlery-phone.jpg" alt="Castlery phone: sticky Filters and Sort bar, full screen filter sheet with Apply" loading="lazy"><figcaption>Phone 375</figcaption></figure>
+</div>
+<ul class="facts">
+<li><b>Where:</b> desktop sidebar with "Hide filters", Quick ship toggle on top, facets open.</li>
+<li><b>Sort:</b> "Sort by" dropdown top right of the grid.</li>
+<li><b>On scroll:</b> desktop sidebar is a tall sticky column; phone: "Filters | Sort by" sticks at the very top.</li>
+<li><b>Apply:</b> desktop instant; phone sheet has "426 results available" with Reset / Apply.</li>
+<li><b>Ranges / colour:</b> Length (cm) slider 50-490; round colour swatches with no names.</li>
+<li><b>Noise:</b> newsletter popup and a side tab cover the grid.</li>
+</ul>
+<p class="verdict">Closest to what Elme needs: size in cm, swatches, live count on the phone. The bar sits at the top of the phone screen, which is hard to reach with the thumb.</p>
+</section>
+
+<section class="site">
+<h3>3. IKEA</h3>
+<p class="url">ikea.com/au/en/cat/sofas-fu003</p>
+<div class="shots">
+<figure><img src="fe-109-filters/research/ikea-desk.jpg" alt="IKEA desktop: promoted seat count pills and a sticky facet column" loading="lazy"><figcaption>Desktop 1440 (cookie banner could not be closed)</figcaption></figure>
+<figure><img src="fe-109-filters/research/ikea-phone.jpg" alt="IKEA phone: sticky row of facet pills, Filter and sort sheet" loading="lazy"><figcaption>Phone 375 (cookie banner could not be closed)</figcaption></figure>
+</div>
+<ul class="facts">
+<li><b>Where:</b> desktop sticky column of closed accordions (Sort, Number of seats, Type, Colour, Price, Size ...); "Number of seats" also promoted as pills with counts above the grid.</li>
+<li><b>Sort:</b> first item in the facet column / first pill on the phone.</li>
+<li><b>On scroll:</b> the column and the phone pill row never leave the screen.</li>
+<li><b>Apply:</b> instant.</li>
+<li><b>Phone:</b> each pill opens a bottom sheet with just that facet; "All filters" opens "Filter and sort".</li>
+<li><b>Applied:</b> shown as pills above the list.</li>
+</ul>
+<p class="verdict">Best at "filters always one tap away" on both sizes. Promoted pills with counts are the fastest single filter. Closed accordions hide the options until clicked.</p>
+</section>
+
+<section class="site">
+<h3>4. Pottery Barn</h3>
+<p class="url">potterybarn.com.au/furniture/living-room-furniture/sofas</p>
+<div class="shots">
+<figure><img src="fe-109-filters/research/potterybarn-desk.jpg" alt="Pottery Barn desktop: sticky bar with In stock, On sale, count and Sort over a sticky sidebar" loading="lazy"><figcaption>Desktop 1440</figcaption></figure>
+<figure><img src="fe-109-filters/research/potterybarn-phone.jpg" alt="Pottery Barn phone: tall sticky block with Filters and Sort, drawer from the right" loading="lazy"><figcaption>Phone 375</figcaption></figure>
+</div>
+<ul class="facts">
+<li><b>Where:</b> desktop sidebar ("Hide filters") with counts, plus a top bar with In stock / On sale toggles, product count and Sort.</li>
+<li><b>On scroll:</b> the top bar is fixed and the sidebar sticks under it: everything stays reachable.</li>
+<li><b>Phone:</b> a 151 px sticky block (count, two toggles, Filters, Sort) - almost a fifth of the screen.</li>
+<li><b>Apply:</b> instant; the phone drawer closes with "Close".</li>
+<li><b>Colour:</b> dots with names and counts in a list.</li>
+<li><b>Stock:</b> "In stock" promoted as a one-tap toggle.</li>
+</ul>
+<p class="verdict">The desktop pattern (sticky bar with stock toggle, count and Sort over a sticky sidebar) suits a B2B buyer. The phone block is too tall.</p>
+</section>
+
+<section class="site">
+<h3>5. West Elm AU</h3>
+<p class="url">westelm.com.au/sofa-modulars-sc</p>
+<div class="shots">
+<figure><img src="fe-109-filters/research/westelm-desk.jpg" alt="West Elm desktop: same sticky bar and sidebar as Pottery Barn" loading="lazy"><figcaption>Desktop 1440</figcaption></figure>
+<figure><img src="fe-109-filters/research/westelm-phone.jpg" alt="West Elm phone" loading="lazy"><figcaption>Phone 375</figcaption></figure>
+</div>
+<ul class="facts">
+<li><b>Where:</b> same Williams-Sonoma platform as Pottery Barn: sidebar, sticky bar "On sale | In stock | 1 - 72 of 146 products | Sort".</li>
+<li><b>Facets:</b> Inventory availability first (In stock, Pre-order, Made to order), then Category, Product type, Price.</li>
+</ul>
+<p class="verdict">Puts availability first, which is the right order for a buyer who needs stock now.</p>
+</section>
+
+<section class="site">
+<h3>6. Coco Republic</h3>
+<p class="url">cocorepublic.com.au/sofas</p>
+<div class="shots">
+<figure><img src="fe-109-filters/research/cocorepublic-desk.jpg" alt="Coco Republic desktop: row of filter dropdowns above the grid, gone after scrolling" loading="lazy"><figcaption>Desktop 1440</figcaption></figure>
+<figure><img src="fe-109-filters/research/cocorepublic-phone.jpg" alt="Coco Republic phone: no sticky bar, full screen filter sheet" loading="lazy"><figcaption>Phone 375</figcaption></figure>
+</div>
+<ul class="facts">
+<li><b>Where:</b> one row of dropdowns above the grid: Filter (135), Colour, Material, Price, Brand, Sale switch, Availability; Sort on the right.</li>
+<li><b>On scroll:</b> nothing sticks, on either size.</li>
+<li><b>Phone:</b> full-screen sheet, closed accordions, "Filter items 135" + Reset.</li>
+<li><b>Look:</b> calm and on-brand; full-width grid.</li>
+</ul>
+<p class="verdict">Nice look, but after one screen the buyer has to scroll back up to change anything.</p>
+</section>
+
+<section class="site">
+<h3>7. Freedom</h3>
+<p class="url">freedom.com.au/sofas-and-armchairs/c/all-sofas</p>
+<div class="shots">
+<figure><img src="fe-109-filters/research/freedom-desk.jpg" alt="Freedom desktop: sticky header, sticky Filter count Sort bar and sticky accordion column" loading="lazy"><figcaption>Desktop 1440</figcaption></figure>
+<figure><img src="fe-109-filters/research/freedom-phone.jpg" alt="Freedom phone: sticky Filter and Sort bar with count, drawer with Show results" loading="lazy"><figcaption>Phone 375</figcaption></figure>
+</div>
+<ul class="facts">
+<li><b>Where:</b> sticky compact header, sticky "Filter | 1258 products | Sort by" bar, sticky column of closed accordions (Product type, Price, Brand, Size, Colour, Features, Dimensions ...).</li>
+<li><b>Phone:</b> "Filter &amp; Sort | 1258 products" sticks under the header; drawer has Sort inside and "Show 1258 results".</li>
+<li><b>Apply:</b> desktop instant, phone batch with live count.</li>
+<li><b>Ranges:</b> a Dimensions facet (like our Width / Depth).</li>
+</ul>
+<p class="verdict">Everything is reachable at every scroll position. Dense, and the closed accordions cost a click per facet.</p>
+</section>
+
+<section class="site">
+<h3>8. GlobeWest (trade wholesaler)</h3>
+<p class="url">globewest.com.au/indoor/furniture/sofas - an Australian B2B furniture supplier, the closest peer to Elme</p>
+<div class="shots">
+<figure><img src="fe-109-filters/research/globewest-desk.jpg" alt="GlobeWest desktop: category tiles, row of filter dropdowns and a Filters sidebar" loading="lazy"><figcaption>Desktop 1440</figcaption></figure>
+<figure><img src="fe-109-filters/research/globewest-phone.jpg" alt="GlobeWest phone: sticky Browse by and sort bar" loading="lazy"><figcaption>Phone 375</figcaption></figure>
+</div>
+<ul class="facts">
+<li><b>Where:</b> sub-category tiles, then a row of dropdowns (Price, Colour, Sofa family, Shape, Size), a "Filters" toggle that opens a sidebar (Collection, Category, Stock status, Price, Colour ...), Sort on the right.</li>
+<li><b>On scroll:</b> desktop nothing sticks; phone "Browse by | New arrivals" sticks.</li>
+<li><b>Cards:</b> W x D x H in mm and In stock / ETA date on every card.</li>
+<li><b>Phone:</b> sheet with "Apply filters".</li>
+</ul>
+<p class="verdict">Shows what trade buyers look at (size and stock on the card). Two filter UIs on one page (dropdown row and sidebar) is confusing, and nothing sticks on desktop.</p>
+</section>
+
+<h2>Baymard guidance</h2>
+<ul>
+<li><a href="https://baymard.com/blog/horizontal-filtering-sorting-design">Be careful with horizontal filtering toolbars</a>: dropdown bars hide the options and counts until clicked, and stop working past 6-8 filter types; "All filters" buttons get overlooked. 24% of sites use them.</li>
+<li><a href="https://baymard.com/blog/how-to-design-applied-filters">Display applied filters in an overview</a>: users need one place to confirm and remove what is applied; 28% of sites have none.</li>
+<li><a href="https://baymard.com/blog/allow-applying-of-multiple-filter-values">Allow combining filter values</a>: several values in one facet (OR) - we already do this.</li>
+<li><a href="https://baymard.com/blog/promoting-product-filters">Promote important filters</a>: put the most decisive filters at the top of the list as well as in the normal place; 61% of sites don't.</li>
+<li><a href="https://baymard.com/blog/slider-interfaces">Slider interfaces</a>: price / size sliders were misread by more than half of test users; typed From / To inputs are the reliable part (we use inputs, D2).</li>
+</ul>
+
+<h2>What this means for Elme</h2>
+<ul>
+<li>We have nine facets (Colour, Material, Type, Style, Features, Seats, Width, Depth, In stock), six with values on Furniture. That is at the limit of a dropdown bar and comfortable for a sidebar.</li>
+<li>The stores that feel fastest keep filters, product count and Sort reachable at every scroll position (IKEA, Freedom, Pottery Barn). The ones that let them scroll away (Article desktop, Coco Republic, GlobeWest desktop) make you scroll back up.</li>
+<li>On phones every store uses one sheet with all facets, and the good ones put a live result count on the button. None of them puts the Filter bar at the bottom, but the bottom is where the thumb is, and our chat button already sits 88 px up, leaving room for a bottom bar.</li>
+<li>Stock first: West Elm and Pottery Barn lead with availability; trade buyers (GlobeWest) see stock and size on the card.</li>
+</ul>
+
+<h2>Our current build (FE-21 + FE-110)</h2>
+<p class="lead">elme-hyva.local/furniture.html, 41 products. A sticky "All filters" bar with one-tap chips for three colours, four types and In stock; the drawer has all facets with "Show N products" (live count from <code>/elme-search/listing/count</code>, about 0.1 s). Production (elmeliving.com) is underneath for comparison.</p>
+<div class="shots">
+<figure><img src="fe-109-filters/research/elme-desk.jpg" alt="Our desktop: sticky quick bar, drawer from the left" loading="lazy"><figcaption>Ours, desktop 1440</figcaption></figure>
+<figure><img src="fe-109-filters/research/elme-phone.jpg" alt="Our phone: sticky quick bar at the top, drawer" loading="lazy"><figcaption>Ours, phone 375</figcaption></figure>
+</div>
+<div class="shots">
+<figure><img src="fe-109-filters/research/elmeold-desk.jpg" alt="Production desktop: Filters link and Sort, nothing sticky" loading="lazy"><figcaption>Production, desktop 1440</figcaption></figure>
+<figure><img src="fe-109-filters/research/elmeold-phone.jpg" alt="Production phone" loading="lazy"><figcaption>Production, phone 375</figcaption></figure>
+</div>
+
+<div class="wrap">
+<table>
+<thead><tr><th>Check</th><th>Desktop 1440</th><th>Phone 375</th></tr></thead>
+<tbody>
+<tr><td>Apply one filter</td><td>1 click for the 8 quick values; 4 for anything else (All filters, open facet, tick, Show N)</td><td>Same: 1 or 4 taps</td></tr>
+<tr><td>Change a filter (A to B)</td><td>4 (All filters, untick, tick, Show N); quick values 2 clicks and 2 page loads</td><td>Same</td></tr>
+<tr><td>Remove a filter</td><td>1 on a chip under the toolbar, but that row scrolls away; after scrolling 3 (All filters, untick, Show N) unless it is a quick value</td><td>Same</td></tr>
+<tr><td>Visible without opening anything</td><td>3 colour names, 4 types, In stock; no counts; Material, Width, Depth hidden</td><td>About 1.5 chips; the rest scroll sideways with no hint</td></tr>
+<tr><td>After 3 screens</td><td>Bar under the header: All filters + quick chips. Sort, count and the applied-filter row are gone</td><td>Bar at the top edge (y 0, or y 57 when the header returns). Sort is gone</td></tr>
+<tr><td>Thumb reach</td><td>-</td><td>Bar in the hardest zone (top). Drawer footer (Clear all / Show N) at the bottom is good</td></tr>
+<tr><td>Feedback</td><td>Live count in the drawer about 0.1 s. A quick chip reloads the page (about 0.35 s server time) with no loading state, and the page reopens at the top above the banner, not at the grid</td><td>Same; first product about 500 px down after each apply</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>What is wrong</h3>
+<ol class="issues">
+<li>Two ways to filter that behave differently: quick chips apply at once, the drawer needs "Show N products". Buyers do not know which one they are using.</li>
+<li>The quick chips are values with no facet name. "Noa Desert" or "Dining Table" read like links, not filters, and on the phone only the first one and a half are visible.</li>
+<li>On desktop the drawer covers the grid you are filtering, and only the first facet is open: one extra click for every facet.</li>
+<li>Sort and the product count are not in the sticky bar. Changing the sort after scrolling means going back to the top.</li>
+<li>The applied-filter chips are not sticky. After scrolling only quick values show their state.</li>
+<li>After applying, the page reloads at the top (breadcrumbs, title, trade notice), not at the results.</li>
+<li>Phone: the bar sits at the top edge, far from the thumb. The drawer slides in from the left like a menu, not up from the bottom like a sheet.</li>
+<li>Width / Depth are behind closed accordions, although size is one of the first things a retailer filters by.</li>
+</ol>
+<h3>Keep</h3>
+<ul class="keep">
+<li>Live count on the apply button, counts next to every option, From / To inputs with the "In this list 34-240" hint, multi-select, chips with Clear all, works without JS, noindex + clean canonical, focus trap and Esc.</li>
+</ul>
+<h3>Data, not this ticket</h3>
+<ul>
+<li>On local data <code>colour_group</code> holds product colour names (5 values, 1 product each) and <code>material</code> holds composition text ("High density marble with premium marble film, MDF, Solid Ash Solid Ribbing"). Any layout looks poor with these until the PIM fills real groups.</li>
+</ul>
+</main>
+</body>
+</html>
