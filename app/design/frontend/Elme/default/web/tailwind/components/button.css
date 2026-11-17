@@ -26,7 +26,8 @@
     min-height: var(--btn-min-height);
     padding-block: --spacing(2);
     padding-inline: var(--btn-padding-inline, var(--btn-padding-x));
-    border-radius: var(--radius-lg);
+    /* Elme: leaf corners, top-right and bottom-left rounded (the leaf in the logo and message marks) */
+    border-radius: var(--btn-radius, 0 var(--radius-leaf) 0 var(--radius-leaf));
     border-width: 1px;
     border-color: var(--btn-stroke);
     background-color: var(--btn-bg);
@@ -355,6 +356,7 @@
 }
 
 .btn-size-sm {
+    --btn-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm);
     padding-inline: --spacing(2);
     padding-block: --spacing(2);
     font-size: var(--text-copy);

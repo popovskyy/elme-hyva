@@ -58,6 +58,7 @@
         color: var(--color-ink);
         background: var(--color-surface);
         border: 1px solid var(--color-border);
+        border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm);
         cursor: pointer;
         transition: color var(--transition-duration-fast) var(--ease-out-quad), background-color var(--transition-duration-fast) var(--ease-out-quad);
 
@@ -111,13 +112,23 @@
         min-height: var(--text-note--line-height);
     }
 
-    /* Qty stepper: − [qty] +, as tall as the button next to it. */
+    /* Qty stepper: − [qty] +, as tall as the button next to it. Leaf corners like the button (elme/leaf.css). */
     .elme-qty {
         display: flex;
         align-items: stretch;
         min-height: --spacing(11);
         border: 1px solid var(--color-border);
+        border-radius: 0 var(--radius-leaf) 0 var(--radius-leaf);
         background: var(--color-surface);
+    }
+
+    /* the hover fill follows the rounded corners */
+    .elme-qty > .elme-qty__btn:first-child {
+        border-end-start-radius: inherit;
+    }
+
+    .elme-qty > .elme-qty__btn:last-child {
+        border-start-end-radius: inherit;
     }
 
     .elme-qty__btn {

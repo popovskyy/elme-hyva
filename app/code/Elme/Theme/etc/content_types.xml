@@ -362,6 +362,11 @@
                description="e.g. &quot;Create An Account&quot;. Logged-in customers see My Account instead."/>
         <field name="button_link" type="url" label="Button link (guests)" width="half"
                description="e.g. /customer/account/create. Logged-in customers go to the account dashboard."/>
+        <field name="ground" type="select" label="Background" default="page"
+               description="Sage band with leaf art for one promo block per page (the home Become a Stockist); page colour everywhere else.">
+            <option value="page" label="Page colour"/>
+            <option value="sage_leaves" label="Sage band with leaves"/>
+        </field>
     </type>
 
 

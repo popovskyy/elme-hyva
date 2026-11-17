@@ -1,6 +1,6 @@
 <?php
 /**
- * FE-09: mobile drawer bottom links (SEO + idea: auth-aware).
+ * FE-09: mobile drawer bottom links (SEO + idea: auth-aware), icons in sand leaf tiles, then phone and email.
  * Logged-in: Quick Order, My Account, Contact (no stockist — matches FE-05).
  * Guest: Trade login, Contact, Become a Stockist (no Quick Order).
  */
@@ -8,6 +8,7 @@
 declare(strict_types=1);
 
 use Elme\LoginOnly\ViewModel\LoginOnly;
+use Elme\Theme\ViewModel\StoreContact;
 use Hyva\Theme\Model\ViewModelRegistry;
 use Hyva\Theme\ViewModel\LucideIcons;
 use Magento\Framework\Escaper;
@@ -22,6 +23,8 @@ $loginOnly = $viewModels->require(LoginOnly::class);
 /** @var LucideIcons $lucideIcons */
 $lucideIcons = $viewModels->require(LucideIcons::class);
 $isLoggedIn = $loginOnly->isLoggedIn();
+/** @var StoreContact $contact */
+$contact = $viewModels->require(StoreContact::class);
 
 // auth: customer / guest / null (both). The Snowdog menu block is block-cached without the login state, so
 // this server-side pick is only the first guess: menu.phtml syncAuthLinks() corrects it from private content.
@@ -70,13 +73,20 @@ $links = [
         <li<?php if ($auth): ?> data-elme-auth="<?= $escaper->escapeHtmlAttr($auth) ?>"<?php endif; ?>
             <?= $auth && ($auth === 'customer') !== $isLoggedIn ? 'hidden' : '' ?>>
             <a href="<?= $escaper->escapeUrl($link['url']) ?>"
-               class="elme-mobile-menu__footer-link flex items-center gap-3 min-h-11 px-5 py-3
-                      text-base text-ink no-underline hover:text-ink
-                      focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
-                      focus-visible:outline-primary">
-                <?= $lucideIcons->renderHtml($link['icon'], 'shrink-0 text-ink-muted', 20, 20, ['aria-hidden' => 'true']) ?>
+               class="elme-mobile-menu__footer-link">
+                <span class="elme-mobile-menu__tile corner-leaf-sm" aria-hidden="true">
+                    <?= $lucideIcons->renderHtml($link['icon'], 'shrink-0', 20, 20, ['aria-hidden' => 'true']) ?>
+                </span>
                 <?= $escaper->escapeHtml($link['label']) ?>
             </a>
         </li>
     <?php endforeach; ?>
 </ul>
+<p class="elme-mobile-menu__contact">
+    <a href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>">
+        <?= $escaper->escapeHtml($contact->getPhoneDisplay()) ?>
+    </a>
+    <a href="<?= $escaper->escapeUrl($contact->getEmailMailtoHref()) ?>">
+        <?= $escaper->escapeHtml($contact->getEmail()) ?>
+    </a>
+</p>
