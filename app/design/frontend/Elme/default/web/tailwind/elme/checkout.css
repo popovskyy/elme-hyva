@@ -352,7 +352,6 @@
         gap: --spacing(4);
         padding: --spacing(5) --spacing(4);
         border: 1px solid var(--color-border);
-        border-radius: var(--form-radius);
         background-color: var(--color-surface);
         color: var(--color-ink);
         cursor: pointer;
@@ -1088,7 +1087,6 @@
     .elme-checkout-agreements__box {
         padding: --spacing(4);
         border: 1px solid var(--color-border);
-        border-radius: var(--form-radius);
     }
 
     /* Desktop: "Return to cart" on the left; total + Place order on the right */

@@ -193,6 +193,8 @@
         min-height: --spacing(11);
         padding: --spacing(2) --spacing(4) --spacing(2) --spacing(3);
         border: 1px solid var(--color-border);
+        /* leaf corners (elme/leaf.css), also on the desktop side rows' hover and current fill */
+        border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm);
         background-color: var(--color-surface);
         color: var(--color-ink);
         font-size: var(--text-note);

@@ -151,6 +151,7 @@
     .elme-hero__controls {
         top: --spacing(3);
         right: --spacing(3);
+        border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm);
 
         @variant md {
             top: auto;
@@ -172,7 +173,7 @@
         transform: none;
     }
 
-    /* Arrows: thin chevrons in an outlined circle at the photo edges, only while the hero is hovered or
+    /* Arrows: thin chevrons in an outlined leaf at the photo edges, only while the hero is hovered or
        one of them has keyboard focus. The row fills the slide and centres them on its height. */
     .elme-hero__arrows::after {
         content: none;
@@ -193,7 +194,7 @@
         width: --spacing(14);
         height: --spacing(14);
         border: 1px solid color-mix(in oklab, var(--color-on-primary) 70%, transparent);
-        border-radius: 50%;
+        border-radius: 0 var(--radius-leaf) 0 var(--radius-leaf); /* leaf corners, elme/leaf.css */
         background: color-mix(in oklab, var(--color-ink) 25%, transparent);
         color: var(--color-on-primary);
         backdrop-filter: blur(6px);

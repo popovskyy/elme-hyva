@@ -60,6 +60,8 @@
         padding: 2px;
         background: var(--color-surface);
         border: 1px solid var(--color-border);
+        /* leaf corners (elme/leaf.css); the fill inside gets the smallest leaf so it clears the curve */
+        border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm);
         transition: border-color var(--transition-duration-fast) var(--ease-out-quad);
 
         @variant lg {
@@ -87,6 +89,7 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        border-radius: 0 var(--radius-leaf-xs) 0 var(--radius-leaf-xs);
     }
 
     .elme-swatch__fill--text {
@@ -111,6 +114,7 @@
             position: absolute;
             inset: 0;
             z-index: 1;
+            border-radius: inherit;
             background: linear-gradient(
                 to top right,
                 transparent calc(50% - 0.5px),
@@ -136,6 +140,7 @@
         color: var(--color-ink);
         background: transparent;
         border: 1px solid var(--color-border);
+        border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm);
         transition: border-color var(--transition-duration-fast) var(--ease-out-quad);
 
         &:focus-visible {
@@ -225,6 +230,7 @@
         width: --spacing(8);
         height: --spacing(8);
         padding: 1px;
+        border-radius: 0 var(--radius-leaf-xs) 0 var(--radius-leaf-xs);
     }
 
     .elme-card__swatch-more {

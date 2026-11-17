@@ -53,6 +53,7 @@
         min-block-size: --spacing(10);
         padding-inline: --spacing(4);
         border: 1px solid var(--color-border);
+        border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm);
         background: var(--color-surface);
         color: var(--color-ink);
         font-size: var(--text-copy);
