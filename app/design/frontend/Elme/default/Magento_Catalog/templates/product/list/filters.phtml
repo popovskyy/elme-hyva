@@ -10,6 +10,10 @@
  * Options are checkboxes, not links, so crawlers cannot walk the filter combinations; Apply builds the URL.
  * The form also submits without JS (GET; ranges as code[min] / code[max], which the backend reads too).
  * While options change, the drawer asks /elme-search/listing/count for "Show N products" and the option counts.
+ *
+ * FE-109: this component also moves the quick bar and the phone Filter / Sort pill with the scroll: from lg the bar
+ * tucks under the header on scroll down and comes back on scroll up; below lg the pill shows on scroll up once the bar
+ * is off screen and the grid fills the lower half of the screen. Transform only, nothing in the page moves.
  */
 
 declare(strict_types=1);
@@ -241,11 +245,98 @@ $labels = [
             countUrl: '',
             _timer: null,
             _abort: null,
+            _opener: null,
+            _bar: null,
+            _start: null,
+            _pill: null,
+            _grid: null,
+            _desktop: null,
+            _anchor: 0,
+            _down: false,
+            _queued: false,
 
             init() {
                 this.total = parseInt(this.$root.dataset.total, 10);
                 this.labels = JSON.parse(this.$root.dataset.labels || '{}');
                 this.countUrl = this.$root.dataset.countUrl || '';
+                this.initBars();
+            },
+
+            initBars() {
+                this._bar = this.$root.querySelector('[data-quickbar]');
+                this._start = this.$root.querySelector('[data-quickbar-start]');
+                this._pill = this.$root.querySelector('[data-filterpill]');
+                if (!this._bar || !this._start) {
+                    return;
+                }
+                const list = this._bar.closest('#product-list');
+                this._grid = list ? list.querySelector('.products') : null;
+                this._desktop = window.matchMedia('(min-width: 1025px)');
+                this._anchor = window.scrollY;
+                const queue = () => this.queueBars();
+                window.addEventListener('scroll', queue, {passive: true});
+                window.addEventListener('resize', queue, {passive: true});
+                this._desktop.addEventListener('change', queue);
+                // Tabbing into a tucked bar brings it back
+                this._bar.addEventListener('focusin', () => {
+                    this._down = false;
+                    this.queueBars();
+                });
+                this.updateBars();
+            },
+
+            // Read the scroll once per frame
+            queueBars() {
+                if (this._queued) {
+                    return;
+                }
+                this._queued = true;
+                requestAnimationFrame(() => {
+                    this._queued = false;
+                    this.updateBars();
+                });
+            },
+
+            updateBars() {
+                const y = window.scrollY;
+                // iOS rubber band: scrollY runs below 0 or past the end while bouncing
+                const maxY = document.documentElement.scrollHeight - window.innerHeight;
+                if (y < 0 || y > maxY + 1) {
+                    return;
+                }
+                // The anchor follows the furthest point in the current direction; about 8px back flips it
+                // (the same feel as the header row on phones)
+                if (this._down ? y >= this._anchor : y <= this._anchor) {
+                    this._anchor = y;
+                } else if (Math.abs(y - this._anchor) > 8) {
+                    this._down = y > this._anchor;
+                    this._anchor = y;
+                }
+                // The bar's place in the flow has scrolled past the top of the screen
+                const barPassed = this._start.getBoundingClientRect().top + this._bar.offsetHeight < 0;
+                if (this._desktop.matches) {
+                    this.toggleBar(this._bar, 'is-tucked', this._down && barPassed && !this.keepBar());
+                    this.toggleBar(this._pill, 'is-shown', false);
+                    return;
+                }
+                this.toggleBar(this._bar, 'is-tucked', false);
+                const overGrid = !!this._grid && this._grid.getBoundingClientRect().bottom > window.innerHeight * 0.6;
+                this.toggleBar(this._pill, 'is-shown', barPassed && overGrid && !this._down);
+            },
+
+            // Stays out while the drawer or the Sort list is open, or a keyboard user is in the bar
+            keepBar() {
+                const active = document.activeElement;
+                return this.open
+                    || !!this._bar.querySelector('.elme-select.is-open')
+                    || (!!active && this._bar.contains(active)
+                        && (active.tagName === 'SELECT' || active.matches(':focus-visible')));
+            },
+
+            toggleBar(node, className, on) {
+                if (node && node.classList.contains(className) !== on) {
+                    node.classList.toggle(className, on);
+                }
             },
 
             drawer() {
@@ -287,6 +378,7 @@ $labels = [
                     return;
                 }
                 this.open = true;
+                this._opener = this.$event && this.$event.currentTarget ? this.$event.currentTarget : null;
                 drawer.showModal();
                 document.documentElement.classList.add('elme-filters-open');
                 const show = () => drawer.classList.add('is-shown');
@@ -311,7 +403,10 @@ $labels = [
                     drawer.close();
                     hyva.releaseFocus(drawer);
                     document.documentElement.classList.remove('elme-filters-open');
-                    const opener = this.$root.querySelector('[data-filters-toggle]');
+                    // Back to the button that opened it: the quick bar's All filters or the phone pill
+                    const opener = this._opener && this._opener.isConnected
+                        ? this._opener
+                        : this.$root.querySelector('[data-filters-toggle]');
                     if (opener) {
                         opener.focus();
                     }

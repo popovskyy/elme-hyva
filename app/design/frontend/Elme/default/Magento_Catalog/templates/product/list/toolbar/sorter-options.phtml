@@ -1,0 +1,48 @@
+<?php
+/**
+ * FE-20: the <option>s of a sort select (FE-109: shared by sorter.phtml, the sticky quick bar and the phone
+ * Filter / Sort pill). Price low-high / high-low only when logged in (LoginOnly strips price for guests).
+ * No direction toggle: those are separate options. The select calls onSortChange (initElmeProductListToolbar).
+ */
+
+declare(strict_types=1);
+
+use Elme\LoginOnly\ViewModel\LoginOnly;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Catalog\Block\Product\ProductList\Toolbar;
+use Magento\Framework\Escaper;
+
+/** @var Toolbar $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+
+$currentOrder = $block->getCurrentOrder();
+$currentDir = strtolower((string) $block->getCurrentDirection());
+$isPriceAsc = $currentOrder === 'price' && $currentDir === 'asc';
+$isPriceDesc = $currentOrder === 'price' && $currentDir === 'desc';
+?>
+<?php foreach ($block->getAvailableOrders() as $orderCode => $orderLabel): ?>
+    <?php if ($orderCode === 'price'): ?>
+        <?php if ($loginOnly->isLoggedIn()): ?>
+            <option value="price_asc"
+                <?php if ($isPriceAsc): ?>selected="selected"<?php endif; ?>>
+                <?= $escaper->escapeHtml(__('Price low-high')) ?>
+            </option>
+            <option value="price_desc"
+                <?php if ($isPriceDesc): ?>selected="selected"<?php endif; ?>>
+                <?= $escaper->escapeHtml(__('Price high-low')) ?>
+            </option>
+        <?php endif; ?>
+    <?php else: ?>
+        <option value="<?= $escaper->escapeHtmlAttr($orderCode) ?>"
+            <?php if ($block->isOrderCurrent($orderCode) && $orderCode !== 'price'): ?>
+                selected="selected"
+            <?php endif; ?>>
+            <?php // FE-21: the merchandised order is the default; "Position" means nothing to a buyer ?>
+            <?= $escaper->escapeHtml($orderCode === 'position' ? __('Recommended') : __($orderLabel)) ?>
+        </option>
+    <?php endif; ?>
+<?php endforeach; ?>

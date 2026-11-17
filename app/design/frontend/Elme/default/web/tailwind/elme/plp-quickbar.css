@@ -1,11 +1,18 @@
 /*
- * FE-110 sticky quick-filter bar of a listing (filters-quickbar.phtml): "All filters" opens the FE-21 drawer, the
- * chips are one-tap links (Colour, Type, In stock). Sticks under the header via .elme-sticky-below-header
- * (header.css), so it follows the header row as that hides and shows on phones.
- * Phones and tablets: one row, the chips scroll sideways. From lg: the chips wrap if they must.
- * Motion: border colour only.
+ * FE-110 quick-filter bar of a listing (filters-quickbar.phtml): "All filters" opens the FE-21 drawer, the
+ * chips are one-tap links (Colour, Type, In stock).
+ * Phones and tablets: one row in the flow, the chips scroll sideways; FE-109: once it is off screen the Filter / Sort
+ * pill (.elme-filterpill) floats at the bottom. From lg: sticky under the header, the chips wrap if they must, Sort
+ * at the end; FE-109: tucks under the header on scroll down (.is-tucked), back on scroll up.
+ * Motion: transform only (the bar and the pill), border colour on the chips. None with reduced motion.
  */
 @layer components {
+    /* Where the bar sits in the flow (filters.phtml reads it to know when the bar has scrolled past) */
+    .elme-quickbar-start {
+        display: block;
+        height: 0;
+    }
+
     /* Full bleed inside the container gutters: the bar's background reaches the screen edge */
     .elme-quickbar {
         margin-inline: calc(var(--container-gutter) * -1);
@@ -15,6 +22,37 @@
 
         @variant md {
             margin-inline: calc(var(--container-gutter-desktop) * -1);
+        }
+
+        /* The header row never hides on desktop, so the offset is its height */
+        @variant lg {
+            position: sticky;
+            top: var(--elme-header-offset, 0px);
+            z-index: 20;
+            transition: transform var(--transition-duration-base) var(--ease-out-quart);
+        }
+    }
+
+    /* Slides up behind the header row (z-index 30, solid), so nothing shows through */
+    .elme-quickbar.is-tucked {
+        transform: translateY(-100%);
+    }
+
+    /* Sort sits at the end of the desktop bar; below lg it stays in the toolbar row and the pill */
+    .elme-quickbar__sort {
+        /* Same height and type as the chips (the select and its elme-select control read --form-height),
+           so Sort does not make the bar taller */
+        --form-height: --spacing(10);
+        display: none;
+        flex: none;
+        font-size: var(--text-note);
+
+        @variant lg {
+            display: block;
+        }
+
+        & label {
+            font-size: inherit;
         }
     }
 
@@ -177,9 +215,124 @@
         }
     }
 
+    /*
+     * FE-109: phone / tablet Filter / Sort pill. Fixed at the bottom centre, in thumb reach, under the Zendesk
+     * launcher (88px up, third-party.css). Hidden (moved below the screen, visibility hidden so it cannot take focus)
+     * until filters.phtml adds .is-shown: the bar is off screen, the grid fills the lower half, scrolling up.
+     */
+    .elme-filterpill {
+        position: fixed;
+        inset-inline: 0;
+        bottom: calc(--spacing(4) + env(safe-area-inset-bottom));
+        z-index: 24;
+        display: flex;
+        align-items: stretch;
+        width: max-content;
+        margin-inline: auto;
+        color: var(--color-on-primary);
+        background-color: var(--color-primary);
+        box-shadow: 0 10px 28px -10px color-mix(in oklab, var(--color-ink) 55%, transparent);
+        visibility: hidden;
+        transform: translateY(calc(100% + --spacing(4) + env(safe-area-inset-bottom)));
+        transition:
+            transform var(--transition-duration-base) var(--ease-in-quart),
+            visibility 0s linear var(--transition-duration-base);
+
+        &.is-shown {
+            visibility: visible;
+            transform: none;
+            transition:
+                transform var(--transition-duration-slow) var(--ease-out-quart),
+                visibility 0s;
+        }
+
+        @variant lg {
+            display: none;
+        }
+    }
+
+    /* Keyboard focus on a card scrolls it clear of the pill */
+    @variant max-lg {
+        html:has(.elme-filterpill.is-shown) {
+            scroll-padding-bottom: calc(--spacing(20) + env(safe-area-inset-bottom));
+        }
+    }
+
+    .elme-filterpill__btn,
+    .elme-filterpill__sort {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: --spacing(2);
+        min-height: --spacing(12);
+        padding-inline: --spacing(5);
+        color: inherit;
+        font-size: var(--text-copy);
+        line-height: 1;
+        cursor: pointer;
+        transition: background-color var(--transition-duration-fast) var(--ease-out-quad);
+
+        @media (hover: hover) {
+            &:hover {
+                background-color: var(--color-link-hover);
+            }
+        }
+
+        &:active {
+            background-color: var(--color-link-hover);
+        }
+    }
+
+    .elme-filterpill__btn:focus-visible,
+    .elme-filterpill__sort:has(:focus-visible) {
+        outline: 2px solid var(--color-on-primary);
+        outline-offset: -4px;
+    }
+
+    .elme-filterpill__icon {
+        flex: none;
+    }
+
+    .elme-filterpill__badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: --spacing(5);
+        height: --spacing(5);
+        padding-inline: --spacing(1.5);
+        color: var(--color-primary);
+        font-size: var(--text-note);
+        font-variant-numeric: tabular-nums;
+        background-color: var(--color-on-primary);
+        border-radius: 9999px;
+    }
+
+    .elme-filterpill__divider {
+        width: 1px;
+        margin-block: --spacing(3);
+        background-color: color-mix(in oklab, var(--color-on-primary) 35%, transparent);
+    }
+
+    /* The real select covers the Sort label: a tap opens the phone's own picker. 1rem stops iOS zooming in. */
+    .elme-filterpill__select {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        font-size: 1rem;
+        opacity: 0;
+        cursor: pointer;
+        appearance: none;
+    }
+
     @media (prefers-reduced-motion: reduce) {
+        .elme-quickbar,
         .elme-quickbar__all,
-        .elme-quick {
+        .elme-quick,
+        .elme-filterpill,
+        .elme-filterpill.is-shown,
+        .elme-filterpill__btn,
+        .elme-filterpill__sort {
             transition: none;
         }
     }
