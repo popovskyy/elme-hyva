@@ -2,12 +2,15 @@
  * FE-22: header search autocomplete dropdown (Magento_Theme::html/header/search-form.phtml).
  */
 @layer components {
+    /* Floats under the leafed search field as its own small leaf; rows inside get the smallest leaf (FE-113) */
     .elme-search-suggest {
         max-height: min(70dvh, 40rem);
+        border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm);
     }
 
     .elme-search-suggest__list {
         padding-block: --spacing(2);
+        padding-inline: --spacing(1);
     }
 
     .elme-search-suggest__heading {
@@ -20,7 +23,8 @@
     }
 
     .elme-search-suggest__option {
-        padding-inline: --spacing(4);
+        padding-inline: --spacing(3);
+        border-radius: 0 var(--radius-leaf-xs) 0 var(--radius-leaf-xs);
         background-color: var(--color-surface);
         color: var(--color-ink);
         text-decoration: none;
@@ -39,6 +43,11 @@
     /* "See all" is sticky: it stays in view at the bottom of a long list */
     .elme-search-suggest__all {
         margin-bottom: calc(--spacing(2) * -1);
+        /* full width over the list padding, so rows do not show at its sides while they scroll under it;
+           the panel clips its bottom-left corner */
+        margin-inline: calc(--spacing(1) * -1);
+        padding-inline: --spacing(4);
+        border-radius: 0;
     }
 
     @media (prefers-reduced-motion: no-preference) {

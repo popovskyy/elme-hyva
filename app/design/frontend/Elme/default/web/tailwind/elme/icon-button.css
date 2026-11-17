@@ -11,6 +11,8 @@
         width: --spacing(11);
         height: --spacing(11);
         border: 1px solid transparent;
+        /* leaf corners (elme/leaf.css): the hover fill, border and focus ring follow them */
+        border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm);
         background: transparent;
         color: var(--color-ink);
         cursor: pointer;

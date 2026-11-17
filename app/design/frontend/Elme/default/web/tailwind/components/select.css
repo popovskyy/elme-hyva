@@ -1,5 +1,5 @@
 /**
- * Elme: custom select (FE-59) — square 50px control, olive focus, desktop listbox + phone bottom sheet.
+ * Elme: custom select (FE-59): leafed 50px control, olive focus, desktop listbox (small leaf) + phone bottom sheet.
  * Native <select> stays in the DOM (visually hidden when Alpine has enhanced it).
  */
 
@@ -268,6 +268,8 @@
         max-block-size: min(20rem, 70vh);
         background-color: var(--color-surface);
         border: 1px solid var(--color-border);
+        /* Elme: floats under the leafed control as its own small leaf (FE-113) */
+        border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm);
         box-shadow: none;
         color: var(--color-ink);
     }
@@ -323,6 +325,7 @@
         min-block-size: --spacing(10);
         padding-block: --spacing(2);
         padding-inline: --spacing(3);
+        border-radius: 0 var(--radius-leaf-xs) 0 var(--radius-leaf-xs);
         cursor: pointer;
     }
 

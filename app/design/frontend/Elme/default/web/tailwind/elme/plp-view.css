@@ -54,8 +54,11 @@
             }
         }
 
+        /* Leaf corners from md, where the word carries the mark; on phones the pressed mark is a bottom line
+           that a rounded corner would bend. The focus ring follows the corner. */
         @variant md {
             min-width: 0;
+            border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm);
         }
 
         &:hover {

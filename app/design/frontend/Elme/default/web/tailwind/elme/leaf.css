@@ -1,9 +1,10 @@
 /*
  * Leaf shapes: the Elme rule for anything you press (see CLAUDE.md, "Leaf corners").
  *
- * corner-leaf / corner-leaf-sm: top-right and bottom-left rounded, like the leaf in the logo and the message
- * marks. .btn has them already (components/button.css, --btn-radius); these are for tiles that are not a .btn
- * (pager squares, mobile menu tiles).
+ * corner-leaf / corner-leaf-sm / corner-leaf-xs: top-right and bottom-left rounded, like the leaf in the logo
+ * and the message marks. leaf (16px) for 50-56px controls, leaf-sm (10px) for 40-48px controls and floating
+ * panels, leaf-xs (4px) for rows inside a panel. .btn has them already (components/button.css, --btn-radius);
+ * text fields take theirs from the form.radius token (leaf-sm). These are for tiles that are not a .btn.
  *
  * .elme-band-leaves: sage promo band with the message leaf art scattered over it (silhouettes behind, line art
  * in front). One or two blocks per page, not every section.
@@ -15,6 +16,10 @@
 
 @utility corner-leaf-sm {
     border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm);
+}
+
+@utility corner-leaf-xs {
+    border-radius: 0 var(--radius-leaf-xs) 0 var(--radius-leaf-xs);
 }
 
 @layer components {

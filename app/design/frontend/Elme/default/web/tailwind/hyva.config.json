@@ -160,10 +160,11 @@
         "menu": "0px",
         "menu-promo": "0px",
         "leaf": "16px",
-        "leaf-sm": "10px"
+        "leaf-sm": "10px",
+        "leaf-xs": "4px"
       },
       "form": {
-        "radius": "1px",
+        "radius": "0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm)",
         "stroke": "#8A8888",
         "bg": "transparent",
         "color": "#3A3935",

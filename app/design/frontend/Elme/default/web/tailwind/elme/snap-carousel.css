@@ -30,7 +30,7 @@
         margin: 0;
         padding: 0;
         border: 1px solid color-mix(in oklab, var(--color-ink) 14%, transparent);
-        border-radius: 50%;
+        border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm); /* leaf corners, elme/leaf.css */
         background: var(--color-surface);
         color: var(--color-ink);
         cursor: pointer;
