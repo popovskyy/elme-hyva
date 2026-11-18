@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- FE-17: the one place that says where carousel products come from. When the Search Service offers
+         recommendations, point this at a new class (same interface) and nothing else changes. -->
+    <preference for="Elme\ProductCarousel\Api\ProviderInterface" type="Elme\ProductCarousel\Model\SearchProvider"/>
+</config>

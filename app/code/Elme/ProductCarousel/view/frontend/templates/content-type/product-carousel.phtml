@@ -1,0 +1,22 @@
+<?php
+/**
+ * Content Studio type `product_carousel` (etc/content_types.xml, FE-17): renders the product carousel block.
+ *
+ * @var \Bart\ContentStudio\Block\Entry $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+declare(strict_types=1);
+
+$content = $block->getContent();
+
+echo /* @noEscape */ $block->getLayout()
+    ->createBlock(\Elme\ProductCarousel\Block\Carousel::class)
+    ->setTemplate('Elme_ProductCarousel::carousel.phtml')
+    ->addData([
+        'title' => (string) ($content['title'] ?? ''),
+        'source' => (string) ($content['source'] ?? 'trending'),
+        'category_id' => (int) ($content['category_id'] ?? 0),
+        'limit' => (int) ($content['limit'] ?? 0),
+    ])
+    ->toHtml();

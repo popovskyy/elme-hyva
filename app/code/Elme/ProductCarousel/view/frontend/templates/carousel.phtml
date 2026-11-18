@@ -1,0 +1,179 @@
+<?php
+/**
+ * FE-17: titled slider of FE-19 product cards (trending / new / a category / related).
+ *
+ * Cards are rendered on the server (crawlers see them, nothing shifts while loading). Swipe on touch, prev / next
+ * arrows from desktop (elme/foundation/snap-carousel.css). No products: nothing is printed, title included.
+ * Look: web/tailwind/elme/product/product-carousel.css. Source: Elme\ProductCarousel\Api\ProviderInterface.
+ *
+ * @var \Elme\ProductCarousel\Block\Carousel $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+
+$items = $block->getItems();
+if ($items === []) {
+    return;
+}
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+
+$domId = $block->getDomId();
+$headingId = $domId . '-heading';
+$trackId = $domId . '-track';
+$title = $block->getTitle();
+$headingTag = $block->getHeadingTag();
+$count = count($items);
+$isCarousel = $count > 1;
+?>
+<section id="<?= $escaper->escapeHtmlAttr($domId) ?>"
+         class="elme-pc elme-snap-carousel relative -mx-(--entry-bleed) my-8 lg:my-12"
+         <?php if ($title !== ''): ?>
+         aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+         <?php else: ?>
+         aria-label="<?= $escaper->escapeHtmlAttr(__('Products')) ?>"
+         <?php endif; ?>
+         <?php if ($isCarousel): ?>
+         x-data="initElmeProductCarousel"
+         aria-roledescription="<?= $escaper->escapeHtmlAttr(__('carousel')) ?>"
+         <?php endif; ?>
+>
+    <?php if ($title !== ''): ?>
+        <<?= /* @noEscape */ $headingTag ?> id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+            class="elme-pc__title m-0 mb-4 text-display text-ink lg:mb-6 lg:text-display-desktop">
+            <?= $escaper->escapeHtml($title) ?>
+        </<?= /* @noEscape */ $headingTag ?>>
+    <?php endif; ?>
+
+    <div class="relative">
+        <?php if ($isCarousel): ?>
+            <button type="button"
+                    class="elme-snap-carousel__arrow elme-snap-carousel__arrow--prev"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Previous products')) ?>"
+                    aria-controls="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+                    x-ref="prev"
+                    @click="prev"
+                    disabled>
+                <?= $lucideIcons->chevronLeftHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+            </button>
+            <button type="button"
+                    class="elme-snap-carousel__arrow elme-snap-carousel__arrow--next"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Next products')) ?>"
+                    aria-controls="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+                    x-ref="next"
+                    @click="next"
+                    disabled>
+                <?= $lucideIcons->chevronRightHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+            </button>
+        <?php endif; ?>
+
+        <ul id="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+            class="elme-pc__track elme-snap-carousel__track m-0 flex list-none snap-x snap-mandatory items-stretch
+                   overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            <?php if ($isCarousel): ?>
+            x-ref="track"
+            @scroll.passive="onScroll"
+            <?php endif; ?>
+        >
+            <?php foreach (array_values($items) as $index => $item): ?>
+                <li class="elme-pc__slide flex shrink-0 snap-start list-none w-[min(70vw,16.5rem)] md:w-[14.5rem] lg:w-[16rem]"
+                    <?php if ($isCarousel): ?>
+                    role="group"
+                    aria-roledescription="<?= $escaper->escapeHtmlAttr(__('slide')) ?>"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('%1 of %2', $index + 1, $count)) ?>"
+                    <?php endif; ?>
+                >
+                    <?= /* @noEscape */ $item['html'] ?>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+
+    <?php if ($isCarousel): ?>
+        <script>
+            function initElmeProductCarousel() {
+                return {
+                    reduceMotion: false,
+
+                    init() {
+                        this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                        this.syncArrows();
+                        this.$refs.track.addEventListener('scrollend', () => this.syncArrows());
+                    },
+
+                    onScroll() {
+                        this.syncArrows();
+                    },
+
+                    step() {
+                        const track = this.$refs.track;
+                        const item = track.querySelector('.elme-pc__slide');
+
+                        if (!item) {
+                            return 0;
+                        }
+
+                        const trackStyle = window.getComputedStyle(track);
+                        const gap = parseFloat(trackStyle.columnGap) || parseFloat(trackStyle.gap) || 0;
+
+                        return item.getBoundingClientRect().width + gap;
+                    },
+
+                    go(direction) {
+                        const amount = this.step() * direction;
+
+                        if (!amount) {
+                            return;
+                        }
+
+                        this.$refs.track.scrollBy({
+                            left: amount,
+                            behavior: this.reduceMotion ? 'auto' : 'smooth'
+                        });
+                        // scrollend is missing in some browsers; sync after the typical smooth duration.
+                        setTimeout(() => this.syncArrows(), this.reduceMotion ? 0 : 400);
+                    },
+
+                    next() {
+                        this.go(1);
+                    },
+
+                    prev() {
+                        this.go(-1);
+                    },
+
+                    syncArrows() {
+                        const track = this.$refs.track;
+                        const max = track.scrollWidth - track.clientWidth;
+                        const left = track.scrollLeft;
+                        const edge = 2;
+
+                        this.$refs.prev.disabled = left <= edge;
+                        this.$refs.next.disabled = left >= max - edge;
+                    }
+                };
+            }
+
+            // Every carousel on the page prints this script; the component is registered once.
+            window.addEventListener(
+                'alpine:init',
+                () => {
+                    if (!window.elmeProductCarouselRegistered) {
+                        window.elmeProductCarouselRegistered = true;
+                        Alpine.data('initElmeProductCarousel', initElmeProductCarousel);
+                    }
+                },
+                {once: true}
+            );
+        </script>
+        <?php $hyvaCsp->registerInlineScript() ?>
+    <?php endif; ?>
+</section>

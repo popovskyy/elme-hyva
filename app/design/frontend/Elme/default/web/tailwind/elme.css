@@ -46,6 +46,7 @@
 /* product */
 @import "./elme/product/add-to-cart.css";
 @import "./elme/product/product-card.css";
+@import "./elme/product/product-carousel.css";
 @import "./elme/product/copy-sku.css";
 @import "./elme/product/pdp.css";
 @import "./elme/product/family-swatches.css";
