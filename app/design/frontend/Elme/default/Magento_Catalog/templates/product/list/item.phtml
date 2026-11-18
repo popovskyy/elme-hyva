@@ -166,7 +166,9 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
         </button>
     </div>
 
-    <div class="product-info flex grow flex-col gap-1 px-3 pt-3 pb-4 lg:px-4 lg:pb-5 <?= $viewIsGrid ? '' : 'md:w-4/6' ?>">
+    <?php /* Grid card: its info column is a size container, so the actions row picks stepper + button side by side or stacked
+         by the width the card really has (PLP column, carousel slide), not by the viewport. */ ?>
+    <div class="product-info flex grow flex-col gap-1 px-3 pt-3 pb-4 lg:px-4 lg:pb-5 <?= $viewIsGrid ? '@container' : 'md:w-4/6' ?>">
         <a class="product-item-link elme-card__name line-clamp-2 text-copy text-ink hover:underline lg:text-copy-desktop"
            href="<?= $escaper->escapeUrl($productUrl) ?>"
         >
@@ -234,7 +236,7 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
         <?php endif; ?>
 
         <?php if ($showForm): ?>
-        <div class="elme-card__actions mt-auto grid gap-2 pt-3 <?= $showStepper ? '2xl:grid-cols-[auto_1fr]' : '' ?>">
+        <div class="elme-card__actions mt-auto grid gap-2 pt-3 <?= $showStepper ? '@[18rem]:grid-cols-[auto_1fr]' : '' ?>">
             <?php if ($isProductGroupedOrBundle): ?>
                 <a href="<?= $escaper->escapeUrl($productUrl) ?>"
                    class="btn btn-primary w-full text-copy"
@@ -292,7 +294,7 @@ $cardClass = 'item product product-item elme-card group relative flex h-full w-f
                         data-addto="cart"
                 >
                     <?= $lucideIcons->shoppingCartHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
-                    <span><?= $escaper->escapeHtml(__('Add to Cart')) ?></span>
+                    <span class="whitespace-nowrap"><?= $escaper->escapeHtml(__('Add to Cart')) ?></span>
                 </button>
             <?php endif; ?>
         </div>
