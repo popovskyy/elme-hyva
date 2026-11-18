@@ -71,8 +71,8 @@ in scope of the ticket, built, or still missing - never assume the old site's be
   so the layout does not shift when it arrives.
 - **Parity** for a ported block: `browse.mjs both:/path` at the same viewports and compare old vs new.
   Differences are either a listed UX improvement or a finding.
-- **Polish**: `web-interface-guidelines` skill on the changed templates (focus, labels, forms, motion);
-  for motion `review-animations`. Every animation has a `motion-reduce:` fallback - check with
+- **Polish**: `web-interface-guidelines` skill on the changed templates (focus, labels, forms, motion).
+  Every animation has a `motion-reduce:` fallback - check with
   `browse.mjs --reduced-motion`.
 - **CSS rebuilt and committed**: `smoke.sh` compares `styles.css` with a fresh build.
 - **Known noise, not regressions**: third-party script errors (Klaviyo, Zendesk, GTM) are counted as

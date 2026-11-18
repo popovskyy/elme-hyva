@@ -7,8 +7,7 @@ from its source and noting the new version here.
 |---|---|---|
 | `elme-business`, `elme-port-from-luma`, `elme-qa`, `elme-look-options` | written for this project (`elme-qa` adapted from `bart-qa` in m2-bart-group) | - |
 | `elme-product-data` | written for this project from the backend team's PIM data specification, PIM product data sheet and Pronto item API inventory | documents of 9 Nov 2026 |
-| `hyva-*` (8) | github.com/hyva-themes/hyva-ai-tools | commit in `HYVA_AI_TOOLS_VERSION` |
-| `emil-design-eng`, `review-animations` | github.com/emilkowalski/skill | copied 2026-10-22 |
+| `hyva-*` (7) | github.com/hyva-themes/hyva-ai-tools | commit in `HYVA_AI_TOOLS_VERSION` |
 | `web-interface-guidelines` | github.com/vercel-labs/agent-skills + pinned rules from vercel-labs/web-interface-guidelines | rules commit 434b7f9 |
 
 Plugins (not copied, enabled in `.claude/settings.json`, installed from the official marketplace on
@@ -17,7 +16,7 @@ first run): `superpowers` (brainstorm → plan → TDD → review workflow), `fr
 
 ## Motion and polish in Hyvä
 
-The Emil Kowalski skills use React and Motion (framer-motion) in examples. Here:
+Motion rules for this theme:
 
 - CSS transitions / `@keyframes` and Tailwind (`transition`, `duration-*`, `ease-*`, `motion-safe:`),
   plus Alpine `x-transition` for enter/leave. No Motion/GSAP/React.
