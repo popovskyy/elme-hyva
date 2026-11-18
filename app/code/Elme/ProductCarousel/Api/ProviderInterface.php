@@ -10,8 +10,9 @@ namespace Elme\ProductCarousel\Api;
  * One interface so the source can change without touching the block or the templates: today
  * Model\SearchProvider (our ProductSearchInterface for trending / new / a category, Magento related products for
  * related); later a class that asks the backend Search Service for recommendations, switched by one di.xml
- * preference. Returns product ids in display order, never more than $limit, an empty list when there is nothing
- * to show (the block then renders nothing, title included). Never throws.
+ * preference. Returns product ids in display order, an empty list when there is nothing to show (the block then
+ * renders nothing, title included). Normally at most $limit ids; "new" may return up to twice that, because the block
+ * drops the ones that are no longer new and then keeps the first $limit. Never throws.
  */
 interface ProviderInterface
 {
