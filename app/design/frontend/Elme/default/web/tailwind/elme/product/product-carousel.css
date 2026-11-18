@@ -27,6 +27,104 @@
         container-type: inline-size;
     }
 
+    /* Room around the cards for the hover lift and its shadow (the scroll box would clip them). The padding is given
+       back with a negative margin, so the block is as tall as before and the arrows stay centred on the photos. */
+    .elme-pc__track {
+        padding-block: --spacing(2) --spacing(6);
+        margin-block: calc(--spacing(2) * -1) calc(--spacing(6) * -1);
+    }
+
+    /* Hover (screens that can hover): the card rises with a soft shadow, as a card in the PLP grid (product-card.css).
+       Touch screens keep the cards flat. */
+    .elme-pc .elme-card {
+        transition:
+            translate var(--transition-duration-base) var(--ease-out-quart),
+            box-shadow var(--transition-duration-base) var(--ease-out-quart);
+    }
+
+    @media (hover: hover) {
+        .elme-pc .elme-card:hover {
+            translate: 0 calc(var(--spacing) * -0.75);
+            box-shadow: 0 --spacing(3.5) --spacing(7) calc(var(--spacing) * -3) color-mix(in oklab, var(--color-ink) 28%, transparent);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .elme-pc .elme-card {
+            transition: none;
+        }
+
+        .elme-pc .elme-card:hover {
+            translate: none;
+        }
+    }
+
+    /* Scroll line under the row (desktop only): a thin line with a bar for the visible part. The bar grows a little
+       while the row is hovered or the bar is dragged. The box is there from lg (nothing jumps); JS shows it only when
+       the cards do not all fit. */
+    .elme-pc__rail {
+        display: none;
+    }
+
+    @variant lg {
+        .elme-pc__rail {
+            position: relative;
+            display: block;
+            height: --spacing(4);
+            margin-top: --spacing(1);
+            margin-inline: var(--container-gutter-desktop);
+            cursor: pointer;
+            visibility: hidden;
+        }
+
+        .elme-pc__rail[data-active] {
+            visibility: visible;
+        }
+
+        .elme-pc__rail::before,
+        .elme-pc__thumb {
+            position: absolute;
+            top: calc(50% - --spacing(0.5));
+            height: --spacing(1);
+            border-radius: 9999px;
+            transition: scale var(--transition-duration-fast) var(--ease-out-quart);
+        }
+
+        .elme-pc__rail::before {
+            content: '';
+            inset-inline: 0;
+            background: color-mix(in oklab, var(--color-ink) 12%, transparent);
+        }
+
+        .elme-pc__thumb {
+            left: 0;
+            width: 0;
+            background: var(--color-ink);
+            cursor: grab;
+            will-change: transform;
+        }
+
+        .elme-pc__rail[data-dragging],
+        .elme-pc__rail[data-dragging] .elme-pc__thumb {
+            cursor: grabbing;
+            user-select: none;
+        }
+
+        .elme-pc:hover .elme-pc__rail::before,
+        .elme-pc:hover .elme-pc__thumb,
+        .elme-pc__rail[data-dragging]::before,
+        .elme-pc__rail[data-dragging] .elme-pc__thumb {
+            scale: 1 1.75;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .elme-pc__rail::before,
+            .elme-pc__thumb {
+                transition: none;
+            }
+        }
+    }
+
     @variant md {
         .elme-pc__slide {
             width: 14.5rem;

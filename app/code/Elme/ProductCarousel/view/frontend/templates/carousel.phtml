@@ -76,7 +76,7 @@ $isCarousel = $count > 1;
         <?php endif; ?>
 
         <ul id="<?= $escaper->escapeHtmlAttr($trackId) ?>"
-            class="elme-pc__track elme-snap-carousel__track m-0 flex list-none snap-x snap-mandatory items-stretch
+            class="elme-pc__track elme-snap-carousel__track flex list-none snap-x snap-mandatory items-stretch
                    overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             <?php if ($isCarousel): ?>
             x-ref="track"
@@ -98,15 +98,36 @@ $isCarousel = $count > 1;
     </div>
 
     <?php if ($isCarousel): ?>
+        <?php /* Scroll line (from lg, elme/product/product-carousel.css): how far the row is scrolled; drag the bar or
+                 click the line to move. JS hides it when every card fits. Arrows and keyboard stay the way in for AT. */ ?>
+        <div class="elme-pc__rail" x-ref="rail" @click="onRailClick" aria-hidden="true">
+            <span class="elme-pc__thumb" x-ref="thumb"></span>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($isCarousel): ?>
         <script>
             function initElmeProductCarousel() {
                 return {
                     reduceMotion: false,
+                    drag: null,
 
                     init() {
+                        const track = this.$refs.track;
+                        const thumb = this.$refs.thumb;
+
                         this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                         this.syncArrows();
-                        this.$refs.track.addEventListener('scrollend', () => this.syncArrows());
+                        track.addEventListener('scrollend', () => this.syncArrows());
+
+                        if (typeof ResizeObserver === 'function') {
+                            new ResizeObserver(() => this.syncArrows()).observe(track);
+                        }
+
+                        thumb.addEventListener('pointerdown', (event) => this.dragStart(event));
+                        thumb.addEventListener('pointermove', (event) => this.dragMove(event));
+                        thumb.addEventListener('pointerup', (event) => this.dragEnd(event));
+                        thumb.addEventListener('pointercancel', (event) => this.dragEnd(event));
                     },
 
                     onScroll() {
@@ -158,6 +179,83 @@ $isCarousel = $count > 1;
 
                         this.$refs.prev.disabled = left <= edge;
                         this.$refs.next.disabled = left >= max - edge;
+                        this.syncRail(left, max);
+                    },
+
+                    // The bar is as wide as the visible part of the row and moves with the scroll position.
+                    syncRail(left, max) {
+                        const rail = this.$refs.rail;
+                        const thumb = this.$refs.thumb;
+                        const track = this.$refs.track;
+
+                        if (max <= 2) {
+                            delete rail.dataset.active;
+                            return;
+                        }
+
+                        const railWidth = rail.clientWidth;
+                        const thumbWidth = Math.max(railWidth * track.clientWidth / track.scrollWidth, 48);
+                        const x = (railWidth - thumbWidth) * Math.min(Math.max(left / max, 0), 1);
+
+                        rail.dataset.active = '';
+                        thumb.style.width = thumbWidth + 'px';
+                        thumb.style.transform = 'translateX(' + x + 'px)';
+                    },
+
+                    onRailClick(event) {
+                        if (event.target === this.$refs.thumb) {
+                            return;
+                        }
+
+                        const track = this.$refs.track;
+                        const box = this.$refs.rail.getBoundingClientRect();
+                        const thumbWidth = this.$refs.thumb.offsetWidth;
+                        const travel = box.width - thumbWidth;
+                        const ratio = travel > 0
+                            ? Math.min(Math.max((event.clientX - box.left - thumbWidth / 2) / travel, 0), 1)
+                            : 0;
+
+                        track.scrollTo({
+                            left: ratio * (track.scrollWidth - track.clientWidth),
+                            behavior: this.reduceMotion ? 'auto' : 'smooth'
+                        });
+                        setTimeout(() => this.syncArrows(), this.reduceMotion ? 0 : 500);
+                    },
+
+                    dragStart(event) {
+                        const track = this.$refs.track;
+
+                        this.drag = {x: event.clientX, left: track.scrollLeft};
+                        this.$refs.thumb.setPointerCapture(event.pointerId);
+                        this.$refs.rail.dataset.dragging = '';
+                        track.style.scrollSnapType = 'none';
+                        event.preventDefault();
+                    },
+
+                    dragMove(event) {
+                        if (!this.drag) {
+                            return;
+                        }
+
+                        const track = this.$refs.track;
+                        const travel = this.$refs.rail.clientWidth - this.$refs.thumb.offsetWidth;
+                        const max = track.scrollWidth - track.clientWidth;
+
+                        if (travel > 0) {
+                            track.scrollLeft = this.drag.left + (event.clientX - this.drag.x) * max / travel;
+                        }
+                    },
+
+                    dragEnd(event) {
+                        if (!this.drag) {
+                            return;
+                        }
+
+                        this.drag = null;
+                        delete this.$refs.rail.dataset.dragging;
+                        this.$refs.thumb.releasePointerCapture(event.pointerId);
+                        // Back to snapping: the row settles on the nearest card.
+                        this.$refs.track.style.scrollSnapType = '';
                     }
                 };
             }
