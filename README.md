@@ -1,20 +1,20 @@
-# Elme Living — Magento Open Source 2.4.9 + Hyvä
+# Elme Living - Magento Open Source 2.4.9 + Hyvä
 
-New Elme Living storefront: Magento Open Source on its own instance, Hyvä theme (open source, installed from the public `hyva-themes` GitHub repos — no license key needed).
+New Elme Living storefront: Magento Open Source on its own instance, Hyvä theme (open source, installed from the public `hyva-themes` GitHub repos - no license key needed).
 
 ## Stack (docker compose)
 
 | Service | Image | Host port |
 |---|---|---|
-| PHP-FPM 8.4 (+ composer, node 22, xdebug off by default) | `elme-php` (`magento-docker/php/Dockerfile`) | — |
-| nginx → Varnish (FPC) → TLS terminator | nginx / varnish 9 | 80 / 443 (fallback 8087 / 8447) |
+| PHP-FPM 8.4 (+ composer, node 22, xdebug off by default) | `elme-php` (`magento-docker/php/Dockerfile`) | - |
+| nginx -> Varnish (FPC) -> TLS terminator | nginx / varnish 9 | 80 / 443 (fallback 8087 / 8447) |
 | MariaDB 11.4 | mariadb:11.4 | 3314 (`elme` / `elme`, db `elme_magento`) |
-| Valkey 8 (cache db0, page_cache db1, session db2) | valkey/valkey:8 | — |
+| Valkey 8 (cache db0, page_cache db1, session db2) | valkey/valkey:8 | - |
 | OpenSearch 3.5 | opensearchproject/opensearch:3.5.0 | 9207 |
 | RabbitMQ 4.1 | rabbitmq:4.1-management | 5675 / 15675 |
 | Mailpit | axllent/mailpit | 1028 (SMTP) / 8028 (UI) |
 
-The 80/443 ports are shared with the other local Magento stacks (Bart, Shaw) — run one at a time. The dev-dashboard does this for you.
+Ports 80/443 are shared with the other Bart Group Magento stacks, so run only one stack at a time (or change the host ports in `docker-compose.yml`).
 
 ## First run on a new machine
 
@@ -24,28 +24,28 @@ echo "127.0.0.1 elme-hyva.local" | sudo tee -a /etc/hosts
 cp auth.json.sample auth.json          # repo.magento.com keys
 docker compose up -d
 docker exec -it elme_php composer install
-# then bin/magento setup:install … (see "Install" below) or import a DB dump
+# then bin/magento setup:install ... (see "Install" below) or import a DB dump
 ```
 
 ## Daily use
 
-- `elmeStart` / `elmeStop` / `enterElme` (aliases in `~/.my_aliases`), or the **Elme Living (Hyvä)** card in dev-dashboard (http://127.0.0.1:7777).
-- Storefront https://elme-hyva.local · Admin https://elme-hyva.local/admin (local: `admin` / `admin123`, 2FA disabled locally).
+- Start and stop: `docker compose up -d` / `docker compose down`. Shell in the PHP container: `docker exec -it -u magento elme_php bash`, or one-off commands with `bin/clinotty bash -c "bin/magento ..."`.
+- Storefront https://elme-hyva.local ; Admin https://elme-hyva.local/admin (local: `admin` / `admin123`, 2FA disabled locally).
 - Xdebug: `XDEBUG_MODE=debug docker compose up -d php`.
 - On a phone: `magento-docker/phone-preview.sh` opens a public HTTPS tunnel (Cloudflare quick tunnel, or localhost.run when Cloudflare is blocked), prints the URL and a QR code, and switches the base URL to it; Ctrl+C switches it back. The site is public while it runs, and https://elme-hyva.local redirects to the tunnel meanwhile.
 
 ## Theme
 
-`app/design/frontend/Elme/default` — child of `Hyva/default` (Tailwind v4).
+`app/design/frontend/Elme/default` - child of `Hyva/default` (Tailwind v4).
 
 ```bash
 cd app/design/frontend/Elme/default/web/tailwind
 npm ci
-npm run watch        # or: elmeTailwind / dashboard "WATCH START"
+npm run watch
 npm run build        # minified build of web/css/styles.css
 ```
 
-Design tokens (`tokens.values`) and fonts (Figtree for body and headings, self-hosted from `web/fonts/`) live in `web/tailwind/hyva.config.json`. Breakpoints: mobile < 768 · tablet `md:` 768 · desktop `lg:` 1025 · `xl:` 1280 · `2xl:` 1440 · `3xl:` 1920 (container max width 1920px).
+Design tokens (`tokens.values`) and fonts (Figtree for body and headings, self-hosted from `web/fonts/`) live in `web/tailwind/hyva.config.json`. Breakpoints: mobile < 768 ; tablet `md:` 768 ; desktop `lg:` 1025 ; `xl:` 1280 ; `2xl:` 1440 ; `3xl:` 1920 (container max width 1920px).
 
 Checkout is our own module `Elme_Checkout` on Elme/default (decision D12 in `docs/frontend-tickets.md`); the Luma fallback checkout was removed.
 

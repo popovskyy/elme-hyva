@@ -1,17 +1,17 @@
-# Elme Living — Magento Open Source 2.4.9 + Hyvä
+# Elme Living - Magento Open Source 2.4.9 + Hyvä
 
 New Elme Living storefront (moving off the shared Adobe Commerce instance `m2-bart-group`, theme `Bart/el`). No new design: port the old Elme look and blocks to Hyvä, then improve UI/UX.
 
 ## Environment
 
-- Everything PHP/Magento runs in the container: `bin/clinotty bash -c "bin/magento …"` (or `docker exec -it -u magento elme_php bash`). Never run `bin/magento` or `composer` on the host.
+- Everything PHP/Magento runs in the container: `bin/clinotty bash -c "bin/magento ..."` (or `docker exec -it -u magento elme_php bash`). Never run `bin/magento` or `composer` on the host.
 - Site https://elme-hyva.local, admin `/admin`. Stack in `docker-compose.yml`, see README.md.
 - Never run `setup:static-content:deploy` locally (developer mode). After template/layout changes: `bin/magento cache:flush`.
 
 ## Theme: `app/design/frontend/Elme/default` (child of `Hyva/default`, Tailwind v4)
 
-- **Design tokens live in one place: `web/tailwind/hyva.config.json` → `tokens.values`** (colours, type scale, breakpoints, container, radius, form, button, easing, durations). `npx hyva-tokens` turns them into `generated/hyva-tokens.css` (`--color-primary` → `bg-primary`, `text-primary`, …). Do not hardcode hex values or px sizes in templates; add a token instead.
-- Fonts: `web/tailwind/hyva.config.json` → `fonts` (Figtree = `font-sans`, body; `font-heading` = Figtree Medium registered at weight 400, so headings written as `font-normal` render medium). Files in `web/fonts/`.
+- **Design tokens live in one place: `web/tailwind/hyva.config.json` -> `tokens.values`** (colours, type scale, breakpoints, container, radius, form, button, easing, durations). `npx hyva-tokens` turns them into `generated/hyva-tokens.css` (`--color-primary` -> `bg-primary`, `text-primary`, ...). Do not hardcode hex values or px sizes in templates; add a token instead.
+- Fonts: `web/tailwind/hyva.config.json` -> `fonts` (Figtree = `font-sans`, body; `font-heading` = Figtree Medium registered at weight 400, so headings written as `font-normal` render medium). Files in `web/fonts/`.
 - Breakpoints: mobile = no prefix, tablet = `md:` (768px), desktop = `lg:` (1025px), `xl:` 1280, `2xl:` 1440, `3xl:` 1920. Container is fluid up to 1920px. Write mobile first.
 - **Leaf corners:** everything you press has leaf corners, top-right and bottom-left rounded (the leaf in the logo). Radius tokens `--radius-leaf` (16px, 50-56px controls), `--radius-leaf-sm` (10px, 40-48px controls, text fields, floating panels), `--radius-leaf-xs` (4px, rows inside a panel, 32px mini swatches), `--radius-leaf-lg` (32px, the white rows of the PLP list view); utilities `corner-leaf` / `corner-leaf-sm` / `corner-leaf-xs` / `corner-leaf-lg` (`web/tailwind/elme/foundation/leaf.css`). `.btn` has it built in (`--btn-radius`); text fields get it from the `form.radius` token.
   - leaf: buttons, enhanced selects, qty steppers, header and mobile menu search fields, hero carousel arrows.
@@ -33,14 +33,14 @@ New Elme Living storefront (moving off the shared Adobe Commerce instance `m2-ba
 - `elme-qa` - run when a change is done: `scope.py` (diff + Hyvä lint) + `smoke.sh` + `browse.mjs` (new vs old site screenshots), ends with the TASK / Change log / Steps For QA block.
 - `elme-look-options` - before restyling a block: a standalone HTML page in `docs/design/` with two or three looks (phone and desktop). The user picks, then the theme changes. Do not edit templates in the same step.
 - Frontend polish: `web-interface-guidelines` (UI review), Emil Kowalski's `emil-design-eng` and `review-animations`. Their examples are React/Motion: here motion is CSS/Tailwind + Alpine `x-transition` (see `.claude/skills/README.md`).
-- Plugins from `.claude/settings.json`: `superpowers` (brainstorm → plan → TDD → review), `frontend-design`, `playwright`.
+- Plugins from `.claude/settings.json`: `superpowers` (brainstorm -> plan -> TDD -> review), `frontend-design`, `playwright`.
 
 `.claude/skills/hyva-*` are copied from github.com/hyva-themes/hyva-ai-tools (commit in `HYVA_AI_TOOLS_VERSION`). The Hyvä CMS / Hyvä UI skills are left out on purpose: those are paid products we don't use.
 
 ## Roadmap
 
-Frontend tickets (FE-01…FE-58, UX-01…UX-12, epics, dependencies, QA checks, decisions D1-D12): `docs/frontend-tickets.md`. Update the Status column and decisions there when a ticket or decision changes.
+Frontend tickets (FE-01...FE-58, UX-01...UX-12, epics, dependencies, QA checks, decisions D1-D12): `docs/frontend-tickets.md`. Update the Status column and decisions there when a ticket or decision changes.
 
 ## Source of truth for the old site
 
-`~/Documents/BartGroup/m2-bart-group`, theme `app/design/frontend/Bart/el` (parent `Bart/jl` → `Overdose/base`), modules `app/code/ElmeLiving/*` and Elme parts of `app/code/Bart/*`. Live: https://www.elmeliving.com/
+the `m2-bart-group` repository (ask a teammate for access; examples below assume it is checked out next to this project), theme `app/design/frontend/Bart/el` (parent `Bart/jl` -> `Overdose/base`), modules `app/code/ElmeLiving/*` and Elme parts of `app/code/Bart/*`. Live: https://www.elmeliving.com/

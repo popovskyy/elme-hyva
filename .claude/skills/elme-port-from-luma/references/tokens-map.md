@@ -1,12 +1,12 @@
-# Old Bart/el LESS variables → Hyvä tokens
+# Old Bart/el LESS variables -> Hyvä tokens
 
-Tokens live in `app/design/frontend/Elme/default/web/tailwind/hyva.config.json` → `tokens.values` and
+Tokens live in `app/design/frontend/Elme/default/web/tailwind/hyva.config.json` -> `tokens.values` and
 become `--<group>-<key>` CSS variables / Tailwind utilities. Values were extracted from
 `m2-bart-group/app/design/frontend/Bart/el/web/css/source/variables/**` (the `@jl-` prefix is a
 leftover from James Lane: the values are Elme's own) and checked against computed styles on
 https://www.elmeliving.com/ on 2026-10-21. "Uses" = occurrences in the `Bart/el` styles.
 
-## Colours (`color.*` → `bg-*`, `text-*`, `border-*`)
+## Colours (`color.*` -> `bg-*`, `text-*`, `border-*`)
 
 | Token | Value | Old variable(s) | Used for |
 |---|---|---|---|
@@ -44,11 +44,11 @@ https://www.elmeliving.com/ on 2026-10-21. "Uses" = occurrences in the `Bart/el`
 | `font-sans` (hyva.config.json `fonts`) | Figtree 300-800 (the old site used Karla) | `@font-family-name__base` |
 | `font-heading` | Figtree Medium, registered at weight 400 (+ italic); the old site used DM Serif Display | `@font-family-name__dmserif`, `@heading__font-family__base` |
 | `text-base` | 15px / 20px | `@font-size__base`, `@line-height__base` |
-| `text-h1` / `h1-desktop` | 27px/35px → 60px | `@h1__font-size`, `@h1__font-size-desktop` |
-| `text-h2` / `h2-desktop` | 20px/30px → 28px | `@h2__font-size`, `@od-h2__font-size--desktop` |
-| `text-h3` / `h3-desktop` | 18px/20px → 22px | `@h3__*` |
+| `text-h1` / `h1-desktop` | 27px/35px -> 60px | `@h1__font-size`, `@h1__font-size-desktop` |
+| `text-h2` / `h2-desktop` | 20px/30px -> 28px | `@h2__font-size`, `@od-h2__font-size--desktop` |
+| `text-h3` / `h3-desktop` | 18px/20px -> 22px | `@h3__*` |
 | `text-h4` | 18px/28px | `@h4__*` |
-| `text-h5` / `h5-desktop` | 16px/18px → 18px | `@h5__*` |
+| `text-h5` / `h5-desktop` | 16px/18px -> 18px | `@h5__*` |
 | `text-h6` | 16px/22px | `@h6__*` |
 | `text-label` | 11px/13px | `@form-field-label__font-size` |
 | `text-breadcrumbs` | 12px | `@breadcrumbs__font-size` |

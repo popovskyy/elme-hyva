@@ -1,4 +1,4 @@
-# Elme Hyvä — Frontend Tickets
+# Elme Hyvä - Frontend Tickets
 
 58 frontend tickets to port elmeliving.com to the new Magento 2.4.9 + Hyvä storefront in 11 epics, plus 12 UX tickets (Epic 11) that fix weak spots of the current site. Logged-out pages were checked on production on 22 Oct 2026; logged-in features (prices, cart, quick order, account) come from the old theme Bart/el and modules ElmeLiving/\*, because we had no trade login.
 
@@ -11,7 +11,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 **Definition of Done (every ticket)**
 
 - Matches production look at 390 px (mobile), 768 px (tablet), 1440 px and 1920 px (desktop); mobile-first, no horizontal scroll.
-- Chrome, Safari (macOS + iOS), Firefox, Edge — latest versions.
+- Chrome, Safari (macOS + iOS), Firefox, Edge - latest versions.
 - Logged-out and logged-in (trade customer) states both checked where the page differs.
 - No console errors, no CSP violations; Alpine components CSP-compatible.
 - Keyboard: every control reachable with Tab, visible focus, Esc closes drawers and modals.
@@ -24,7 +24,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 
 | ID | Ticket | Epic | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| FE-01 | Design tokens, fonts, base typography | 0 Foundation | — | Done |
+| FE-01 | Design tokens, fonts, base typography | 0 Foundation | - | Done |
 | FE-02 | UI kit: buttons, form fields, qty stepper, badges, breadcrumbs, pager + style-guide page | 0 Foundation | FE-01 | In review |
 | FE-03 | Global feedback: messages/toasts, modal, drawer, loaders, empty states | 0 Foundation | FE-01 | In review |
 | FE-04 | Page layouts and container (1 column, 2 columns left, banner + breadcrumbs, full width) | 0 Foundation | FE-01 | In review |
@@ -76,7 +76,7 @@ Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), *
 | FE-50 | Virtual Catalogues (login only) (Shoppable Instagram in FE-68) | 9 CMS | FE-53 | Done |
 | FE-51 | Showroom locator (list + location page) | 9 CMS | FE-04 | In review |
 | FE-52 | 404 page | 9 CMS | FE-04 | Done |
-| FE-53 | Login-only rules: price hiding, guest redirects, per-customer data | 10 Cross-cutting | — | In review |
+| FE-53 | Login-only rules: price hiding, guest redirects, per-customer data | 10 Cross-cutting | - | In review |
 | FE-54 | Third-party scripts: Zendesk chat, Klaviyo, GTM/GA4, Triple Whale | 10 Cross-cutting | FE-01 | Done |
 | FE-55 | SEO markup: structured data, breadcrumbs, meta, canonical | 10 Cross-cutting | FE-18, FE-25 | To do |
 | FE-56 | Final QA pass: devices, accessibility, performance, visual compare | 10 Cross-cutting | all | To do |
@@ -128,19 +128,19 @@ Most B2B pages need backend work the old site did in `ElmeLiving_*` modules. Eac
 
 Data feeds from Pronto (prices, stock, balances, customers) are integration tickets that come later.
 
-## Epic 0 — Foundation and global UI
+## Epic 0 - Foundation and global UI
 
 Everything else builds on these four. Ship them first, so other tickets reuse the components instead of copying markup.
 
 ### FE-01 Design tokens, fonts, base typography
 
-**Scope:** colour palette, type scale (body 15/20; fonts changed on 11 Nov 2026 from Karla and DM Serif Display to Figtree for body and headings), breakpoints, container up to 1920 px, square corners, form and button metrics in `hyva.config.json` → `tokens.values`; self-hosted fonts. Mostly done.
+**Scope:** colour palette, type scale (body 15/20; fonts changed on 11 Nov 2026 from Karla and DM Serif Display to Figtree for body and headings), breakpoints, container up to 1920 px, square corners, form and button metrics in `hyva.config.json` -> `tokens.values`; self-hosted fonts. Mostly done.
 
 **Ref:** `Bart/el/web/css/source/variables/*`; computed styles on https://www.elmeliving.com/
 
 **QA:**
 
-- [ ] H1–H6, paragraph, link on any CMS page match production font, size and line height (mobile and desktop)
+- [ ] H1-H6, paragraph, link on any CMS page match production font, size and line height (mobile and desktop)
 - [ ] Page background warm off-white, body text charcoal, same as production
 - [ ] Fonts load from our domain (Network tab), no Google Fonts request, no flash of fallback font on reload
 
@@ -154,7 +154,7 @@ Everything else builds on these four. Ship them first, so other tickets reuse th
 
 - [ ] Every component on `/styleguide` has hover, focus, active, disabled and error states
 - [ ] Inputs 50 px high, 1 px border; buttons square, 50 px min height
-- [ ] Qty stepper with MOQ 6: +/− go 6 → 12 → 18; typing 7 rounds to a valid multiple with a message
+- [ ] Qty stepper with MOQ 6: +/- go 6 -> 12 -> 18; typing 7 rounds to a valid multiple with a message
 - [ ] Focus outline visible on every control
 
 ### FE-03 Global feedback components
@@ -164,7 +164,7 @@ Everything else builds on these four. Ship them first, so other tickets reuse th
 **QA:**
 
 - [ ] Message after an action (e.g. login failure) shows, can be closed, does not cover the header on mobile
-- [ ] Modal and drawer: open, close by ×, by overlay click and by Esc; focus stays inside while open; page does not scroll behind
+- [ ] Modal and drawer: open, close by x, by overlay click and by Esc; focus stays inside while open; page does not scroll behind
 - [ ] Screen reader announces messages (role=alert / aria-live)
 
 ### FE-04 Page layouts and container
@@ -229,21 +229,21 @@ Everything else builds on these four. Ship them first, so other tickets reuse th
 
 ### FE-58 Theme preview image
 
-**Scope:** replace `app/design/frontend/Elme/default/media/preview.png` (today a copy of the Hyvä default picture) with a preview in Elme style: warm off-white, sage/olive accents, DM Serif Display wordmark "Elme Living", a small "Hyvä" tag, ideally a cropped desktop screenshot of the new storefront. Same size as the Hyvä preview: 400 × 277 px PNG.
+**Scope:** replace `app/design/frontend/Elme/default/media/preview.png` (today a copy of the Hyvä default picture) with a preview in Elme style: warm off-white, sage/olive accents, DM Serif Display wordmark "Elme Living", a small "Hyvä" tag, ideally a cropped desktop screenshot of the new storefront. Same size as the Hyvä preview: 400 x 277 px PNG.
 
 **Ref:** `vendor/hyva-themes/magento2-default-theme/media/preview.png` (size); tokens in `web/tailwind/hyva.config.json`; logo `web/images/logo.svg`
 
 **QA:**
 
-- [ ] Admin → Content → Design → Themes shows the new preview for Elme/default
-- [ ] Image is 400 × 277 px, crisp, under 150 KB
+- [ ] Admin -> Content -> Design -> Themes shows the new preview for Elme/default
+- [ ] Image is 400 x 277 px, crisp, under 150 KB
 - [ ] It reads as Elme at a glance (palette, type) and says it is the Hyvä build
 
 ### FE-70 Animated Add to Cart button
 
 **Scope:** one add to cart button for PLP tiles and the PDP. Click: the normal button feedback (ripple, press) at once. Sending: the label fades, the cart slides to the centre and a dot keeps dropping into it until the server answers. Success, only after the server confirmed it: the cart leaves to the right, a check with "Added" comes in from the left, holds 2.2 s, then the button is back to "Add to Cart". Error: the button goes straight back and the message shows in the toast stack (FE-03). Square button in site colours (no pill). The button never changes size; icon-only buttons show only the check. Nothing is blocked: add many items in a row, requests run one after another so they never race on the quote; a second click on a button that is still sending is ignored. Reduced motion: no movement, the cart pulses. Out of scope: Quick Order, product image flying to the header cart.
 
-**How:** add the class `btn-atc` to the submit button of an add to cart form. `Magento_Theme::elme/atc-button.phtml` (one delegated listener, CSP-safe) posts the form with `X-Requested-With`, so `checkout/cart/add` answers JSON, reads the `messages` section for errors (so the page message bar does not repeat "You added …"), reloads section data for the mini-cart. CSS: `web/tailwind/elme/product/add-to-cart.css`. Wired on the PLP tile (`product/list/item.phtml`) and the PDP button (`product/view/addtocart.phtml`; "Update item" on cart configure keeps the normal post). FE-19 and FE-27 must keep `btn-atc` on their buttons. "Redirect to cart after adding" = Yes in admin still redirects after the success state.
+**How:** add the class `btn-atc` to the submit button of an add to cart form. `Magento_Theme::elme/atc-button.phtml` (one delegated listener, CSP-safe) posts the form with `X-Requested-With`, so `checkout/cart/add` answers JSON, reads the `messages` section for errors (so the page message bar does not repeat "You added ..."), reloads section data for the mini-cart. CSS: `web/tailwind/elme/product/add-to-cart.css`. Wired on the PLP tile (`product/list/item.phtml`) and the PDP button (`product/view/addtocart.phtml`; "Update item" on cart configure keeps the normal post). FE-19 and FE-27 must keep `btn-atc` on their buttons. "Redirect to cart after adding" = Yes in admin still redirects after the success state.
 
 **Look:** variant 1 "Cart and dot" picked on 31 Oct 2026 (2 olive fill and 3 rolling label + count were rejected).
 
@@ -258,17 +258,17 @@ Everything else builds on these four. Ship them first, so other tickets reuse th
 - [ ] Expired form key (other tab logged out): button goes back, error toast, no "Added"
 - [ ] Click Add to Cart on five tiles quickly: every one ends in "Added", the cart has all five, no duplicates; double-click on one tile adds it once
 - [ ] Button width and height do not change in any state, desktop (label) and tablet (icon only)
-- [ ] No green "You added … to your shopping cart" bar under the header after an AJAX add
+- [ ] No green "You added ... to your shopping cart" bar under the header after an AJAX add
 - [ ] Screen reader hears "Added to cart"; errors are announced by the toast; focus stays on the button
 - [ ] OS "Reduce motion" on: no sliding, cart pulses while sending; no console errors or CSP violations
 
-## Epic 1 — Header and navigation
+## Epic 1 - Header and navigation
 
 The header on production: dusty-blue top bar, then logo, mega menu (New, Flowers & Plants, Homewares, Furniture, Outdoor, Sale), search field, Log in/Sign up, Contact Us. Logged-in users also get the mini-cart and the Quick Order cart.
 
 ### FE-05 Top bar
 
-**Scope:** strip above the header: USP text on the left ("Australia's leading wholesale supplier of artificial flora and home decor"), links on the right (Become a Stockist, Inspiration → /shop-the-looks). Text and links editable in admin (CMS block).
+**Scope:** strip above the header: USP text on the left ("Australia's leading wholesale supplier of artificial flora and home decor"), links on the right (Become a Stockist, Inspiration -> /shop-the-looks). Text and links editable in admin (CMS block).
 
 **QA:**
 
@@ -295,12 +295,12 @@ The header on production: dusty-blue top bar, then logo, mega menu (New, Flowers
 
 **QA:**
 
-- [ ] 390 px: all icons tappable (min 44 × 44 px), logo not cut off
-- [ ] Search opens, focuses the input, closes by × or Esc
+- [ ] 390 px: all icons tappable (min 44 x 44 px), logo not cut off
+- [ ] Search opens, focuses the input, closes by x or Esc
 
 ### FE-08 Mega menu desktop
 
-**Scope:** 5–6 top items; dropdown with category columns down to level 3 (e.g. Flowers & Plants → Arrangements → Orchid). Opens on hover with a short delay, also by keyboard. Source of the menu tree depends on D3.
+**Scope:** 5-6 top items; dropdown with category columns down to level 3 (e.g. Flowers & Plants -> Arrangements -> Orchid). Opens on hover with a short delay, also by keyboard. Source of the menu tree depends on D3.
 
 **Ref:** `Bart/el/Snowdog_Menu/templates/menu.phtml`, `menu/sub_menu.phtml`, `menu/node_type/*`
 
@@ -320,16 +320,16 @@ The header on production: dusty-blue top bar, then logo, mega menu (New, Flowers
 **QA:**
 
 - [ ] All 3 levels reachable; Back returns one level; "View all" opens the category
-- [ ] Drawer closes by ×, overlay, Esc; page behind does not scroll
+- [ ] Drawer closes by x, overlay, Esc; page behind does not scroll
 - [ ] Same tree as desktop menu
 
-## Epic 2 — Footer and global blocks
+## Epic 2 - Footer and global blocks
 
 The footer and the blocks repeated above it on most pages (Instagram slider, "Our Difference", "Need assistance?").
 
 ### FE-10 Footer
 
-**Scope:** logo; three link columns — Shop (Quick Order, Furniture, Plants, Homewares, Shop the Looks, Virtual Catalogues, Shop Instagram, Style Sourcebook, Outlet & Clearance Store), Service (About Us, Meet the Team, Showroom Locator, Become a Stockist, Fairs & Events, Careers), Help (Contact, Shipping & Returns, Terms & Conditions, Privacy Policy, FAQs, Submit a Product Claim → help.elmeliving.com); social icons (Facebook, Instagram, Pinterest, LinkedIn, TikTok); payment icons (Visa, Mastercard). Columns collapse to accordions on mobile. Links editable in admin.
+**Scope:** logo; three link columns - Shop (Quick Order, Furniture, Plants, Homewares, Shop the Looks, Virtual Catalogues, Shop Instagram, Style Sourcebook, Outlet & Clearance Store), Service (About Us, Meet the Team, Showroom Locator, Become a Stockist, Fairs & Events, Careers), Help (Contact, Shipping & Returns, Terms & Conditions, Privacy Policy, FAQs, Submit a Product Claim -> help.elmeliving.com); social icons (Facebook, Instagram, Pinterest, LinkedIn, TikTok); payment icons (Visa, Mastercard). Columns collapse to accordions on mobile. Links editable in admin.
 
 **Ref:** `Bart/el/Magento_Theme/templates/html/od-footer/links.phtml`, `logo.phtml`
 
@@ -341,7 +341,7 @@ The footer and the blocks repeated above it on most pages (Instagram slider, "Ou
 
 ### FE-11 Newsletter subscribe + signup popup
 
-**Scope:** footer form "Be the first to know" (email + arrow button). Production also shows a signup popup on first visit ("Get 5% off your first purchase", first/last name, email, phone, company, business type) — run by Klaviyo; whether we rebuild it or keep Klaviyo depends on D7.
+**Scope:** footer form "Be the first to know" (email + arrow button). Production also shows a signup popup on first visit ("Get 5% off your first purchase", first/last name, email, phone, company, business type) - run by Klaviyo; whether we rebuild it or keep Klaviyo depends on D7.
 
 **Ref:** `Bart/el/Magento_Newsletter/templates/footer-subscribe.phtml`, `Bart_NewsletterPopup`
 
@@ -349,7 +349,7 @@ The footer and the blocks repeated above it on most pages (Instagram slider, "Ou
 
 - [ ] Empty or invalid email shows an inline error, no request sent
 - [ ] Valid email shows a success message; the same email again shows "already subscribed"
-- [ ] Popup (if in scope): shows once per visitor, closes by ×/Esc/overlay, not shown to logged-in customers
+- [ ] Popup (if in scope): shows once per visitor, closes by x/Esc/overlay, not shown to logged-in customers
 
 ### FE-12 "As styled by you" Instagram slider
 
@@ -372,9 +372,9 @@ The footer and the blocks repeated above it on most pages (Instagram slider, "Ou
 - [ ] Phone is a `tel:` link and email a `mailto:` link
 - [ ] Both blocks render the same on every page they appear on
 
-## Epic 3 — Homepage
+## Epic 3 - Homepage
 
-Production home, top to bottom: hero banners → category tiles carousel → Welcome text + Become a Stockist → Outlet promo → "Be Inspired" shop-the-look → trending products → Curated Catalogues → Become a Stockist benefits → Instagram (FE-12) → Our Difference (FE-13). Each section is a Content Studio entry (FE-57) placed on the page, so content editors can fill and reorder them; content is new, nothing is copied from the old site.
+Production home, top to bottom: hero banners -> category tiles carousel -> Welcome text + Become a Stockist -> Outlet promo -> "Be Inspired" shop-the-look -> trending products -> Curated Catalogues -> Become a Stockist benefits -> Instagram (FE-12) -> Our Difference (FE-13). Each section is a Content Studio entry (FE-57) placed on the page, so content editors can fill and reorder them; content is new, nothing is copied from the old site.
 
 ### FE-14 Hero / banner slider
 
@@ -390,7 +390,7 @@ Production home, top to bottom: hero banners → category tiles carousel → Wel
 
 ### FE-15 Category tiles carousel
 
-**Scope:** carousel of category tiles (image + name: Vessels, Decor, Floral Stems, Bouquets & Bundles, Coffee Tables …) with arrows; Content Studio type `category_tiles` (repeater: category, image, label).
+**Scope:** carousel of category tiles (image + name: Vessels, Decor, Floral Stems, Bouquets & Bundles, Coffee Tables ...) with arrows; Content Studio type `category_tiles` (repeater: category, image, label).
 
 **Ref:** `Bart_Catalog/templates/category/widget/with_children.phtml`
 
@@ -421,7 +421,7 @@ Production home, top to bottom: hero banners → category tiles carousel → Wel
 - [ ] Swipe on mobile, arrows on desktop, no layout shift while loading
 - [ ] Empty result hides the whole block, including the title
 
-## Epic 4 — PLP and search
+## Epic 4 - PLP and search
 
 Production category page: banner with title and breadcrumbs, a Filters button that opens a drawer, sort dropdown, 4-column grid (2 on mobile), 24 per page, pagination. Test data: /flowers-plants.html (\~1,200 products), /new.html (many filters).
 
@@ -439,7 +439,7 @@ Production category page: banner with title and breadcrumbs, a Filters button th
 
 ### FE-19 Product card (shared tile)
 
-**Scope:** one card used on PLP, search, carousels, wishlist: image (white tile), Sale/New badge, name (2 lines max), SKU, price ex. GST or "Sign in to see pricing" when logged out, stock label ("In Stock" ≥ 10, "Low Stock" 1–9, none at 0), wishlist heart. Logged in, when "Quick order on PLP" is enabled: qty stepper (MOQ multiples) + Add to cart. Customer price loads after render (FE-53): show a placeholder, not a flash of the wrong price.
+**Scope:** one card used on PLP, search, carousels, wishlist: image (white tile), Sale/New badge, name (2 lines max), SKU, price ex. GST or "Sign in to see pricing" when logged out, stock label ("In Stock" >= 10, "Low Stock" 1-9, none at 0), wishlist heart. Logged in, when "Quick order on PLP" is enabled: qty stepper (MOQ multiples) + Add to cart. Customer price loads after render (FE-53): show a placeholder, not a flash of the wrong price.
 
 **Ref:** `Bart/el/Magento_Catalog/templates/product/list.phtml`, `category-qo-plp-enable.phtml`, `Cloudinary_Cloudinary/templates/product/image_with_borders.phtml`, `ElmeLiving_Catalog/view/frontend/web/template/product/*`
 
@@ -453,7 +453,7 @@ Production category page: banner with title and breadcrumbs, a Filters button th
 
 ### FE-20 PLP toolbar
 
-**Scope:** sort (Position, Product Name, SKU, Best Sellers, Date, Price low–high, Price high–low), per page 12/24/36/48, pagination with first/last and ellipsis. Sort by price only for logged-in users.
+**Scope:** sort (Position, Product Name, SKU, Best Sellers, Date, Price low-high, Price high-low), per page 12/24/36/48, pagination with first/last and ellipsis. Sort by price only for logged-in users.
 
 **QA:**
 
@@ -463,7 +463,7 @@ Production category page: banner with title and breadcrumbs, a Filters button th
 
 ### FE-21 Layered navigation
 
-**Scope:** Filters button → drawer (mobile and desktop as on production). Filters seen on production: Colour (swatches), Material, Stock Availability (In Stock / Low Stock), Plant Type, Width (cm) and Depth (cm) ranges, Comfort. Multi-select, counts, "selected filters" chips with remove and Clear all. Engine depends on D2.
+**Scope:** Filters button -> drawer (mobile and desktop as on production). Filters seen on production: Colour (swatches), Material, Stock Availability (In Stock / Low Stock), Plant Type, Width (cm) and Depth (cm) ranges, Comfort. Multi-select, counts, "selected filters" chips with remove and Clear all. Engine depends on D2.
 
 **Ref:** `Bart/el/Aheadworks_Layerednav/templates/layer/view.phtml`, `filter/renderer/swatches.phtml`
 
@@ -477,7 +477,7 @@ Production category page: banner with title and breadcrumbs, a Filters button th
 
 ### FE-22 Search autocomplete
 
-**Scope:** dropdown under the header search after 2–3 characters: products (image, name, SKU), categories, "see all results". Search by SKU must work (customers order by SKU). Engine depends on D1.
+**Scope:** dropdown under the header search after 2-3 characters: products (image, name, SKU), categories, "see all results". Search by SKU must work (customers order by SKU). Engine depends on D1.
 
 **Ref:** `Bart/el/Bart_AlgoliaSearchUi/templates/search.phtml`, `instant/hit.phtml`
 
@@ -521,7 +521,7 @@ Production category page: banner with title and breadcrumbs, a Filters button th
 
 **Ref:** `app/code/Elme/Search/README.md`; commits `5e0374d`, `020ddf4`
 
-## Epic 5 — PDP
+## Epic 5 - PDP
 
 Production PDP: gallery left, info right (badge, name, SKU, stock, short description, buy box), then a "Product Details" accordion, recommendations, Instagram, Our Difference. Test product: /acacia-hanging-bush-28-x-14-x-110cm-grey-green.html (simple, Sale); for MOQ and configurable products pick SKUs from admin.
 
@@ -534,12 +534,12 @@ Production PDP: gallery left, info right (badge, name, SKU, stock, short descrip
 **QA:**
 
 - [ ] Product with 1 image: no arrows or thumbnails; with 5+: thumbnails scroll
-- [ ] Fullscreen opens on click, closes by ×/Esc, zoom works on desktop, pinch on mobile
+- [ ] Fullscreen opens on click, closes by x/Esc, zoom works on desktop, pinch on mobile
 - [ ] Main image is not lazy-loaded; no layout shift when it loads
 
 ### FE-26 PDP buy box, logged out
 
-**Scope:** "Sign in to see pricing", "Don't have an account? Apply here" (→ registration), Login button (→ login, then back to this product).
+**Scope:** "Sign in to see pricing", "Don't have an account? Apply here" (-> registration), Login button (-> login, then back to this product).
 
 **QA:**
 
@@ -586,7 +586,7 @@ Production PDP: gallery left, info right (badge, name, SKU, stock, short descrip
 
 ### FE-30 PDP recommendations + recently viewed
 
-**Scope:** Frequently bought together, Related products, recommendation tabs, Recently viewed — using the carousel (FE-17) and the card (FE-19).
+**Scope:** Frequently bought together, Related products, recommendation tabs, Recently viewed - using the carousel (FE-17) and the card (FE-19).
 
 **Ref:** `Bart/el/ElmeLiving_AlgoliaRecommend/templates/recommendation/wrap/*`
 
@@ -597,7 +597,7 @@ Production PDP: gallery left, info right (badge, name, SKU, stock, short descrip
 
 ### FE-31 PDP stock and delivery info
 
-**Scope:** "N in stock" number and label, incoming (dock) date when out of stock, delivery estimate; showroom availability. Data from Pronto / shipment service — scope depends on D6.
+**Scope:** "N in stock" number and label, incoming (dock) date when out of stock, delivery estimate; showroom availability. Data from Pronto / shipment service - scope depends on D6.
 
 **Ref:** `Bart/el/Bart_OverdoseStorelocator/templates/product/view/product-stock-info.phtml`, `product-availability.phtml`, `Machship_Fusedship/layout/catalog_product_view.xml`
 
@@ -606,7 +606,7 @@ Production PDP: gallery left, info right (badge, name, SKU, stock, short descrip
 - [ ] Stock number matches admin salable qty for VTA stock
 - [ ] Out-of-stock product with a dock date shows the date in AU format (e.g. 12 Nov 2026)
 
-## Epic 6 — Cart and checkout
+## Epic 6 - Cart and checkout
 
 Cart and checkout are login-only. Checkout is our own module `Elme_Checkout` on this theme (D12); the Luma fallback checkout was removed on 29 Oct 2026. It is one page (address, delivery, payment, order details, place order, summary on the side), the server keeps the checkout state and Alpine only renders it, and every section or place-order check is a plug-in, so Elme features are added later without touching the core.
 
@@ -631,7 +631,7 @@ Checkout features (delivery date calendar, account credit payment, Elme freight,
 
 **QA:**
 
-- [ ] Opens after add to cart and from the icon; closes by ×/overlay/Esc
+- [ ] Opens after add to cart and from the icon; closes by x/overlay/Esc
 - [ ] Changing qty updates subtotal and header count; qty below MOQ is refused with a message
 - [ ] Remove asks no browser confirm dialog and updates totals
 
@@ -662,7 +662,7 @@ Checkout features (delivery date calendar, account credit payment, Elme freight,
 - [ ] No "Create an account" block on the success page
 - [ ] Checkout and success page pass the web-interface-guidelines review: labels, visible focus, contrast, reduced motion
 
-## Epic 7 — Login, registration, customer account
+## Epic 7 - Login, registration, customer account
 
 Customers are businesses with an ABN; the account area is split into B2B and B2C sections with their own breadcrumbs.
 
@@ -736,7 +736,7 @@ Customers are businesses with an ABN; the account area is split into B2B and B2C
 - [ ] Order view shows reference and delivery instructions when the order has them
 - [ ] Print view has no header/footer clutter
 
-## Epic 8 — B2B: Quick Order, order templates, wishlist
+## Epic 8 - B2B: Quick Order, order templates, wishlist
 
 Quick Order is the core page for trade customers: they reorder by SKU. On the old site it is 56 theme files (`ElmeLiving_QuickOrder`) plus its own controllers under /quick-order; the backend (controllers, tables) needs its own port ticket before these.
 
@@ -800,7 +800,7 @@ Quick Order is the core page for trade customers: they reorder by SKU. On the ol
 - [ ] Wishlist page add to cart moves the item with MOQ qty
 - [ ] Guest clicking the heart goes to login and returns
 
-## Epic 9 — CMS pages
+## Epic 9 - CMS pages
 
 All content is new; nothing is migrated from the old site. Plain text pages (T&C, Privacy, About) use Page Builder with Elme styles; structured blocks are Content Studio types (FE-57). Writing the content is a content task, not part of these tickets. All URLs below exist on production today; /blog returns 404 there and is left out.
 
@@ -831,7 +831,7 @@ All content is new; nothing is migrated from the old site. Plain text pages (T&C
 
 ### FE-47 FAQs accordion
 
-**Scope:** /faqs grouped by topic (Location, Delivery, …) as an accordion; Content Studio type `faq` (repeater: question, answer, topic) so editors add questions without a developer.
+**Scope:** /faqs grouped by topic (Location, Delivery, ...) as an accordion; Content Studio type `faq` (repeater: question, answer, topic) so editors add questions without a developer.
 
 **QA:**
 
@@ -928,7 +928,7 @@ All content is new; nothing is migrated from the old site. Plain text pages (T&C
 
 ### FE-49 Shop the Looks / lookbook
 
-**Scope:** /shop-the-looks and the "Be Inspired" home block: lifestyle images with "+" hotspots; a hotspot opens a product popup (image, name, "Sign in to see pricing" or price, "View »", qty + add to cart when logged in). Content Studio type `lookbook`: image with hotspots pinned in % of the frame, each linked to a SKU.
+**Scope:** /shop-the-looks and the "Be Inspired" home block: lifestyle images with "+" hotspots; a hotspot opens a product popup (image, name, "Sign in to see pricing" or price, "View >", qty + add to cart when logged in). Content Studio type `lookbook`: image with hotspots pinned in % of the frame, each linked to a SKU.
 
 **Ref:** production /shop-the-looks; dragging hotspots on the image as in `m2-bart-group/app/code/Bart/ContentStudio/view/adminhtml/web/js/editor/preview-hotspot.js` (it was mattress-only and is not in this repo's copy, see FE-57)
 
@@ -977,7 +977,7 @@ All content is new; nothing is migrated from the old site. Plain text pages (T&C
 - [ ] Any unknown URL returns HTTP 404 with this page (not 200)
 - [ ] Buttons go to home and contact
 
-## Epic 10 — Cross-cutting
+## Epic 10 - Cross-cutting
 
 Rules that touch many pages. FE-53 is built early, next to FE-19, because every price and stock block depends on it.
 
@@ -1016,28 +1016,28 @@ Rules that touch many pages. FE-53 is built early, next to FE-19, because every 
 
 ### FE-56 Final QA pass
 
-**Scope:** one regression round over the whole storefront before launch: real devices (iPhone Safari, Android Chrome, iPad), accessibility (keyboard-only walk-through, contrast, screen reader on key flows), Lighthouse on home, PLP, PDP (target: Performance ≥ 90 mobile, CLS < 0.1, Accessibility ≥ 95), side-by-side visual compare with production.
+**Scope:** one regression round over the whole storefront before launch: real devices (iPhone Safari, Android Chrome, iPad), accessibility (keyboard-only walk-through, contrast, screen reader on key flows), Lighthouse on home, PLP, PDP (target: Performance >= 90 mobile, CLS < 0.1, Accessibility >= 95), side-by-side visual compare with production.
 
 **QA:**
 
-- [ ] Key flow logged in: search SKU → PDP → add to cart → Quick Order add → cart → checkout → success → order in account
-- [ ] Key flow logged out: home → menu → PLP filter → PDP → "Apply here" → registration submitted
+- [ ] Key flow logged in: search SKU -> PDP -> add to cart -> Quick Order add -> cart -> checkout -> success -> order in account
+- [ ] Key flow logged out: home -> menu -> PLP filter -> PDP -> "Apply here" -> registration submitted
 - [ ] Lighthouse targets met; results attached to the ticket
 
-## Epic 11 — UX/UI improvements over production
+## Epic 11 - UX/UI improvements over production
 
 Production audit on 22 Oct 2026, logged out, 1440 px and 390 px. Each ticket fixes a weak spot found there and names the FE tickets it extends: build it into those tickets during the port, then QA it here.
 
 | What we found on production | Where |
 | --- | --- |
 | Curated Catalogues block is an empty dusty-blue area ~1,100 px tall; Instagram slider shows grey tiles; recommendations block renders empty for guests | Home, PDP |
-| Search "vase" returns 747 results, first hits are "Vale Muse … Sofa"; facets include Bed Type and Queen/King sizes | Search |
-| Filters drawer: "Material" listed twice, empty first row, width/depth ranges sorted as text (171–180 before 40–49), no result count on Apply | PLP |
+| Search "vase" returns 747 results, first hits are "Vale Muse ... Sofa"; facets include Bed Type and Queen/King sizes | Search |
+| Filters drawer: "Material" listed twice, empty first row, width/depth ranges sorted as text (171-180 before 40-49), no result count on Apply | PLP |
 | Mobile category banner + title push the first product to ~600 px; product names cut at 2 lines hide the dimensions | PLP mobile |
 | Zendesk chat button covers "Apply filters", product cards and PDP description on mobile | Mobile, all pages |
 | Login and registration inputs have `autocomplete="off"`; phone is `type="text"`; ABN and postcode open the text keyboard; 4 address fields have no label; 17 fields in one block | Login, registration |
 | No skip link; ~130 focusable elements with no visible focus; 2 H1 on home (hidden title + "Added to cart" modal); 75 images with empty alt, product images included; 91 tap targets under 24 px | All pages |
-| 217 script requests, ~6,600 DOM nodes, 19 third-party hosts (Nosto, Clarity, Videowise, Rakuten, TikTok, Facebook, DoubleClick, Klaviyo, Zendesk, Yotpo, Google Fonts …), ~155 console errors per page; 88 of 91 images without width/height | All pages |
+| 217 script requests, ~6,600 DOM nodes, 19 third-party hosts (Nosto, Clarity, Videowise, Rakuten, TikTok, Facebook, DoubleClick, Klaviyo, Zendesk, Yotpo, Google Fonts ...), ~155 console errors per page; 88 of 91 images without width/height | All pages |
 | "Our Difference" is justified small grey text (rivers on mobile); footer links ~12 px; category tile labels on a thin bar, "Coffee Tables" clipped | Home, footer |
 | Mobile header shows "Sign Up" that opens login, no account icon; every card repeats "Sign in to see pricing" and nothing tells a guest what a trade account gives | Header, PLP, PDP |
 
@@ -1056,7 +1056,7 @@ Production audit on 22 Oct 2026, logged out, 1440 px and 390 px. Each ticket fix
 
 **Extends:** FE-06, FE-07, FE-19, FE-26
 
-**Scope:** header label says what it is ("Trade login" + account icon on mobile, not "Sign Up" that opens login). PLP and search get one slim banner for guests: "Wholesale prices for registered retailers — Log in / Apply for a trade account", with 3 facts (ABN required, minimum order, delivery Australia-wide). Cards show a short "Log in for price" instead of the long sentence.
+**Scope:** header label says what it is ("Trade login" + account icon on mobile, not "Sign Up" that opens login). PLP and search get one slim banner for guests: "Wholesale prices for registered retailers - Log in / Apply for a trade account", with 3 facts (ABN required, minimum order, delivery Australia-wide). Cards show a short "Log in for price" instead of the long sentence.
 
 **QA:**
 
@@ -1072,9 +1072,9 @@ Production audit on 22 Oct 2026, logged out, 1440 px and 390 px. Each ticket fix
 
 **QA:**
 
-- [ ] At 390 × 844 the first product row is at least partly visible without scrolling
+- [ ] At 390 x 844 the first product row is at least partly visible without scrolling
 - [ ] Filters / Sort bar stays reachable after scrolling 3 screens
-- [ ] "Adara Coffee Table Travertine & …" style truncation no longer hides size or material
+- [ ] "Adara Coffee Table Travertine & ..." style truncation no longer hides size or material
 
 ### UX-04 Filters quality
 
@@ -1115,7 +1115,7 @@ Production audit on 22 Oct 2026, logged out, 1440 px and 390 px. Each ticket fix
 
 **Extends:** FE-35, FE-36, FE-46
 
-**Scope:** correct `autocomplete` on every field (`email`, `current-password`, `given-name`, `organization`, `tel`, `street-address`, `postal-code` …), `type="tel"` for phones, `inputmode="numeric"` for ABN and postcode, a visible label on every field. Registration split into sections Business, Contact, Accounts, Address; ABN lookup fills the company name; address autocomplete fills suburb, state, postcode.
+**Scope:** correct `autocomplete` on every field (`email`, `current-password`, `given-name`, `organization`, `tel`, `street-address`, `postal-code` ...), `type="tel"` for phones, `inputmode="numeric"` for ABN and postcode, a visible label on every field. Registration split into sections Business, Contact, Accounts, Address; ABN lookup fills the company name; address autocomplete fills suburb, state, postcode.
 
 **QA:**
 
@@ -1128,7 +1128,7 @@ Production audit on 22 Oct 2026, logged out, 1440 px and 390 px. Each ticket fix
 
 **Extends:** FE-02, FE-03, FE-56
 
-**Scope:** skip link to main content, visible focus on every control, one H1 per page (modals use H2), real alt text on product and content images, accessible names on icon links, tap targets at least 44 × 44 px on mobile, text contrast at least 4.5:1.
+**Scope:** skip link to main content, visible focus on every control, one H1 per page (modals use H2), real alt text on product and content images, accessible names on icon links, tap targets at least 44 x 44 px on mobile, text contrast at least 4.5:1.
 
 **QA:**
 
@@ -1140,11 +1140,11 @@ Production audit on 22 Oct 2026, logged out, 1440 px and 390 px. Each ticket fix
 
 **Extends:** FE-08, FE-54, FE-56
 
-**Scope:** list every third-party script with marketing and keep only agreed ones (target ≤ 8 hosts), loaded after interaction or idle; fonts from our domain only; every image with width/height, below-fold images lazy; mega menu HTML not duplicated for mobile; 0 console errors.
+**Scope:** list every third-party script with marketing and keep only agreed ones (target <= 8 hosts), loaded after interaction or idle; fonts from our domain only; every image with width/height, below-fold images lazy; mega menu HTML not duplicated for mobile; 0 console errors.
 
 **QA:**
 
-- [ ] Lighthouse mobile on home, PLP, PDP: Performance ≥ 90, CLS < 0.1, LCP < 2.5 s
+- [ ] Lighthouse mobile on home, PLP, PDP: Performance >= 90, CLS < 0.1, LCP < 2.5 s
 - [ ] Network tab: third-party hosts match the agreed list
 - [ ] Console has no errors on home, PLP, PDP, cart
 
@@ -1174,7 +1174,7 @@ Production audit on 22 Oct 2026, logged out, 1440 px and 390 px. Each ticket fix
 
 **Extends:** FE-19, FE-32, FE-37, FE-40
 
-**Scope:** proposals to validate with 2–3 real customers before building: paste or CSV upload of "SKU, qty" lines into Quick Order; "Buy again" list on the account dashboard; minimum order value progress bar in the mini-cart; quick add from search results.
+**Scope:** proposals to validate with 2-3 real customers before building: paste or CSV upload of "SKU, qty" lines into Quick Order; "Buy again" list on the account dashboard; minimum order value progress bar in the mini-cart; quick add from search results.
 
 **QA:**
 
@@ -1189,16 +1189,16 @@ The ids D1...D15 belong to this file. The backend team's replatform documents (P
 
 | # | Decision | Production today | Options | Affects |
 | --- | --- | --- | --- | --- |
-| D1 | Search and recommendations engine | Algolia InstantSearch + Algolia Recommend | Keep Algolia (Hyvä compat module) · native OpenSearch + Hyvä autocomplete, related/upsell from admin. Backend plan (9 Nov 2026, not built): a separate Search Service builds the index from Magento product data and Shipment Service stock (replatform D26); which engine the storefront talks to is still open | FE-17, FE-22, FE-23, FE-30 |
+| D1 | Search and recommendations engine | Algolia InstantSearch + Algolia Recommend | Keep Algolia (Hyvä compat module) ; native OpenSearch + Hyvä autocomplete, related/upsell from admin. Backend plan (9 Nov 2026, not built): a separate Search Service builds the index from Magento product data and Shipment Service stock (replatform D26); which engine the storefront talks to is still open | FE-17, FE-22, FE-23, FE-30 |
 | D2 | Layered navigation | Aheadworks Layered Navigation | **Decided (14 Nov 2026):** native filters from `Elme_Search` facets (drawer, chips, live count), no Aheadworks. Width and Depth are From/To number inputs in cm, not 10 cm checkbox bands: buyers look for a size that fits a space ("up to 120"), bands would be about 20 checkboxes per filter and need a new band facet type in `Elme_Search` | FE-21, FE-23, UX-04 |
-| D3 | Menu source | Snowdog Menu (built in admin) | **Decided:** Snowdog Menu (`snowdog/module-menu` ≥2.24, native Hyvä templates; no separate compat module). Local patch for Symfony `execute(): int` on Magento 2.4.9. | FE-08, FE-09 |
-| D4 | Product reviews | Yotpo enabled, not visible to guests | Keep Yotpo · drop reviews | FE-25, FE-43 |
+| D3 | Menu source | Snowdog Menu (built in admin) | **Decided:** Snowdog Menu (`snowdog/module-menu` >=2.24, native Hyvä templates; no separate compat module). Local patch for Symfony `execute(): int` on Magento 2.4.9. | FE-08, FE-09 |
+| D4 | Product reviews | Yotpo enabled, not visible to guests | Keep Yotpo ; drop reviews | FE-25, FE-43 |
 | D5 | Lookbook hotspots | MGS Lookbook | **Decided:** Content Studio type `lookbook` (FE-57) | FE-49, FE-16 |
 | D6 | PDP stock / delivery data | Pronto stock, shipment service, Fusedship rates, showroom stock | **Direction from the backend plan (9 Nov 2026, not built):** no stock data stored in Magento; stock label, quantity, dock date and ETA from a live request to the Shipment Service (Elme stock plus James Lane DC stock for shared items). Until that request exists the card and the PDP read the label from MSI (`Elme\Theme\ViewModel\ProductTile`); FE-31 replaces it. Open: what is available at launch | FE-31, FE-19, FE-25 |
-| D7 | Newsletter and signup popup | Klaviyo popup + footer form | Klaviyo forms · Magento newsletter + own popup | FE-11, FE-54 |
+| D7 | Newsletter and signup popup | Klaviyo popup + footer form | Klaviyo forms ; Magento newsletter + own popup | FE-11, FE-54 |
 | D8 | Product images | Cloudinary | **Direction from the backend plan (9 Nov 2026):** Cloudinary stays the media store; the future PIM sends the reference, roles, alt text and order. Templates read images through the Magento gallery and image blocks only, so the URL source can change without touching them. Open: the Cloudinary module on this instance | FE-19, FE-25 |
-| D9 | Blog | Magefan Blog templates exist, /blog is 404 | Drop (recommended) · port | — |
-| D10 | Instagram feed | Overdose InstaFeed | Instagram API module · static images in CMS | FE-12, FE-50 |
+| D9 | Blog | Magefan Blog templates exist, /blog is 404 | Drop (recommended) ; port | - |
+| D10 | Instagram feed | Overdose InstaFeed | Instagram API module ; static images in CMS | FE-12, FE-50 |
 | D11 | CMS content | Adobe Page Builder + LESS classes | **Decided:** new content, no migration; Page Builder for plain text pages, own copy of Content Studio (Open Source + Hyva) for structured blocks, placed with its Page Builder content type or widget; no CMS Tailwind JIT | FE-14...16, FE-47...49, FE-57 |
 | D12 | Checkout | Luma checkout (Adobe Commerce) with Elme Knockout mixins | **Decided:** own module `Elme_Checkout` on Elme/default (one page, server-side state, CSP Alpine). Luma fallback checkout removed; no Hyva Checkout (paid licence per installation) | FE-34, BE-01...BE-05 |
 | D13 | Home page layout | Hero, statement, dark Outlet band, catalogues, collage, Our Difference, dark Need assistance band | **Decided (31 Oct 2026):** "Calm gallery": hero with the H1 (made taller on 2 Nov 2026: 4:5 on phones, at least 680px or 32vw on desktop, at most 75svh, so the photos show), intro with three trade facts, all categories in a grid, Outlet + Lookbook + Virtual Catalogues as three photo cards, Become a Stockist collage with button, Instagram; Our Difference only on About us; Need assistance? only in page content (About us, help pages, Outlet), not in the footer (removed 10 Nov 2026: production has no such footer row); motion only in the hero and the Become a Stockist collage (4 Nov 2026: scroll reveals removed from the other home sections; seeded by `SeedHomepageContentSections`) | FE-14...16, FE-12, FE-13 |

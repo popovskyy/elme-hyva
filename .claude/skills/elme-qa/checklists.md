@@ -15,7 +15,7 @@ Adobe Commerce codebase that apply here too.
 - **Module template shadowed by the theme** (`scope.py` says `OVERRIDDEN`): the storefront never sees
   the module's version.
 - **Tailwind reach.** Classes count only where Tailwind scans: theme `.phtml` / `.xml` and the module
-  paths in `generated/hyva-source.css` (from `hyva.config.json` → `tailwind.include` and compat modules).
+  paths in `generated/hyva-source.css` (from `hyva.config.json` -> `tailwind.include` and compat modules).
   A class in a module template outside that list renders unstyled.
 - **Checkout is ours.** `/checkout` is the `Elme_Checkout` module on Elme/default: same tokens, Tailwind
   reach and CSP Alpine rules as any page. There is no Luma fallback; any `frontend/Magento/luma` asset
@@ -59,7 +59,7 @@ in scope of the ticket, built, or still missing - never assume the old site's be
 ## Senior frontend (Hyvä)
 
 - **Look at every screenshot.** An unstyled page is 200 with no console error.
-- **Tokens only**: colours, fonts, sizes, radius from `hyva.config.json` → `tokens.values` (`scope.py`
+- **Tokens only**: colours, fonts, sizes, radius from `hyva.config.json` -> `tokens.values` (`scope.py`
   lints hex and arbitrary px in templates). A missing value becomes a token, not a one-off.
 - **Breakpoints**: mobile (no prefix), tablet `md:` 768, desktop `lg:` 1025, `xl:` 1280, `2xl:` 1440,
   `3xl:` 1920. A JS `matchMedia` uses the same numbers. Check 375 and 1440 always; 768, 1025 and 1920

@@ -148,9 +148,9 @@ reports, and paste the block only once it prints `OK`.
 - `browse.mjs` loads `playwright-core` from the global `@playwright/mcp` install (`npm root -g`) and its
   browser build in `~/.cache/ms-playwright`. Set `PLAYWRIGHT_CORE` to another `playwright-core` path if
   that install is missing (`npm i -g @playwright/mcp` then `npx playwright install chromium`).
-- Containers down → `elmeStart` / the dev-dashboard card. Bart and Shaw share ports 80/443: only one
-  Magento stack runs at a time.
-- Every page 500s with `Class "…" does not exist` after a branch switch: stale DI config in `var/cache`:
+- Containers down -> `docker compose up -d`. Other Bart Group Magento stacks share ports 80/443: only one
+  stack runs at a time.
+- Every page 500s with `Class "..." does not exist` after a branch switch: stale DI config in `var/cache`:
   `bin/clinotty bash -c "rm -rf var/cache/mage--*"`.
 - Served `styles.css` differs from the file: `rm -rf pub/static/frontend/Elme var/view_preprocessed/pub/static/frontend/Elme`
   and write a new `pub/static/deployed_version.txt` (no trailing newline, or the CSS URL breaks).

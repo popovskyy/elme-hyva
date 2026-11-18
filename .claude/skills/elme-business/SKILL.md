@@ -9,7 +9,7 @@ description: Use when building, porting or explaining any Elme Living feature th
 
 Elme Living is the **wholesale (B2B)** brand of Bart Group: artificial flora, homewares and furniture
 sold to businesses, mostly retail shops. It ran as website 5 (`elme_living`, store 5, theme `Bart/el`)
-inside the shared Adobe Commerce instance `~/Documents/BartGroup/m2-bart-group`, next to the retail
+inside the shared Adobe Commerce instance `m2-bart-group`, next to the retail
 brands James Lane and Sleeping Giant. This project moves Elme to its **own Magento Open Source
 instance**. Nothing below exists here yet: it is what the old site does and what has to be rebuilt.
 
@@ -27,7 +27,7 @@ worked, not what to build.
 
 - Businesses registered **with an ABN** (ABN Lookup validation at registration, admin notification
   email) - `ElmeLiving_Customer`.
-- Customer groups in use (2026-09-24): **Retailer 7,315** · General 439 · Wholesale 55 · Trade 7.
+- Customer groups in use (2026-09-24): **Retailer 7,315** ; General 439 ; Wholesale 55 ; Trade 7.
 - **Shopping needs a login**: guest access to cart/checkout pages is redirected (`ElmeLiving_Checkout`
   `DisableGuestPage` / `DisableGuestAction`), blocks can be hidden for guests or for logged-in users
   (`ElmeLiving_ElmeLiving` `HideForGuest` / `HideForLoggedIn`). The full page cache varies by group, so
@@ -74,7 +74,7 @@ what the customer must see; the MSI sources are the old implementation.
   stock for sale).
 - Shown as a **number**: "N in stock" = sellable qty (MSI, stock "B2B Stock" with sources `dropship`,
   `b2b`, `elme_hold`). `b2b` = VTA qty **plus James Lane DC stock for products also sold on JL**;
-  `elme_hold` = qty held for open orders. Labels: ≥10 In Stock, 1-9 Low Stock, 0 = none.
+  `elme_hold` = qty held for open orders. Labels: >=10 In Stock, 1-9 Low Stock, 0 = none.
 - Stock and dock (incoming) dates come from **Pronto hourly** (separate Elme Pronto instance, not the
   JL/SG one). Hold stock comes from the data warehouse.
 - Labels / ETA / delivery options on the old site come from the shared **shipment service**

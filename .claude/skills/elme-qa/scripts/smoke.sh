@@ -17,7 +17,7 @@ bad() { printf '  FAIL %s\n' "$*"; fail=1; }
 say "== containers"
 for c in elme_php elme_mariadb elme_nginx elme_varnish elme_ssl elme_opensearch elme_redis; do
   state=$(docker inspect -f '{{.State.Status}}' "$c" 2>/dev/null || echo missing)
-  [ "$state" = running ] && say "  ok   $c" || bad "$c is $state -> run: elmeStart (or docker compose up -d)"
+  [ "$state" = running ] && say "  ok   $c" || bad "$c is $state -> run: docker compose up -d"
 done
 [ "$fail" = 1 ] && { say "containers down, stopping here"; exit 1; }
 

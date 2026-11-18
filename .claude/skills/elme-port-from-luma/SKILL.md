@@ -12,7 +12,7 @@ Knockout. UI/UX improvements are welcome but are listed and committed separately
 ## 1. Find every source of the old block
 
 The old theme inherits, so the block can live in four places. Look in this order and take the first hit
-for each file (`m2-bart-group` = `~/Documents/BartGroup/m2-bart-group`):
+for each file (`m2-bart-group` = the old repository, checked out next to this project):
 
 1. `app/design/frontend/Bart/el/<Module>/` - Elme overrides
 2. `app/design/frontend/Bart/jl/<Module>/` - parent (James Lane): anything Elme does not override
@@ -41,9 +41,9 @@ a different page.
 - **Data:** ViewModels (`$viewModels->require(...)`), not `$block->helper()` and not ObjectManager.
   Port PHP logic from the old Block/ViewModel; keep business rules identical (`elme-business`).
 - **Styles:** Tailwind classes using **tokens only** - colours `bg-primary`, `text-ink-muted`,
-  `border-border`…, fonts `font-sans` / `font-heading`, breakpoints `md:` (tablet 768) / `lg:`
+  `border-border`..., fonts `font-sans` / `font-heading`, breakpoints `md:` (tablet 768) / `lg:`
   (desktop 1025) / `3xl:` (1920). No hex values, no arbitrary px in templates: if a value is missing,
-  add a token to `web/tailwind/hyva.config.json` → `tokens.values`. Map old LESS variables with
+  add a token to `web/tailwind/hyva.config.json` -> `tokens.values`. Map old LESS variables with
   `references/tokens-map.md`. Write mobile first.
 - **Shape:** the old site is square everywhere; here everything you press gets leaf corners
   (top-right and bottom-left rounded): `.btn` already has them, other controls use `corner-leaf`
@@ -54,7 +54,7 @@ a different page.
   Knockout and RequireJS do not exist here. Private content (customer, cart) comes from Hyvä's
   `private-content-loaded` event, not `customer-data.js`.
 - **Images:** `hyva-render-media-image` skill (responsive `<picture>`).
-- **Third-party modules** (Algolia, Aheadworks, Magefan, Amasty, Klaviyo, Yotpo…) need a Hyvä compat
+- **Third-party modules** (Algolia, Aheadworks, Magefan, Amasty, Klaviyo, Yotpo...) need a Hyvä compat
   module or a rewrite - check the Hyvä compatibility tracker before porting their templates by hand.
 - Build with `npm run build` in `web/tailwind` (or `hyva-compile-tailwind-css`), then
   `bin/clinotty bash -c "bin/magento cache:flush"`.
