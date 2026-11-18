@@ -20,20 +20,37 @@ interface ProviderInterface
     public const SOURCE_NEW = 'new';
     public const SOURCE_CATEGORY = 'category';
     public const SOURCE_RELATED = 'related';
+    public const SOURCE_CROSS_SELL = 'cross_sell';
+    public const SOURCE_UPSELL = 'upsell';
+    public const SOURCE_RANGE = 'range';
+    public const SOURCE_SIMILAR = 'similar';
 
     public const SOURCES = [
         self::SOURCE_TRENDING,
         self::SOURCE_NEW,
         self::SOURCE_CATEGORY,
         self::SOURCE_RELATED,
+        self::SOURCE_CROSS_SELL,
+        self::SOURCE_UPSELL,
+        self::SOURCE_RANGE,
+        self::SOURCE_SIMILAR,
+    ];
+
+    /** Sources that are about one product (the product of the page): they need a product_id and never list it. */
+    public const PRODUCT_SOURCES = [
+        self::SOURCE_RELATED,
+        self::SOURCE_CROSS_SELL,
+        self::SOURCE_UPSELL,
+        self::SOURCE_RANGE,
+        self::SOURCE_SIMILAR,
     ];
 
     /**
      * @param string $source one of SOURCES
      * @param int $storeId store view
      * @param int $limit most products wanted
-     * @param array{category_id?: int, product_id?: int} $options category_id for "category", product_id for
-     *        "related" (the product the page is about)
+     * @param array{category_id?: int, product_id?: int} $options category_id for "category", product_id for the
+     *        PRODUCT_SOURCES (the product the page is about)
      * @return int[] product ids, in display order
      */
     public function getProductIds(string $source, int $storeId, int $limit, array $options = []): array;

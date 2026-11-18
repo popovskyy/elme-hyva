@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 use Elme\Theme\ViewModel\Faq;
 use Elme\Theme\ViewModel\ProductDetails;
+use Elme\Theme\ViewModel\ProductDiagram;
 use Hyva\Theme\Model\ViewModelRegistry;
 use Hyva\Theme\ViewModel\HyvaCsp;
 use Hyva\Theme\ViewModel\LucideIcons;
@@ -33,7 +34,11 @@ $productPage = $viewModels->require(ProductPage::class);
 $details = $viewModels->require(ProductDetails::class);
 /** @var Faq $faq */
 $faq = $viewModels->require(Faq::class);
+/** @var ProductDiagram $diagram */
+$diagram = $viewModels->require(ProductDiagram::class);
 $product = $productPage->getProduct();
+$diagramUrl = $diagram->getUrl($product);
+$diagramId = 'elme-pdp-diagram';
 
 $sections = [];
 
@@ -94,6 +99,16 @@ if ($sizeRows) {
             </div>
         <?php endforeach; ?>
     </dl>
+    <?php if ($diagramUrl !== ''): ?>
+        <?php /* FE-30: opens the dimension drawing (dialog below); no drawing, no link */ ?>
+        <button type="button"
+                class="elme-pdp__diagram-link"
+                data-diagram-open="<?= $escaper->escapeHtmlAttr($diagramId) ?>"
+                aria-haspopup="dialog">
+            <?= $lucideIcons->rulerDimensionLineHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+            <?= $escaper->escapeHtml(__('View Dimensions')) ?>
+        </button>
+    <?php endif; ?>
     <?php $sections['dimensions'] = ['title' => __('Dimensions'), 'html' => ob_get_clean()];
 }
 
@@ -176,8 +191,45 @@ if (!$sections) {
         </details>
     <?php endforeach; ?>
 </div>
+<?php if ($diagramUrl !== '' && isset($sections['dimensions'])): ?>
+    <?php /* Native dialog: Esc, focus return and the backdrop come with it */ ?>
+    <dialog id="<?= $escaper->escapeHtmlAttr($diagramId) ?>"
+            class="elme-pdp__diagram"
+            aria-labelledby="<?= $escaper->escapeHtmlAttr($diagramId) ?>-title">
+        <div class="elme-pdp__diagram-top">
+            <h2 id="<?= $escaper->escapeHtmlAttr($diagramId) ?>-title" class="elme-pdp__diagram-title">
+                <?= $escaper->escapeHtml(__('Dimensions')) ?>
+            </h2>
+            <button type="button"
+                    class="elme-ib elme-ib--line"
+                    data-diagram-close
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Close')) ?>">
+                <?= $lucideIcons->xHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+            </button>
+        </div>
+        <img class="elme-pdp__diagram-img"
+             src="<?= $escaper->escapeUrl($diagramUrl) ?>"
+             alt="<?= $escaper->escapeHtmlAttr(__('%1: dimensions drawing', $product->getName())) ?>"
+             loading="lazy"
+             decoding="async">
+    </dialog>
+<?php endif; ?>
 <script>
     (() => {
+        // View Dimensions: open the drawing; the close button and a click on the backdrop close it, Esc is native
+        document.querySelectorAll('[data-diagram-open]').forEach((opener) => {
+            const dialog = document.getElementById(opener.dataset.diagramOpen);
+            if (!dialog) {
+                return;
+            }
+            opener.addEventListener('click', () => dialog.showModal());
+            dialog.addEventListener('click', (event) => {
+                if (event.target === dialog || event.target.closest('[data-diagram-close]')) {
+                    dialog.close();
+                }
+            });
+        });
+
         // <product url>#dimensions (or a Trade FAQ question id) opens that section
         const openFromHash = () => {
             const id = decodeURIComponent(window.location.hash.slice(1));

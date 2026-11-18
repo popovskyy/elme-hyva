@@ -33,9 +33,11 @@ $title = $block->getTitle();
 $headingTag = $block->getHeadingTag();
 $count = count($items);
 $isCarousel = $count > 1;
+// Inside a tab panel (tabs.phtml) the panel owns the spacing
+$spacing = $block->isEmbedded() ? '' : 'my-8 lg:my-12';
 ?>
 <section id="<?= $escaper->escapeHtmlAttr($domId) ?>"
-         class="elme-pc elme-snap-carousel relative -mx-(--entry-bleed) my-8 lg:my-12"
+         class="elme-pc elme-snap-carousel relative -mx-(--entry-bleed) <?= $escaper->escapeHtmlAttr($spacing) ?>"
          <?php if ($title !== ''): ?>
          aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>"
          <?php else: ?>
