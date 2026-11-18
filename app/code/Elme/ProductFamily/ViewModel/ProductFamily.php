@@ -37,6 +37,8 @@ class ProductFamily implements ArgumentInterface, IdentityInterface
     private const SWATCH_PX = 112;
     private const CONFIGURATION_PX = 320;
     private const STRUCTURED_DATA_PX = 800;
+    /** The grid card photo, so a swatch preview swaps a photo of the same size. */
+    private const CARD_PHOTO_PX = 360;
 
     /** @var array<int, array> */
     private array $axesByProduct = [];
@@ -304,6 +306,15 @@ class ProductFamily implements ArgumentInterface, IdentityInterface
             if ($selectedIndex !== false && $selectedIndex >= $limit) {
                 $visible[$limit - 1] = $options[$selectedIndex];
             }
+            // 'photo': the card-size photo of that colour, which the card shows while its swatch is hovered.
+            $members = $this->familyLoader->getMembers((string) $product->getData(FamilyLoader::ATTR_CODE));
+            foreach ($visible as &$visibleOption) {
+                $member = $members[$visibleOption['memberId']] ?? null;
+                $visibleOption['photo'] = $member && !$visibleOption['selected']
+                    ? $this->memberImage($member, self::CARD_PHOTO_PX)
+                    : '';
+            }
+            unset($visibleOption);
             return [
                 'label' => $axis['label'],
                 'visual' => true,

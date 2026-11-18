@@ -47,7 +47,7 @@
         padding-inline: var(--form-px);
         padding-inline-end: --spacing(10);
         border: 1px solid var(--form-stroke);
-        /* Elme: leaf corners like the buttons (elme/leaf.css) */
+        /* Elme: leaf corners like the buttons (elme/foundation/leaf.css) */
         border-radius: 0 var(--radius-leaf) 0 var(--radius-leaf);
         background-color: var(--form-bg);
         color: var(--form-color);

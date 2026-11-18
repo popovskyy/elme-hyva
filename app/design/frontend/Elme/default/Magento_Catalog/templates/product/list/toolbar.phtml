@@ -6,7 +6,7 @@
  * Sort and per-page URLs come from ListingFilters::getToolbarUrlParts(), so a filtered listing keeps the stable
  * facet query (config order, code[]= for several values) and the other parameters sorted by name.
  * FE-87: "View as: Grid | List". The switch is client side: the same cards, laid out by
- * #product-list[data-plp-view] (web/tailwind/elme/plp-view.css). The choice sits in the session cookie
+ * #product-list[data-plp-view] (web/tailwind/elme/plp/plp-view.css). The choice sits in the session cookie
  * elme_plp_view, so there is no reload, no second cached copy of the page, and it follows the customer
  * through paging, filtering and other listings.
  */
@@ -67,11 +67,12 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
     <div x-data="initElmeProductListToolbar"
          data-toolbar-options="<?= $escaper->escapeHtmlAttr($toolbarOptionsJson) ?>"
          data-url-parts="<?= $escaper->escapeHtmlAttr($urlPartsJson) ?>"
-         class="toolbar toolbar-products elme-plp-toolbar flex flex-wrap items-center gap-x-6 gap-y-3 min-h-10">
+         class="toolbar toolbar-products elme-plp-toolbar flex flex-wrap items-center gap-x-2 md:gap-x-6 gap-y-3 min-h-10 pt-6 lg:pt-3 pb-3 justify-between md:justify-start">
         <?php if ($block->isExpanded()): ?>
-            <?php // Phones: amount and the view switch share the second row. From md: one row, in DOM order. ?>
-            <div class="order-3 basis-full flex items-center justify-between gap-x-6 md:contents">
-                <div class="md:order-2">
+            <?php // Phones: sort on the left, view switch on the right, one row; the item count lives by the pager below. ?>
+            <?php // From md: one row, in DOM order, with the count. ?>
+            <div class="order-2 flex items-center md:contents">
+                <div class="hidden md:block md:order-2">
                     <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/amount.phtml')) ?>
                 </div>
                 <div class="elme-view-switch md:order-3 md:ms-auto"
@@ -102,7 +103,7 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
                     </button>
                 </div>
             </div>
-            <div class="order-2 ms-auto md:order-4 md:ms-0<?= $sortInBar ? ' lg:hidden' : '' ?>">
+            <div class="order-1 md:order-4<?= $sortInBar ? ' lg:hidden' : '' ?>">
                 <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/sorter.phtml')) ?>
             </div>
         <?php endif ?>

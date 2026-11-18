@@ -12,7 +12,7 @@
  *                                              focus the same control in the next row (or the one before), else
  *                                              the fallback; call it right after dissolve()
  *
- * Markup: li.elme-dust > div > row (elme/dust.css). The row is drawn into an offscreen canvas from its real pixels
+ * Markup: li.elme-dust > div > row (elme/foundation/dust.css). The row is drawn into an offscreen canvas from its real pixels
  * (backgrounds, borders, images, icons as vectors, text at its Range rects), sampled every 2 px into particles and
  * played on one fixed canvas that exists only while dust is in the air. A sweep goes left to right and clips the row
  * as the particles leave it, so the row and its dust never overlap. Reduced motion: a fade and the collapse, no
@@ -621,7 +621,7 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
 
         /* ---------- public ---------- */
 
-        /** The collapse transition of elme/dust.css. */
+        /** The collapse transition of elme/foundation/dust.css. */
         function collapseMs() {
             const token = reduceMotion.matches ? '--transition-duration-fast' : '--transition-duration-slow';
             return parseFloat(rootToken(token, '300')) || 300;

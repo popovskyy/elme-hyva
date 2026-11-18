@@ -53,6 +53,9 @@
             <plp>
                 <quick_order>1</quick_order>
             </plp>
+            <banner>
+                <panel>ink</panel>
+            </banner>
         </elme_catalog>
     </default>
 </config>

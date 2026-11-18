@@ -218,7 +218,7 @@ individual types). `Block\Entry::getContent()` hands over the entry data with
 
 **A type that runs to the screen edge bleeds by `-mx-(--entry-bleed)`**
 (`promo_split`), never by the gutter tokens directly. The theme
-(`Elme/default/web/tailwind/elme/content-studio.css`) sets `--entry-bleed` to
+(`Elme/default/web/tailwind/elme/content/content-studio.css`) sets `--entry-bleed` to
 the container gutter only on a box that has that gutter and spans the page:
 `.columns` of a 1column CMS page (home included), a contained row where it
 keeps its padding (full-width layouts), a full-width row's inner. The

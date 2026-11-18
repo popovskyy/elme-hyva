@@ -8,6 +8,7 @@ use Elme\Theme\ViewModel\CategoryBanner;
 use Magento\Catalog\Model\Category;
 use Magento\Catalog\Model\Category\Image as CategoryImage;
 use Magento\Catalog\ViewModel\Category\Output as CategoryOutput;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Registry;
 use Magento\Store\Model\StoreManagerInterface;
@@ -52,10 +53,21 @@ class CategoryBannerTest extends TestCase
         $this->assertFalse($this->banner($images, ['image' => '   '])->hasImage());
     }
 
+    public function testPanelStyleFallsBackToInk(): void
+    {
+        $scope = $this->createMock(ScopeConfigInterface::class);
+        $scope->method('getValue')->willReturnOnConsecutiveCalls('olive', 'neon', null);
+        $banner = $this->banner($this->createMock(CategoryImage::class), [], $scope);
+
+        $this->assertSame('olive', $banner->getPanelStyle());
+        $this->assertSame('ink', $banner->getPanelStyle());
+        $this->assertSame('ink', $banner->getPanelStyle());
+    }
+
     /**
      * @param array<string, string> $data
      */
-    private function banner(CategoryImage $images, array $data): CategoryBanner
+    private function banner(CategoryImage $images, array $data, ?ScopeConfigInterface $scope = null): CategoryBanner
     {
         $category = $this->createMock(Category::class);
         $category->method('getData')->willReturnCallback(
@@ -70,7 +82,8 @@ class CategoryBannerTest extends TestCase
             $images,
             $this->createMock(CategoryOutput::class),
             $this->createMock(StoreManagerInterface::class),
-            $this->createMock(Filesystem::class)
+            $this->createMock(Filesystem::class),
+            $scope ?? $this->createMock(ScopeConfigInterface::class)
         );
     }
 }

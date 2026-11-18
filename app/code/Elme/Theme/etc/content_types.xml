@@ -77,6 +77,13 @@
                 <option value="dark" label="Dark photo"/>
                 <option value="light" label="Light photo"/>
             </field>
+            <field name="panel" type="select" label="Text panel" default="none"
+                   description="None: the photo fades behind the text. Glass: the text sits on a leaf-shaped blurred panel and the photo stays clear (Ink and Olive: white text, Light: dark text). Photo tone is ignored when a glass panel is on.">
+                <option value="none" label="None (fade)"/>
+                <option value="ink" label="Ink glass"/>
+                <option value="light" label="Light glass"/>
+                <option value="olive" label="Olive glass"/>
+            </field>
             <field name="text" type="textarea" label="Text" maxlength="200"
                    description="One or two plain sentences of fact: trade only, ABN, Melbourne showrooms. No prices, MOQ numbers or ratings."/>
             <field name="button_label" type="text" label="Button label" maxlength="40" width="half"

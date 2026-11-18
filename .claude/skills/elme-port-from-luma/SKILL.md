@@ -47,7 +47,7 @@ a different page.
   `references/tokens-map.md`. Write mobile first.
 - **Shape:** the old site is square everywhere; here everything you press gets leaf corners
   (top-right and bottom-left rounded): `.btn` already has them, other controls use `corner-leaf`
-  (50px high) or `corner-leaf-sm` (40-44px) from `web/tailwind/elme/leaf.css`, or
+  (50px high) or `corner-leaf-sm` (40-44px) from `web/tailwind/elme/foundation/leaf.css`, or
   `border-radius: 0 var(--radius-leaf) 0 var(--radius-leaf)` in a partial. Text inputs, cards and
   images stay square. Rule in CLAUDE.md, "Leaf corners".
 - **JS:** Alpine, CSP-compatible (`hyva-alpine-component` skill). jQuery widgets, `x-magento-init`,

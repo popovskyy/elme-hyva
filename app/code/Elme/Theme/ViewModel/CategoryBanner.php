@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace Elme\Theme\ViewModel;
 
+use Elme\Theme\Model\Config\Source\PanelStyle;
 use Magento\Catalog\Model\Category;
 use Magento\Catalog\Model\Category\Image as CategoryImage;
 use Magento\Catalog\ViewModel\Category\Output as CategoryOutput;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Registry;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
+use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Throwable;
 
@@ -42,7 +45,8 @@ class CategoryBanner implements ArgumentInterface
         private readonly CategoryImage $categoryImage,
         private readonly CategoryOutput $categoryOutput,
         private readonly StoreManagerInterface $storeManager,
-        private readonly Filesystem $filesystem
+        private readonly Filesystem $filesystem,
+        private readonly ScopeConfigInterface $scopeConfig
     ) {
     }
 
@@ -58,6 +62,18 @@ class CategoryBanner implements ArgumentInterface
         $category = $this->getCategory();
 
         return $category ? (string) $category->getName() : '';
+    }
+
+    /**
+     * Tone of the glass panel behind the copy on a category photo (Stores > Configuration > Elme > Catalog).
+     */
+    public function getPanelStyle(): string
+    {
+        $style = (string) $this->scopeConfig->getValue('elme_catalog/banner/panel', ScopeInterface::SCOPE_STORE);
+
+        return in_array($style, [PanelStyle::INK, PanelStyle::LIGHT, PanelStyle::OLIVE], true)
+            ? $style
+            : PanelStyle::DEFAULT_STYLE;
     }
 
     public function getHeadingId(): string

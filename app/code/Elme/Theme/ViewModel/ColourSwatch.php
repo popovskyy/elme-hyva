@@ -10,7 +10,7 @@ use Magento\Framework\View\Element\Block\ArgumentInterface;
  * Swatch colour of a colour group (the Colour filter, FE-21).
  *
  * Facet options carry only a label, so the colour comes from a token per colour group
- * (hyva.config.json: color.swatch-*, styled in web/tailwind/elme/plp-filters.css as .elme-filter-swatch--<name>).
+ * (hyva.config.json: color.swatch-*, styled in web/tailwind/elme/plp/plp-filters.css as .elme-filter-swatch--<name>).
  * The groups and colours are the ones of the live site's Colour filter. Labels that are not a group yet
  * (this instance falls back to the colour name until colour_group exists) take the first group word in them.
  */

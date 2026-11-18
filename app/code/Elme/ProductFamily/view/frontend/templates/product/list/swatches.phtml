@@ -1,7 +1,8 @@
 <?php
 /**
  * Elme FE-28: family swatches on the product card (Magento_Catalog::product/list/item.phtml).
- * Colour families: small chips, each a link to that colour's product, "+N" to the product page.
+ * Colour families: small chips, each a link to that colour's product, "+N" to the product page. On a hover-capable
+ * screen the card shows the chip's photo while the chip is hovered or focused (Magento_Theme::elme/card-swatch-preview.phtml).
  * Families without colours: "Size: 5 options". Nothing for a product without a family.
  */
 
@@ -45,6 +46,9 @@ if (!$swatches) {
                        class="elme-swatch elme-swatch--mini"
                        aria-label="<?= $escaper->escapeHtmlAttr($label) ?>"
                        data-tooltip="<?= $escaper->escapeHtmlAttr($label) ?>"
+                        <?php if (!empty($option['photo'])): ?>
+                       data-photo="<?= $escaper->escapeUrl($option['photo']) ?>"
+                        <?php endif; ?>
                     >
                 <?php endif; ?>
                     <?php if ($option['image'] !== ''): ?>

@@ -3,7 +3,7 @@
 /**
  * FE-36 registration in the login's "Split screen" look: orchid photo on one half (sticky from lg, the form is
  * long), "Apply for a trade account" intro and the Hyvä register form on the other. The H1 is in the intro.
- * The form itself is Hyvä's (validation, password strength, address fields); elme/login.css restyles it.
+ * The form itself is Hyvä's (validation, password strength, address fields); elme/account/login.css restyles it.
  * The ABN field and approval flow are backend work (FE-36).
  */
 -->

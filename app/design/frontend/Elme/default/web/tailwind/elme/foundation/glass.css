@@ -1,0 +1,61 @@
+/*
+ * Glass panel: the leaf-shaped, blurred tint that carries text over a photo (home hero, category banner, and any
+ * other block whose copy sits on an image). Top-right and bottom-left corners are cut round (leaf-lg, 24px on a
+ * phone), the photo shows through the tint, and the edge is a thin light line.
+ *
+ * Add `elme-glass` plus one tone:
+ *   elme-glass--ink    dark tint, white text (safe on any photo)
+ *   elme-glass--light  frosted page colour, ink text (calm, for light photos)
+ *   elme-glass--olive  Elme olive tint, white text
+ * The tone sets --glass-text; links and headings inside that need the panel colour read it
+ * (e.g. category-banner.css). Padding is the component's own and can be overridden by the block.
+ */
+@layer components {
+    .elme-glass {
+        --glass-alpha: 58%;
+        --glass-edge: 16%;
+        --glass-blur: --spacing(3.5);
+        --glass-base: var(--color-ink);
+        --glass-text: var(--color-on-primary);
+        padding: --spacing(5);
+        color: var(--glass-text);
+        background-color: color-mix(in srgb, var(--glass-base) var(--glass-alpha), transparent);
+        border: 1px solid color-mix(in srgb, var(--color-on-primary) var(--glass-edge), transparent);
+        border-radius: 0 --spacing(6) 0 --spacing(6);
+        -webkit-backdrop-filter: blur(var(--glass-blur));
+        backdrop-filter: blur(var(--glass-blur));
+
+        @variant md {
+            padding: --spacing(7);
+            border-radius: 0 var(--radius-leaf-lg) 0 var(--radius-leaf-lg);
+        }
+    }
+
+    .elme-glass--ink {
+        --glass-base: var(--color-ink);
+        --glass-text: var(--color-on-primary);
+    }
+
+    .elme-glass--light {
+        --glass-base: var(--color-page);
+        --glass-alpha: 70%;
+        --glass-edge: 55%;
+        --glass-blur: --spacing(4.5);
+        --glass-text: var(--color-ink);
+    }
+
+    .elme-glass--olive {
+        --glass-base: var(--color-olive);
+        --glass-alpha: 62%;
+        --glass-edge: 28%;
+        --glass-blur: --spacing(3);
+        --glass-text: var(--color-on-primary);
+    }
+
+    /* No backdrop blur (old browsers): a more solid tint keeps the text readable. */
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+        .elme-glass {
+            --glass-alpha: 88%;
+        }
+    }
+}

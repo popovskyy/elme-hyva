@@ -1,0 +1,99 @@
+<?php
+/**
+ * Product card: while a colour chip (.elme-swatch--mini[data-photo], Elme_ProductFamily swatches.phtml) is hovered or
+ * has keyboard focus, the card shows that colour's photo; leaving the chips puts the first photo back. One delegated
+ * listener for every card (PLP, search, carousels), CSP-safe, no Alpine. Only on screens that can hover; touch keeps
+ * the chips as plain links.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<script>
+    (function () {
+        if (!window.matchMedia('(hover: hover)').matches) {
+            return;
+        }
+        const CHIP = '.elme-swatch--mini[data-photo]';
+        const preloaded = new Set();
+
+        function photoOf(card) {
+            return card.querySelector('.elme-card__media img');
+        }
+
+        function show(chip) {
+            const card = chip.closest('.elme-card');
+            const img = card && photoOf(card);
+            if (!img) {
+                return;
+            }
+            if (img.dataset.restSrc === undefined) {
+                img.dataset.restSrc = img.getAttribute('src') || '';
+                img.dataset.restSrcset = img.getAttribute('srcset') || '';
+            }
+            img.removeAttribute('srcset');
+            img.setAttribute('src', chip.dataset.photo);
+        }
+
+        function rest(card) {
+            const img = photoOf(card);
+            if (!img || img.dataset.restSrc === undefined) {
+                return;
+            }
+            img.setAttribute('src', img.dataset.restSrc);
+            if (img.dataset.restSrcset) {
+                img.setAttribute('srcset', img.dataset.restSrcset);
+            }
+            delete img.dataset.restSrc;
+            delete img.dataset.restSrcset;
+        }
+
+        // Load every colour's photo the first time the pointer enters the card, so the swap is instant
+        document.addEventListener('pointerover', function (event) {
+            const card = event.target.closest && event.target.closest('.elme-card');
+            if (!card || card.dataset.photosReady) {
+                return;
+            }
+            card.dataset.photosReady = '1';
+            card.querySelectorAll(CHIP).forEach(function (chip) {
+                const url = chip.dataset.photo;
+                if (!preloaded.has(url)) {
+                    preloaded.add(url);
+                    new Image().src = url;
+                }
+            });
+        });
+
+        function onEnter(event) {
+            const chip = event.target.closest && event.target.closest(CHIP);
+            if (chip) {
+                show(chip);
+            }
+        }
+
+        function onLeave(event) {
+            const chip = event.target.closest && event.target.closest(CHIP);
+            if (!chip) {
+                return;
+            }
+            const next = event.relatedTarget && event.relatedTarget.closest && event.relatedTarget.closest(CHIP);
+            if (next && next.closest('.elme-card') === chip.closest('.elme-card')) {
+                return; // moving to another chip of the same card: it shows its own photo
+            }
+            rest(chip.closest('.elme-card'));
+        }
+
+        document.addEventListener('mouseover', onEnter);
+        document.addEventListener('mouseout', onLeave);
+        document.addEventListener('focusin', onEnter);
+        document.addEventListener('focusout', onLeave);
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

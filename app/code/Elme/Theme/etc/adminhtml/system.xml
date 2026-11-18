@@ -19,6 +19,15 @@
                     <comment>Logged-in customers get a qty stepper (MOQ multiples) next to Add to Cart on product cards. No: Add to Cart adds the MOQ.</comment>
                 </field>
             </group>
+            <group id="banner" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Category banner (FE-18)</label>
+                <field id="panel" translate="label comment" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Text panel on a category photo</label>
+                    <source_model>Elme\Theme\Model\Config\Source\PanelStyle</source_model>
+                    <comment>The panel behind the breadcrumbs, title and description when the category has a photo. A leaf-shaped blurred panel (Ink and Olive: white text, Light: dark text).</comment>
+                </field>
+            </group>
         </section>
     </system>
 </config>

@@ -31,6 +31,9 @@ class Hero implements ArgumentInterface
     /** Light photos get dark text on a light fade; dark photos (the default) white text on a dark one. */
     public const TONES = ['dark', 'light'];
 
+    /** Text panel behind the copy: none = the photo fade, the others are elme-glass tones. */
+    public const PANELS = ['none', 'ink', 'light', 'olive'];
+
     private const INTERVAL_DEFAULT = 7;
 
     private const INTERVAL_MIN = 4;
@@ -58,7 +61,8 @@ class Hero implements ArgumentInterface
      *     text: string,
      *     button_label: string,
      *     button_link: string,
-     *     tone: string
+     *     tone: string,
+     *     panel: string
      * }>
      */
     public function getSlides(array $content): array
@@ -82,6 +86,7 @@ class Hero implements ArgumentInterface
             $buttonLink = $this->text($row, 'button_link');
             $hasButton = $buttonLabel !== '' && $buttonLink !== '';
             $tone = $this->text($row, 'tone');
+            $panel = $this->text($row, 'panel');
 
             $slides[] = [
                 'desktop' => $this->image($desktop, self::DESKTOP_SIZE),
@@ -93,6 +98,7 @@ class Hero implements ArgumentInterface
                 'button_label' => $hasButton ? $buttonLabel : '',
                 'button_link' => $hasButton ? $buttonLink : '',
                 'tone' => in_array($tone, self::TONES, true) ? $tone : 'dark',
+                'panel' => in_array($panel, self::PANELS, true) ? $panel : 'none',
             ];
 
             if (count($slides) === self::MAX_SLIDES) {

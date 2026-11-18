@@ -61,7 +61,7 @@ over. Say the file path and that you are waiting for a number.
 
 Change only the look of the existing block. Keep its fields, links, and
 behaviour (swipe, arrows, empty state). Use tokens, not new hex values in the
-template. If a utility is not enough, add a partial under `web/tailwind/elme/`
+template. If a utility is not enough, add a partial under `web/tailwind/elme/<area>/` (see `elme.css`)
 and rebuild Tailwind (`hyva-compile-tailwind-css`), then flush the Magento cache.
 
 Delete the HTML chooser and its photos once the look is in the theme. Do not wire it into a layout.

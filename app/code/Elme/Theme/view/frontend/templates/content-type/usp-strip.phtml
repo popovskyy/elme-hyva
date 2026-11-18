@@ -5,7 +5,7 @@
  * customers get My Account (same FPC split as HideForLoggedIn). Server-rendered.
  * With image_2 and image_3 the image becomes a three-photo collage. On the home page the photos
  * fall into place once when the collage scrolls in
- * (Magento_Theme::html/home-motion.phtml, web/tailwind/elme/home-motion.css).
+ * (Magento_Theme::html/home-motion.phtml, web/tailwind/elme/home/home-motion.css).
  *
  * @var \Bart\ContentStudio\Block\Entry $block
  * @var \Magento\Framework\Escaper $escaper
@@ -53,7 +53,7 @@ if ($guestButton !== null) {
     }
 }
 
-// ground = sage_leaves: sage promo band with leaf art (web/tailwind/elme/leaf.css), padded top and bottom
+// ground = sage_leaves: sage promo band with leaf art (web/tailwind/elme/foundation/leaf.css), padded top and bottom
 $isBand = ($content['ground'] ?? 'page') === 'sage_leaves';
 $sectionClass = 'elme-usp-strip -mx-(--entry-bleed) mb-10 flex flex-col lg:mb-15 lg:flex-row'
     . ($isBand ? ' elme-band-leaves py-10 lg:items-center lg:py-18' : '');

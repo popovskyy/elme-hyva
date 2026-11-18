@@ -53,7 +53,7 @@ https://www.elmeliving.com/ on 2026-10-21. "Uses" = occurrences in the `Bart/el`
 | `text-label` | 11px/13px | `@form-field-label__font-size` |
 | `text-breadcrumbs` | 12px | `@breadcrumbs__font-size` |
 
-All headings are weight 400; `elme/typography.css` sets them, and `elme/prose.css` keeps that scale inside `.prose` (CMS content).
+All headings are weight 400; `elme/foundation/typography.css` sets them, and `elme/foundation/prose.css` keeps that scale inside `.prose` (CMS content).
 
 ## Layout
 

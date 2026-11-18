@@ -3,7 +3,9 @@
  * Content Studio type `hero` (etc/content_types.xml, FE-14): "Cinema". A photo (4:5 on phones,
  * 2:1 from md, 700px tall on desktop) with the
  * heading, text and button on its dark side. Each slide tone says whether the photo is dark (white
- * text on a dark fade) or light (ink text on a light fade).
+ * text on a dark fade) or light (ink text on a light fade). A slide can instead put its copy on a glass panel
+ * (leaf-shaped, blurred tint; elme/foundation/glass.css): then the photo is not faded and the panel tone decides the
+ * text colour.
  *
  * When a slide shows, its photo settles from 112% and then drifts very slowly, and the heading rises
  * line by line out of a mask (one line per line break in the Heading field); all in hero.css, so
@@ -69,7 +71,10 @@ $heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier())
             <?php
             $number = $index + 1;
             $isFirst = $index === 0;
-            $isLight = $slide['tone'] === 'light';
+            $panel = $slide['panel'];
+            $hasPanel = $panel !== 'none';
+            // With a glass panel the panel tone sets the text colour, not the photo tone.
+            $isLight = $hasPanel ? $panel === 'light' : $slide['tone'] === 'light';
             $headingTag = $isPageTitle && $isFirst ? 'h1' : 'h2';
             $headingId = $heroId . '-heading-' . $number;
             $desktop = $slide['desktop'];
@@ -79,6 +84,7 @@ $heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier())
             ?>
             <div class="elme-hero__slide relative w-full shrink-0 snap-start snap-always
                         <?= $isFirst ? 'is-current' : '' ?>
+                        <?= $hasPanel ? 'elme-hero__slide--panel' : '' ?>
                         <?= $isLight ? 'elme-hero__slide--light text-ink' : 'text-on-primary' ?>"
                 <?php if ($isSlider): ?>
                  role="group"
@@ -117,7 +123,7 @@ $heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier())
                     </span>
                 </<?= /* @noEscape */ $mediaTag ?>>
                 <div class="elme-hero__copy pointer-events-none absolute inset-x-0 bottom-0 z-1">
-                    <div class="grid max-w-150 gap-4 lg:gap-5">
+                    <div class="grid max-w-150 gap-4 lg:gap-5<?= $hasPanel ? ' elme-hero__panel elme-glass elme-glass--' . $panel : '' ?>">
                         <<?= /* @noEscape */ $headingTag ?> id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
                             class="elme-hero__heading font-display font-medium">
                             <?php foreach ($slide['lines'] as $line): ?>

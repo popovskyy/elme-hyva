@@ -161,7 +161,8 @@
         "menu-promo": "0px",
         "leaf": "16px",
         "leaf-sm": "10px",
-        "leaf-xs": "4px"
+        "leaf-xs": "4px",
+        "leaf-lg": "32px"
       },
       "form": {
         "radius": "0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm)",

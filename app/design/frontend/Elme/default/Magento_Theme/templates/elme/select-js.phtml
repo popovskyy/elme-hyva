@@ -1142,9 +1142,20 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                 const width = box.width;
                 let left = box.left;
                 left = Math.min(Math.max(8, left), window.innerWidth - width - 8);
-                const top = placeAbove
+                let top = placeAbove
                     ? Math.max(8, box.top - panelHeight - gap)
                     : box.bottom + gap;
+                // position: fixed is relative to the viewport only when no ancestor has transform, filter or
+                // backdrop-filter (the sticky quick bar has them). Park the panel at 0,0 and read where that
+                // lands: the difference is the offset of the ancestor that became its containing block.
+                if (panel.getClientRects().length) {
+                    panel.style.position = 'fixed';
+                    panel.style.top = '0px';
+                    panel.style.left = '0px';
+                    const origin = panel.getBoundingClientRect();
+                    top -= origin.top;
+                    left -= origin.left;
+                }
                 this.panelStyle = {
                     position: 'fixed',
                     top: top + 'px',
@@ -1353,8 +1364,18 @@ $hyvaCsp = $viewModels->require(HyvaCsp::class);
                 }
                 const id = (this.isMobile ? this.uid + '-sopt-' : this.uid + '-opt-') + this.activeId;
                 const el = document.getElementById(id);
-                if (el && el.scrollIntoView) {
-                    el.scrollIntoView({ block: 'nearest' });
+                const list = el && el.closest('.elme-select__list');
+                if (!list) {
+                    return;
+                }
+                // Scroll the option list only. Element.scrollIntoView also scrolls the page, which moved it a few
+                // pixels when the select sits in the sticky quick bar.
+                const listBox = list.getBoundingClientRect();
+                const optionBox = el.getBoundingClientRect();
+                if (optionBox.top < listBox.top) {
+                    list.scrollTop -= listBox.top - optionBox.top;
+                } else if (optionBox.bottom > listBox.bottom) {
+                    list.scrollTop += optionBox.bottom - listBox.bottom;
                 }
             },
 

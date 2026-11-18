@@ -128,6 +128,17 @@ class HeroTest extends TestCase
         $this->assertSame(['light', 'dark'], array_column($slides, 'tone'));
     }
 
+    public function testPanelIsOneOfTheGlassTonesOrNone(): void
+    {
+        $slides = $this->hero()->getSlides(['slides' => [
+            ['image_desktop' => '/media/hero/wide.png', 'heading' => 'A', 'panel' => 'olive'],
+            ['image_desktop' => '/media/hero/wide.png', 'heading' => 'B', 'panel' => 'neon'],
+            ['image_desktop' => '/media/hero/wide.png', 'heading' => 'C'],
+        ]]);
+
+        $this->assertSame(['olive', 'none', 'none'], array_column($slides, 'panel'));
+    }
+
     #[DataProvider('autoplayProvider')]
     public function testAutoplayInterval(array $content, int $expected): void
     {
