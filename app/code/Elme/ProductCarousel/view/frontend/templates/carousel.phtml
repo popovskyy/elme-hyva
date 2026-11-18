@@ -84,7 +84,7 @@ $isCarousel = $count > 1;
             <?php endif; ?>
         >
             <?php foreach (array_values($items) as $index => $item): ?>
-                <li class="elme-pc__slide flex shrink-0 snap-start list-none w-[min(70vw,16.5rem)] md:w-[14.5rem] lg:w-[16rem]"
+                <li class="elme-pc__slide flex shrink-0 snap-start list-none max-md:w-[min(70vw,16.5rem)]"
                     <?php if ($isCarousel): ?>
                     role="group"
                     aria-roledescription="<?= $escaper->escapeHtmlAttr(__('slide')) ?>"
