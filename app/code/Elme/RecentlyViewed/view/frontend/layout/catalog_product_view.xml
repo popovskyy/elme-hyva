@@ -2,7 +2,7 @@
 <!--
 /**
  * FE-24: register viewed product in browser storage (no prices). Strip UI ships on PLP;
- * FE-30 reuses Elme_RecentlyViewed::strip-products.phtml on the PDP.
+ * FE-30 places Elme_RecentlyViewed::strip-products.phtml on the PDP (below).
  * Replace Hyvä register that stored catalog prices in localStorage.
  */
 -->
@@ -11,6 +11,19 @@
     <body>
         <referenceBlock name="recently_viewed_products.default_widget_pdp" remove="true"/>
         <referenceBlock name="recently_viewed_products.register_view" remove="true"/>
+
+        <!-- FE-30: last block of the page (after Instagram and Our Difference), so its late AJAX fill moves nothing
+             below it; the product on the page is left out -->
+        <referenceContainer name="content">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.recently.viewed.products"
+                   template="Elme_RecentlyViewed::strip-products.phtml"
+                   after="elme.our.difference">
+                <arguments>
+                    <argument name="exclude_current_product" xsi:type="boolean">true</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
 
         <referenceContainer name="after.body.start">
             <block class="Magento\Framework\View\Element\Template"

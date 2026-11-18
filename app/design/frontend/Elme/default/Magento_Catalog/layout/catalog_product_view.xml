@@ -30,6 +30,60 @@
                 </arguments>
             </block>
         </referenceBlock>
+        <!-- FE-30: Hyva's related / upsell sliders give way to our carousels (FE-17) of FE-19 cards. Each block hides
+             itself when it has no products, the tabs hide an empty tab.
+             Complete the look = Up-sell links, Frequently bought together = Cross-sell links, Related = Related
+             Products (the `source` argument; change it here to switch a block to another link type). -->
+        <referenceBlock name="related" remove="true"/>
+        <referenceBlock name="upsell" remove="true"/>
+        <referenceBlock name="product.detail.page">
+            <container name="elme.pdp.recommendations" as="elme_pdp_recommendations" htmlTag="div" htmlClass="elme-pdp-recs">
+                <block class="Elme\ProductCarousel\Block\Carousel"
+                       name="elme.pdp.complete.look"
+                       template="Elme_ProductCarousel::carousel.phtml">
+                    <arguments>
+                        <argument name="source" xsi:type="string">upsell</argument>
+                        <argument name="title" xsi:type="string" translate="true">Complete the look</argument>
+                    </arguments>
+                </block>
+                <block class="Elme\ProductCarousel\Block\Carousel"
+                       name="elme.pdp.frequently.bought"
+                       template="Elme_ProductCarousel::carousel.phtml">
+                    <arguments>
+                        <argument name="source" xsi:type="string">cross_sell</argument>
+                        <argument name="title" xsi:type="string" translate="true">Frequently bought together</argument>
+                    </arguments>
+                </block>
+                <block class="Elme\ProductCarousel\Block\Carousel"
+                       name="elme.pdp.related"
+                       template="Elme_ProductCarousel::carousel.phtml">
+                    <arguments>
+                        <argument name="source" xsi:type="string">related</argument>
+                        <argument name="title" xsi:type="string" translate="true">Related products</argument>
+                    </arguments>
+                </block>
+                <block class="Magento\Framework\View\Element\Template"
+                       name="elme.pdp.recommendation.tabs"
+                       template="Elme_ProductCarousel::tabs.phtml">
+                    <block class="Elme\ProductCarousel\Block\Carousel"
+                           name="elme.pdp.shop.range"
+                           template="Elme_ProductCarousel::carousel.phtml">
+                        <arguments>
+                            <argument name="source" xsi:type="string">range</argument>
+                            <argument name="tab_title" xsi:type="string" translate="true">Shop the Range</argument>
+                        </arguments>
+                    </block>
+                    <block class="Elme\ProductCarousel\Block\Carousel"
+                           name="elme.pdp.similar"
+                           template="Elme_ProductCarousel::carousel.phtml">
+                        <arguments>
+                            <argument name="source" xsi:type="string">similar</argument>
+                            <argument name="tab_title" xsi:type="string" translate="true">Similar Products</argument>
+                        </arguments>
+                    </block>
+                </block>
+            </container>
+        </referenceBlock>
         <!-- FE-27: sticky ATC + buy-box JS; guests remove these in elme_customer_guest.xml -->
         <referenceBlock name="product.info">
             <block class="Magento\Catalog\Block\Product\View"

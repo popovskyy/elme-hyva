@@ -1,0 +1,69 @@
+/*
+ * FE-30 product page recommendations: Complete the look, Frequently bought together, Related products and the
+ * Shop the Range / Similar Products tabs (Elme_ProductCarousel carousel.phtml / tabs.phtml), then the recently viewed
+ * strip. The cards and the slider chrome are FE-19 / FE-17 (product-card.css, product-carousel.css).
+ */
+
+@layer components {
+    /* On the product page the carousels and the strip sit inside the page gutter. They bleed by that gutter and inset
+       their heading and track by it again, so the first card lines up with the content above (same as the PLP strip,
+       elme/plp/recently-viewed.css; --entry-bleed is 0 on this page, elme/content/content-studio.css). */
+    .catalog-product-view :is(.elme-pc, .elme-rv) {
+        --entry-bleed: var(--container-gutter);
+
+        @variant md {
+            --entry-bleed: var(--container-gutter-desktop);
+        }
+    }
+
+    /* Tab bar: chips with leaf corners, the open one filled. Scrolls sideways when the labels do not fit. */
+    .elme-pc-tabs__bar {
+        display: flex;
+        gap: --spacing(2);
+        margin-bottom: --spacing(4);
+        overflow-x: auto;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        @variant lg {
+            margin-bottom: --spacing(6);
+        }
+    }
+
+    .elme-pc-tabs__tab {
+        flex: none;
+        min-height: --spacing(11);
+        padding: --spacing(2) --spacing(5);
+        border: 1px solid var(--color-border);
+        border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm); /* leaf corners, elme/foundation/leaf.css */
+        background-color: var(--color-surface);
+        color: var(--color-ink);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        font-weight: 500;
+        white-space: nowrap;
+        cursor: pointer;
+        transition:
+            background-color var(--transition-duration-fast) var(--ease-out-quad),
+            border-color var(--transition-duration-fast) var(--ease-out-quad),
+            color var(--transition-duration-fast) var(--ease-out-quad);
+
+        &:hover {
+            border-color: var(--color-ink);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
+        }
+
+        &[aria-selected="true"] {
+            border-color: var(--color-primary);
+            background-color: var(--color-primary);
+            color: var(--color-on-primary);
+        }
+    }
+}

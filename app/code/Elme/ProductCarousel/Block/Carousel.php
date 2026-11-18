@@ -32,8 +32,10 @@ use Magento\Widget\Block\BlockInterface;
  *       </arguments>
  *   </block>
  *
- * Data: source (trending | new | category | related), title, category_id (category), product_id (related; defaults
- * to the product of the page), limit (default 12, at most 24), heading_level (2 or 3, default 2).
+ * Data: source (trending | new | category | related | cross_sell | upsell | range | similar), title, category_id
+ * (category), product_id (the product sources; defaults to the product of the page, which is never listed), limit
+ * (default 12, at most 24), heading_level (2 or 3, default 2), embedded (true: no outer margins, for a tab panel;
+ * see tabs.phtml), tab_title (label of the tab in tabs.phtml).
  *
  * The cards are rendered on the server, so crawlers see them and nothing shifts while the page loads. Prices are the
  * card's own (guests see "Log in for price", customers get their price after render), so the HTML is the same for
@@ -91,6 +93,16 @@ class Carousel extends Template implements BlockInterface, IdentityInterface
         return trim((string) $this->getData('title'));
     }
 
+    public function isEmbedded(): bool
+    {
+        return (bool) $this->getData('embedded');
+    }
+
+    public function getTabTitle(): string
+    {
+        return trim((string) ($this->getData('tab_title') ?: $this->getData('title')));
+    }
+
     public function getHeadingTag(): string
     {
         return (int) $this->getData('heading_level') === 3 ? 'h3' : 'h2';
@@ -135,7 +147,7 @@ class Carousel extends Template implements BlockInterface, IdentityInterface
         foreach ($this->provider->getProductIds($source, $storeId, $limit, $options) as $productId) {
             $productId = (int) $productId;
             // A product is never its own recommendation
-            if (isset($seen[$productId]) || ($source === ProviderInterface::SOURCE_RELATED && $productId === $options['product_id'])) {
+            if (isset($seen[$productId]) || ($options['product_id'] > 0 && $productId === $options['product_id'])) {
                 continue;
             }
             $seen[$productId] = true;

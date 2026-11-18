@@ -1,0 +1,137 @@
+<?php
+/**
+ * FE-30: product carousels as tabs (PDP: "Shop the Range" / "Similar Products").
+ *
+ * The child blocks are Elme\ProductCarousel\Block\Carousel; each one's `tab_title` is its tab. A carousel with no
+ * products gets no tab. One left: a plain titled carousel, no tab bar. None left: nothing is printed.
+ * Every panel is in the HTML from the start (crawlers see them, nothing shifts when a tab is opened); the others are
+ * `hidden`. The carousel resizes its arrows when its panel is shown (ResizeObserver in carousel.phtml).
+ * Look: web/tailwind/elme/product/product-carousel.css (.elme-pc-tabs).
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Elme\ProductCarousel\Block\Carousel;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+
+/** @var Carousel[] $panels */
+$panels = [];
+foreach ($block->getChildNames() as $childName) {
+    $child = $block->getLayout()->getBlock($childName);
+    if ($child instanceof Carousel && $child->getItems() !== []) {
+        $panels[] = $child;
+    }
+}
+
+if ($panels === []) {
+    return;
+}
+
+if (count($panels) === 1) {
+    $only = $panels[0];
+    $only->setData('title', $only->getTabTitle());
+    echo $only->toHtml(); // phpcs:ignore Magento2.Security.LanguageConstruct
+    return;
+}
+
+$domId = 'elme-pc-tabs-' . spl_object_id($block);
+?>
+<div class="elme-pc-tabs my-8 lg:my-12" x-data="initElmeProductTabs">
+    <div class="elme-pc-tabs__bar" role="tablist" aria-label="<?= $escaper->escapeHtmlAttr(__('More products')) ?>">
+        <?php foreach ($panels as $index => $panel): ?>
+            <button type="button"
+                    role="tab"
+                    id="<?= $escaper->escapeHtmlAttr($domId . '-tab-' . $index) ?>"
+                    class="elme-pc-tabs__tab"
+                    aria-controls="<?= $escaper->escapeHtmlAttr($domId . '-panel-' . $index) ?>"
+                    aria-selected="<?= $index === 0 ? 'true' : 'false' ?>"
+                    <?php if ($index !== 0): ?>tabindex="-1"<?php endif; ?>
+                    @click="select"
+                    @keydown="onKey">
+                <?= $escaper->escapeHtml($panel->getTabTitle()) ?>
+            </button>
+        <?php endforeach; ?>
+    </div>
+    <?php foreach ($panels as $index => $panel): ?>
+        <?php
+        $panel->setData('embedded', true);
+        $panel->setData('title', '');
+        ?>
+        <div role="tabpanel"
+             id="<?= $escaper->escapeHtmlAttr($domId . '-panel-' . $index) ?>"
+             class="elme-pc-tabs__panel"
+             aria-labelledby="<?= $escaper->escapeHtmlAttr($domId . '-tab-' . $index) ?>"
+             <?php if ($index !== 0): ?>hidden<?php endif; ?>>
+            <?= /* @noEscape */ $panel->toHtml() ?>
+        </div>
+    <?php endforeach; ?>
+</div>
+<script>
+    function initElmeProductTabs() {
+        return {
+            tabs() {
+                return Array.from(this.$root.querySelectorAll('[role="tab"]'));
+            },
+
+            show(tab) {
+                this.tabs().forEach((other) => {
+                    const on = other === tab;
+                    other.setAttribute('aria-selected', on ? 'true' : 'false');
+                    other.tabIndex = on ? 0 : -1;
+                    const panel = document.getElementById(other.getAttribute('aria-controls'));
+                    if (panel) {
+                        panel.hidden = !on;
+                    }
+                });
+            },
+
+            select(event) {
+                this.show(event.currentTarget);
+            },
+
+            // Arrow keys, Home and End move between tabs (the tab opens as it gets focus)
+            onKey(event) {
+                const tabs = this.tabs();
+                const current = tabs.indexOf(event.currentTarget);
+                let next = -1;
+
+                if (event.key === 'ArrowRight') {
+                    next = (current + 1) % tabs.length;
+                } else if (event.key === 'ArrowLeft') {
+                    next = (current - 1 + tabs.length) % tabs.length;
+                } else if (event.key === 'Home') {
+                    next = 0;
+                } else if (event.key === 'End') {
+                    next = tabs.length - 1;
+                }
+
+                if (next < 0) {
+                    return;
+                }
+
+                event.preventDefault();
+                this.show(tabs[next]);
+                tabs[next].focus();
+            }
+        };
+    }
+
+    window.addEventListener(
+        'alpine:init',
+        () => {
+            if (!window.elmeProductTabsRegistered) {
+                window.elmeProductTabsRegistered = true;
+                Alpine.data('initElmeProductTabs', initElmeProductTabs);
+            }
+        },
+        {once: true}
+    );
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

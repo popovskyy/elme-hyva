@@ -22,6 +22,6 @@ use Magento\Framework\Escaper;
 
 <?= $block->getChildHtml('product_options_wrapper_bottom') ?>
 
-<?= $block->getChildHtml('related') ?>
-
-<?= $block->getChildHtml('upsell') ?>
+<?php /* FE-30: Complete the look, Frequently bought together, Related products, Shop the Range / Similar tabs
+         (catalog_product_view.xml). Hyva's own related and upsell sliders are removed there. */ ?>
+<?= $block->getChildHtml('elme.pdp.recommendations') ?>
