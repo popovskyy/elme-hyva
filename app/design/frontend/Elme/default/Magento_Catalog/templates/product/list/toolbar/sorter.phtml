@@ -1,27 +1,16 @@
 <?php
 /**
- * FE-20: Sort select. Price low-high / high-low only when logged in (LoginOnly strips price for guests).
- * No direction toggle: those are separate options. Labels are not headings.
+ * FE-20: Sort select; the options are toolbar/sorter-options.phtml. Labels are not headings.
  */
 
 declare(strict_types=1);
 
-use Elme\LoginOnly\ViewModel\LoginOnly;
-use Hyva\Theme\Model\ViewModelRegistry;
 use Magento\Catalog\Block\Product\ProductList\Toolbar;
 use Magento\Framework\Escaper;
 
 /** @var Toolbar $block */
 /** @var Escaper $escaper */
-/** @var ViewModelRegistry $viewModels */
 
-/** @var LoginOnly $loginOnly */
-$loginOnly = $viewModels->require(LoginOnly::class);
-
-$currentOrder = $block->getCurrentOrder();
-$currentDir = strtolower((string) $block->getCurrentDirection());
-$isPriceAsc = $currentOrder === 'price' && $currentDir === 'asc';
-$isPriceDesc = $currentOrder === 'price' && $currentDir === 'desc';
 $sorterId = 'sorter-' . uniqid();
 ?>
 <div class="toolbar-sorter sorter flex items-center order-1 col-span-4 sm:col-span-5
@@ -34,28 +23,7 @@ $sorterId = 'sorter-' . uniqid();
                 class="form-select sorter-options"
                 aria-label="<?= $escaper->escapeHtmlAttr(__('Sort By')) ?>"
                 @change="onSortChange">
-            <?php foreach ($block->getAvailableOrders() as $orderCode => $orderLabel): ?>
-                <?php if ($orderCode === 'price'): ?>
-                    <?php if ($loginOnly->isLoggedIn()): ?>
-                        <option value="price_asc"
-                            <?php if ($isPriceAsc): ?>selected="selected"<?php endif; ?>>
-                            <?= $escaper->escapeHtml(__('Price low-high')) ?>
-                        </option>
-                        <option value="price_desc"
-                            <?php if ($isPriceDesc): ?>selected="selected"<?php endif; ?>>
-                            <?= $escaper->escapeHtml(__('Price high-low')) ?>
-                        </option>
-                    <?php endif; ?>
-                <?php else: ?>
-                    <option value="<?= $escaper->escapeHtmlAttr($orderCode) ?>"
-                        <?php if ($block->isOrderCurrent($orderCode) && $orderCode !== 'price'): ?>
-                            selected="selected"
-                        <?php endif; ?>>
-                        <?php // FE-21: the merchandised order is the default; "Position" means nothing to a buyer ?>
-                        <?= $escaper->escapeHtml($orderCode === 'position' ? __('Recommended') : __($orderLabel)) ?>
-                    </option>
-                <?php endif; ?>
-            <?php endforeach; ?>
+            <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/sorter-options.phtml')) ?>
         </select>
     </label>
 </div>

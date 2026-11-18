@@ -6,6 +6,11 @@
  * Rendered inside the filters block (filters.phtml), so the button talks to the same Alpine component as the drawer.
  * A chip is a plain link to the listing with that value toggled: it applies at once and works without JS. The drawer
  * keeps its explicit Apply with the live count. Chips are nofollow, like the selected-filter chips.
+ *
+ * FE-109: from lg the bar sticks under the header, ends with Sort and tucks under the header on scroll down (back on
+ * scroll up). Below lg the bar stays in the flow; once it is off screen a Filter / Sort pill floats at the bottom, in
+ * thumb reach, and slides away on scroll down. Sort (sorter_html, sort_options_html, sort_scope_attributes) comes
+ * from toolbar.phtml; the scroll logic is in initElmeFilters (filters.phtml).
  */
 
 declare(strict_types=1);
@@ -34,8 +39,15 @@ $activeCount = $filters->getActiveCount();
 $buttonLabel = $activeCount > 0
     ? __('All filters, %1 active', $activeCount)
     : __('All filters');
+$pillLabel = $activeCount > 0
+    ? __('Filter, %1 active', $activeCount)
+    : __('Filter');
+$sortScope = (string) $block->getData('sort_scope_attributes');
+$sorterHtml = $sortScope !== '' ? (string) $block->getData('sorter_html') : '';
+$sortOptionsHtml = $sortScope !== '' ? (string) $block->getData('sort_options_html') : '';
 ?>
-<div class="elme-quickbar elme-sticky-below-header">
+<span class="elme-quickbar-start" data-quickbar-start aria-hidden="true"></span>
+<div class="elme-quickbar" data-quickbar>
     <div class="elme-quickbar__inner">
         <button type="button"
                 class="elme-quickbar__all"
@@ -82,5 +94,43 @@ $buttonLabel = $activeCount > 0
                 </li>
             <?php endif; ?>
         </ul>
+        <?php if ($sorterHtml !== ''): ?>
+            <div class="elme-quickbar__sort" <?= /** @noEscape */ $sortScope ?>>
+                <?= /** @noEscape */ $sorterHtml ?>
+            </div>
+        <?php endif; ?>
     </div>
+</div>
+<div class="elme-filterpill"
+     data-filterpill
+     role="group"
+     aria-label="<?= $escaper->escapeHtmlAttr(__('Filter and sort')) ?>">
+    <button type="button"
+            class="elme-filterpill__btn"
+            data-filters-toggle
+            aria-haspopup="dialog"
+            aria-controls="<?= $escaper->escapeHtmlAttr($drawerId) ?>"
+            aria-expanded="false"
+            :aria-expanded="ariaExpanded"
+            aria-label="<?= $escaper->escapeHtmlAttr($pillLabel) ?>"
+            @click="openDrawer">
+        <?= $lucideIcons->slidersHorizontalHtml('elme-filterpill__icon', 18, 18, ['aria-hidden' => 'true']) ?>
+        <span><?= $escaper->escapeHtml(__('Filter')) ?></span>
+        <?php if ($activeCount > 0): ?>
+            <span class="elme-filterpill__badge" aria-hidden="true"><?= (int) $activeCount ?></span>
+        <?php endif; ?>
+    </button>
+    <?php if ($sortOptionsHtml !== ''): ?>
+        <span class="elme-filterpill__divider" aria-hidden="true"></span>
+        <div class="elme-filterpill__sort" <?= /** @noEscape */ $sortScope ?>>
+            <?= $lucideIcons->arrowUpDownHtml('elme-filterpill__icon', 18, 18, ['aria-hidden' => 'true']) ?>
+            <span aria-hidden="true"><?= $escaper->escapeHtml(__('Sort')) ?></span>
+            <?php // A real select over the label: the phone's own picker opens, in thumb reach ?>
+            <select class="elme-filterpill__select"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Sort by')) ?>"
+                    @change="onSortChange">
+                <?= /** @noEscape */ $sortOptionsHtml ?>
+            </select>
+        </div>
+    <?php endif; ?>
 </div>

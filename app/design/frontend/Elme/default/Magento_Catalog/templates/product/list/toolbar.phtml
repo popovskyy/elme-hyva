@@ -47,6 +47,22 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
     <?php else: ?>
     <?php // FE-21 / FE-110: amount, view switch and sort; selected-filter chips below. ?>
     <?php // FE-110: the quick bar (+ drawer) is a direct child of #product-list, so it can stay sticky over the whole grid. ?>
+    <?php
+    // FE-109: the quick bar carries Sort (desktop bar, phone Filter / Sort pill). Each select gets its own
+    // initElmeProductListToolbar scope, so sorting works the same as here. Without the bar the row keeps it.
+    $filtersBlock = $listingFilters->isAvailable() && $block->isExpanded() ? $block->getChildBlock('elme_filters') : false;
+    $quickbarBlock = $filtersBlock ? $filtersBlock->getChildBlock('elme_quickbar') : false;
+    $sortInBar = (bool) $quickbarBlock;
+    if ($quickbarBlock) {
+        $quickbarBlock->addData([
+            'sort_scope_attributes' => 'x-data="initElmeProductListToolbar"'
+                . ' data-toolbar-options="' . $escaper->escapeHtmlAttr($toolbarOptionsJson) . '"'
+                . ' data-url-parts="' . $escaper->escapeHtmlAttr($urlPartsJson) . '"',
+            'sorter_html' => $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/sorter.phtml')),
+            'sort_options_html' => $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/sorter-options.phtml')),
+        ]);
+    }
+    ?>
     <?= /** @noEscape */ trim((string) $block->getChildHtml('elme_filters')) ?>
     <div x-data="initElmeProductListToolbar"
          data-toolbar-options="<?= $escaper->escapeHtmlAttr($toolbarOptionsJson) ?>"
@@ -86,7 +102,7 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
                     </button>
                 </div>
             </div>
-            <div class="order-2 ms-auto md:order-4 md:ms-0">
+            <div class="order-2 ms-auto md:order-4 md:ms-0<?= $sortInBar ? ' lg:hidden' : '' ?>">
                 <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/sorter.phtml')) ?>
             </div>
         <?php endif ?>
