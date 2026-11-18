@@ -59,9 +59,10 @@
         }
     }
 
-    /* Scroll line under the row (desktop only): a thin line with a bar for the visible part. The bar grows a little
-       while the row is hovered or the bar is dragged. The box is there from lg (nothing jumps); JS shows it only when
-       the cards do not all fit. */
+    /* Scroll line under the row (desktop only): a thin line with a bar for the visible part. Hidden until the block is
+       hovered (or the line is being dragged), then it fades in; press anywhere on the line and drag, or click to jump.
+       The box is there from lg (nothing jumps) and sits a good gap under the cards; JS shows it only when the cards do
+       not all fit. */
     .elme-pc__rail {
         display: none;
     }
@@ -70,15 +71,23 @@
         .elme-pc__rail {
             position: relative;
             display: block;
-            height: --spacing(4);
-            margin-top: --spacing(1);
+            height: --spacing(5);
+            margin-top: --spacing(5);
             margin-inline: var(--container-gutter-desktop);
             cursor: pointer;
             visibility: hidden;
+            opacity: 0;
+            touch-action: none;
+            transition: opacity var(--transition-duration-base) var(--ease-out-quart);
         }
 
         .elme-pc__rail[data-active] {
             visibility: visible;
+        }
+
+        .elme-pc:hover .elme-pc__rail,
+        .elme-pc__rail[data-dragging] {
+            opacity: 1;
         }
 
         .elme-pc__rail::before,
@@ -110,14 +119,15 @@
             user-select: none;
         }
 
-        .elme-pc:hover .elme-pc__rail::before,
-        .elme-pc:hover .elme-pc__thumb,
+        .elme-pc__rail:hover::before,
+        .elme-pc__rail:hover .elme-pc__thumb,
         .elme-pc__rail[data-dragging]::before,
         .elme-pc__rail[data-dragging] .elme-pc__thumb {
             scale: 1 1.75;
         }
 
         @media (prefers-reduced-motion: reduce) {
+            .elme-pc__rail,
             .elme-pc__rail::before,
             .elme-pc__thumb {
                 transition: none;
