@@ -190,6 +190,18 @@
         }
     }
 
+    /* On a card the stepper is exactly as tall as Add to Cart, so the button is the same height stacked (carousel,
+       narrow column) and side by side (wide column): the row never stretches the button. */
+    .elme-card__actions > .elme-qty {
+        height: var(--btn-min-height);
+        min-height: 0;
+    }
+
+    .elme-card__actions .elme-qty__input {
+        height: 100%;
+        min-height: 0;
+    }
+
     .elme-qty__input {
         flex: 1 1 auto;
         width: --spacing(12);

@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<widgets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Widget:etc/widget.xsd">
+    <widget id="elme_product_carousel"
+            class="Elme\ProductCarousel\Block\Carousel"
+            is_email_compatible="false"
+            placeholder_image="Magento_Widget::placeholder.gif">
+        <label translate="true">Product carousel</label>
+        <description translate="true">A titled slider of product cards: trending, new, a category or related products.</description>
+        <parameters>
+            <parameter name="title" xsi:type="text" required="false" visible="true" sort_order="10">
+                <label translate="true">Title</label>
+            </parameter>
+            <parameter name="source" xsi:type="select" required="true" visible="true" sort_order="20">
+                <label translate="true">Products</label>
+                <options>
+                    <option name="trending" value="trending" selected="true">
+                        <label translate="true">Trending (category set in Elme > Catalog)</label>
+                    </option>
+                    <option name="new" value="new">
+                        <label translate="true">New</label>
+                    </option>
+                    <option name="category" value="category">
+                        <label translate="true">A category</label>
+                    </option>
+                    <option name="related" value="related">
+                        <label translate="true">Related to the product page it sits on</label>
+                    </option>
+                </options>
+            </parameter>
+            <parameter name="category_id" xsi:type="text" required="false" visible="true" sort_order="30">
+                <label translate="true">Category ID</label>
+                <description translate="true">Only for "A category".</description>
+                <depends>
+                    <parameter name="source" value="category"/>
+                </depends>
+            </parameter>
+            <parameter name="limit" xsi:type="text" required="false" visible="true" sort_order="40">
+                <label translate="true">Number of products</label>
+                <description translate="true">Default 12, at most 24.</description>
+            </parameter>
+            <parameter name="template" xsi:type="select" required="true" visible="false" sort_order="100">
+                <label translate="true">Template</label>
+                <options>
+                    <option name="default" value="Elme_ProductCarousel::carousel.phtml" selected="true">
+                        <label translate="true">Product carousel</label>
+                    </option>
+                </options>
+            </parameter>
+        </parameters>
+    </widget>
+</widgets>
