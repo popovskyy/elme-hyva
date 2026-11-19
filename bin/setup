@@ -106,6 +106,12 @@ wait_for "Valkey" 60 docker exec elme_redis valkey-cli ping
 say "composer install"
 php_run "composer install --no-interaction"
 
+# composer deploys magento2-base into the project root and overwrites tracked files there
+# (our 503 pages in pub/errors). Put the committed versions back.
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git checkout -- pub/errors
+fi
+
 # 6. Magento install or upgrade -------------------------------------------------------------
 
 # app/etc/env.php is not in git: no env.php means a fresh instance.
@@ -157,6 +163,11 @@ php_run "cd ${THEME_DIR} && npm ci && npm run generate"
 # 9. Finish ---------------------------------------------------------------------------------
 
 php_run "bin/magento cache:flush" >/dev/null
+
+# Varnish keeps the backend marked sick for a few probes after PHP warms up, so the first
+# requests can answer 503. Wait until the storefront really answers.
+say "Waiting for the storefront"
+wait_for "the storefront" 180 curl -skf -o /dev/null --resolve "${HOST}:443:127.0.0.1" "${BASE_URL}"
 
 cat <<EOF
 
