@@ -7,25 +7,36 @@ New Elme Living storefront: Magento Open Source on its own instance, Hyvä theme
 | Service | Image | Host port |
 |---|---|---|
 | PHP-FPM 8.4 (+ composer, node 22, xdebug off by default) | `elme-php` (`magento-docker/php/Dockerfile`) | - |
-| nginx -> Varnish (FPC) -> TLS terminator | nginx / varnish 9 | 80 / 443 (fallback 8087 / 8447) |
+| nginx -> Varnish (FPC) -> TLS terminator | nginx / varnish 9 | 80 / 443 |
 | MariaDB 11.4 | mariadb:11.4 | 3314 (`elme` / `elme`, db `elme_magento`) |
 | Valkey 8 (cache db0, page_cache db1, session db2) | valkey/valkey:8 | - |
 | OpenSearch 3.5 | opensearchproject/opensearch:3.5.0 | 9207 |
 | RabbitMQ 4.1 | rabbitmq:4.1-management | 5675 / 15675 |
 | Mailpit | axllent/mailpit | 1028 (SMTP) / 8028 (UI) |
 
-Ports 80/443 are shared with the other Bart Group Magento stacks, so run only one stack at a time (or change the host ports in `docker-compose.yml`).
+Ports 80/443 are shared with the other Bart Group Magento stacks, so run only one stack at a time. To run several, remap the host ports in a `docker-compose.override.yml` (git-ignored).
 
 ## First run on a new machine
 
+Needs Docker with the compose plugin (v2), [mkcert](https://github.com/FiloSottile/mkcert) and your repo.magento.com keys.
+
 ```bash
-echo "127.0.0.1 elme-hyva.local" | sudo tee -a /etc/hosts
-(cd magento-docker && mkdir -p certs && cd certs && mkcert -cert-file elme-hyva.local.pem -key-file elme-hyva.local-key.pem elme-hyva.local)
-cp auth.json.sample auth.json          # repo.magento.com keys
-docker compose up -d
-docker exec -it elme_php composer install
-# then bin/magento setup:install ... (see "Install" below) or import a DB dump
+git clone <repo-url> elme-hyva && cd elme-hyva
+cp auth.json.sample auth.json          # put your repo.magento.com public / private key in it
+bin/setup
 ```
+
+`bin/setup` does everything below, in order, and can be run again at any time (it never drops the database):
+
+1. checks Docker, mkcert and `auth.json`;
+2. adds `elme-hyva.local` to `/etc/hosts` (asks for sudo) and creates the local HTTPS certificate in `magento-docker/certs/`;
+3. builds and starts the containers (the first build takes several minutes) and waits until MariaDB, OpenSearch, RabbitMQ and Valkey answer;
+4. `composer install`;
+5. `bin/magento setup:install` on a new instance (the command is in "Install" below), `setup:upgrade` when `app/etc/env.php` already exists;
+6. activates the `Elme/default` theme, sets up Varnish, switches to developer mode;
+7. generates the Hyva theme assets that are not in git (`app/etc/hyva-themes.json`, the Tailwind inputs and the self-hosted Figtree font) with `npm ci && npm run generate`. It does not run `npm run build`, `web/css/styles.css` is committed.
+
+The new store has the CMS pages from the data patches but **no products**: no database dump ships with the repo, ask the team if you need catalogue data.
 
 ## Daily use
 
@@ -49,7 +60,7 @@ Design tokens (`tokens.values`) and fonts (Figtree for body and headings, self-h
 
 Checkout is our own module `Elme_Checkout` on Elme/default (decision D12 in `docs/frontend-tickets.md`); the Luma fallback checkout was removed.
 
-## Install (how this instance was created)
+## Install (what `bin/setup` runs on a new instance)
 
 ```bash
 bin/magento setup:install \
@@ -63,12 +74,13 @@ bin/magento setup:install \
   --session-save=redis --session-save-redis-host=redis --session-save-redis-db=2 \
   --amqp-host=rabbitmq --amqp-port=5672 --amqp-user=guest --amqp-password=guest \
   --http-cache-hosts=varnish:80
-bin/magento module:disable Magento_AdminAdobeImsTwoFactorAuth Magento_TwoFactorAuth
 bin/magento deploy:mode:set developer
-bin/magento config:set design/theme/theme_id <Elme/default theme_id>
+bin/magento config:set design/theme/theme_id <id of Elme/default in the theme table>
 bin/magento config:set system/full_page_cache/caching_application 2
 bin/magento config:set system/full_page_cache/varnish/backend_host nginx
 bin/magento config:set system/full_page_cache/varnish/backend_port 8080
 ```
+
+The two Magento 2FA modules are already disabled in the committed `app/etc/config.php`, so there is nothing to disable.
 
 `hyva-themes/magento2-mollie-theme-bundle` is in `replace` in `composer.json` on purpose: it would pull in the Mollie payment module + Magewire, which Elme does not use.
