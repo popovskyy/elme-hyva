@@ -6,6 +6,8 @@
         <referenceBlock name="product.info">
             <block name="product.info.family"
                    template="Elme_ProductFamily::product/view/family.phtml"/>
+            <block name="product.info.configurations"
+                   template="Elme_ProductFamily::product/view/configurations.phtml"/>
         </referenceBlock>
     </body>
 </page>

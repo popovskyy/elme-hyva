@@ -121,6 +121,8 @@ $buyControls = $product->isSaleable()
 
     <?php /* FE-28: family swatches (Elme_ProductFamily), above the buy box on all widths (CSS order) */ ?>
     <?= $block->getChildHtml('product.info.family') ?>
+    <?php /* FE-84: configuration picker (modules, armchair, 2 to 6 seaters), same place */ ?>
+    <?= $block->getChildHtml('product.info.configurations') ?>
 
     <div class="elme-pdp__buy"
          <?php if ($isLoggedIn && $buyControls !== ''): ?>

@@ -175,6 +175,36 @@ class ProductFamily implements ArgumentInterface, IdentityInterface
     }
 
     /**
+     * FE-84: the Configuration picker of the PDP. The current product first (selected), then the other
+     * configurations of getConfigurations(). Empty when there is no other configuration, so a product
+     * without a range or alone in it shows no row. Rows as getConfigurations() plus `selected`.
+     *
+     * @return array<int, array{id: int, sku: string, name: string, url: string, image: string, colour: string, selected: bool}>
+     */
+    public function getConfigurationList(Product $product): array
+    {
+        $others = $this->getConfigurations($product);
+        if (!$others) {
+            return [];
+        }
+
+        $list = [[
+            'id' => (int) $product->getId(),
+            'sku' => (string) $product->getSku(),
+            'name' => (string) $product->getName(),
+            'url' => (string) $product->getProductUrl(),
+            'image' => $this->memberImage($product, self::CONFIGURATION_PX),
+            'colour' => $this->optionText($product, $this->colourCode()),
+            'selected' => true,
+        ]];
+        foreach ($others as $other) {
+            $list[] = $other + ['selected' => false];
+        }
+
+        return $list;
+    }
+
+    /**
      * "N colours available" for the product card: different colours in the family of the product.
      * Zero without a family; it comes from the same family query as the swatches.
      */
