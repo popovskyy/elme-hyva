@@ -1,0 +1,58 @@
+<?php
+/**
+ * FE-13: Need assistance? - phone / email / showroom from StoreContact (store config).
+ * Placed via CMS block need_assistance or layout. Letterhead: the heading sits beside the
+ * contacts when the block is wide, and the contacts stack on a hairline when it is narrow
+ * (phones, help page side column). shared-blocks.css switches on the block's own width.
+ * Each cell is one link.
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\StoreContact;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$contact = $viewModels->require(StoreContact::class);
+
+$email = $contact->getEmail();
+// A second copy on one page can pass its own heading_id so the page never has the same id twice.
+$headingId = (string) ($block->getData('heading_id') ?: 'elme-need-assistance-heading');
+?>
+<section class="elme-need-assistance" aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>">
+    <div class="elme-need-assistance__inner">
+        <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>" class="elme-need-assistance__title">
+            <?= $escaper->escapeHtml(__('Need assistance?')) ?>
+        </h2>
+        <ul class="elme-need-assistance__cells">
+            <li>
+                <a class="elme-need-assistance__cell" href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>">
+                    <span class="elme-need-assistance__label"><?= $escaper->escapeHtml(__('Call us')) ?></span>
+                    <span class="elme-need-assistance__value"><?= $escaper->escapeHtml($contact->getPhoneDisplay()) ?></span>
+                </a>
+            </li>
+            <li>
+                <a class="elme-need-assistance__cell" href="<?= $escaper->escapeUrl($contact->getEmailMailtoHref()) ?>">
+                    <span class="elme-need-assistance__label"><?= $escaper->escapeHtml(__('Email us')) ?></span>
+                    <span class="elme-need-assistance__value"><?= $escaper->escapeHtml($email) ?></span>
+                </a>
+            </li>
+            <li>
+                <a class="elme-need-assistance__cell"
+                   href="<?= $escaper->escapeUrl($contact->getMapsUrl()) ?>"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                    <span class="elme-need-assistance__label"><?= $escaper->escapeHtml(__('Visit our Showroom')) ?></span>
+                    <span class="elme-need-assistance__value elme-need-assistance__value--line">
+                        <?= $escaper->escapeHtml($contact->getShowroomAddressLine()) ?>
+                    </span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</section>

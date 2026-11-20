@@ -1,0 +1,30 @@
+<?php
+/**
+ * @var \Bart\ContentStudio\Block\Adminhtml\Entry\TypeChips $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$chips = $block->getChips();
+?>
+<?php if ($chips !== []): ?>
+    <div class="studio-grid-toolbar"
+         data-studio-type-chips
+         data-listing-ns="<?= $escaper->escapeHtmlAttr($block->getListingNamespace()) ?>">
+        <button type="button" class="studio-chip is-active" data-chip-value="">
+            <?= $escaper->escapeHtml(__('All types')) ?>
+            <span class="studio-chip__count"><?= (int)$block->getTotalCount() ?></span>
+        </button>
+        <?php foreach ($chips as $chip): ?>
+            <button type="button" class="studio-chip" data-chip-value="<?= $escaper->escapeHtmlAttr($chip['code']) ?>">
+                <?= $escaper->escapeHtml($chip['label']) ?>
+                <span class="studio-chip__count"><?= (int)$chip['count'] ?></span>
+            </button>
+        <?php endforeach; ?>
+    </div>
+    <script type="text/x-magento-init">
+    {
+        "[data-studio-type-chips]": {
+            "Bart_ContentStudio/js/grid/type-chips": {}
+        }
+    }
+    </script>
+<?php endif; ?>

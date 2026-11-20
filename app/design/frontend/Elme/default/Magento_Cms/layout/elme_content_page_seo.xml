@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Head + JSON-LD of a public CMS content page (Elme\Theme\ViewModel\ContentPage). Pull it into a page
+ * handle with <update handle="elme_content_page_seo"/>; set `schema_type` on `content.page.jsonld`
+ * when the page is not a plain WebPage.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!-- One BreadcrumbList: the page graph owns it (with @id); skip Hyva's own blob -->
+        <referenceBlock name="breadcrumbs">
+            <arguments>
+                <argument name="skip_ld_json_schema" xsi:type="boolean">true</argument>
+            </arguments>
+        </referenceBlock>
+
+        <referenceContainer name="head.additional">
+            <block name="content.page.head"
+                   template="Magento_Cms::content-page/head.phtml"/>
+        </referenceContainer>
+
+        <referenceContainer name="before.body.end">
+            <block name="content.page.jsonld"
+                   template="Magento_Cms::content-page/jsonld.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

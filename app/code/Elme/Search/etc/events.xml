@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="catalog_product_save_commit_after">
+        <observer name="elme_search_reindex_product" instance="Elme\Search\Observer\ReindexProduct"/>
+    </event>
+    <event name="catalog_product_delete_commit_after">
+        <observer name="elme_search_reindex_product" instance="Elme\Search\Observer\ReindexProduct"/>
+    </event>
+    <event name="catalog_category_save_commit_after">
+        <observer name="elme_search_reindex_category_products" instance="Elme\Search\Observer\ReindexCategoryProducts"/>
+    </event>
+</config>

@@ -1,0 +1,130 @@
+<?php
+
+declare(strict_types=1);
+
+use Elme\Checkout\ViewModel\OrderDetails;
+use Elme\Theme\ViewModel\StoreContact;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Checkout\Block\Onepage\Success;
+use Magento\Framework\Escaper;
+
+/** @var Success $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$details = $viewModels->require(OrderDetails::class);
+$contact = $viewModels->require(StoreContact::class);
+$shipping = $details->getShippingAddress();
+$instructions = $details->getDeliveryInstructions();
+$pageTitle = (string) ($block->getData('page_title') ?: __('Thanks for your order'));
+$viewOrderUrl = $block->getViewOrderUrl();
+$canViewOrder = (bool) $block->getCanViewOrder();
+$orderId = (string) $block->getOrderId();
+?>
+<section class="elme-order-success" aria-labelledby="elme-order-success-title">
+    <div class="elme-order-success__intro">
+        <h1 id="elme-order-success-title" class="elme-order-success__title text-pretty">
+            <?= $escaper->escapeHtml($pageTitle) ?>
+        </h1>
+
+        <?php if ($orderId !== ''): ?>
+            <?php if ($canViewOrder): ?>
+                <p class="elme-order-success__order">
+                    <?= $escaper->escapeHtml(__('Your order number is')) ?>
+                    <a class="elme-order-success__order-link"
+                       href="<?= $escaper->escapeUrl($viewOrderUrl) ?>">
+                        <span class="sr-only"><?= $escaper->escapeHtml(__('View order')) ?> </span>
+                        <?= $escaper->escapeHtml($orderId) ?>
+                    </a>
+                </p>
+            <?php else: ?>
+                <p class="elme-order-success__order">
+                    <?= $escaper->escapeHtml(__('Your order number is %1', $orderId)) ?>
+                </p>
+            <?php endif; ?>
+        <?php endif; ?>
+
+        <p class="elme-order-success__lead">
+            <?= $escaper->escapeHtml(
+                __('We will email you an order confirmation with the details. Our team will arrange delivery.')
+            ) ?>
+        </p>
+    </div>
+
+    <div class="elme-order-success__grid">
+        <div class="elme-order-success__next">
+            <h2 class="elme-order-success__section-title"><?= $escaper->escapeHtml(__('What happens next')) ?></h2>
+            <ol class="elme-order-success__steps">
+                <li><?= $escaper->escapeHtml(__('Check your inbox for the order confirmation.')) ?></li>
+                <li><?= $escaper->escapeHtml(__('We prepare the order at our warehouse and book delivery.')) ?></li>
+                <li>
+                    <?= $escaper->escapeHtml(__('Questions? Call')) ?>
+                    <a class="elme-order-success__inline-link"
+                       href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>">
+                        <?= $escaper->escapeHtml($contact->getPhoneDisplay()) ?>
+                    </a>
+                    <?= $escaper->escapeHtml(__('or email')) ?>
+                    <a class="elme-order-success__inline-link"
+                       href="<?= $escaper->escapeUrl($contact->getEmailMailtoHref()) ?>">
+                        <?= $escaper->escapeHtml($contact->getEmail()) ?>
+                    </a>
+                </li>
+            </ol>
+        </div>
+
+        <?php if ($shipping !== null || $instructions !== ''): ?>
+            <aside class="elme-order-success__aside" aria-label="<?= $escaper->escapeHtmlAttr(__('Delivery details')) ?>">
+                <?php if ($shipping !== null): ?>
+                    <div class="elme-order-success__card">
+                        <h2 class="elme-order-success__section-title">
+                            <?= $escaper->escapeHtml(__('Delivery address')) ?>
+                        </h2>
+                        <address class="elme-order-success__address">
+                            <?php if ($shipping['name'] !== ''): ?>
+                                <span><?= $escaper->escapeHtml($shipping['name']) ?></span>
+                            <?php endif; ?>
+                            <?php if ($shipping['company'] !== ''): ?>
+                                <span><?= $escaper->escapeHtml($shipping['company']) ?></span>
+                            <?php endif; ?>
+                            <?php if ($shipping['street'] !== ''): ?>
+                                <span><?= $escaper->escapeHtml($shipping['street']) ?></span>
+                            <?php endif; ?>
+                            <?php if ($shipping['locality'] !== ''): ?>
+                                <span><?= $escaper->escapeHtml($shipping['locality']) ?></span>
+                            <?php endif; ?>
+                            <?php if ($shipping['telephone'] !== ''): ?>
+                                <span><?= $escaper->escapeHtml($shipping['telephone']) ?></span>
+                            <?php endif; ?>
+                        </address>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($instructions !== ''): ?>
+                    <div class="elme-order-success__card" data-order-details>
+                        <h2 class="elme-order-success__section-title">
+                            <?= $escaper->escapeHtml(__('Delivery instructions')) ?>
+                        </h2>
+                        <p class="elme-order-success__instructions">
+                            <?= $escaper->escapeHtml($instructions) ?>
+                        </p>
+                    </div>
+                <?php endif; ?>
+            </aside>
+        <?php endif; ?>
+    </div>
+
+    <?= $block->getAdditionalInfoHtml() ?>
+
+    <div class="elme-order-success__actions">
+        <a class="btn btn-primary"
+           href="<?= $escaper->escapeUrl($block->getContinueUrl()) ?>">
+            <?= $escaper->escapeHtml(__('Continue Shopping')) ?>
+        </a>
+        <?php if ($canViewOrder): ?>
+            <a class="btn btn-secondary"
+               href="<?= $escaper->escapeUrl($viewOrderUrl) ?>">
+                <?= $escaper->escapeHtml(__('View Order')) ?>
+            </a>
+        <?php endif; ?>
+    </div>
+</section>

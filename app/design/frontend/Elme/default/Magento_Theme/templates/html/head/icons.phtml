@@ -1,0 +1,14 @@
+<?php
+/**
+ * SVG favicon + web manifest links.
+ *
+ * Magento's page-config Renderer treats .svg assets as fonts and rewrites
+ * rel to preload, so these cannot go in default_head_blocks.xml as <link src>.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ */
+$svgUrl = $block->getViewFileUrl('Magento_Theme::favicon/favicon.svg');
+$manifestUrl = $block->getViewFileUrl('manifest.json');
+?>
+<link rel="icon" href="<?= $block->escapeUrl($svgUrl) ?>" type="image/svg+xml"/>
+<link rel="manifest" href="<?= $block->escapeUrl($manifestUrl) ?>"/>

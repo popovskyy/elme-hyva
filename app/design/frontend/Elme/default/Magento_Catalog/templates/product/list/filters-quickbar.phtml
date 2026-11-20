@@ -1,0 +1,136 @@
+<?php
+/**
+ * FE-110: sticky quick-filter bar of a listing (look option 3). "All filters" opens the FE-21 drawer; the chips are the
+ * one-tap values of the facets marked quick="true" in elme_search_facets.xml (Colour, Type, In stock).
+ *
+ * Rendered inside the filters block (filters.phtml), so the button talks to the same Alpine component as the drawer.
+ * A chip is a plain link to the listing with that value toggled: it applies at once and works without JS. The drawer
+ * keeps its explicit Apply with the live count. Chips are nofollow, like the selected-filter chips.
+ *
+ * FE-109: from lg the bar sticks under the header, ends with Sort and tucks under the header on scroll down (back on
+ * scroll up). Below lg the bar stays in the flow; once it is off screen a Filter / Sort pill floats at the bottom, in
+ * thumb reach, and slides away on scroll down. Sort (sorter_html, sort_options_html, sort_scope_attributes) comes
+ * from toolbar.phtml; the scroll logic is in initElmeFilters (filters.phtml).
+ */
+
+declare(strict_types=1);
+
+use Elme\Search\ViewModel\ListingFilters;
+use Elme\Theme\ViewModel\ColourSwatch;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var ListingFilters $filters */
+$filters = $viewModels->require(ListingFilters::class);
+/** @var ColourSwatch $colourSwatch */
+$colourSwatch = $viewModels->require(ColourSwatch::class);
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+$drawerId = (string) $block->getData('drawer_id');
+$swatchFacets = (array) ($block->getData('swatch_facets') ?: ['colour_group']);
+$activeCount = $filters->getActiveCount();
+$buttonLabel = $activeCount > 0
+    ? __('All filters, %1 active', $activeCount)
+    : __('All filters');
+$pillLabel = $activeCount > 0
+    ? __('Filter, %1 active', $activeCount)
+    : __('Filter');
+$sortScope = (string) $block->getData('sort_scope_attributes');
+$sorterHtml = $sortScope !== '' ? (string) $block->getData('sorter_html') : '';
+$sortOptionsHtml = $sortScope !== '' ? (string) $block->getData('sort_options_html') : '';
+?>
+<span class="elme-quickbar-start" data-quickbar-start aria-hidden="true"></span>
+<div class="elme-quickbar" data-quickbar>
+    <div class="elme-quickbar__inner">
+        <button type="button"
+                class="elme-quickbar__all"
+                data-filters-toggle
+                aria-haspopup="dialog"
+                aria-controls="<?= $escaper->escapeHtmlAttr($drawerId) ?>"
+                aria-expanded="false"
+                :aria-expanded="ariaExpanded"
+                aria-label="<?= $escaper->escapeHtmlAttr($buttonLabel) ?>"
+                @click="openDrawer">
+            <?= $lucideIcons->slidersVerticalHtml('elme-quickbar__all-icon', 16, 16, ['aria-hidden' => 'true']) ?>
+            <span><?= $escaper->escapeHtml(__('All filters')) ?></span>
+            <?php if ($activeCount > 0): ?>
+                <span class="elme-quickbar__badge" aria-hidden="true"><?= (int) $activeCount ?></span>
+            <?php endif; ?>
+        </button>
+        <ul class="elme-quickbar__list" aria-label="<?= $escaper->escapeHtmlAttr(__('Quick filters')) ?>">
+            <?php foreach ($filters->getQuickGroups() as $groupIndex => $group): ?>
+                <?php $isSwatch = in_array($group['code'], $swatchFacets, true); ?>
+                <?php foreach ($group['chips'] as $chipIndex => $chip): ?>
+                    <li class="elme-quickbar__item<?= $groupIndex > 0 && $chipIndex === 0 ? ' is-group-start' : '' ?>">
+                        <a href="<?= $escaper->escapeUrl($chip['url']) ?>"
+                           rel="nofollow"
+                           class="elme-quick<?= $chip['selected'] ? ' is-on' : '' ?>"
+                           data-quick-chip>
+                            <?php if ($isSwatch): ?>
+                                <span class="elme-filter-swatch elme-filter-swatch--chip elme-filter-swatch--<?= $escaper->escapeHtmlAttr($colourSwatch->getSwatchName($chip['label'])) ?>"
+                                      aria-hidden="true"></span>
+                            <?php endif; ?>
+                            <span class="elme-quick__text"><?= $escaper->escapeHtml($chip['label']) ?></span>
+                            <?php if ($chip['selected']): ?>
+                                <?= $lucideIcons->xHtml('elme-quick__x', 12, 12, ['aria-hidden' => 'true']) ?>
+                                <span class="sr-only"><?= $escaper->escapeHtml(__('(selected, tap to remove)')) ?></span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
+                <?php endforeach; ?>
+            <?php endforeach; ?>
+            <?php if ($activeCount > 0): ?>
+                <li class="elme-quickbar__item elme-quickbar__item--clear">
+                    <a href="<?= $escaper->escapeUrl($filters->getClearUrl()) ?>"
+                       class="elme-quickbar__clear"
+                       data-quick-chip><?= $escaper->escapeHtml(__('Clear all')) ?></a>
+                </li>
+            <?php endif; ?>
+        </ul>
+        <?php if ($sorterHtml !== ''): ?>
+            <div class="elme-quickbar__sort" <?= /** @noEscape */ $sortScope ?>>
+                <?= /** @noEscape */ $sorterHtml ?>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+<div class="elme-filterpill"
+     data-filterpill
+     role="group"
+     aria-label="<?= $escaper->escapeHtmlAttr(__('Filter and sort')) ?>">
+    <button type="button"
+            class="elme-filterpill__btn"
+            data-filters-toggle
+            aria-haspopup="dialog"
+            aria-controls="<?= $escaper->escapeHtmlAttr($drawerId) ?>"
+            aria-expanded="false"
+            :aria-expanded="ariaExpanded"
+            aria-label="<?= $escaper->escapeHtmlAttr($pillLabel) ?>"
+            @click="openDrawer">
+        <?= $lucideIcons->slidersHorizontalHtml('elme-filterpill__icon', 18, 18, ['aria-hidden' => 'true']) ?>
+        <span><?= $escaper->escapeHtml(__('Filter')) ?></span>
+        <?php if ($activeCount > 0): ?>
+            <span class="elme-filterpill__badge" aria-hidden="true"><?= (int) $activeCount ?></span>
+        <?php endif; ?>
+    </button>
+    <?php if ($sortOptionsHtml !== ''): ?>
+        <span class="elme-filterpill__divider" aria-hidden="true"></span>
+        <div class="elme-filterpill__sort" <?= /** @noEscape */ $sortScope ?>>
+            <?= $lucideIcons->arrowUpDownHtml('elme-filterpill__icon', 18, 18, ['aria-hidden' => 'true']) ?>
+            <span aria-hidden="true"><?= $escaper->escapeHtml(__('Sort')) ?></span>
+            <?php // A real select over the label: the phone's own picker opens, in thumb reach ?>
+            <select class="elme-filterpill__select"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Sort by')) ?>"
+                    @change="onSortChange">
+                <?= /** @noEscape */ $sortOptionsHtml ?>
+            </select>
+        </div>
+    <?php endif; ?>
+</div>

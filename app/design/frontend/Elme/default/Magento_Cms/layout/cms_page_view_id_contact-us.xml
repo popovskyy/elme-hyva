@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-46: Contact Us form on the help CMS page (after intro copy).
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="content.page.jsonld">
+            <arguments>
+                <argument name="schema_type" xsi:type="string">ContactPage</argument>
+            </arguments>
+        </referenceBlock>
+
+        <referenceContainer name="content">
+            <block name="elme.contact.form"
+                   template="Magento_Cms::help/contact-form.phtml"
+                   after="cms_page"
+                   cacheable="false"/>
+        </referenceContainer>
+    </body>
+</page>

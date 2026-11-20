@@ -1,0 +1,34 @@
+{
+    "elme_store_locator_location": {
+        "column": {
+            "location_id": true,
+            "name": true,
+            "type": true,
+            "street": true,
+            "city": true,
+            "state": true,
+            "postcode": true,
+            "latitude": true,
+            "longitude": true,
+            "phone": true,
+            "opening_hours": true,
+            "holiday_hours": true,
+            "url_key": true,
+            "description": true,
+            "parking_instructions": true,
+            "is_active": true,
+            "sort_order": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "index": {
+            "ELME_STORE_LOCATOR_LOCATION_STATE": true,
+            "ELME_STORE_LOCATOR_LOCATION_IS_ACTIVE": true,
+            "ELME_STORE_LOCATOR_LOCATION_POSTCODE": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "ELME_STORE_LOCATOR_LOCATION_URL_KEY": true
+        }
+    }
+}

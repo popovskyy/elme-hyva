@@ -1,0 +1,24 @@
+<?php
+/**
+ * Magento_Catalog::product/view/opengraph/general.phtml: same tags without product:price. For guests, and since
+ * BE-07 for logged-in customers as well (Elme_CustomerPricing).
+ */
+
+declare(strict_types=1);
+
+use Magento\Catalog\Block\Product\View;
+use Magento\Framework\Escaper;
+
+/** @var View $block */
+/** @var Escaper $escaper */
+
+$product = $block->getProduct();
+?>
+<meta property="og:type" content="product" />
+<meta property="og:title"
+      content="<?= $escaper->escapeHtmlAttr($block->stripTags($product->getName())) ?>" />
+<meta property="og:image"
+      content="<?= $escaper->escapeUrl($block->getImage($product, 'product_base_image')->getImageUrl()) ?>" />
+<meta property="og:description"
+      content="<?= $escaper->escapeHtmlAttr($block->stripTags($product->getShortDescription())) ?>" />
+<meta property="og:url" content="<?= $escaper->escapeUrl($product->getProductUrl()) ?>" />

@@ -1,0 +1,560 @@
+@layer components {
+    /*
+     * FE-08: desktop mega menu (Snowdog hyva-topmenu-desktop → Elme look).
+     * Full BEM selectors (no &__): Tailwind v4 nesting turns &__foo into __foo.main-menu.
+     */
+    .main-menu.navigation {
+        --menu-promo-width: 260px;
+        position: relative;
+        z-index: 40;
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
+    }
+
+    .main-menu.navigation .main-menu__list {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 0;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    /* Items stay in normal flow (no position:relative) so level-1 panels
+       position against .main-menu — same place for every top item. Gap to the
+       panel is covered by header:hover in Alpine leave handling. */
+    .main-menu.navigation .main-menu__item {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        margin: 0;
+        flex-shrink: 0;
+    }
+
+    .main-menu.navigation .main-menu__link {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: --spacing(1);
+        padding: --spacing(2) --spacing(1.5);
+        color: var(--color-ink);
+        font-size: var(--text-base);
+        font-weight: 400;
+        line-height: 1.4;
+        text-transform: capitalize;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: color var(--transition-duration-fast) var(--ease-out-quad);
+
+        &:hover {
+            color: var(--color-ink);
+            text-decoration: none;
+        }
+
+        &:focus-visible {
+            color: var(--color-ink);
+            text-decoration: none;
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
+        }
+
+        &.current {
+            font-weight: 600;
+        }
+    }
+
+    .main-menu.navigation .main-menu__item--parent > .main-menu__trigger > .main-menu__link::after {
+        content: '';
+        width: 10px;
+        height: 10px;
+        background: no-repeat center / contain
+            url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjUiIHZpZXdCb3g9IjAgMCA4IDUiIGZpbGw9Im5vbmUiPjxwYXRoIGQ9Ik03LjUgMC41TDQgNEwwLjUgMC41IiBzdHJva2U9IiMzQTM5MzUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==");
+        transition: transform var(--transition-duration-fast) var(--ease-out-quad);
+        translate: 0 1px;
+    }
+
+    .main-menu.navigation .main-menu__item--parent > .main-menu__trigger > .main-menu__link::before {
+        content: '';
+        position: absolute;
+        inset-inline: 0;
+        bottom: 0;
+        height: 1px;
+        width: 100%;
+        background: var(--color-ink);
+        transform: scaleX(0);
+        transform-origin: left center;
+        transition: transform var(--transition-duration-fast) var(--ease-out-quint);
+    }
+
+    .main-menu.navigation .main-menu__item.is-open > .main-menu__trigger > .main-menu__link::after,
+    .main-menu.navigation .main-menu__item:hover > .main-menu__trigger > .main-menu__link::after {
+        transform: rotate(180deg);
+    }
+
+    /* Hover bridge from the open link down to the panel (height measured in menu.phtml clampOpenPanel) */
+    .main-menu.navigation .main-menu__item.is-open > .main-menu__trigger {
+        position: relative;
+
+        &::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            inset-inline: 0;
+            height: var(--elme-menu-bridge, 0px);
+        }
+    }
+
+    .main-menu.navigation .main-menu__item.is-open > .main-menu__trigger > .main-menu__link::before,
+    .main-menu.navigation .main-menu__item:hover > .main-menu__trigger > .main-menu__link::before {
+        transform: scaleX(1);
+    }
+
+    .main-menu.navigation .main-menu__item.promo > .main-menu__trigger > .main-menu__link,
+    .main-menu.navigation .main-menu__item.sale > .main-menu__trigger > .main-menu__link {
+        color: var(--color-promo);
+    }
+
+    /* Full-bleed panel (top/left/width set in JS: flush under #header, viewport wide); content in .container */
+    .main-menu.navigation .main-menu__inner-wrapper--level1 {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 50;
+        width: 100vw;
+        max-height: calc(100dvh - var(--elme-header-bottom, 0px));
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-block: --spacing(6) --spacing(8);
+        background: var(--color-surface);
+        box-shadow: 0 16px 32px -16px rgb(46 48 50 / 0.25);
+        opacity: 0;
+        transform: translateY(-8px);
+        pointer-events: none;
+        transition:
+            opacity var(--transition-duration-fast) var(--ease-out-quad),
+            transform var(--transition-duration-fast) var(--ease-out-quad);
+
+        @media (prefers-reduced-motion: reduce) {
+            transition: none;
+        }
+    }
+
+    .main-menu.navigation .main-menu__inner-wrapper--level1.is-open {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    .main-menu.navigation .main-menu__inner-wrapper--level1[hidden] {
+        display: none !important;
+    }
+
+    /* Koala-style head: section name left, "View all" right, above the columns and the promo rail */
+    .main-menu.navigation .main-menu__panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: --spacing(6);
+        margin-bottom: --spacing(6);
+        padding-bottom: --spacing(5);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .main-menu.navigation .main-menu__panel-title {
+        margin: 0;
+        font-family: var(--font-heading);
+        font-size: var(--text-h1);
+        line-height: var(--text-h1--line-height);
+        font-weight: 400;
+        color: var(--color-ink);
+    }
+
+    .main-menu.navigation .main-menu__view-all {
+        flex-shrink: 0;
+    }
+
+    .main-menu.navigation .main-menu__panel-body {
+        display: flex;
+        align-items: flex-start;
+        gap: --spacing(12);
+
+        @variant 2xl {
+            gap: --spacing(16);
+        }
+    }
+
+    .main-menu.navigation .main-menu__inner-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    /* As many ~11rem columns as the width allows (up to 6, so 5 on a 1440 laptop next to the promo and the
+       tallest section fits under the header); a category group never splits across columns */
+    .main-menu.navigation .main-menu__inner-list--level1 {
+        flex: 1;
+        min-width: 0;
+        columns: 11rem 6;
+        column-gap: --spacing(8);
+    }
+
+    .main-menu.navigation .main-menu__inner-item {
+        break-inside: avoid;
+        margin: 0;
+    }
+
+    .main-menu.navigation .main-menu__inner-item--level1 {
+        padding-bottom: --spacing(7);
+    }
+
+    /* Columns settle in one after another when a panel opens (opacity + 4px), never on reduced motion */
+    @media (prefers-reduced-motion: no-preference) {
+        .main-menu.navigation .main-menu__inner-wrapper--level1.is-open .main-menu__inner-item--level1 {
+            animation: elme-menu-col-in var(--transition-duration-slow) var(--ease-out-quart) both;
+            animation-delay: calc(min(var(--i, 0), 10) * 22ms);
+        }
+    }
+
+    /* Group title: weight only, no thumb and no hairline */
+    .main-menu.navigation .main-menu__inner-item--level1 > .main-menu__inner-link {
+        display: block;
+        padding-block: 0;
+        margin-bottom: --spacing(1.5);
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        color: var(--color-ink);
+        text-decoration: none;
+    }
+
+    .main-menu.navigation .main-menu__inner-link {
+        display: block;
+        padding-block: --spacing(1);
+        color: var(--color-ink);
+        font-size: var(--text-copy);
+        font-weight: 400;
+        line-height: 1.45;
+        text-decoration: none;
+        transition: color var(--transition-duration-fast) var(--ease-out-quad);
+
+        &:hover,
+        &:focus-visible {
+            color: var(--color-link-hover);
+            text-decoration: none;
+        }
+
+        &.current {
+            font-weight: 600;
+        }
+    }
+
+    /* Hover: a hairline draws in under the words from the left */
+    .main-menu.navigation .main-menu__inner-link .main-menu__item-text {
+        background: linear-gradient(currentColor, currentColor) no-repeat 0 100% / 0 1px;
+        padding-bottom: 1px;
+        transition: background-size var(--transition-duration-base) var(--ease-out-quart);
+    }
+
+    .main-menu.navigation .main-menu__inner-link:is(:hover, :focus-visible) .main-menu__item-text {
+        background-size: 100% 1px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .main-menu.navigation .main-menu__inner-link .main-menu__item-text {
+            transition: none;
+        }
+    }
+
+    /*
+     * Compact panel (sub_menu.phtml: six sub-links or fewer in the whole section, e.g. Sale, Outdoor):
+     * the sections become large serif links with an arrow, in up to three columns, sub-links small under
+     * them, so the panel is short instead of a wide sheet of near-empty columns.
+     */
+    .main-menu.navigation .main-menu__panel--compact .main-menu__inner-list--level1 {
+        columns: auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+        gap: --spacing(1) --spacing(10);
+        align-content: start;
+    }
+
+    .main-menu.navigation .main-menu__panel--compact .main-menu__inner-list--level1 > .main-menu__inner-item--level1 {
+        padding-bottom: --spacing(3);
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .main-menu.navigation .main-menu__panel--compact .main-menu__inner-item--level1 > .main-menu__inner-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: --spacing(4);
+        margin: 0;
+        padding-block: --spacing(3) --spacing(1);
+        font-family: var(--font-heading);
+        font-size: var(--text-h3-desktop);
+        font-weight: 400;
+        letter-spacing: 0;
+        line-height: 1.25;
+
+        /* arrow drawn with borders, so no icon markup is needed */
+        &::after {
+            content: "";
+            flex: none;
+            inline-size: --spacing(2);
+            block-size: --spacing(2);
+            border-top: 1.5px solid currentColor;
+            border-right: 1.5px solid currentColor;
+            rotate: 45deg;
+            opacity: 0.45;
+            translate: --spacing(-1) 0;
+            transition:
+                opacity var(--transition-duration-fast) var(--ease-out-quad),
+                translate var(--transition-duration-base) var(--ease-out-quart);
+        }
+
+        &:is(:hover, :focus-visible)::after {
+            opacity: 1;
+            translate: 0 0;
+        }
+    }
+
+    .main-menu.navigation .main-menu__panel--compact .main-menu__inner-item--level1:not(:has(.main-menu__inner-list--level2)) > .main-menu__inner-link {
+        padding-bottom: --spacing(2);
+    }
+
+    .main-menu.navigation .main-menu__panel--compact .main-menu__inner-list--level2 {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0 --spacing(5);
+        padding-bottom: --spacing(1);
+    }
+
+    .main-menu.navigation .main-menu__panel--compact .main-menu__inner-list--level2 .main-menu__inner-link {
+        color: var(--color-ink-muted);
+        font-size: var(--text-copy-desktop);
+
+        &:is(:hover, :focus-visible) {
+            color: var(--color-ink);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .main-menu.navigation .main-menu__panel--compact .main-menu__inner-item--level1 > .main-menu__inner-link::after {
+            transition: none;
+        }
+    }
+
+    .main-menu.navigation .main-menu__inner-list--level2,
+    .main-menu.navigation .main-menu__inner-list--level3 {
+        margin: 0;
+        padding: 0;
+    }
+
+    .main-menu.navigation .main-menu__promo-slot,
+    .main-menu [data-node-type='cms_block'] {
+        break-inside: avoid;
+        list-style: none;
+    }
+
+    .main-menu.navigation .main-menu__promo-list {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(4);
+        flex-shrink: 0;
+        width: var(--menu-promo-width, 260px);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    /* Editorial cover: the photo is the card. Heading and the shop line sit on a scrim.
+       The old arrow SVG only drew the shaft and the top of the head, so it looked sliced. */
+    .main-menu.navigation .menu-promo {
+        overflow: hidden;
+        background: var(--color-ink);
+    }
+
+    .main-menu.navigation .menu-promo__link {
+        position: relative;
+        display: block;
+        aspect-ratio: 3 / 4;
+        color: var(--color-on-primary);
+        text-decoration: none;
+
+        &:focus-visible {
+            outline: 2px solid var(--color-on-primary);
+            outline-offset: -3px;
+        }
+    }
+
+    .main-menu.navigation .menu-promo__media {
+        position: absolute;
+        inset: 0;
+        display: block;
+        overflow: hidden;
+        background: var(--color-ink);
+    }
+
+    .main-menu.navigation .menu-promo__media img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: scale(1.02);
+        transition: transform var(--transition-duration-long) var(--ease-out-quint);
+    }
+
+    .main-menu.navigation .menu-promo__body {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        gap: --spacing(2);
+        padding: --spacing(5);
+        background: linear-gradient(
+            to top,
+            color-mix(in oklab, var(--color-ink) 82%, transparent) 0%,
+            color-mix(in oklab, var(--color-ink) 36%, transparent) 38%,
+            transparent 68%
+        );
+    }
+
+    .main-menu.navigation .menu-promo__heading {
+        display: block;
+        margin: 0;
+        font-family: var(--font-heading);
+        font-size: var(--text-h3);
+        font-weight: 400;
+        line-height: 1.15;
+        color: var(--color-on-primary);
+    }
+
+    .main-menu.navigation .menu-promo__cta {
+        display: inline-flex;
+        align-items: center;
+        gap: --spacing(1.5);
+        font-size: var(--text-note);
+        color: var(--color-on-primary);
+
+        &::after {
+            content: '';
+            width: 18px;
+            height: 18px;
+            background-color: currentColor;
+            transition: transform var(--transition-duration-fast) var(--ease-out-quint);
+            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18' fill='none'%3E%3Cpath d='M3 9h12M10.5 4.5 15 9l-4.5 4.5' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18' fill='none'%3E%3Cpath d='M3 9h12M10.5 4.5 15 9l-4.5 4.5' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask-mode: alpha;
+        }
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        .main-menu.navigation .menu-promo:hover .menu-promo__media img {
+            transform: scale(1.08);
+        }
+
+        .main-menu.navigation .menu-promo:hover .menu-promo__cta::after,
+        .main-menu.navigation .menu-promo__link:focus-visible .menu-promo__cta::after {
+            transform: translateX(4px);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .main-menu.navigation .menu-promo__media img,
+        .main-menu.navigation .menu-promo__cta::after {
+            transition: none;
+        }
+    }
+
+    .main-menu.navigation .menu-overlay {
+        display: block;
+        position: fixed;
+        /* top set in JS to #header bottom so overlay never covers top-level links */
+        top: var(--elme-header-bottom, 0px);
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 25;
+        background: rgb(46 48 50 / 0.3);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--transition-duration-fast) var(--ease-out-quad);
+
+        @media (prefers-reduced-motion: reduce) {
+            transition: none;
+        }
+    }
+
+    .main-menu.navigation .menu-overlay[hidden] {
+        display: none !important;
+    }
+
+    .main-menu.navigation .menu-overlay.is-open {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    @variant lg {
+        .main-menu.navigation .main-menu__link {
+            /* Copy size + tight pad through 2xl so rem growth (browser text 20px) still leaves
+               room for the xl search field at 1280/1440. Body size and roomier pad from 3xl. */
+            font-size: var(--text-copy);
+            padding-inline: --spacing(1.5);
+            gap: --spacing(1);
+        }
+
+        body.menu-active .page-header {
+            z-index: 40;
+        }
+    }
+
+    @variant xl {
+        .main-menu.navigation .main-menu__link {
+            padding-inline: --spacing(1.5);
+            gap: --spacing(1);
+        }
+    }
+
+    @variant 2xl {
+        .main-menu.navigation .main-menu__link {
+            font-size: var(--text-copy);
+            padding-inline: --spacing(1.5);
+            gap: --spacing(1);
+        }
+    }
+
+    @variant 3xl {
+        .main-menu.navigation .main-menu__link {
+            font-size: var(--text-base);
+            padding-inline: --spacing(5);
+            gap: --spacing(1.5);
+        }
+    }
+}
+
+@keyframes elme-menu-col-in {
+    from {
+        opacity: 0;
+        translate: 0 4px;
+    }
+}
+
+/*
+ * Panels render after the page (hyva-topmenu-desktop/panels.phtml) so the hero
+ * is not behind the menu HTML. Fixed zero-size origin: clampOpenPanel() sets
+ * top/left from the viewport, and the open panel is not clipped by the page wrapper.
+ * Unlayered so it wins over .main-menu.navigation { position: relative } above.
+ */
+#elme-mega-panels.main-menu.navigation {
+    position: fixed;
+    inset: 0 auto auto 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    pointer-events: none;
+    z-index: 45;
+}

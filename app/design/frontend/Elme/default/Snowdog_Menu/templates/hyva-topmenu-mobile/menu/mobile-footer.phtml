@@ -1,0 +1,92 @@
+<?php
+/**
+ * FE-09: mobile drawer bottom links (SEO + idea: auth-aware), icons in sand leaf tiles, then phone and email.
+ * Logged-in: Quick Order, My Account, Contact (no stockist — matches FE-05).
+ * Guest: Trade login, Contact, Become a Stockist (no Quick Order).
+ */
+
+declare(strict_types=1);
+
+use Elme\LoginOnly\ViewModel\LoginOnly;
+use Elme\Theme\ViewModel\StoreContact;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+$isLoggedIn = $loginOnly->isLoggedIn();
+/** @var StoreContact $contact */
+$contact = $viewModels->require(StoreContact::class);
+
+// auth: customer / guest / null (both). The Snowdog menu block is block-cached without the login state, so
+// this server-side pick is only the first guess: menu.phtml syncAuthLinks() corrects it from private content.
+$links = [
+    [
+        'label' => __('Shopping list'),
+        'icon' => 'heart',
+        'url' => $block->getUrl('quick_order/template'),
+        'auth' => 'customer',
+    ],
+    [
+        'label' => __('Quick Order'),
+        'icon' => 'clipboard-list',
+        'url' => $block->getUrl('quick_order'),
+        'auth' => 'customer',
+    ],
+    [
+        'label' => __('My Account'),
+        'icon' => 'user-round',
+        'url' => $block->getUrl('customer/account'),
+        'auth' => 'customer',
+    ],
+    [
+        'label' => __('Trade login'),
+        'icon' => 'log-in',
+        'url' => $block->getUrl('customer/account/login'),
+        'auth' => 'guest',
+    ],
+    [
+        'label' => __('Contact'),
+        'icon' => 'message-square',
+        'url' => $block->getUrl('contact'),
+        'auth' => null,
+    ],
+    [
+        'label' => __('Become a Stockist'),
+        'icon' => 'store',
+        'url' => $block->getUrl('', ['_direct' => 'become-a-stockist']),
+        'auth' => 'guest',
+    ],
+];
+?>
+<ul class="elme-mobile-menu__footer-list list-none m-0 p-0 flex flex-col">
+    <?php foreach ($links as $link): ?>
+        <?php $auth = $link['auth']; ?>
+        <li<?php if ($auth): ?> data-elme-auth="<?= $escaper->escapeHtmlAttr($auth) ?>"<?php endif; ?>
+            <?= $auth && ($auth === 'customer') !== $isLoggedIn ? 'hidden' : '' ?>>
+            <a href="<?= $escaper->escapeUrl($link['url']) ?>"
+               class="elme-mobile-menu__footer-link">
+                <span class="elme-mobile-menu__tile corner-leaf-sm" aria-hidden="true">
+                    <?= $lucideIcons->renderHtml($link['icon'], 'shrink-0', 20, 20, ['aria-hidden' => 'true']) ?>
+                </span>
+                <?= $escaper->escapeHtml($link['label']) ?>
+            </a>
+        </li>
+    <?php endforeach; ?>
+</ul>
+<p class="elme-mobile-menu__contact">
+    <a href="<?= $escaper->escapeUrl($contact->getPhoneTelHref()) ?>">
+        <?= $escaper->escapeHtml($contact->getPhoneDisplay()) ?>
+    </a>
+    <a href="<?= $escaper->escapeUrl($contact->getEmailMailtoHref()) ?>">
+        <?= $escaper->escapeHtml($contact->getEmail()) ?>
+    </a>
+</p>

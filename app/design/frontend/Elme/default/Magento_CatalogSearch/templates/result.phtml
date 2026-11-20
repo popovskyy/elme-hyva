@@ -1,0 +1,86 @@
+<?php
+/**
+ * Elme: FE-23 - search results page.
+ *
+ * Results: the shared PLP list (cards, toolbar, filters). Zero results after the customer picked filters keeps the
+ * filters and the "No products match these filters" message of list.phtml; a search with zero results from the start
+ * gets the no-results state with the main categories.
+ */
+
+declare(strict_types=1);
+
+use Elme\Search\ViewModel\ListingFilters;
+use Elme\Search\ViewModel\PopularCategories;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\CatalogSearch\Block\Result;
+use Magento\Framework\Escaper;
+
+/** @var Result $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+// rendered first: the list loads the collection, and the filters read the result of that search
+$productList = $block->getProductListHtml();
+
+/** @var ListingFilters $listingFilters */
+$listingFilters = $viewModels->require(ListingFilters::class);
+$hasResults = (bool) $block->getResultCount() || $listingFilters->getActiveCount() > 0;
+?>
+<?php if ($hasResults): ?>
+    <?= /* @noEscape */ $block->getChildHtml('tagged_product_list_rss_link') ?>
+    <div class="search results">
+        <?php if ($messages = $block->getNoteMessages()): ?>
+            <div class="message notice">
+                <div>
+                    <?php foreach ($messages as $message): ?>
+                        <?= /* @noEscape */ $message ?><br />
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+        <?= /* @noEscape */ $productList ?>
+    </div>
+<?php else: ?>
+    <?php
+    /** @var PopularCategories $popularCategories */
+    $popularCategories = $viewModels->require(PopularCategories::class);
+    $categories = $popularCategories->getCategories();
+    $queryText = (string) $block->getRequest()->getParam('q');
+    ?>
+    <section class="elme-search-empty" aria-labelledby="elme-search-empty-title">
+        <h2 id="elme-search-empty-title" class="elme-search-empty__title">
+            <?= $escaper->escapeHtml(
+                $block->getNoResultText() ?: __('Your search returned no results.')
+            ) ?>
+        </h2>
+        <?php if ($queryText !== ''): ?>
+            <p class="elme-search-empty__query">
+                <?= $escaper->escapeHtml(__('Nothing found for "%1".', $queryText)) ?>
+            </p>
+        <?php endif; ?>
+        <ul class="elme-search-empty__tips">
+            <li><?= $escaper->escapeHtml(__('Check the spelling.')) ?></li>
+            <li><?= $escaper->escapeHtml(__('Try a more general word, like "table" instead of "dining table".')) ?></li>
+            <li><?= $escaper->escapeHtml(__('Search by product code (SKU) if you have it.')) ?></li>
+        </ul>
+        <?php if ($messages = $block->getNoteMessages()): ?>
+            <p class="elme-search-empty__note">
+                <?php foreach ($messages as $message): ?>
+                    <?= /* @noEscape */ $message ?><br />
+                <?php endforeach; ?>
+            </p>
+        <?php endif; ?>
+        <?php if ($categories !== []): ?>
+            <h3 class="elme-search-empty__subtitle"><?= $escaper->escapeHtml(__('Shop popular categories')) ?></h3>
+            <ul class="elme-search-empty__categories">
+                <?php foreach ($categories as $category): ?>
+                    <li>
+                        <a href="<?= $escaper->escapeUrl($category['url']) ?>" class="elme-search-empty__category">
+                            <?= $escaper->escapeHtml($category['name']) ?>
+                        </a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
+    </section>
+<?php endif; ?>

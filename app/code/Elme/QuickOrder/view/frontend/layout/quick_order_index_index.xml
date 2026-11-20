@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <!-- FE-75: Remove asks first, then the row turns to dust -->
+    <update handle="elme_remove_confirm"/>
+    <body>
+        <referenceBlock name="page.main.title" remove="true"/>
+        <referenceContainer name="content">
+            <block name="elme.quick-order.list"
+                   template="Elme_QuickOrder::page/list.phtml"
+                   cacheable="false">
+                <block name="elme.quick-order.list.save-status" as="save-status"
+                       template="Elme_QuickOrder::cart/save-status.phtml"/>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

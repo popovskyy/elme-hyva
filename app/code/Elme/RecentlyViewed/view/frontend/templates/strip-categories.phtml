@@ -1,0 +1,226 @@
+<?php
+/**
+ * FE-24: “Recently viewed categories” strip below the PLP grid (image + name carousel).
+ * Shared storage; omitted from the DOM when empty after hydrate (QA #1). No JSON-LD.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Elme\RecentlyViewed\ViewModel\CategoryRecorder;
+use Elme\RecentlyViewed\ViewModel\Config;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+
+$config = $viewModels->require(Config::class);
+if (!$config->isEnabled()) {
+    return;
+}
+
+$recorder = $viewModels->require(CategoryRecorder::class);
+$excludeId = $recorder->getCategoryId();
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+
+$sectionId = 'elme-rv-categories';
+$headingId = $sectionId . '-heading';
+$trackId = $sectionId . '-track';
+?>
+<section id="<?= $escaper->escapeHtmlAttr($sectionId) ?>"
+         class="elme-rv elme-rv--categories elme-snap-carousel relative -mx-(--entry-bleed) mt-10 mb-8 lg:mt-14 lg:mb-10"
+         aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+         x-data="initElmeRecentlyViewedCategories"
+         data-exclude-id="<?= $escaper->escapeHtmlAttr((string) $excludeId) ?>"
+         x-cloak
+         x-show="isVisible"
+         x-bind:aria-roledescription="carouselRole"
+>
+    <div class="mb-4 flex flex-wrap items-end justify-between gap-3 px-5 md:px-10 lg:mb-6">
+        <h2 id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+            class="m-0 text-display text-ink lg:text-display-desktop">
+            <?= $escaper->escapeHtml(__('Recently viewed categories')) ?>
+        </h2>
+        <button type="button"
+                class="text-copy text-ink-muted underline underline-offset-4 hover:text-ink
+                       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                @click="clearAll">
+            <?= $escaper->escapeHtml(__('Clear all')) ?>
+        </button>
+    </div>
+
+    <div class="relative" x-show="hasItems">
+        <button type="button"
+                class="elme-snap-carousel__arrow elme-snap-carousel__arrow--prev"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Previous categories')) ?>"
+                aria-controls="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+                x-ref="prev"
+                @click="prev"
+                disabled>
+            <?= $lucideIcons->chevronLeftHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+        </button>
+        <button type="button"
+                class="elme-snap-carousel__arrow elme-snap-carousel__arrow--next"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Next categories')) ?>"
+                aria-controls="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+                x-ref="next"
+                @click="next"
+                disabled>
+            <?= $lucideIcons->chevronRightHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+        </button>
+
+        <ul id="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+            class="elme-rv__track elme-snap-carousel__track m-0 flex list-none
+                   snap-x snap-mandatory items-stretch overflow-x-auto overscroll-x-contain
+                   [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            x-ref="track"
+            data-item-selector=".elme-rv-categories__slide"
+            @scroll.passive="onScroll"
+        >
+            <template x-for="item in items" :key="item.id">
+                <li class="elme-rv-categories__slide elme-snap-carousel__item shrink-0 snap-start
+                           w-[min(62vw,12.5rem)] md:w-[11.5rem] lg:w-[13rem]">
+                    <a :href="item.url"
+                       class="group flex h-full flex-col text-ink no-underline
+                              focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                       :aria-label="item.name">
+                        <span class="elme-rv-categories__media block aspect-square overflow-hidden bg-surface">
+                            <template x-if="hasItemImage">
+                                <img :src="item.image"
+                                     :alt="item.name"
+                                     loading="lazy"
+                                     width="208"
+                                     height="208"
+                                     class="size-full object-cover transition-transform duration-fast
+                                            group-hover:scale-[1.03]">
+                            </template>
+                            <template x-if="hasNoItemImage">
+                                <span class="flex size-full items-center justify-center bg-surface-muted
+                                             text-note text-ink-muted"
+                                      x-text="item.name"
+                                      aria-hidden="true"></span>
+                            </template>
+                        </span>
+                        <h3 class="mt-2 text-copy font-medium text-ink lg:text-copy-desktop">
+                            <span x-text="item.name"></span>
+                        </h3>
+                    </a>
+                </li>
+            </template>
+        </ul>
+    </div>
+</section>
+<script>
+    function initElmeRecentlyViewedCategories() {
+        return {
+            items: [],
+            ready: false,
+            reduceMotion: false,
+
+            init() {
+                this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                const excludeId = parseInt(this.$root.dataset.excludeId, 10) || 0;
+                this.items = window.elmeRecentlyViewed
+                    ? window.elmeRecentlyViewed.listCategories(excludeId)
+                    : [];
+                this.ready = true;
+                this.$nextTick(() => this.syncArrows());
+            },
+
+            hasItems() {
+                return this.items.length > 0;
+            },
+
+            isVisible() {
+                return this.ready && this.hasItems();
+            },
+
+            hasItemImage() {
+                return !!(this.item && this.item.image);
+            },
+
+            hasNoItemImage() {
+                return !(this.item && this.item.image);
+            },
+
+            carouselRole() {
+                return this.items.length > 1 ? 'carousel' : null;
+            },
+
+            clearAll() {
+                if (window.elmeRecentlyViewed) {
+                    window.elmeRecentlyViewed.clearCategories();
+                }
+                this.items = [];
+            },
+
+            onScroll() {
+                this.syncArrows();
+            },
+
+            itemSelector() {
+                return this.$refs.track?.dataset.itemSelector || '.elme-rv-categories__slide';
+            },
+
+            step() {
+                const track = this.$refs.track;
+                if (!track) {
+                    return 0;
+                }
+                const item = track.querySelector(this.itemSelector());
+                if (!item) {
+                    return 0;
+                }
+                const trackStyle = window.getComputedStyle(track);
+                const gap = parseFloat(trackStyle.columnGap) || parseFloat(trackStyle.gap) || 0;
+                return item.getBoundingClientRect().width + gap;
+            },
+
+            go(direction) {
+                const track = this.$refs.track;
+                const amount = this.step() * direction;
+                if (!track || !amount) {
+                    return;
+                }
+                track.scrollBy({
+                    left: amount,
+                    behavior: this.reduceMotion ? 'auto' : 'smooth'
+                });
+                setTimeout(() => this.syncArrows(), this.reduceMotion ? 0 : 400);
+            },
+
+            next() {
+                this.go(1);
+            },
+
+            prev() {
+                this.go(-1);
+            },
+
+            syncArrows() {
+                const track = this.$refs.track;
+                const prev = this.$refs.prev;
+                const next = this.$refs.next;
+                if (!track || !prev || !next) {
+                    return;
+                }
+                const max = track.scrollWidth - track.clientWidth;
+                const left = track.scrollLeft;
+                const edge = 2;
+                prev.disabled = left <= edge;
+                next.disabled = left >= max - edge;
+            }
+        };
+    }
+
+    window.addEventListener(
+        'alpine:init',
+        () => Alpine.data('initElmeRecentlyViewedCategories', initElmeRecentlyViewedCategories),
+        {once: true}
+    );
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

@@ -1,0 +1,23 @@
+{
+    "name": "elme/module-theme",
+    "description": "Elme storefront theme helpers: header promo CMS slots and related ViewModels",
+    "type": "magento2-module",
+    "require": {
+        "php": "~8.3.0||~8.4.0",
+        "magento/framework": "*",
+        "magento/module-cms": "*",
+        "bart/module-content-studio": "*",
+        "magento/module-catalog": "*",
+        "magento/module-inventory-sales-api": "*",
+        "magento/module-inventory-configuration-api": "*",
+        "magento/module-store": "*"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Elme\\Theme\\": ""
+        }
+    }
+}

@@ -1,0 +1,14 @@
+Order,Attribute group,EL OS (B2B),B2C (JL + SG),Sets,Note
+1,Product Details,"sku, name, status, visibility, price, tax_class_id","sku, name, status, visibility, price, tax_class_id","Mattress, Product, Service",OOTB group
+2,Classification,"product_type, brand, range, barcode, news_from_date","product_type, brand, range, barcode, news_from_date, supplier_sku","Mattress, Product, Service",
+3,Content,"description, short_description, subtitle, special_care, disclaimer, product_note","description, short_description, subtitle, special_care, warranty, disclaimer, product_note","Mattress, Product, Service",OOTB group Content
+4,Images,"image / small_image / thumbnail / swatch_image, hover_image, media_gallery","image / small_image / thumbnail / swatch_image, hover_image, media_gallery","Mattress, Product, Service",OOTB group Images
+5,Search Engine Optimization,"url_key, meta_title, meta_description","url_key, meta_title, meta_description","Mattress, Product, Service",OOTB group
+6,Family & Variants,"family_code, family_axes, color, colour_group, size, feel, chaise_side, orientation, family_sort_order","family_code, family_axes, color, colour_group, size, feel, chaise_side, orientation, yotpo_group, family_sort_order, items_sold","Mattress, Product",
+7,Facets,"material, type_detail, style, shape, features, seats","material, type_detail, style, shape, features, seats, mattress_brand, mattress_range","Mattress, Product","select, not filterable (S-18)"
+8,Specifications,"specifications, composition, fabric, assembly","specifications, composition, fabric, assembly","Mattress, Product",
+9,Dimensions & Packaging,"weight, width, depth, height, measurements, cartons, units_per_ctn","weight, width, depth, height, measurements, cartons, units_per_ctn","Mattress, Product",
+10,Fulfilment & Logistics,"made_to_order, condition_code, stk_user_group_2, country_of_manufacture","made_to_order, condition_code, stk_user_group_2, country_of_manufacture, dropship_live_approved, dropship_made_to_order, is_kit_component","Mattress, Product",
+11,Pricing & Promotions,"special_price / special_from_date / special_to_date, item_group","special_price / special_from_date / special_to_date, discounted_price, multibuy_price_min / multibuy_price_max, warehouse_cost","Mattress, Product",Price data from DWH
+12,B2C Services,-,"assembly_code, assembly_price, bundle_links","Mattress, Product",B2C only
+13,Labels & Compliance,"product_label, show_material_popup, google_product_category","product_label, show_material_popup, google_product_category, pdp_cms_blocks","Mattress, Product",

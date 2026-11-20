@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <!-- FE-21: filtered search results (any facet parameter) are NOINDEX,FOLLOW -->
+    <event name="controller_action_layout_render_before_catalogsearch_result_index">
+        <observer name="elme_search_noindex_filtered" instance="Elme\Search\Observer\NoindexFilteredSearch"/>
+    </event>
+</config>

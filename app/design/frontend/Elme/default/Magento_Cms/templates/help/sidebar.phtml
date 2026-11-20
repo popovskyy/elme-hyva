@@ -1,0 +1,17 @@
+<?php
+/**
+ * FE-45: sticky help sidebar shell (menu + Need assistance).
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+?>
+<div class="elme-help__sidebar">
+    <?= $block->getChildHtml('menu') ?>
+    <div class="elme-help__assistance">
+        <?= $block->getChildHtml('assistance') ?>
+    </div>
+</div>

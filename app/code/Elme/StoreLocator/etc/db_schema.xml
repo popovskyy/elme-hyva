@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="elme_store_locator_location" resource="default" engine="innodb"
+           comment="Elme showroom and distribution locations">
+        <column xsi:type="int" name="location_id" unsigned="true" nullable="false" identity="true"
+                comment="Location ID"/>
+        <column xsi:type="varchar" name="name" nullable="false" length="255" comment="Name"/>
+        <column xsi:type="varchar" name="type" nullable="false" length="32" comment="Location type"/>
+        <column xsi:type="varchar" name="street" nullable="true" length="255" comment="Street address"/>
+        <column xsi:type="varchar" name="city" nullable="true" length="255" comment="City / suburb"/>
+        <column xsi:type="varchar" name="state" nullable="false" length="8" comment="State code (VIC, NSW, QLD)"/>
+        <column xsi:type="varchar" name="postcode" nullable="false" length="16" comment="Postcode"/>
+        <column xsi:type="decimal" name="latitude" scale="6" precision="10" nullable="true" comment="Latitude"/>
+        <column xsi:type="decimal" name="longitude" scale="6" precision="10" nullable="true" comment="Longitude"/>
+        <column xsi:type="varchar" name="phone" nullable="true" length="64" comment="Phone"/>
+        <column xsi:type="text" name="opening_hours" nullable="true" comment="Opening hours JSON"/>
+        <column xsi:type="text" name="holiday_hours" nullable="true"
+                comment="Holiday opening hours JSON overriding weekday defaults"/>
+        <column xsi:type="varchar" name="url_key" nullable="false" length="255" comment="URL key"/>
+        <column xsi:type="text" name="description" nullable="true" comment="Description"/>
+        <column xsi:type="text" name="parking_instructions" nullable="true" comment="Parking instructions"/>
+        <column xsi:type="smallint" name="is_active" unsigned="true" nullable="false" default="1"
+                comment="Is active"/>
+        <column xsi:type="int" name="sort_order" unsigned="true" nullable="false" default="0"
+                comment="Sort order"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false"
+                default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false"
+                default="CURRENT_TIMESTAMP" comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="location_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="ELME_STORE_LOCATOR_LOCATION_URL_KEY">
+            <column name="url_key"/>
+        </constraint>
+        <index referenceId="ELME_STORE_LOCATOR_LOCATION_STATE" indexType="btree">
+            <column name="state"/>
+        </index>
+        <index referenceId="ELME_STORE_LOCATOR_LOCATION_IS_ACTIVE" indexType="btree">
+            <column name="is_active"/>
+        </index>
+        <index referenceId="ELME_STORE_LOCATOR_LOCATION_POSTCODE" indexType="btree">
+            <column name="postcode"/>
+        </index>
+    </table>
+</schema>

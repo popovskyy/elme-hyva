@@ -1,0 +1,374 @@
+<?php
+/**
+ * Content Studio type `hero` (etc/content_types.xml, FE-14): "Cinema". A photo (4:5 on phones,
+ * 2:1 from md, 700px tall on desktop) with the
+ * heading, text and button on its dark side. Each slide tone says whether the photo is dark (white
+ * text on a dark fade) or light (ink text on a light fade). A slide can instead put its copy on a glass panel
+ * (leaf-shaped, blurred tint; elme/foundation/glass.css): then the photo is not faded and the panel tone decides the
+ * text colour.
+ *
+ * When a slide shows, its photo settles from 112% and then drifts very slowly, and the heading rises
+ * line by line out of a mask (one line per line break in the Heading field); all in hero.css, so
+ * slide 1 plays on page load with no JS and never starts hidden. Reduced motion: a plain fade.
+ *
+ * Every slide is rendered here, copy included, so crawlers that run no JS read all of them. The
+ * track is a CSS scroll-snap row: before Alpine starts it already shows slide 1 and swipes on touch.
+ * Alpine scrolls it, autoplays with a progress bar, marks the current slide and makes the hidden
+ * slides inert. On a 1-column page the photo runs to the viewport (hero.css), past the container.
+ *
+ * @var \Bart\ContentStudio\Block\Entry $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+use Elme\Theme\ViewModel\Hero;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+
+$heroViewModel = $block->getTypeViewModel();
+
+if (!$heroViewModel instanceof Hero) {
+    return;
+}
+
+$content = $block->getContent();
+$slides = $heroViewModel->getSlides($content);
+
+if (!$slides) {
+    return;
+}
+
+$count = count($slides);
+$isSlider = $count > 1;
+$interval = $isSlider ? $heroViewModel->getAutoplayInterval($content) : 0;
+$isPageTitle = $heroViewModel->isPageTitle($content);
+$heroId = 'hero-' . preg_replace('/[^a-z0-9_-]/i', '-', $block->getIdentifier());
+?>
+<section id="<?= $escaper->escapeHtmlAttr($heroId) ?>"
+         class="elme-hero relative mb-10 overflow-hidden bg-ink lg:mb-15"
+    <?php if ($isSlider): ?>
+         aria-roledescription="carousel"
+         aria-label="<?= $escaper->escapeHtmlAttr(__('Highlights')) ?>"
+         x-data="initElmeHero"
+         x-bind="eventListeners"
+         data-interval="<?= (int)$interval ?>"
+         data-label-pause="<?= $escaper->escapeHtmlAttr(__('Pause slideshow')) ?>"
+         data-label-play="<?= $escaper->escapeHtmlAttr(__('Play slideshow')) ?>"
+    <?php else: ?>
+         aria-labelledby="<?= $escaper->escapeHtmlAttr($heroId . '-heading-1') ?>"
+    <?php endif; ?>
+>
+    <div class="elme-hero__track flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain
+                [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        <?php if ($isSlider): ?>
+         id="<?= $escaper->escapeHtmlAttr($heroId . '-slides') ?>"
+         x-ref="track"
+         aria-live="<?= $interval ? 'off' : 'polite' ?>"
+         :aria-live="liveMode"
+        <?php endif; ?>
+    >
+        <?php foreach ($slides as $index => $slide): ?>
+            <?php
+            $number = $index + 1;
+            $isFirst = $index === 0;
+            $panel = $slide['panel'];
+            $hasPanel = $panel !== 'none';
+            // With a glass panel the panel tone sets the text colour, not the photo tone.
+            $isLight = $hasPanel ? $panel === 'light' : $slide['tone'] === 'light';
+            $headingTag = $isPageTitle && $isFirst ? 'h1' : 'h2';
+            $headingId = $heroId . '-heading-' . $number;
+            $desktop = $slide['desktop'];
+            $fallback = $slide['mobile'] ?? $desktop;
+            $hasButton = $slide['button_link'] !== '';
+            $mediaTag = $hasButton ? 'a' : 'div';
+            ?>
+            <div class="elme-hero__slide relative w-full shrink-0 snap-start snap-always
+                        <?= $isFirst ? 'is-current' : '' ?>
+                        <?= $hasPanel ? 'elme-hero__slide--panel' : '' ?>
+                        <?= $isLight ? 'elme-hero__slide--light text-ink' : 'text-on-primary' ?>"
+                <?php if ($isSlider): ?>
+                 role="group"
+                 aria-roledescription="slide"
+                 aria-label="<?= $escaper->escapeHtmlAttr(__('%1 of %2', $number, $count)) ?>"
+                 data-index="<?= (int)$index ?>"
+                <?php endif; ?>
+            >
+                <<?= /* @noEscape */ $mediaTag ?>
+                    <?php if ($hasButton): ?>
+                    <?php // Same destination as the button, so it is skipped by keyboard and screen readers. ?>
+                    href="<?= $escaper->escapeUrl($slide['button_link']) ?>" tabindex="-1" aria-hidden="true"
+                    <?php endif; ?>
+                    class="elme-hero__media relative block overflow-hidden bg-ink">
+                    <span class="elme-hero__drift block size-full">
+                        <picture>
+                            <?php if ($slide['mobile']): ?>
+                                <source media="(min-width: 768px)"
+                                        srcset="<?= $escaper->escapeUrl($desktop['src']) ?>"
+                                        width="<?= (int)$desktop['width'] ?>"
+                                        height="<?= (int)$desktop['height'] ?>">
+                            <?php endif; ?>
+                            <img src="<?= $escaper->escapeUrl($fallback['src']) ?>"
+                                 alt="<?= $escaper->escapeHtmlAttr($slide['alt']) ?>"
+                                 width="<?= (int)$fallback['width'] ?>"
+                                 height="<?= (int)$fallback['height'] ?>"
+                                <?php if ($isFirst): ?>
+                                 loading="eager"
+                                 fetchpriority="high"
+                                <?php else: ?>
+                                 loading="lazy"
+                                 decoding="async"
+                                <?php endif; ?>
+                                 class="elme-hero__img size-full object-cover">
+                        </picture>
+                    </span>
+                </<?= /* @noEscape */ $mediaTag ?>>
+                <div class="elme-hero__copy pointer-events-none absolute inset-x-0 bottom-0 z-1">
+                    <div class="grid max-w-150 gap-4 lg:gap-5<?= $hasPanel ? ' elme-hero__panel elme-glass elme-glass--' . $panel : '' ?>">
+                        <<?= /* @noEscape */ $headingTag ?> id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+                            class="elme-hero__heading font-display font-medium">
+                            <?php foreach ($slide['lines'] as $line): ?>
+                                <span class="elme-hero__line"><span><?= $escaper->escapeHtml($line) ?></span></span>
+                            <?php endforeach; ?>
+                        </<?= /* @noEscape */ $headingTag ?>>
+                        <?php if ($slide['text'] !== ''): ?>
+                            <p class="elme-hero__rise max-w-110 text-copy text-pretty lg:text-copy-desktop">
+                                <?= nl2br($escaper->escapeHtml($slide['text']), false) ?>
+                            </p>
+                        <?php endif; ?>
+                        <?php if ($hasButton): ?>
+                            <div class="elme-hero__rise pointer-events-auto">
+                                <a href="<?= $escaper->escapeUrl($slide['button_link']) ?>"
+                                   class="btn btn-primary <?= $isLight ? '' : 'btn-on-dark' ?> w-full sm:w-auto sm:min-w-54">
+                                    <?= $escaper->escapeHtml($slide['button_label']) ?>
+                                </a>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+    <?php if ($isSlider): ?>
+        <?php
+        /** @var LucideIcons $lucideIcons */
+        $lucideIcons = $viewModels->require(LucideIcons::class);
+        /** @var HyvaCsp $hyvaCsp */
+        $hyvaCsp = $viewModels->require(HyvaCsp::class);
+        ?>
+        <?php // Elegant arrows at the photo edges, shown on hover or keyboard focus (pointer devices; phones swipe). ?>
+        <div class="elme-hero__arrows pointer-events-none absolute z-2 max-md:hidden">
+            <button type="button"
+                    class="elme-hero__arrow elme-hero__arrow--prev"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Previous slide')) ?>"
+                    aria-controls="<?= $escaper->escapeHtmlAttr($heroId . '-slides') ?>"
+                    @click="prev">
+                <?= $lucideIcons->chevronLeftHtml('', 28, 28, ['aria-hidden' => 'true', 'stroke-width' => '1.25']) ?>
+            </button>
+            <button type="button"
+                    class="elme-hero__arrow elme-hero__arrow--next"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Next slide')) ?>"
+                    aria-controls="<?= $escaper->escapeHtmlAttr($heroId . '-slides') ?>"
+                    @click="next">
+                <?= $lucideIcons->chevronRightHtml('', 28, 28, ['aria-hidden' => 'true', 'stroke-width' => '1.25']) ?>
+            </button>
+        </div>
+        <?php // One thin line per slide (the current one fills while autoplay runs) and a small pause button. ?>
+        <div x-ref="controls" class="elme-hero__controls invisible absolute z-2 flex items-center bg-ink/40 px-2">
+            <?php for ($index = 0; $index < $count; $index++): ?>
+                <button type="button"
+                        class="group flex h-10 items-center px-1.5
+                               focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-on-primary"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Go to slide %1', $index + 1)) ?>"
+                        aria-current="<?= $index === 0 ? 'true' : 'false' ?>"
+                        data-index="<?= (int)$index ?>"
+                        :aria-current="dotCurrent"
+                        @click="goToDot">
+                    <span class="elme-hero__seg relative block h-0.5 w-8 overflow-hidden bg-on-primary/40 md:w-12">
+                        <i data-fill class="absolute inset-0 bg-on-primary"></i>
+                    </span>
+                </button>
+            <?php endfor; ?>
+            <?php if ($interval): ?>
+                <button type="button"
+                        class="flex size-10 items-center justify-center text-on-primary hover:opacity-80
+                               focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-on-primary"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Pause slideshow')) ?>"
+                        :aria-label="playLabel"
+                        @click="togglePlay">
+                    <span x-show="playing"><?= $lucideIcons->pauseHtml('', 14, 14, ['aria-hidden' => 'true']) ?></span>
+                    <span x-show="isStopped"><?= $lucideIcons->playHtml('', 14, 14, ['aria-hidden' => 'true']) ?></span>
+                </button>
+            <?php endif; ?>
+        </div>
+        <script>
+            function initElmeHero() {
+                return {
+                    index: 0,
+                    count: 0,
+                    interval: 0,
+                    playing: false,
+                    hovered: false,
+                    focused: false,
+                    reduceMotion: false,
+                    timer: null,
+                    observer: null,
+
+                    eventListeners: {
+                        ['@mouseenter']() {
+                            this.hovered = true;
+                            this.schedule();
+                        },
+                        ['@mouseleave']() {
+                            this.hovered = false;
+                            this.schedule();
+                        },
+                        // Keyboard focus only: a mouse click on a control must not freeze the slideshow.
+                        ['@focusin'](event) {
+                            this.focused = event.target.matches(':focus-visible');
+                            this.schedule();
+                        },
+                        ['@focusout'](event) {
+                            if (!this.$root.contains(event.relatedTarget)) {
+                                this.focused = false;
+                                this.schedule();
+                            }
+                        },
+                        ['@visibilitychange.document']() {
+                            this.schedule();
+                        }
+                    },
+
+                    init() {
+                        const slides = this.slides();
+
+                        this.count = slides.length;
+                        this.interval = Number(this.$root.dataset.interval) || 0;
+                        this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                        this.playing = this.interval > 0 && !this.reduceMotion;
+
+                        this.observer = new IntersectionObserver(
+                            (entries) => this.onIntersect(entries),
+                            {root: this.$refs.track, threshold: 0.6}
+                        );
+                        slides.forEach((slide) => this.observer.observe(slide));
+
+                        this.markSlides();
+                        this.$refs.controls.classList.remove('invisible');
+                        this.schedule();
+                    },
+
+                    destroy() {
+                        clearTimeout(this.timer);
+                        this.observer?.disconnect();
+                    },
+
+                    slides() {
+                        return Array.from(this.$refs.track.children);
+                    },
+
+                    onIntersect(entries) {
+                        entries.forEach((entry) => {
+                            if (entry.isIntersecting) {
+                                this.index = Number(entry.target.dataset.index);
+                            }
+                        });
+                        this.markSlides();
+                        this.schedule();
+                    },
+
+                    // Off-screen slides leave the tab order and the accessibility tree; the current one
+                    // replays its entrance (hero.css keys it on .is-current).
+                    markSlides() {
+                        this.slides().forEach((slide, i) => {
+                            slide.inert = i !== this.index;
+                            slide.classList.toggle('is-current', i === this.index);
+                        });
+                    },
+
+                    goTo(target) {
+                        const track = this.$refs.track;
+
+                        this.index = (target + this.count) % this.count;
+                        track.scrollTo({
+                            left: this.index * track.clientWidth,
+                            behavior: this.reduceMotion ? 'auto' : 'smooth'
+                        });
+                        this.markSlides();
+                        this.schedule();
+                    },
+
+                    next() {
+                        this.goTo(this.index + 1);
+                    },
+
+                    prev() {
+                        this.goTo(this.index - 1);
+                    },
+
+                    goToDot() {
+                        this.goTo(Number(this.$el.dataset.index));
+                    },
+
+                    // Pressing Play is an explicit request, so it wins over the focus pause.
+                    togglePlay() {
+                        this.playing = !this.playing;
+                        this.focused = false;
+                        this.schedule();
+                    },
+
+                    // The progress bar runs only while a slide change is scheduled and starts over with it.
+                    schedule() {
+                        clearTimeout(this.timer);
+                        this.timer = null;
+
+                        if (this.playing && !this.hovered && !this.focused && !document.hidden) {
+                            this.timer = setTimeout(() => this.next(), this.interval);
+                        }
+
+                        this.restartBar();
+                    },
+
+                    // The current slide's line fills over the interval; the others are empty, except when
+                    // autoplay is off, then the current one is simply full.
+                    restartBar() {
+                        this.$root.querySelectorAll('[data-fill]').forEach((fill, i) => {
+                            fill.classList.remove('is-running', 'is-full');
+
+                            if (i !== this.index) {
+                                return;
+                            }
+
+                            if (this.timer && !this.reduceMotion) {
+                                fill.style.animationDuration = this.interval + 'ms';
+                                void fill.offsetWidth;
+                                fill.classList.add('is-running');
+                            } else {
+                                fill.classList.add('is-full');
+                            }
+                        });
+                    },
+
+                    isStopped() {
+                        return !this.playing;
+                    },
+
+                    playLabel() {
+                        return this.playing ? this.$root.dataset.labelPause : this.$root.dataset.labelPlay;
+                    },
+
+                    // Announce slide changes only when the visitor makes them, not on every autoplay step.
+                    liveMode() {
+                        return this.playing ? 'off' : 'polite';
+                    },
+
+                    dotCurrent() {
+                        return Number(this.$el.dataset.index) === this.index ? 'true' : 'false';
+                    }
+                };
+            }
+
+            window.addEventListener('alpine:init', () => Alpine.data('initElmeHero', initElmeHero), {once: true});
+        </script>
+        <?php $hyvaCsp->registerInlineScript() ?>
+    <?php endif; ?>
+</section>

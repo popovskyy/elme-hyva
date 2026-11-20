@@ -1,0 +1,103 @@
+<?php
+/**
+ * FE-67 Become a Stockist main column (before usp_strip): intro, How it works, facts, apply CTAs.
+ * Guest FPC is the SEO surface; logged-in visitors see Quick Order instead of Create an Account.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Elme\LoginOnly\ViewModel\LoginOnly;
+use Elme\Theme\ViewModel\BecomeStockist;
+
+/** @var BecomeStockist $stockist */
+$stockist = $viewModels->require(BecomeStockist::class);
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+/** @var \Hyva\Theme\ViewModel\LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(\Hyva\Theme\ViewModel\LucideIcons::class);
+
+$loggedIn = $loginOnly->isLoggedIn();
+$howToId = 'become-stockist-how-it-works';
+$factsId = 'become-stockist-facts';
+?>
+<div class="elme-become-stockist elme-help-body">
+    <?php foreach ($stockist->getIntroParagraphs() as $i => $paragraph): ?>
+        <p<?= $i === 0 ? ' class="elme-become-stockist__lead"' : '' ?>><?= $escaper->escapeHtml($paragraph) ?></p>
+    <?php endforeach; ?>
+
+    <section class="elme-become-stockist__how" aria-labelledby="<?= $escaper->escapeHtmlAttr($howToId) ?>">
+        <h2 id="<?= $escaper->escapeHtmlAttr($howToId) ?>">
+            <?= $escaper->escapeHtml($stockist->getHowToHeading()) ?>
+        </h2>
+        <ol class="elme-become-stockist__steps">
+            <?php foreach ($stockist->getSteps() as $step): ?>
+                <li class="elme-become-stockist__step">
+                    <span class="elme-become-stockist__step-num" aria-hidden="true">
+                        <?= $escaper->escapeHtml(sprintf('%02d', (int) $step['position'])) ?>
+                    </span>
+                    <div class="elme-become-stockist__step-body">
+                        <h3 class="elme-become-stockist__step-title">
+                            <?= $escaper->escapeHtml($step['name']) ?>
+                        </h3>
+                        <p class="elme-become-stockist__step-text">
+                            <?= $escaper->escapeHtml($step['text']) ?>
+                        </p>
+                    </div>
+                </li>
+            <?php endforeach; ?>
+        </ol>
+    </section>
+
+    <section class="elme-become-stockist__facts" aria-labelledby="<?= $escaper->escapeHtmlAttr($factsId) ?>">
+        <h2 id="<?= $escaper->escapeHtmlAttr($factsId) ?>">
+            <?= $escaper->escapeHtml($stockist->getFactsHeading()) ?>
+        </h2>
+        <ul class="elme-become-stockist__facts-list">
+            <?php foreach ($stockist->getFacts() as $fact): ?>
+                <li>
+                    <span class="elme-become-stockist__fact-icon" aria-hidden="true">
+                        <?= $lucideIcons->checkHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                    </span>
+                    <span><?= $escaper->escapeHtml($fact) ?></span>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </section>
+
+    <div class="elme-become-stockist__cta" role="group" aria-label="<?= $escaper->escapeHtmlAttr(__('Apply')) ?>">
+        <?php if ($loggedIn): ?>
+            <a href="<?= $escaper->escapeUrl($stockist->getQuickOrderUrl()) ?>"
+               class="btn btn-primary elme-become-stockist__cta-primary">
+                <?= $escaper->escapeHtml(__('Quick Order')) ?>
+            </a>
+            <a href="<?= $escaper->escapeUrl($stockist->getMeetTheTeamUrl()) ?>"
+               class="btn btn-secondary elme-become-stockist__cta-secondary">
+                <?= $escaper->escapeHtml(__('Talk to our team')) ?>
+            </a>
+            <p class="elme-become-stockist__cta-tertiary">
+                <a href="<?= $escaper->escapeUrl($stockist->getShopUrl()) ?>">
+                    <?= $escaper->escapeHtml(__('Shop the range')) ?>
+                </a>
+            </p>
+        <?php else: ?>
+            <a href="<?= $escaper->escapeUrl($stockist->getCreateAccountUrl()) ?>"
+               class="btn btn-primary elme-become-stockist__cta-primary">
+                <?= $escaper->escapeHtml(__('Create an Account')) ?>
+            </a>
+            <a href="<?= $escaper->escapeUrl($stockist->getMeetTheTeamUrl()) ?>"
+               class="btn btn-secondary elme-become-stockist__cta-secondary">
+                <?= $escaper->escapeHtml(__('Talk to our team')) ?>
+            </a>
+            <p class="elme-become-stockist__cta-tertiary">
+                <?= $escaper->escapeHtml(__('Already have a trade account?')) ?>
+                <a href="<?= $escaper->escapeUrl($stockist->getLoginUrl()) ?>">
+                    <?= $escaper->escapeHtml(__('Trade login')) ?>
+                </a>
+            </p>
+        <?php endif; ?>
+    </div>
+</div>

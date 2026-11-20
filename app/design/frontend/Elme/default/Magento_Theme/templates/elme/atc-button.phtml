@@ -1,0 +1,421 @@
+<?php
+/**
+ * FE-70: AJAX add to cart; FE-111: its motion (look: elme/product/add-to-cart.css, flyer: elme/foundation/motion-burst.css).
+ *
+ * Opt in with the class `btn-atc` on a submit button of an add to cart form (PLP tile form, PDP
+ * #product_addtocart_form via form="…"). One delegated submit listener, no Alpine, no per-button
+ * handlers (CSP-safe, same pattern as btn-ripple.phtml).
+ *
+ * Flow: submit -> button goes to "sending" at once (aria-busy; the cart icon crossfades to a small
+ * spinner, the label stays) -> POST with X-Requested-With, so Magento's cart/add answers JSON -> read
+ * the "messages" section (cart/add puts its result there) -> "success" only when the server confirmed
+ * it with its success message: the button fills olive, a check draws itself with "Added" (1.6s) and,
+ * 140ms later, a round product thumbnail (a primary dot without an image) flies to the header cart
+ * (window.elmeFly, elme/fly.phtml). Otherwise the button shakes, goes back to idle and the error goes
+ * to the toast stack. Reduced motion: plain crossfades, no sweep, no flight.
+ *
+ * Header (html/header.phtml): `elme-cart-landing` as soon as a flight is coming (the row slides back
+ * in and the new count waits), `elme-cart-landed` when it arrives (icon squash, number rolls). No
+ * flight (mobile menu or a dialog open, icon off-screen) = landed at once. The count itself always
+ * comes from the server (section quick_order).
+ *
+ * Another control may press the button for the customer (PDP sticky bar): it sets
+ * button.elmeAtcOrigin = itself around button.click(). The states then play on that control too, and
+ * the flight starts from it.
+ *
+ * A control that adds several items on its own (lookbook "Add this look") uses window.elmeAtc
+ * (sending / done) for the same states, and gets one flyer per added item.
+ *
+ * Requests run one after another, so quick clicks on many tiles never race on the quote and every
+ * result belongs to the right button. Clicks are never blocked: the button just shows its place in
+ * the queue. A second click on a button that is still sending is ignored (accidental double add).
+ * Section data (mini-cart) reloads once the queue is empty, so that reload never takes the messages
+ * of an add that is still running. No fetch/FormData, or a button without the class: the form posts
+ * the old way.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+?>
+<template id="elme-atc-stage">
+    <span class="btn-atc__stage" aria-hidden="true">
+        <span class="btn-atc__fill"></span>
+        <span class="btn-atc__spin elme-spinner"></span>
+        <span class="btn-atc__done">
+            <span class="btn-atc__check"><?= $lucideIcons->checkHtml('', 24, 24) ?></span>
+            <span class="btn-atc__done-label"><?= $escaper->escapeHtml(__('Added')) ?></span>
+        </span>
+    </span>
+</template>
+<div class="sr-only" role="status" aria-live="polite" id="elme-atc-status"></div>
+<script>
+    (function () {
+        const SELECTOR = '.btn-atc';
+        const HOLD_MS = 1600;
+        // just enough that a fast answer does not flash the spinner
+        const MIN_SENDING_MS = 300;
+        // --transition-duration-slow: the error shake
+        const SHAKE_MS = 300;
+        // the item leaves while the olive fill sweeps (same timing as the heart)
+        const FLY_DELAY_MS = 140;
+        // several items (Add this look): one flyer after another, at most this many
+        const STAGGER_MS = 90;
+        const MAX_FLYERS = 5;
+        // the header row slides back in (--transition-duration-fast) before the cart icon is measured
+        const REVEAL_MS = 220;
+        const CART_ICON = '#menu-cart-icon .elme-header__icon';
+        const IMAGE = '.elme-card__media img, .elme-look-thumb img, .elme-sticky-atc__thumb';
+        // the "Added to cart" bar (toast-stack.phtml): product photo, name and a link to the cart
+        const CART_URL = '<?= $escaper->escapeJs($block->getUrl('quick_order/cart')) ?>';
+        const TOAST_MS = 5000;
+        const NAME = '.elme-card__name, .elme-sticky-atc__name, [data-atc-name]';
+        const TEXT = {
+            viewCart: '<?= $escaper->escapeJs(__('View cart')) ?>',
+            added: '<?= $escaper->escapeJs(__('Added to cart')) ?>',
+            failed: '<?= $escaper->escapeJs(__('We couldn\'t add this item to your cart. Please try again.')) ?>'
+        };
+
+        const queue = [];
+        let running = false;
+        const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        function findButton(form, submitter) {
+            if (submitter) {
+                return submitter.matches(SELECTOR) ? submitter : null;
+            }
+            // Enter in a qty field: no submitter in older browsers
+            const inside = form.querySelector(SELECTOR);
+            if (inside) {
+                return inside;
+            }
+            return form.id
+                ? document.querySelector(SELECTOR + '[form="' + CSS.escape(form.id) + '"]')
+                : null;
+        }
+
+        function ensureStage(btn) {
+            if (btn.querySelector('.btn-atc__stage')) {
+                return;
+            }
+            const tpl = document.getElementById('elme-atc-stage');
+            if (tpl) {
+                btn.appendChild(tpl.content.cloneNode(true));
+            }
+        }
+
+        // Where the idle cart icon sits (from the button centre, unscaled: the press scale may still
+        // run), so the spinner takes its spot while the label stays. Check + "Added" are centred in the
+        // button (the idle icon is often off centre: a long or min-width label, PDP); icon-only buttons
+        // (label hidden at this breakpoint) drop the "Added" text and put the check on the icon.
+        function measure(btn) {
+            const rect = btn.getBoundingClientRect();
+            const scale = btn.offsetWidth ? rect.width / btn.offsetWidth : 1;
+            const icon = btn.querySelector(':scope > svg');
+            const label = btn.querySelector(':scope > span:not(.btn-atc__stage, .btn-ripple)');
+            const compact = !label || label.getClientRects().length === 0;
+            btn.toggleAttribute('data-atc-compact', compact);
+            let iconX = 0;
+            let size = 0;
+            if (icon) {
+                const box = icon.getBoundingClientRect();
+                iconX = (box.left + box.width / 2 - (rect.left + rect.width / 2)) / scale;
+                size = box.width / scale;
+                btn.style.setProperty('--atc-icon-size', Math.round(size) + 'px');
+            }
+            btn.style.setProperty('--atc-icon-x', Math.round(iconX) + 'px');
+            btn.style.setProperty('--atc-done-x', compact ? Math.round(iconX) + 'px' : '0px');
+        }
+
+        function setState(btn, state) {
+            if (state === 'sending') {
+                ensureStage(btn);
+                measure(btn);
+            }
+            btn.dataset.atcState = state;
+            if (state === 'sending') {
+                btn.setAttribute('aria-busy', 'true');
+            } else {
+                btn.removeAttribute('aria-busy');
+            }
+        }
+
+        // the state now on every control of the job, back to idle after `ms` (each keeps its own timer)
+        function show(views, state, ms) {
+            views.forEach((view) => {
+                clearTimeout(view.atcTimer);
+                setState(view, state);
+                if (ms) {
+                    view.atcTimer = setTimeout(() => setState(view, 'idle'), ms);
+                }
+            });
+        }
+
+        function cartTarget() {
+            if (document.documentElement.classList.contains('elme-mobile-menu-open')
+                || document.querySelector('dialog[open]')) {
+                return null;
+            }
+            return window.elmeFly.target(document.querySelector(CART_ICON));
+        }
+
+        // a loaded image of this product next to the control (its URL is reused: no new request)
+        function sourceImage(origin) {
+            const selector = origin.getAttribute('data-atc-image');
+            const scope = origin.closest('.elme-card, .elme-look-card, .elme-sticky-atc');
+            return selector
+                ? document.querySelector(selector)
+                : (scope ? scope.querySelector(IMAGE) : null);
+        }
+
+        function flyer(img) {
+            const body = document.createElement('span');
+            body.className = 'elme-fly__body';
+            if (img) {
+                const copy = document.createElement('img');
+                copy.src = img.currentSrc || img.src;
+                copy.alt = '';
+                copy.decoding = 'async';
+                body.appendChild(copy);
+            }
+            return {body: body, className: img ? 'elme-fly--thumb' : 'elme-fly--thumb elme-fly--dot'};
+        }
+
+        function landed() {
+            window.dispatchEvent(new CustomEvent('elme-cart-landed'));
+        }
+
+        function loaded(img) {
+            return img && img.complete && img.naturalWidth ? img : null;
+        }
+
+        // Before the sections reload: the header shows its row and holds the new count, one landing per flyer
+        function expectLandings(count) {
+            const headerWasHidden = Boolean(document.querySelector('.page-header.is-hidden'));
+            for (let k = 0; k < count; k++) {
+                window.dispatchEvent(new CustomEvent('elme-cart-landing'));
+            }
+            return headerWasHidden;
+        }
+
+        // while the button fills olive, the items fly to the header cart (several: one after another)
+        function celebrate(origin, headerWasHidden, images) {
+            const start = headerWasHidden ? Math.max(FLY_DELAY_MS, REVEAL_MS) : FLY_DELAY_MS;
+            images.forEach((img, k) => setTimeout(() => {
+                const to = cartTarget();
+                if (!to || !origin.isConnected || !window.elmeFly.target(origin)) {
+                    landed();
+                    return;
+                }
+                const item = flyer(loaded(img));
+                window.elmeFly(origin, to, {className: item.className, content: item.body, onLand: landed});
+            }, start + k * STAGGER_MS));
+        }
+
+        function announce(text) {
+            const status = document.getElementById('elme-atc-status');
+            if (!status) {
+                return;
+            }
+            status.textContent = '';
+            setTimeout(() => { status.textContent = text; }, 50);
+        }
+
+        function toast(type, text) {
+            window.dispatchEvent(new CustomEvent('elme-toast', { detail: { type: type, text: text } }));
+        }
+
+        // Section messages may hold HTML (links); the toast shows plain text.
+        function plainText(html) {
+            const doc = new DOMParser().parseFromString(String(html || ''), 'text/html');
+            return (doc.body.textContent || '').trim();
+        }
+
+        // the product name next to the control: its card or the sticky bar, else the page title (PDP)
+        function sourceName(origin) {
+            const scope = origin.closest('.elme-card, .elme-look-card, .elme-sticky-atc');
+            const el = scope ? scope.querySelector(NAME) : document.querySelector('main h1');
+            return el ? el.textContent.replace(/\s+/g, ' ').trim() : '';
+        }
+
+        // replaces the sr-only "Added to cart": the toast is a polite live region of its own
+        function addedToast(name, img) {
+            const photo = loaded(img);
+            window.dispatchEvent(new CustomEvent('elme-toast', { detail: {
+                type: 'success',
+                title: TEXT.added,
+                text: name,
+                image: photo ? (photo.currentSrc || photo.src) : '',
+                link: { url: CART_URL, label: TEXT.viewCart },
+                hideAfter: TOAST_MS
+            } }));
+        }
+
+        function isCartUrl(url) {
+            try {
+                return /\/checkout\/cart\/?$/.test(new URL(url, window.location.href).pathname);
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // cart/add leaves its result in the session messages; reading the section takes them out,
+        // so the in-page message bar does not repeat "You added … to your shopping cart."
+        async function takeMessages() {
+            try {
+                const response = await fetch(BASE_URL + 'customer/section/load/?sections=messages', {
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = response.ok ? await response.json() : null;
+                return (data && data.messages && data.messages.messages) || [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        async function send(job) {
+            let json = null;
+            try {
+                const response = await fetch(job.url, {
+                    method: 'POST',
+                    body: job.body,
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                });
+                const type = response.headers.get('content-type') || '';
+                // a redirect to HTML (expired form key) is a failure, not a success
+                if (response.ok && type.indexOf('json') !== -1) {
+                    json = await response.json();
+                }
+            } catch (e) {
+                json = null;
+            }
+
+            const messages = await takeMessages();
+
+            const problems = messages.filter((m) => m && m.type !== 'success' && plainText(m.text));
+            const backUrl = json && json.backUrl;
+            // cart/add answers {} also when it did not add anything (product gone): only its success
+            // message, or the redirect to the cart (admin "redirect to cart" = Yes), confirms the add
+            const confirmed = messages.some((m) => m && m.type === 'success')
+                || Boolean(backUrl && isCartUrl(backUrl));
+            const ok = json !== null
+                && confirmed
+                && !problems.some((m) => m.type === 'error');
+
+            problems.forEach((m) => toast(m.type === 'error' || !ok ? 'error' : m.type, plainText(m.text)));
+            if (!ok && !problems.length) {
+                toast('error', TEXT.failed);
+            }
+
+            return { ok: ok, redirect: ok && backUrl ? backUrl : null };
+        }
+
+        function finish(job, result) {
+            const wait = Math.max(0, MIN_SENDING_MS - (Date.now() - job.startedAt));
+            const flies = result.ok && !result.redirect && !reduced() && Boolean(window.elmeFly);
+            // before run() reloads the sections: the header holds the new count until this lands
+            const headerWasHidden = flies && expectLandings(1);
+            setTimeout(() => {
+                job.btn.atcPending = false;
+                if (!result.ok) {
+                    show(job.views, reduced() ? 'idle' : 'error', reduced() ? 0 : SHAKE_MS);
+                    return;
+                }
+                show(job.views, 'success', result.redirect ? 0 : HOLD_MS);
+                // Admin "After adding a product redirect to Shopping Cart" = Yes
+                if (result.redirect) {
+                    announce(TEXT.added);
+                    window.location.assign(result.redirect);
+                    return;
+                }
+                addedToast(sourceName(job.origin), sourceImage(job.origin));
+                if (flies) {
+                    celebrate(job.origin, headerWasHidden, [sourceImage(job.origin)]);
+                }
+            }, wait);
+        }
+
+        // For a control that adds on its own, not through a form (lookbook "Add this look", several items):
+        //   elmeAtc.sending(btn)          spinner + aria-busy, call it on the click
+        //   elmeAtc.done(btn, ok, images) ok: "Added" + one flyer per image (null = a dot), max MAX_FLYERS;
+        //                                 not ok: shake, then idle. Call it before the section reload.
+        window.elmeAtc = {
+            sending(btn) {
+                show([btn], 'sending', 0);
+            },
+            done(btn, ok, images) {
+                if (!ok) {
+                    show([btn], reduced() ? 'idle' : 'error', reduced() ? 0 : SHAKE_MS);
+                    return;
+                }
+                const list = (images || []).slice(0, MAX_FLYERS);
+                const flies = list.length > 0 && !reduced() && Boolean(window.elmeFly);
+                const headerWasHidden = flies && expectLandings(list.length);
+                show([btn], 'success', HOLD_MS);
+                addedToast('', list.find(Boolean) || null);
+                if (flies) {
+                    celebrate(btn, headerWasHidden, list);
+                }
+            }
+        };
+
+        async function run() {
+            if (running) {
+                return;
+            }
+            running = true;
+            while (queue.length) {
+                const job = queue.shift();
+                finish(job, await send(job));
+            }
+            running = false;
+            window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+        }
+
+        document.addEventListener('submit', (event) => {
+            const form = event.target;
+            if (event.defaultPrevented || !(form instanceof HTMLFormElement)) {
+                return;
+            }
+            const btn = findButton(form, event.submitter);
+            if (!btn || !window.fetch || !window.FormData || !window.BASE_URL) {
+                return;
+            }
+            const origin = btn.elmeAtcOrigin && btn.elmeAtcOrigin.isConnected ? btn.elmeAtcOrigin : btn;
+            btn.elmeAtcOrigin = null;
+            event.preventDefault();
+            if (btn.atcPending) {
+                return;
+            }
+            btn.atcPending = true;
+            const views = origin === btn ? [btn] : [btn, origin];
+            show(views, 'sending', 0);
+            // read the form now: qty or options changed later belong to the next click
+            queue.push({
+                btn: btn,
+                origin: origin,
+                views: views,
+                url: form.action,
+                body: new FormData(form),
+                startedAt: Date.now()
+            });
+            run();
+        });
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

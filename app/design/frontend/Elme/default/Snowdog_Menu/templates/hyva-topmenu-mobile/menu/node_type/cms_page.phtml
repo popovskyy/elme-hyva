@@ -1,0 +1,51 @@
+<?php
+/**
+ * FE-09: CMS page node.
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Snowdog\Menu\Block\NodeType\CmsPage;
+
+/** @var CmsPage $block */
+/** @var Escaper $escaper */
+
+$menuClass = $block->getMenuClass() ?: 'main-menu';
+$titleRaw = (string) $block->getTitle();
+$cleanTitle = trim((string) preg_replace('/\{.*?\}/', '', $titleRaw));
+$isRoot = (bool) $block->getIsRoot();
+$classLink = $isRoot ? $menuClass . '__link' : $menuClass . '__inner-link';
+$nodeClasses = trim((string) $block->getNodeClasses());
+if ($nodeClasses !== '') {
+    $classLink .= ' ' . $nodeClasses;
+}
+$pageUrl = $block->getId() ? $block->getPageUrl($block->getId()) : false;
+$url = is_string($pageUrl) ? $pageUrl : '';
+?>
+<?php if ($block->getIsViewAllLink()): ?>
+    <?php if ($url === ''): ?>
+        <?php return; ?>
+    <?php endif; ?>
+    <a href="<?= $escaper->escapeUrl($url) ?>"
+       class="<?= $escaper->escapeHtmlAttr($classLink) ?> elme-mobile-menu__view-all">
+        <?= $escaper->escapeHtml(__('View all %1', $cleanTitle)) ?>
+    </a>
+    <?php return; ?>
+<?php endif; ?>
+
+<?php if ($url === ''): ?>
+    <span class="<?= $escaper->escapeHtmlAttr($classLink) ?> elme-mobile-menu__row">
+        <span class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__item-text">
+            <?= $escaper->escapeHtml($cleanTitle) ?>
+        </span>
+    </span>
+    <?php return; ?>
+<?php endif; ?>
+
+<a href="<?= $escaper->escapeUrl($url) ?>"
+   class="<?= $escaper->escapeHtmlAttr($classLink) ?> elme-mobile-menu__row">
+    <span class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__item-text">
+        <?= $escaper->escapeHtml($cleanTitle) ?>
+    </span>
+</a>

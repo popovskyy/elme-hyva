@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="bart_content_studio_full_bleed_editor"/>
+    <body>
+        <referenceContainer name="content">
+            <block class="Bart\ContentStudio\Block\Adminhtml\Import" name="bart_content_studio.import"
+                   template="Bart_ContentStudio::import.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

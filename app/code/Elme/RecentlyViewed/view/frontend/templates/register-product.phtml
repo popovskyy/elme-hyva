@@ -1,0 +1,36 @@
+<?php
+/**
+ * FE-24: write the current product id into browser storage on PDP (no prices).
+ * Replaces Hyvä Magento_Catalog::product/widget/viewed/js/register-viewed-product.phtml
+ * so guests and logged-in customers both track history without leaking catalog prices.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Elme\RecentlyViewed\ViewModel\ProductRecorder;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+$recorder = $viewModels->require(ProductRecorder::class);
+if (!$recorder->isEnabled()) {
+    return;
+}
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<script>
+    (function () {
+        if (!window.elmeRecentlyViewed) {
+            return;
+        }
+        window.elmeRecentlyViewed.trackProduct({
+            id: <?= (int) $recorder->getProductId() ?>,
+            sku: '<?= $escaper->escapeJs($recorder->getSku()) ?>'
+        });
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

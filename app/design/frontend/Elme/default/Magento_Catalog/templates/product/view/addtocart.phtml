@@ -1,0 +1,82 @@
+<?php
+/**
+ * FE-27 / FE-70: logged-in PDP add to cart. Heart = shopping list (FE-78); no core wishlist.
+ * Button label shows line total once the customer price and qty are known ("Add 12 to cart · $264.00");
+ * server HTML keeps a price-free "Add to Cart" so FPC never leaks Pronto prices. btn-atc stays for
+ * the AJAX Added animation; data-atc-image = the main gallery image that flies to the cart (FE-111).
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Hyva\Theme\ViewModel\ProductPage;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var ProductPage $productPage */
+$productPage = $viewModels->require(ProductPage::class);
+
+$isCartConfigure = (bool) $block->getData('is_cart_configure');
+$buttonLabel = $isCartConfigure
+    ? __('Update item')
+    : __('Add to Cart');
+$product = $productPage->getProduct();
+$ariaLabel = $isCartConfigure || !$product
+    ? (string) $buttonLabel
+    : $buttonLabel . ' ' . $product->getName();
+?>
+
+<div class="elme-pdp__actions">
+<?php if (!$isCartConfigure && $product): ?>
+<button type="button"
+        class="elme-save"
+        form="product_addtocart_form"
+        data-elme-qo-add-to-list
+        data-elme-heart
+        data-sku="<?= $escaper->escapeHtmlAttr($product->getSku()) ?>"
+        data-product-name="<?= $escaper->escapeHtmlAttr($product->getName()) ?>"
+        data-label-add="<?= $escaper->escapeHtmlAttr(__('Add to shopping list') . ' ' . $product->getName()) ?>"
+        data-label-saved="<?= $escaper->escapeHtmlAttr(__('Saved to shopping list') . ' ' . $product->getName()) ?>"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('Add to shopping list') . ' ' . $product->getName()) ?>"
+        aria-pressed="false"
+        aria-haspopup="dialog"
+>
+    <span class="elme-heart__ring" aria-hidden="true"></span>
+    <span class="elme-heart__dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="elme-heart__icon" aria-hidden="true">
+        <?= $lucideIcons->heartHtml('elme-heart__line', 22, 22, ['aria-hidden' => 'true']) ?>
+        <?= $lucideIcons->heartHtml('elme-heart__fill', 22, 22, ['aria-hidden' => 'true']) ?>
+    </span>
+</button>
+<?php endif; ?>
+<button
+    type="submit"
+    form="product_addtocart_form"
+    aria-label="<?= $escaper->escapeHtmlAttr($ariaLabel) ?>"
+    class="btn btn-primary elme-pdp__atc<?= $isCartConfigure ? '' : ' btn-atc' ?>"
+    id="product-addtocart-button"
+    data-addto="cart"
+    <?php if (!$isCartConfigure): ?>data-atc-image=".elme-gallery__track img"<?php endif; ?>
+    data-label-idle="<?= $escaper->escapeHtmlAttr($buttonLabel) ?>"
+    data-label-add="<?= $escaper->escapeHtmlAttr(__('Add %1 to cart · %2')) ?>"
+>
+    <?= $lucideIcons->shoppingCartHtml('', 24, 24, ['aria-hidden' => 'true']); ?>
+    <span class="elme-pdp__atc-label tabular-nums"><?= $escaper->escapeHtml($buttonLabel) ?></span>
+</button>
+</div>
+
+<p class="elme-pdp__in-cart text-note text-ink-muted"
+   x-show="hasInCart"
+   x-cloak
+   x-text="inCartLabel"
+   role="status"
+></p>
+
+<?= $block->getChildHtml('', true) ?>

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Banner + breadcrumbs (About, Careers, Outlet): full-width page whose first CMS section is a banner.
+ * The breadcrumbs stay first in <main> and are drawn over that banner (page-layout.css). The banner content
+ * holds the only H1: the page title is not rendered here (page.main.title skip_on_page_layouts in default.xml).
+ */
+-->
+<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_layout.xsd">
+    <update handle="1column"/>
+
+    <referenceContainer name="main.content" htmlTag="main" htmlClass="page-main-full-width"/>
+</layout>

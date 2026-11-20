@@ -1,0 +1,43 @@
+<?php
+/**
+ * FE-09: mobile menu button. The drawer HTML is hyva-topmenu-mobile/dialog.phtml,
+ * printed at the end of the body so it does not sit in front of the hero.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Snowdog\Menu\Block\Menu;
+
+/** @var Menu $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$menu = $block->getMenu();
+if (!$menu) {
+    return;
+}
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+$menuClass = $menu->getCssClass() ?: 'main-menu';
+?>
+<nav class="<?= $escaper->escapeHtmlAttr($menuClass) ?> elme-mobile-nav lg:hidden"
+     aria-label="<?= $escaper->escapeHtmlAttr(__('Main menu')) ?>">
+    <button type="button"
+            class="elme-mobile-nav__burger inline-flex items-center justify-center
+                   min-w-11 min-h-11 p-0 text-ink bg-transparent border-0
+                   focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+                   focus-visible:outline-primary"
+            x-data
+            @click="$store.elmeMobileMenu.ask()"
+            :aria-expanded="$store.elmeMobileMenu.open ? 'true' : 'false'"
+            aria-haspopup="dialog"
+            aria-controls="elme-mobile-menu"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('Open menu')) ?>">
+        <?= $lucideIcons->menuHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
+    </button>
+</nav>

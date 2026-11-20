@@ -1,0 +1,5 @@
+sku,price,prom_price,is_prom_price_active
+TEST-SOFA-1,1299,,0
+FE53-LAMP,450,,0
+FE53-VASE-SAGE,120,,0
+FE53-VASE-SAND,135,110,1

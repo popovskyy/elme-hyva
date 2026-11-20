@@ -1,0 +1,66 @@
+//
+// Neutral admin-preview styling for content-type renderers.
+//
+// The storefront LESS this module ships for the frontend area isn't
+// available in adminhtml and varies per brand anyway, so this deliberately
+// does NOT try to match any storefront theme pixel-for-pixel - it exists so
+// an editor can see structure, order and content, not a brand-accurate
+// preview. See plan section 4.
+//
+
+// ---------------------------------------------------------------------------
+// Structural fallback (types without a JS renderer)
+// ---------------------------------------------------------------------------
+
+.studio-preview-fallback {
+    font-family: var(--studio-font-ui);
+    font-size: 13px;
+}
+
+.studio-preview-fallback__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--studio-space-1);
+    margin-bottom: var(--studio-space-3);
+    padding-bottom: var(--studio-space-3);
+    border-bottom: 1px solid var(--studio-color-border);
+}
+
+.studio-preview-fallback__type {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.studio-preview-fallback__note {
+    color: var(--studio-color-text-muted);
+    font-size: 12px;
+}
+
+.studio-preview-fallback__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--studio-space-2);
+}
+
+.studio-preview-fallback__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--studio-space-2);
+}
+
+.studio-preview-fallback__label {
+    color: var(--studio-color-text-muted);
+}
+
+.studio-preview-fallback__value {
+    font-weight: 500;
+    text-align: right;
+}
+
+.studio-preview-fallback__thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--studio-radius-sm);
+    object-fit: cover;
+}

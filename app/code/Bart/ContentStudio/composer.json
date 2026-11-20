@@ -1,0 +1,28 @@
+{
+  "name": "bart/module-content-studio",
+  "version": "1.0.0",
+  "description": "Schema-driven content entries with a custom admin editor and live preview (Magento Open Source + Hyva)",
+  "type": "magento2-module",
+  "require": {
+    "php": "~8.3.0||~8.4.0",
+    "magento/framework": "*",
+    "magento/module-backend": "*",
+    "magento/module-cms": "*",
+    "magento/module-email": "*",
+    "magento/module-import-export": "*",
+    "magento/module-media-storage": "*",
+    "magento/module-page-builder": "*",
+    "magento/module-page-cache": "*",
+    "magento/module-store": "*",
+    "magento/module-ui": "*",
+    "magento/module-widget": "*"
+  },
+  "autoload": {
+    "files": [
+      "registration.php"
+    ],
+    "psr-4": {
+      "Bart\\ContentStudio\\": ""
+    }
+  }
+}

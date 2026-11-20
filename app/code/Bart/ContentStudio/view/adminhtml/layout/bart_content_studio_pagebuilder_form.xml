@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+    Page Builder loads a content type's edit form through
+    mui/index/render_handle with handle = the form name, so the form needs a
+    layout handle of its own; without it the response is empty and the slide-out
+    spins forever. Same as Page Builder's layout/pagebuilder_block_form.xml.
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="admin-1column"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="styles"/>
+    <body>
+        <referenceContainer name="content">
+            <uiComponent name="bart_content_studio_pagebuilder_form"/>
+        </referenceContainer>
+    </body>
+</page>

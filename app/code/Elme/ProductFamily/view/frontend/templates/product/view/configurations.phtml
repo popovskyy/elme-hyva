@@ -1,0 +1,248 @@
+<?php
+/**
+ * Elme FE-84: "Configuration:" picker of the PDP. The other configurations of a design (modules, armchair,
+ * ottoman, 2 to 6 seaters) in a swipe / arrow slider, and "See all configurations" opening the full grid in a
+ * dialog. Every card is a link to that product page. The current one comes first and is marked. No other
+ * configuration: nothing is printed. No prices (guests must not see any; the cards are image + name).
+ * Look: web/tailwind/elme/product/family-configurations.css. Data: ProductFamily::getConfigurationList().
+ */
+
+declare(strict_types=1);
+
+use Elme\ProductFamily\ViewModel\ProductFamily;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Hyva\Theme\ViewModel\ProductPage;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$product = $viewModels->require(ProductPage::class)->getProduct();
+/** @var ProductFamily $family */
+$family = $viewModels->require(ProductFamily::class);
+$items = $product ? $family->getConfigurationList($product) : [];
+if (!$items) {
+    return;
+}
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+
+$current = $items[0];
+$count = count($items);
+$labelId = 'elme-configs-label';
+$trackId = 'elme-configs-track';
+$dialogTitleId = 'elme-configs-dialog-title';
+
+/** One card: image + name; the current one is a marked, non-link tile. */
+$renderCard = static function (array $item, int $width) use ($escaper): string {
+    $name = $escaper->escapeHtml($item['name']);
+    $image = $item['image'] !== ''
+        ? '<img src="' . $escaper->escapeUrl($item['image']) . '" alt="" width="' . $width . '" height="' . $width . '"'
+            . ' loading="lazy" class="elme-config__img">'
+        : '<span class="elme-config__img elme-config__img--empty" aria-hidden="true"></span>';
+    $inner = '<span class="elme-config__photo">' . $image . '</span>'
+        . '<span class="elme-config__name">' . $name . '</span>';
+    if ($item['selected']) {
+        return '<span class="elme-config is-selected" aria-current="true">' . $inner
+            . '<span class="sr-only">, ' . $escaper->escapeHtml(__('current configuration')) . '</span></span>';
+    }
+
+    return '<a class="elme-config" href="' . $escaper->escapeUrl($item['url']) . '">' . $inner . '</a>';
+};
+?>
+<section class="elme-configs"
+         x-data="initElmeConfigurations"
+         aria-labelledby="<?= /* @noEscape */ $labelId ?>">
+    <div class="elme-configs__head">
+        <p class="elme-configs__label" id="<?= /* @noEscape */ $labelId ?>">
+            <span class="elme-family__name"><?= $escaper->escapeHtml(__('Configuration:')) ?></span>
+            <span class="elme-family__value"><?= $escaper->escapeHtml($current['name']) ?></span>
+        </p>
+        <div class="elme-configs__nav">
+            <button type="button"
+                    class="elme-ib elme-ib--line"
+                    x-ref="prev"
+                    aria-controls="<?= /* @noEscape */ $trackId ?>"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Previous configurations')) ?>"
+                    disabled
+                    @click="prev">
+                <?= $lucideIcons->chevronLeftHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+            </button>
+            <button type="button"
+                    class="elme-ib elme-ib--line"
+                    x-ref="next"
+                    aria-controls="<?= /* @noEscape */ $trackId ?>"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Next configurations')) ?>"
+                    disabled
+                    @click="next">
+                <?= $lucideIcons->chevronRightHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+            </button>
+        </div>
+    </div>
+
+    <?php /* tabindex 0: a scroll area must be reachable by keyboard; arrow keys scroll it (Alpine, keydown) */ ?>
+    <ul id="<?= /* @noEscape */ $trackId ?>"
+        class="elme-configs__track"
+        x-ref="track"
+        tabindex="0"
+        role="list"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('Configurations, %1 of them', $count)) ?>"
+        @scroll.passive="sync"
+        @keydown.right="onKeyNext"
+        @keydown.left="onKeyPrev">
+        <?php foreach ($items as $item): ?>
+            <li class="elme-configs__slide"><?= /* @noEscape */ $renderCard($item, 160) ?></li>
+        <?php endforeach; ?>
+    </ul>
+
+    <button type="button"
+            class="elme-configs__all"
+            x-ref="opener"
+            aria-haspopup="dialog"
+            @click="openDialog">
+        <?= $escaper->escapeHtml(__('See all configurations')) ?>
+    </button>
+
+    <dialog class="elme-configs-dialog"
+            x-ref="dialog"
+            aria-labelledby="<?= /* @noEscape */ $dialogTitleId ?>"
+            @click="closeOnBackdrop"
+            @close="dialogClosed">
+        <div class="elme-configs-dialog__panel">
+            <div class="elme-configs-dialog__head">
+                <div class="min-w-0 flex-1">
+                    <h2 class="elme-configs-dialog__title" id="<?= /* @noEscape */ $dialogTitleId ?>">
+                        <?= $escaper->escapeHtml(__('Choose your configuration')) ?>
+                    </h2>
+                    <p class="elme-configs-dialog__sub"><?= $escaper->escapeHtml(__('Select a configuration below')) ?></p>
+                </div>
+                <button type="button"
+                        class="elme-ib"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Close')) ?>"
+                        @click="closeDialog">
+                    <?= $lucideIcons->xHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                </button>
+            </div>
+            <ul class="elme-configs-dialog__grid" role="list">
+                <?php foreach ($items as $item): ?>
+                    <li><?= /* @noEscape */ $renderCard($item, 160) ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    </dialog>
+
+    <script>
+        function initElmeConfigurations() {
+            return {
+                reduceMotion: false,
+
+                init() {
+                    const track = this.$refs.track;
+
+                    this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                    this.sync();
+                    this.revealCurrent();
+                    track.addEventListener('scrollend', () => this.sync());
+
+                    if (typeof ResizeObserver === 'function') {
+                        new ResizeObserver(() => this.sync()).observe(track);
+                    }
+                },
+
+                // The current configuration is the first slide; nothing to scroll to on load.
+                revealCurrent() {
+                    this.$refs.track.scrollLeft = 0;
+                },
+
+                step() {
+                    const track = this.$refs.track;
+                    const slide = track.querySelector('.elme-configs__slide');
+
+                    if (!slide) {
+                        return 0;
+                    }
+
+                    const style = window.getComputedStyle(track);
+                    const gap = parseFloat(style.columnGap) || parseFloat(style.gap) || 0;
+
+                    // one page: as many whole cards as are in view
+                    const card = slide.getBoundingClientRect().width + gap;
+                    return Math.max(1, Math.floor(track.clientWidth / card)) * card;
+                },
+
+                go(direction) {
+                    const amount = this.step() * direction;
+
+                    if (!amount) {
+                        return;
+                    }
+
+                    this.$refs.track.scrollBy({left: amount, behavior: this.reduceMotion ? 'auto' : 'smooth'});
+                    // scrollend is missing in some browsers
+                    setTimeout(() => this.sync(), this.reduceMotion ? 0 : 400);
+                },
+
+                next() {
+                    this.go(1);
+                },
+
+                prev() {
+                    this.go(-1);
+                },
+
+                onKeyNext(event) {
+                    event.preventDefault();
+                    this.go(1);
+                },
+
+                onKeyPrev(event) {
+                    event.preventDefault();
+                    this.go(-1);
+                },
+
+                sync() {
+                    const track = this.$refs.track;
+                    const max = track.scrollWidth - track.clientWidth;
+                    const edge = 2;
+
+                    this.$refs.prev.disabled = track.scrollLeft <= edge;
+                    this.$refs.next.disabled = track.scrollLeft >= max - edge;
+                },
+
+                openDialog() {
+                    this.$refs.dialog.showModal();
+                },
+
+                closeDialog() {
+                    this.$refs.dialog.close();
+                },
+
+                closeOnBackdrop(event) {
+                    // the panel fills the dialog, so a click on the dialog itself is a click on the backdrop
+                    if (event.target === this.$refs.dialog) {
+                        this.closeDialog();
+                    }
+                },
+
+                dialogClosed() {
+                    // showModal() returns focus to the opener in browsers that support it; make it explicit
+                    this.$refs.opener.focus({preventScroll: true});
+                }
+            };
+        }
+
+        window.addEventListener(
+            'alpine:init',
+            () => Alpine.data('initElmeConfigurations', initElmeConfigurations),
+            {once: true}
+        );
+    </script>
+    <?php $hyvaCsp->registerInlineScript() ?>
+</section>

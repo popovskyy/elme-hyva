@@ -1,0 +1,35 @@
+<?php
+/**
+ * FE-26: PDP buy box for guests. Price line is Elme_LoginOnly::price/sign-in.phtml; this block is
+ * "Don't have an account? Apply here" and Login (with referer back to this PDP via data-elme-sign-in).
+ * Wired only on elme_customer_guest (qty / add to cart stay removed).
+ */
+
+declare(strict_types=1);
+
+use Elme\LoginOnly\ViewModel\LoginOnly;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+?>
+<div class="elme-pdp__guest">
+    <p class="elme-pdp__guest-apply">
+        <?= $escaper->escapeHtml(__("Don't have an account?")) ?>
+        <a href="<?= $escaper->escapeUrl($loginOnly->getRegisterUrl()) ?>"
+           class="underline underline-offset-2 hover:text-link-hover">
+            <?= $escaper->escapeHtml(__('Apply here')) ?>
+        </a>
+    </p>
+    <a class="btn btn-primary w-full"
+       href="<?= $escaper->escapeUrl($loginOnly->getLoginUrl()) ?>"
+       data-elme-sign-in>
+        <?= $escaper->escapeHtml(__('Login')) ?>
+    </a>
+</div>

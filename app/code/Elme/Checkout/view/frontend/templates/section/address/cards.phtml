@@ -1,0 +1,47 @@
+<?php
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$group = (string) $block->getData('group');
+?>
+<fieldset>
+    <legend class="sr-only"><?= $escaper->escapeHtml($block->getData('legend')) ?></legend>
+    <div class="elme-checkout-options elme-checkout-options--addresses">
+        <template x-for="address in cards" :key="address.id" data-group="<?= $escaper->escapeHtmlAttr($group) ?>">
+            <label class="elme-checkout-option">
+                <input type="radio"
+                       class="elme-checkout-option__control"
+                       name="<?= $escaper->escapeHtmlAttr($group) ?>_address_id"
+                       data-group="<?= $escaper->escapeHtmlAttr($group) ?>"
+                       :value="address.id"
+                       :checked="isChecked"
+                       @change="pick">
+                <span class="elme-checkout-option__body">
+                    <span class="elme-checkout-option__title" x-text="address.name"></span>
+                    <span class="block" x-show="address.company" x-text="address.company"></span>
+                    <span class="block" x-text="address.street"></span>
+                    <span class="block" x-text="address.locality"></span>
+                    <span class="elme-checkout-option__meta" x-show="address.telephone" x-text="address.telephone"></span>
+                </span>
+            </label>
+        </template>
+        <?php if ($block->getData('can_add')): ?>
+            <button type="button"
+                    class="elme-checkout-option elme-checkout-option--add"
+                    aria-controls="elme-checkout-address-form"
+                    @click="openForm">
+                <?= $viewModels->require(HeroiconsOutline::class)->plusHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+                <?= $escaper->escapeHtml(__('Add a new address')) ?>
+            </button>
+        <?php endif; ?>
+    </div>
+</fieldset>

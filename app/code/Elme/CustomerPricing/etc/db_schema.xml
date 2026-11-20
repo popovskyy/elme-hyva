@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<!--
+Pronto price mappings, shaped like the old pronto_elme_* tables. The Magento customer is linked by the customer
+attribute pronto_customer_id, so pronto_elme_customer_mapping is keyed by the Pronto customer id.
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="pronto_elme_customer_mapping" resource="default" engine="innodb" comment="Pronto Customer Mapping">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="varchar" name="pronto_customer_id" nullable="false" length="64" comment="Pronto Customer ID"/>
+        <column xsi:type="varchar" name="marketing_flag" nullable="true" length="64" comment="Marketing Flag"/>
+        <column xsi:type="varchar" name="region_group" nullable="true" length="64" comment="Region Group"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" nullable="false" on_update="true" default="CURRENT_TIMESTAMP"
+                comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="PRONTO_ELME_CUSTMAP_UNQ_PRONTO_ID">
+            <column name="pronto_customer_id"/>
+        </constraint>
+    </table>
+
+    <table name="pronto_elme_sku_group_mapping" resource="default" engine="innodb" comment="Elme SKU Group Mapping">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="varchar" name="sku" nullable="false" length="64" comment="SKU"/>
+        <column xsi:type="varchar" name="group_code" nullable="false" length="64" comment="Group Code"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" nullable="false" on_update="true" default="CURRENT_TIMESTAMP"
+                comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="PRONTO_ELME_GRPMAP_UNQ_SKU_GROUP">
+            <column name="sku"/>
+            <column name="group_code"/>
+        </constraint>
+    </table>
+
+    <table name="pronto_elme_price_list" resource="default" engine="innodb" comment="Pronto Price List">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="varchar" name="sku" nullable="false" length="64" comment="SKU"/>
+        <column xsi:type="smallint" name="is_prom_price_active" nullable="false" default="0"
+                comment="Promotional Price Flag"/>
+        <column xsi:type="decimal" name="prom_price" scale="4" precision="12" nullable="true" comment="Promo Price"/>
+        <column xsi:type="decimal" name="price" scale="4" precision="12" nullable="false" default="0"
+                comment="List Price"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" nullable="false" on_update="true" default="CURRENT_TIMESTAMP"
+                comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="PRONTO_ELME_PLIST_UNQ_SKU">
+            <column name="sku"/>
+        </constraint>
+    </table>
+
+    <table name="pronto_elme_price_list_mapping" resource="default" engine="innodb" comment="Pronto Region Price List">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="varchar" name="sku" nullable="false" length="64" comment="SKU"/>
+        <column xsi:type="varchar" name="region_group" nullable="false" length="64" comment="Region Group"/>
+        <column xsi:type="smallint" name="is_prom_price_active" nullable="false" default="0"
+                comment="Promotional Price Flag"/>
+        <column xsi:type="decimal" name="prom_price" scale="4" precision="12" nullable="true" comment="Promo Price"/>
+        <column xsi:type="decimal" name="price" scale="4" precision="12" nullable="false" default="0"
+                comment="Region Price"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" nullable="false" on_update="true" default="CURRENT_TIMESTAMP"
+                comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="PRONTO_ELME_PLISTMAP_UNQ">
+            <column name="sku"/>
+            <column name="region_group"/>
+        </constraint>
+        <index referenceId="PRONTO_ELME_PLISTMAP_REGION" indexType="btree">
+            <column name="region_group"/>
+        </index>
+    </table>
+
+    <table name="pronto_elme_cust_mkt_mapping" resource="default" engine="innodb"
+           comment="Pronto Customer Marketing Mapping">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="varchar" name="discount_type" nullable="false" length="8" comment="Discount Type: A1, 20, 25"/>
+        <column xsi:type="varchar" name="sku" nullable="true" length="64" comment="SKU"/>
+        <column xsi:type="varchar" name="item_group" nullable="true" length="64" comment="Item Group"/>
+        <column xsi:type="varchar" name="pronto_customer_id" nullable="true" length="64" comment="Pronto Customer ID"/>
+        <column xsi:type="varchar" name="marketing_flag" nullable="true" length="64" comment="Marketing Flag"/>
+        <column xsi:type="decimal" name="discount" scale="4" precision="12" nullable="true" comment="Discount Percent"/>
+        <column xsi:type="decimal" name="price" scale="4" precision="12" nullable="true" comment="Price"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" nullable="false" on_update="true" default="CURRENT_TIMESTAMP"
+                comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="ELME_CUSTMKT_UNQ_SKU_CUST">
+            <column name="discount_type"/>
+            <column name="pronto_customer_id"/>
+            <column name="sku"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="ELME_CUSTMKT_UNQ_SKU_FLAG">
+            <column name="discount_type"/>
+            <column name="marketing_flag"/>
+            <column name="sku"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="ELME_CUSTMKT_UNQ_GROUP_FLAG">
+            <column name="discount_type"/>
+            <column name="marketing_flag"/>
+            <column name="item_group"/>
+        </constraint>
+    </table>
+</schema>

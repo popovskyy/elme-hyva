@@ -1,0 +1,582 @@
+/*
+ * FE-35 login, "Split screen". Layout: Magento_Customer/layout/
+ * customer_account_login.xml; photo: login/media.phtml; form: form/login.phtml; apply block: newcustomer.phtml.
+ * Phones and tablets: a photo band above the form. From lg: the photo fills the space from the header to the
+ * footer, the form sits centred in a fixed-width column on the right. The photo drifts very slowly (off on reduced motion).
+ */
+/* Unlayered, like the .page-main margin in theme/page-layout.css that it overrides: photo flush under the header */
+.elme-login-page .page-main {
+    margin-block: 0;
+}
+
+@layer components {
+
+    /* full-bleed under the header up to the 1920 container; on wider screens it stays inside it, centred */
+    .elme-login {
+        --elme-login-width: min(100vw, var(--container-max-width));
+        display: grid;
+        width: var(--elme-login-width);
+        margin-inline: calc(50% - var(--elme-login-width) / 2);
+
+        /* past the container: same left and right edges as the logo and the footer */
+        @media (width > theme(--breakpoint-3xl)) {
+            --elme-login-width: calc(var(--container-max-width) - 2 * var(--container-gutter-desktop));
+        }
+        background-color: var(--color-surface);
+
+        /* the form column has a comfortable fixed width and the photo takes the rest, so wide screens get a
+           bigger photo instead of a gap between the photo and a form stuck at the far edge */
+        @variant lg {
+            grid-template-columns: minmax(0, 1fr) minmax(32rem, 44rem);
+            min-height: min(calc(var(--spacing) * 225), calc(100svh - var(--elme-header-bottom, 0px)));
+        }
+
+        @variant 2xl {
+            grid-template-columns: minmax(0, 1fr) 48rem;
+        }
+    }
+
+    /* --- photo half ----------------------------------------------------------------------------- */
+    .elme-login__media {
+        position: relative;
+        overflow: hidden;
+        height: --spacing(65);
+        background-color: var(--color-ink);
+
+        @variant md {
+            height: --spacing(90);
+        }
+
+        @variant lg {
+            height: auto;
+        }
+
+        &::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                to top,
+                color-mix(in oklab, var(--color-ink) 88%, transparent) 0%,
+                color-mix(in oklab, var(--color-ink) 45%, transparent) 38%,
+                transparent 68%
+            );
+        }
+    }
+
+    .elme-login__img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        scale: 1.04;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .elme-login__img {
+            animation: elme-login-drift 26s var(--ease-in-out-cubic) infinite alternate;
+        }
+    }
+
+    .elme-login__caption {
+        position: absolute;
+        z-index: 1;
+        inset: auto var(--container-gutter) --spacing(6);
+        color: var(--color-on-primary);
+
+        @variant lg {
+            inset: auto --spacing(14) --spacing(14);
+        }
+    }
+
+    .elme-login__kicker {
+        margin: 0 0 --spacing(2.5);
+        font-weight: 500;
+        font-size: var(--text-note);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--color-secondary);
+    }
+
+    .elme-login__quote {
+        max-width: 16ch;
+        margin: 0;
+        color: var(--color-on-primary);
+        text-shadow: 0 1px 24px color-mix(in oklab, var(--color-ink) 50%, transparent);
+        font-family: var(--font-heading);
+        font-size: var(--text-h2);
+        line-height: 1.2;
+        text-wrap: balance;
+
+        @variant lg {
+            font-size: var(--text-display-desktop);
+            line-height: 1.12;
+        }
+    }
+
+    /* --- form half ------------------------------------------------------------------------------ */
+    .elme-login__panel {
+        display: grid;
+        align-content: center;
+        gap: --spacing(7);
+        width: 100%;
+        max-width: 36rem;
+        padding: --spacing(8) var(--container-gutter) --spacing(12);
+
+        @variant md {
+            justify-self: center;
+            padding-block: --spacing(12) --spacing(16);
+        }
+
+        @variant lg {
+            max-width: 34rem;
+            padding: --spacing(16) --spacing(10) --spacing(18);
+        }
+    }
+
+    .elme-login__form .fieldset {
+        display: grid;
+        gap: --spacing(4);
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    .elme-login__form .field {
+        margin: 0;
+    }
+
+    .elme-login__title {
+        margin: 0;
+        font-family: var(--font-heading);
+        font-weight: 400;
+        font-size: var(--text-display);
+        line-height: 1.1;
+        color: var(--color-ink);
+
+        @variant lg {
+            font-size: var(--text-display-desktop);
+        }
+    }
+
+    .elme-login__sub {
+        margin: calc(var(--spacing) * -1) 0 --spacing(2);
+        font-size: var(--text-copy-desktop);
+        line-height: 1.5;
+        color: var(--color-ink-muted);
+    }
+
+    .elme-login__form .form-input {
+        transition:
+            border-color var(--transition-duration-fast) var(--ease-out-quad),
+            box-shadow var(--transition-duration-fast) var(--ease-out-quad);
+
+        &:focus {
+            border-color: var(--color-ink);
+            box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-secondary) 45%, transparent);
+        }
+    }
+
+    .elme-login__password {
+        position: relative;
+
+        .form-input {
+            padding-right: --spacing(13);
+        }
+    }
+
+    .elme-login__eye {
+        position: absolute;
+        top: 50%;
+        right: --spacing(1);
+        translate: 0 -50%;
+        display: grid;
+        place-items: center;
+        width: --spacing(11);
+        height: --spacing(11);
+        border: 0;
+        background: none;
+        color: var(--color-ink-muted);
+        cursor: pointer;
+
+        &:hover {
+            color: var(--color-ink);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: -2px;
+        }
+    }
+
+    .elme-login__forgot {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: calc(var(--spacing) * -1);
+
+        a {
+            min-height: --spacing(11);
+            display: inline-flex;
+            align-items: center;
+            font-size: var(--text-copy-desktop);
+            color: var(--color-ink);
+            text-decoration: underline;
+            text-underline-offset: 0.2em;
+
+            &:hover {
+                color: var(--color-link-hover);
+            }
+        }
+    }
+
+    .elme-login__error {
+        display: flex;
+        gap: --spacing(2);
+        margin: 0;
+        color: var(--color-error-text);
+        font-size: var(--text-copy-desktop);
+    }
+
+    /* --- "or" and the apply block ----------------------------------------------------------------- */
+    .elme-login__or {
+        display: flex;
+        align-items: center;
+        gap: --spacing(3.5);
+        font-size: var(--text-note);
+        color: var(--color-ink-muted);
+
+        &::before,
+        &::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--color-border);
+        }
+    }
+
+    .elme-login__new {
+        display: grid;
+        gap: --spacing(3);
+    }
+
+    .elme-login__new-title {
+        margin: 0;
+        font-family: var(--font-heading);
+        font-weight: 400;
+        font-size: var(--text-h2);
+        line-height: 1.2;
+        color: var(--color-ink);
+    }
+
+    .elme-login__new-text {
+        margin: 0;
+        font-size: var(--text-copy-desktop);
+        color: var(--color-ink-muted);
+    }
+
+    .elme-login__facts {
+        display: grid;
+        gap: --spacing(2.5);
+        margin: --spacing(1) 0 --spacing(2);
+        padding: 0;
+        list-style: none;
+
+        li {
+            display: flex;
+            gap: --spacing(2.5);
+        }
+    }
+
+    .elme-login__tick {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: --spacing(5.5);
+        height: --spacing(5.5);
+        margin-top: 1px;
+        border-radius: calc(infinity * 1px);
+        background: var(--color-success-ground);
+        color: var(--color-olive);
+
+        svg {
+            stroke-width: 2.5;
+        }
+    }
+
+    .elme-login__fact-title {
+        display: block;
+        font-weight: 600;
+        color: var(--color-ink);
+    }
+
+    .elme-login__fact-text {
+        display: block;
+        font-size: var(--text-copy);
+        color: var(--color-ink-muted);
+    }
+
+    .elme-login__apply-arrow {
+        transition: translate var(--transition-duration-base) var(--ease-out-quart);
+    }
+
+    .elme-login__apply:is(:hover, :focus-visible) .elme-login__apply-arrow {
+        translate: --spacing(1) 0;
+    }
+
+    /* the panel's parts settle in once on load */
+    @media (prefers-reduced-motion: no-preference) {
+        .elme-login__panel > * {
+            animation: elme-login-rise var(--transition-duration-long) var(--ease-out-quart) both;
+        }
+
+        .elme-login__panel > :nth-child(2) {
+            animation-delay: 80ms;
+        }
+
+        .elme-login__panel > :nth-child(3) {
+            animation-delay: var(--transition-duration-fast);
+        }
+
+        .elme-login__quote {
+            animation: elme-login-rise var(--transition-duration-long) var(--ease-out-quart) var(--transition-duration-fast) both;
+        }
+    }
+}
+
+@keyframes elme-login-drift {
+    from {
+        transform: translate(0, 0);
+    }
+    to {
+        transform: translate(-2%, -1.5%) scale(1.06);
+    }
+}
+
+@keyframes elme-login-rise {
+    from {
+        opacity: 0;
+        translate: 0 12px;
+    }
+}
+
+/*
+ * FE-36 registration in the login's split look (Magento_Customer/layout/customer_account_create.xml).
+ * The form is Hyvä's register.phtml; its fieldsets become numbered sections instead of bordered cards, the
+ * password eye sits inside the field, the actions are a full-width button with Back under it.
+ */
+@layer components {
+    .elme-register__panel {
+        align-content: start;
+
+        @variant lg {
+            max-width: 36rem;
+        }
+    }
+
+    @variant lg {
+        /* the photo is as tall as the form, and at most the screen: then it stays in view while the form scrolls */
+        .elme-register .elme-login__media {
+            position: sticky;
+            top: var(--elme-header-bottom, 0px);
+            height: auto;
+            max-height: calc(100svh - var(--elme-header-bottom, 0px));
+        }
+    }
+
+    .elme-register__signin {
+        margin: 0;
+        font-size: var(--text-copy-desktop);
+        color: var(--color-ink-muted);
+
+        a {
+            color: var(--color-ink);
+            font-weight: 500;
+            text-decoration: underline;
+            text-underline-offset: 0.2em;
+
+            &:hover {
+                color: var(--color-link-hover);
+            }
+        }
+    }
+
+    .elme-register .form-create-account {
+        counter-reset: elme-register-step;
+    }
+
+    .elme-register .form-create-account fieldset.card {
+        --card-px: 0;
+        --card-py: 0;
+        --card-stroke: transparent;
+        --card-bg: transparent;
+        counter-increment: elme-register-step;
+        display: grid;
+        gap: --spacing(4);
+        padding-top: --spacing(7);
+        border-top: 1px solid var(--color-border);
+    }
+
+    /* section title: "01  Personal Information" */
+    .elme-register .form-create-account fieldset.card > legend > span,
+    .elme-register .form-create-account fieldset.card > legend {
+        font-family: var(--font-heading);
+        font-weight: 400;
+        font-size: var(--text-h2);
+        line-height: 1.2;
+        color: var(--color-ink);
+    }
+
+    .elme-register .form-create-account fieldset.card > legend > span::before {
+        content: counter(elme-register-step, decimal-leading-zero);
+        display: block;
+        margin-bottom: --spacing(1);
+        font-family: var(--font-sans);
+        font-size: var(--text-note);
+        letter-spacing: 0.12em;
+        color: var(--color-olive);
+    }
+
+    .elme-register .form-create-account .field {
+        margin: 0;
+    }
+
+    /* password + eye: the eye sits inside the field */
+    .elme-register .form-create-account .control:has(> [type="password"], > input[name*="password"]) {
+        position: relative;
+
+        > input {
+            width: 100%;
+            padding-right: --spacing(13);
+        }
+
+        > button {
+            position: absolute;
+            top: 50%;
+            right: --spacing(1);
+            translate: 0 -50%;
+            display: grid;
+            place-items: center;
+            width: --spacing(11);
+            height: --spacing(11);
+            padding: 0;
+            color: var(--color-ink-muted);
+
+            &:hover {
+                color: var(--color-ink);
+            }
+        }
+    }
+
+    .elme-register .form-create-account .form-input:focus {
+        border-color: var(--color-ink);
+        box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-secondary) 45%, transparent);
+    }
+
+    .elme-register #password-strength-meter-container {
+        font-size: var(--text-note);
+        color: var(--color-ink-muted);
+    }
+
+    .elme-register .form-create-account .actions-toolbar {
+        display: grid;
+        gap: --spacing(3);
+        margin-top: --spacing(2);
+        padding-top: --spacing(7);
+        border-top-color: var(--color-border);
+
+        .primary .btn {
+            width: 100%;
+        }
+
+        .secondary {
+            margin: 0;
+            justify-self: center;
+
+            a {
+                min-height: --spacing(11);
+                display: inline-flex;
+                align-items: center;
+                color: var(--color-ink);
+                text-decoration: underline;
+                text-underline-offset: 0.2em;
+            }
+        }
+    }
+}
+
+/* Unlayered: Hyvä puts my-8 (a utility) on each fieldset and flex/items-center on the password control */
+.elme-register .form-create-account fieldset.card {
+    margin-block: --spacing(8) 0;
+}
+
+.elme-register .form-create-account fieldset.card:first-of-type {
+    margin-top: --spacing(2);
+}
+
+/* Unlayered: Hyvä wraps each password control and the strength meter in a flex row (utilities); stack them,
+   field full width, meter under it */
+.elme-register .form-create-account .field > .flex.flex-wrap {
+    display: grid;
+    gap: --spacing(1.5);
+}
+
+.elme-register .form-create-account .field > .flex.flex-wrap > .control,
+.elme-register .form-create-account .field > .control.flex {
+    width: 100%;
+}
+
+.elme-register .form-create-account .field > .flex.flex-wrap > .self-center {
+    align-self: start;
+    margin: 0;
+}
+
+.elme-register__intro {
+    display: grid;
+    gap: --spacing(3);
+
+    .elme-login__sub {
+        margin: 0;
+    }
+}
+
+/* Unlayered. The .columns grid has a 16px row gap that showed as a strip between the header and the photo. */
+.elme-login-page .columns {
+    row-gap: 0;
+}
+
+/* Unlayered. On very tall screens the page is taller than the block: keep it in the middle, not stuck to the header. */
+@media (width > theme(--breakpoint-3xl)) {
+    .elme-login-page .columns {
+        align-content: center;
+        padding-block: --spacing(12);
+    }
+}
+
+/* Unlayered. Hyvä's #customer-login-container (theme/page-customer.css) adds 32px padding above and below (a white
+   strip between the header and the photo, and between the photo and the footer), a row gap and two columns from
+   md. The split layout has its own spacing and columns: drop the padding and gap, and let the layered
+   .elme-login rules above set the columns (one column up to lg). */
+.elme-login:is(#customer-login-container) {
+    grid-template-columns: revert-layer;
+    gap: 0;
+    padding-block: 0;
+}
+
+/* Hyvä puts the two register fieldsets side by side from md (md:grid grid-cols-2): one column here */
+.elme-register .form-create-account > .md\:grid {
+    display: block;
+}
+
+/* Browser autofill paints inputs light blue; keep them white with ink text, focus ring still shows */
+.elme-login .form-input:is(:-webkit-autofill, :autofill) {
+    -webkit-text-fill-color: var(--color-ink);
+    box-shadow: inset 0 0 0 100px var(--color-surface);
+    caret-color: var(--color-ink);
+}
+
+.elme-login .form-input:is(:-webkit-autofill, :autofill):focus {
+    box-shadow:
+        inset 0 0 0 100px var(--color-surface),
+        0 0 0 3px color-mix(in oklab, var(--color-secondary) 45%, transparent);
+}

@@ -1,0 +1,603 @@
+<?php
+/**
+ * FE-21: filters drawer of a listing. FE-110: the button that opens it is "All filters" in the sticky quick bar
+ * (child block elme_quickbar, filters-quickbar.phtml), rendered inside this component's root.
+ *
+ * Facets come from Elme\Search\ViewModel\ListingFilters (SearchFacets of BE-24, order and labels from
+ * elme_search_facets.xml); nothing is rendered when the listing does not come from ProductSearchInterface
+ * (engine = magento, D2). Rendered from the top toolbar, i.e. after the product collection has loaded.
+ *
+ * Options are checkboxes, not links, so crawlers cannot walk the filter combinations; Apply builds the URL.
+ * The form also submits without JS (GET; ranges as code[min] / code[max], which the backend reads too).
+ * While options change, the drawer asks /elme-search/listing/count for "Show N products" and the option counts.
+ *
+ * FE-109: this component also moves the quick bar and the phone Filter / Sort pill with the scroll: from lg the bar
+ * tucks under the header on scroll down and comes back on scroll up; below lg the pill shows on scroll up once the bar
+ * is off screen and the grid fills the lower half of the screen. Transform only, nothing in the page moves.
+ */
+
+declare(strict_types=1);
+
+use Elme\Search\Api\Data\Facet;
+use Elme\Search\ViewModel\ListingFilters;
+use Elme\Theme\ViewModel\ColourSwatch;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var ListingFilters $filters */
+$filters = $viewModels->require(ListingFilters::class);
+if (!$filters->isAvailable()) {
+    return;
+}
+/** @var ColourSwatch $colourSwatch */
+$colourSwatch = $viewModels->require(ColourSwatch::class);
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+$swatchFacets = (array) ($block->getData('swatch_facets') ?: ['colour_group']);
+$facets = $filters->getFacets();
+$activeCount = $filters->getActiveCount();
+$total = $filters->getTotal();
+$hasSelection = $activeCount > 0;
+$drawerId = 'elme-filters-drawer';
+$titleId = 'elme-filters-title';
+
+$labels = [
+    'many' => (string) __('Show %1 products'),
+    'one' => (string) __('Show 1 product'),
+    'none' => (string) __('No products match'),
+    'unknown' => (string) __('Show products'),
+];
+?>
+<div class="elme-filters" x-data="initElmeFilters"
+     data-count-url="<?= $escaper->escapeUrl($filters->getCountUrl()) ?>"
+     data-total="<?= (int) $total ?>"
+     data-labels="<?= $escaper->escapeHtmlAttr(json_encode($labels)) ?>">
+    <?php // FE-110: the "All filters" button lives in the sticky quick bar; it opens this drawer. ?>
+    <?= $block->getChildBlock('elme_quickbar')
+        ? $block->getChildBlock('elme_quickbar')->setData('drawer_id', $drawerId)->setData('swatch_facets', $swatchFacets)->toHtml()
+        : '' ?>
+
+    <dialog id="<?= $escaper->escapeHtmlAttr($drawerId) ?>"
+            class="elme-drawer elme-drawer-start elme-filters__drawer"
+            aria-labelledby="<?= $escaper->escapeHtmlAttr($titleId) ?>"
+            @cancel.prevent="closeDrawer"
+            @click="onDialogClick">
+        <form method="get"
+              action="<?= $escaper->escapeUrl($filters->getBaseUrl()) ?>"
+              class="elme-filters__form"
+              @submit.prevent="apply"
+              @change="onFormChange"
+              @input="onFormInput">
+            <div class="elme-drawer__header">
+                <h2 class="elme-drawer__title" id="<?= $escaper->escapeHtmlAttr($titleId) ?>">
+                    <?= $escaper->escapeHtml(__('Filters')) ?>
+                </h2>
+                <button type="button"
+                        class="elme-filters__close"
+                        @click="closeDrawer"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Close filters')) ?>">
+                    <?= $lucideIcons->xHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
+                </button>
+            </div>
+
+            <div class="elme-drawer__body elme-filters__body">
+                <?php foreach ($facets as $index => $facet): ?>
+                    <?php
+                    $code = $facet->code;
+                    $panelId = 'elme-filter-' . $code;
+                    $isOpen = $facet->isSelected() || (!$hasSelection && $index === 0);
+                    $isSwatch = in_array($code, $swatchFacets, true);
+                    $selectedCount = 0;
+                    foreach ($facet->options as $option) {
+                        $selectedCount += $option->selected ? 1 : 0;
+                    }
+                    if ($facet->type === Facet::TYPE_RANGE && $facet->isSelected()) {
+                        $selectedCount = 1;
+                    }
+                    ?>
+                    <div class="elme-filters__facet" data-facet="<?= $escaper->escapeHtmlAttr($code) ?>"
+                         data-type="<?= $escaper->escapeHtmlAttr($facet->type) ?>">
+                        <button type="button"
+                                class="elme-filters__facet-toggle"
+                                aria-expanded="<?= $isOpen ? 'true' : 'false' ?>"
+                                aria-controls="<?= $escaper->escapeHtmlAttr($panelId) ?>"
+                                data-code="<?= $escaper->escapeHtmlAttr($code) ?>"
+                                data-open="<?= $isOpen ? '1' : '0' ?>"
+                                @click="toggleFacet">
+                            <span class="elme-filters__facet-label">
+                                <?= $escaper->escapeHtml($facet->label) ?>
+                                <?php if ($selectedCount > 0): ?>
+                                    <span class="elme-filters__facet-selected">
+                                        (<?= (int) $selectedCount ?>)
+                                    </span>
+                                <?php endif; ?>
+                            </span>
+                            <span class="elme-filters__facet-icon" aria-hidden="true"></span>
+                        </button>
+                        <fieldset id="<?= $escaper->escapeHtmlAttr($panelId) ?>"
+                                  class="elme-filters__panel"
+                                  <?= $isOpen ? '' : 'hidden' ?>>
+                            <legend class="sr-only"><?= $escaper->escapeHtml($facet->label) ?></legend>
+
+                            <?php if ($facet->type === Facet::TYPE_RANGE): ?>
+                                <?php
+                                $min = $filters->formatNumber($facet->min);
+                                $max = $filters->formatNumber($facet->max);
+                                $selMin = $filters->formatNumber($facet->selectedMin);
+                                $selMax = $filters->formatNumber($facet->selectedMax);
+                                ?>
+                                <div class="elme-filters__range" data-range="<?= $escaper->escapeHtmlAttr($code) ?>">
+                                    <label class="elme-filters__range-field">
+                                        <span class="elme-filters__range-label"><?= $escaper->escapeHtml(__('From')) ?></span>
+                                        <input type="number"
+                                               class="form-input elme-filters__range-input"
+                                               name="<?= $escaper->escapeHtmlAttr($code) ?>[min]"
+                                               data-bound="min"
+                                               inputmode="decimal"
+                                               step="any"
+                                               min="0"
+                                               value="<?= $escaper->escapeHtmlAttr($selMin) ?>"
+                                               placeholder="<?= $escaper->escapeHtmlAttr($min) ?>">
+                                    </label>
+                                    <span class="elme-filters__range-sep" aria-hidden="true">&ndash;</span>
+                                    <label class="elme-filters__range-field">
+                                        <span class="elme-filters__range-label"><?= $escaper->escapeHtml(__('To')) ?></span>
+                                        <input type="number"
+                                               class="form-input elme-filters__range-input"
+                                               name="<?= $escaper->escapeHtmlAttr($code) ?>[max]"
+                                               data-bound="max"
+                                               inputmode="decimal"
+                                               step="any"
+                                               min="0"
+                                               value="<?= $escaper->escapeHtmlAttr($selMax) ?>"
+                                               placeholder="<?= $escaper->escapeHtmlAttr($max) ?>">
+                                    </label>
+                                </div>
+                                <?php if ($min !== '' && $max !== ''): ?>
+                                    <p class="elme-filters__range-hint">
+                                        <?= $escaper->escapeHtml(__('In this list:')) ?>
+                                        <span data-hint="min"><?= $escaper->escapeHtml($min) ?></span>&ndash;<span data-hint="max"><?= $escaper->escapeHtml($max) ?></span>
+                                    </p>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <?php $name = $facet->type === Facet::TYPE_BOOLEAN ? $code : $code . '[]'; ?>
+                                <ul class="elme-filters__options<?= $isSwatch ? ' elme-filters__options--swatch' : '' ?>">
+                                    <?php foreach ($facet->options as $optionIndex => $option): ?>
+                                        <?php
+                                        $optionLabel = $facet->type === Facet::TYPE_BOOLEAN
+                                            ? $facet->label
+                                            : $option->label;
+                                        ?>
+                                        <li class="elme-filters__option<?= $option->count === 0 && !$option->selected ? ' is-empty' : '' ?>"
+                                            <?php if ($filters->isOptionHidden($optionIndex, $facet)): ?>
+                                                data-more="<?= $escaper->escapeHtmlAttr($code) ?>" hidden
+                                            <?php endif; ?>>
+                                            <label class="elme-filters__option-label">
+                                                <input type="checkbox"
+                                                       class="elme-filters__checkbox<?= $isSwatch ? ' sr-only' : '' ?>"
+                                                       name="<?= $escaper->escapeHtmlAttr($name) ?>"
+                                                       value="<?= $escaper->escapeHtmlAttr($option->value) ?>"
+                                                       <?= $option->selected ? 'checked' : '' ?>>
+                                                <?php if ($isSwatch): ?>
+                                                    <span class="elme-filter-swatch elme-filter-swatch--<?= $escaper->escapeHtmlAttr($colourSwatch->getSwatchName($option->label)) ?>"
+                                                          aria-hidden="true"></span>
+                                                <?php endif; ?>
+                                                <span class="elme-filters__option-text"><?= $escaper->escapeHtml($optionLabel) ?></span>
+                                                <span class="elme-filters__count"
+                                                      data-count-code="<?= $escaper->escapeHtmlAttr($code) ?>"
+                                                      data-count-value="<?= $escaper->escapeHtmlAttr($option->value) ?>"><?= (int) $option->count ?></span>
+                                            </label>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                                <?php if ($filters->hasMoreOptions($facet)): ?>
+                                    <button type="button"
+                                            class="elme-filters__more"
+                                            data-code="<?= $escaper->escapeHtmlAttr($code) ?>"
+                                            aria-expanded="false"
+                                            @click="toggleMore">
+                                        <span data-more-label><?= $escaper->escapeHtml(__('Show all (%1)', count($facet->options))) ?></span>
+                                        <span data-less-label hidden><?= $escaper->escapeHtml(__('Show fewer')) ?></span>
+                                    </button>
+                                <?php endif; ?>
+                            <?php endif; ?>
+                        </fieldset>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <?php foreach ($filters->getKeptInputs() as $input): ?>
+                <input type="hidden"
+                       name="<?= $escaper->escapeHtmlAttr($input['name']) ?>"
+                       value="<?= $escaper->escapeHtmlAttr($input['value']) ?>"
+                       data-kept>
+            <?php endforeach; ?>
+
+            <div class="elme-drawer__footer elme-filters__footer">
+                <button type="button" class="btn btn-secondary elme-filters__clear" @click="clearForm">
+                    <?= $escaper->escapeHtml(__('Clear all')) ?>
+                </button>
+                <button type="submit" class="btn btn-primary elme-filters__apply" :aria-busy="ariaBusy">
+                    <span x-text="applyLabel"><?= $escaper->escapeHtml(
+                        $total === 1 ? $labels['one'] : ($total === 0 ? $labels['none'] : __('Show %1 products', $total))
+                    ) ?></span>
+                </button>
+            </div>
+        </form>
+    </dialog>
+</div>
+<script>
+    function initElmeFilters() {
+        return {
+            open: false,
+            total: null,
+            loading: false,
+            labels: {},
+            countUrl: '',
+            _timer: null,
+            _abort: null,
+            _opener: null,
+            _bar: null,
+            _start: null,
+            _pill: null,
+            _grid: null,
+            _desktop: null,
+            _anchor: 0,
+            _down: false,
+            _queued: false,
+
+            init() {
+                this.total = parseInt(this.$root.dataset.total, 10);
+                this.labels = JSON.parse(this.$root.dataset.labels || '{}');
+                this.countUrl = this.$root.dataset.countUrl || '';
+                this.initBars();
+            },
+
+            initBars() {
+                this._bar = this.$root.querySelector('[data-quickbar]');
+                this._start = this.$root.querySelector('[data-quickbar-start]');
+                this._pill = this.$root.querySelector('[data-filterpill]');
+                if (!this._bar || !this._start) {
+                    return;
+                }
+                const list = this._bar.closest('#product-list');
+                this._grid = list ? list.querySelector('.products') : null;
+                this._desktop = window.matchMedia('(min-width: 1025px)');
+                this._anchor = window.scrollY;
+                const queue = () => this.queueBars();
+                window.addEventListener('scroll', queue, {passive: true});
+                window.addEventListener('resize', queue, {passive: true});
+                this._desktop.addEventListener('change', queue);
+                // Tabbing into a tucked bar brings it back
+                this._bar.addEventListener('focusin', () => {
+                    this._down = false;
+                    this.queueBars();
+                });
+                this.updateBars();
+            },
+
+            // Read the scroll once per frame
+            queueBars() {
+                if (this._queued) {
+                    return;
+                }
+                this._queued = true;
+                requestAnimationFrame(() => {
+                    this._queued = false;
+                    this.updateBars();
+                });
+            },
+
+            updateBars() {
+                const y = window.scrollY;
+                // iOS rubber band: scrollY runs below 0 or past the end while bouncing
+                const maxY = document.documentElement.scrollHeight - window.innerHeight;
+                if (y < 0 || y > maxY + 1) {
+                    return;
+                }
+                // The anchor follows the furthest point in the current direction; about 8px back flips it
+                // (the same feel as the header row on phones)
+                if (this._down ? y >= this._anchor : y <= this._anchor) {
+                    this._anchor = y;
+                } else if (Math.abs(y - this._anchor) > 8) {
+                    this._down = y > this._anchor;
+                    this._anchor = y;
+                }
+                // The bar's place in the flow has scrolled past the top of the screen
+                const barPassed = this._start.getBoundingClientRect().top + this._bar.offsetHeight < 0;
+                if (this._desktop.matches) {
+                    this.toggleBar(this._bar, 'is-tucked', this._down && barPassed && !this.keepBar());
+                    this.toggleBar(this._pill, 'is-shown', false);
+                    return;
+                }
+                this.toggleBar(this._bar, 'is-tucked', false);
+                const overGrid = !!this._grid && this._grid.getBoundingClientRect().bottom > window.innerHeight * 0.6;
+                this.toggleBar(this._pill, 'is-shown', barPassed && overGrid && !this._down);
+            },
+
+            // Stays out while the drawer or the Sort list is open, or a keyboard user is in the bar
+            keepBar() {
+                const active = document.activeElement;
+                return this.open
+                    || !!this._bar.querySelector('.elme-select.is-open')
+                    || (!!active && this._bar.contains(active)
+                        && (active.tagName === 'SELECT' || active.matches(':focus-visible')));
+            },
+
+            toggleBar(node, className, on) {
+                if (node && node.classList.contains(className) !== on) {
+                    node.classList.toggle(className, on);
+                }
+            },
+
+            drawer() {
+                return this.$root.querySelector('dialog');
+            },
+
+            form() {
+                return this.$root.querySelector('form');
+            },
+
+            ariaExpanded() {
+                return this.open ? 'true' : 'false';
+            },
+
+            ariaBusy() {
+                return this.loading ? 'true' : 'false';
+            },
+
+            applyLabel() {
+                if (this.total === null || Number.isNaN(this.total)) {
+                    return this.labels.unknown;
+                }
+                if (this.total === 0) {
+                    return this.labels.none;
+                }
+                if (this.total === 1) {
+                    return this.labels.one;
+                }
+                return hyva.str(this.labels.many, this.total.toLocaleString());
+            },
+
+            motionMs() {
+                return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280;
+            },
+
+            openDrawer() {
+                const drawer = this.drawer();
+                if (!drawer || drawer.open) {
+                    return;
+                }
+                this.open = true;
+                this._opener = this.$event && this.$event.currentTarget ? this.$event.currentTarget : null;
+                drawer.showModal();
+                document.documentElement.classList.add('elme-filters-open');
+                const show = () => drawer.classList.add('is-shown');
+                if (this.motionMs() === 0) {
+                    show();
+                } else {
+                    requestAnimationFrame(() => requestAnimationFrame(show));
+                }
+                this.$nextTick(() => hyva.trapFocus(drawer));
+            },
+
+            closeDrawer() {
+                const drawer = this.drawer();
+                if (!drawer || !drawer.open || this._closing) {
+                    return;
+                }
+                this.open = false;
+                this._closing = true;
+                drawer.classList.remove('is-shown');
+                const finish = () => {
+                    this._closing = false;
+                    drawer.close();
+                    hyva.releaseFocus(drawer);
+                    document.documentElement.classList.remove('elme-filters-open');
+                    // Back to the button that opened it: the quick bar's All filters or the phone pill
+                    const opener = this._opener && this._opener.isConnected
+                        ? this._opener
+                        : this.$root.querySelector('[data-filters-toggle]');
+                    if (opener) {
+                        opener.focus();
+                    }
+                };
+                if (this.motionMs() === 0) {
+                    finish();
+                } else {
+                    setTimeout(finish, this.motionMs() + 40);
+                }
+            },
+
+            onDialogClick() {
+                // The dialog fills the viewport; a click outside the panel (on the scrim) closes it.
+                if (this.$event.target === this.drawer()) {
+                    this.closeDrawer();
+                }
+            },
+
+            toggleFacet() {
+                const button = this.$event.currentTarget;
+                const panel = document.getElementById(button.getAttribute('aria-controls'));
+                const isOpen = button.getAttribute('aria-expanded') === 'true';
+                button.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+                if (panel) {
+                    panel.hidden = isOpen;
+                }
+            },
+
+            toggleMore() {
+                const button = this.$event.currentTarget;
+                const code = button.dataset.code;
+                const expanded = button.getAttribute('aria-expanded') === 'true';
+                this.$root.querySelectorAll('[data-more]').forEach((item) => {
+                    if (item.dataset.more === code) {
+                        item.hidden = expanded;
+                    }
+                });
+                button.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+                button.querySelector('[data-more-label]').hidden = !expanded;
+                button.querySelector('[data-less-label]').hidden = expanded;
+            },
+
+            onFormChange() {
+                if (this.$event.target.type === 'checkbox') {
+                    this.scheduleCount(0);
+                }
+            },
+
+            onFormInput() {
+                if (this.$event.target.type === 'number') {
+                    this.scheduleCount(400);
+                }
+            },
+
+            clearForm() {
+                this.form().querySelectorAll('.elme-filters__facet input').forEach((input) => {
+                    if (input.type === 'checkbox') {
+                        input.checked = false;
+                    } else {
+                        input.value = '';
+                    }
+                });
+                this.scheduleCount(0);
+            },
+
+            /**
+             * PHP rawurlencode(): encodeURIComponent leaves ! ' ( ) * as they are.
+             */
+            encode(value) {
+                return encodeURIComponent(value).replace(/[!'()*]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase());
+            },
+
+            formatNumber(raw) {
+                const value = parseFloat(String(raw).replace(',', '.'));
+                if (!Number.isFinite(value) || value < 0) {
+                    return '';
+                }
+                return String(Number(value.toFixed(2)));
+            },
+
+            /**
+             * Facet parameters in config order (the order of the facets in the drawer); one value as a scalar,
+             * several as code[]=, values sorted like PHP sort(SORT_STRING); ranges as code=min-max.
+             * Same rules as Elme\Search\ViewModel\ListingFilters::buildUrl().
+             */
+            facetParts() {
+                const parts = [];
+                this.form().querySelectorAll('.elme-filters__facet').forEach((facet) => {
+                    const code = facet.dataset.facet;
+                    if (facet.dataset.type === 'range') {
+                        let min = this.formatNumber(facet.querySelector('[data-bound="min"]').value);
+                        let max = this.formatNumber(facet.querySelector('[data-bound="max"]').value);
+                        if (min !== '' && max !== '' && parseFloat(min) > parseFloat(max)) {
+                            [min, max] = [max, min];
+                        }
+                        if (min !== '' || max !== '') {
+                            parts.push(this.encode(code) + '=' + this.encode(min + '-' + max));
+                        }
+                        return;
+                    }
+                    const values = Array.from(facet.querySelectorAll('input[type="checkbox"]:checked'))
+                        .map((input) => input.value)
+                        .filter((value, index, all) => all.indexOf(value) === index)
+                        .sort((a, b) => (a < b ? -1 : (a > b ? 1 : 0)));
+                    if (values.length === 1) {
+                        parts.push(this.encode(code) + '=' + this.encode(values[0]));
+                        return;
+                    }
+                    values.forEach((value) => parts.push(this.encode(code) + '[]=' + this.encode(value)));
+                });
+                return parts;
+            },
+
+            apply() {
+                const parts = this.facetParts();
+                this.form().querySelectorAll('input[data-kept]').forEach((input) => {
+                    parts.push(this.encode(input.name) + '=' + this.encode(input.value));
+                });
+                const base = this.form().getAttribute('action');
+                window.location.href = base + (parts.length ? '?' + parts.join('&') : '');
+            },
+
+            scheduleCount(delay) {
+                clearTimeout(this._timer);
+                this._timer = setTimeout(() => this.fetchCount(), delay);
+            },
+
+            fetchCount() {
+                if (!this.countUrl) {
+                    this.total = null;
+                    return;
+                }
+                if (this._abort) {
+                    this._abort.abort();
+                }
+                this._abort = new AbortController();
+                const parts = this.facetParts();
+                const url = this.countUrl + (parts.length ? (this.countUrl.indexOf('?') === -1 ? '?' : '&') + parts.join('&') : '');
+                this.loading = true;
+                fetch(url, {headers: {Accept: 'application/json'}, signal: this._abort.signal})
+                    .then((response) => (response.ok ? response.json() : Promise.reject(response.status)))
+                    .then((data) => {
+                        this.loading = false;
+                        this.total = typeof data.total === 'number' ? data.total : null;
+                        this.updateCounts(data.facets || {});
+                        this.updateRangeHints(data.ranges || {});
+                    })
+                    .catch((error) => {
+                        if (error && error.name === 'AbortError') {
+                            return;
+                        }
+                        this.loading = false;
+                        this.total = null;
+                    });
+            },
+
+            updateCounts(facets) {
+                this.$root.querySelectorAll('[data-count-code]').forEach((node) => {
+                    const counts = facets[node.dataset.countCode] || {};
+                    const count = counts[node.dataset.countValue] || 0;
+                    node.textContent = String(count);
+                    const option = node.closest('.elme-filters__option');
+                    const input = option ? option.querySelector('input') : null;
+                    if (option) {
+                        option.classList.toggle('is-empty', count === 0 && !(input && input.checked));
+                    }
+                });
+            },
+
+            updateRangeHints(ranges) {
+                Object.keys(ranges).forEach((code) => {
+                    const facet = this.$root.querySelector('.elme-filters__facet[data-facet="' + code + '"]');
+                    const range = ranges[code];
+                    if (!facet || range.min === null || range.max === null) {
+                        return;
+                    }
+                    ['min', 'max'].forEach((bound) => {
+                        const value = this.formatNumber(range[bound]);
+                        const input = facet.querySelector('[data-bound="' + bound + '"]');
+                        const hint = facet.querySelector('[data-hint="' + bound + '"]');
+                        if (input) {
+                            input.placeholder = value;
+                        }
+                        if (hint) {
+                            hint.textContent = value;
+                        }
+                    });
+                });
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeFilters', initElmeFilters), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

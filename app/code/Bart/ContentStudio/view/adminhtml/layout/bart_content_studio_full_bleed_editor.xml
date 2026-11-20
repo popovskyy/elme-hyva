@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+ Full-bleed for pages that build their own toolbar (the editor, the type
+ picker, the import page): everything the base handle strips, plus the stock
+ page actions container, which would otherwise render an empty bar above our
+ own toolbar. Grid pages must NOT use this handle - see the base handle's
+ comment for why.
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="bart_content_studio_full_bleed"/>
+    <body>
+        <attribute name="class" value="studio-editor-page"/>
+        <referenceContainer name="page.main.actions" remove="true"/>
+    </body>
+</page>

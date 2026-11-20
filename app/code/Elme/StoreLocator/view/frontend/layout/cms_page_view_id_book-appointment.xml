@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-90: /book-appointment - showroom appointment form under the CMS page copy.
+ * Not cacheable: the form is prefilled from the trade account and shows the sent request once.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="elme_content_page_seo"/>
+    <body>
+        <referenceContainer name="content">
+            <block name="elme.showroom.appointment"
+                   template="Elme_StoreLocator::appointment/form.phtml"
+                   after="cms_page"
+                   cacheable="false">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">Elme\StoreLocator\ViewModel\AppointmentForm</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

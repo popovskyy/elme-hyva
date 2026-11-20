@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!--
+    No types of its own. Content types are declared by the modules that render
+    them (Elme types: Elme_Theme/etc/content_types.xml); the reader merges every
+    module's content_types.xml.
+-->
+<content_types xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:noNamespaceSchemaLocation="urn:magento:module:Bart_ContentStudio:etc/content_types.xsd"/>

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!--
+    FE-21: Page Builder's page_layout/catalog_category_view.xml is merged after theme layouts and sets
+    2columns-left. Filters are a drawer, so the category page is one column (no empty sidebar).
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="category.view.container">
+            <referenceBlock name="category.description" template="Magento_PageBuilder::catalog/category/view/description.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="elme_search" translate="label" sortOrder="95" showInDefault="1"
+                 showInWebsite="1" showInStore="1">
+            <label>Product Search</label>
+            <tab>elme</tab>
+            <resource>Magento_CatalogSearch::config_catalog_search</resource>
+            <group id="general" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Storefront</label>
+                <field id="engine" translate="label comment" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Listings and search from</label>
+                    <source_model>Elme\Search\Model\Config\Source\Engine</source_model>
+                    <comment>Elme product search: category pages and search results take products, order, total and facets from ProductSearchInterface (index elme_products_[store], run bin/magento elme:search:reindex first). If it fails, the page falls back to Magento catalog search.</comment>
+                </field>
+            </group>
+            <group id="opensearch" translate="label" sortOrder="20" showInDefault="1">
+                <label>OpenSearch adapter</label>
+                <field id="hostname" translate="label comment" type="text" sortOrder="10" showInDefault="1">
+                    <label>Hostname</label>
+                    <comment>Empty = the Magento catalog search connection (Stores > Configuration > Catalog > Catalog Search).</comment>
+                </field>
+                <field id="port" translate="label" type="text" sortOrder="20" showInDefault="1">
+                    <label>Port</label>
+                </field>
+                <field id="timeout" translate="label" type="text" sortOrder="30" showInDefault="1">
+                    <label>Timeout (seconds)</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                </field>
+                <field id="index_prefix" translate="label comment" type="text" sortOrder="40" showInDefault="1">
+                    <label>Index prefix</label>
+                    <comment>Index alias = prefix_storeId, default elme_products_1.</comment>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

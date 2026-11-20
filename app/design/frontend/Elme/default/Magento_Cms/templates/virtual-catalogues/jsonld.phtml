@@ -1,0 +1,20 @@
+<?php
+/**
+ * FE-50: CollectionPage / ItemList / BreadcrumbList JSON-LD (guest-safe — no flipbook URLs).
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\VirtualCatalogues;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+
+$catalogues = $viewModels->require(VirtualCatalogues::class);
+if (!$catalogues->isVirtualCataloguesPage()) {
+    return;
+}
+?>
+<script type="application/ld+json"><?= /* @noEscape */ $catalogues->getJsonLdScript() ?></script>

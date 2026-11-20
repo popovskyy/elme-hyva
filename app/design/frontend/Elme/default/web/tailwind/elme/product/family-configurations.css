@@ -1,0 +1,277 @@
+/*
+ * FE-84 configuration picker of the PDP (Elme_ProductFamily product/view/configurations.phtml): a slider of the
+ * other configurations of a design (modules, armchair, ottoman, 2 to 6 seaters) and the "See all configurations"
+ * dialog. Cards are links to the product page, square like the rest of the theme; the current one is marked.
+ * The label reuses .elme-family__name / __value of family-swatches.css.
+ */
+@layer components {
+    /* same place as the swatches: above the buy box, DOM order kept (all three are order -1) */
+    .elme-configs {
+        display: grid;
+        gap: --spacing(3);
+        order: -1;
+    }
+
+    .elme-configs__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: --spacing(3);
+    }
+
+    .elme-configs__label {
+        min-width: 0;
+        margin: 0;
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+
+        @variant lg {
+            font-size: var(--text-copy-desktop);
+        }
+    }
+
+    .elme-configs__nav {
+        display: flex;
+        flex: none;
+        gap: --spacing(2);
+    }
+
+    /* the 44px hit area is the whole button; the nav is a bit smaller than a full icon button */
+    .elme-configs__nav .elme-ib {
+        width: --spacing(10);
+        height: --spacing(10);
+    }
+
+    .elme-configs__track {
+        display: flex;
+        gap: --spacing(3);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+    }
+
+    .elme-configs__slide {
+        flex: none;
+        width: --spacing(36);
+        scroll-snap-align: start;
+
+        @variant lg {
+            width: --spacing(40);
+        }
+    }
+
+    /* card: photo + name */
+    .elme-config {
+        display: grid;
+        gap: --spacing(2);
+        align-content: start;
+        color: var(--color-ink);
+        text-decoration: none;
+    }
+
+    .elme-config__photo {
+        display: block;
+        aspect-ratio: 1;
+        border: 1px solid var(--color-border);
+        background: var(--color-surface-muted);
+        overflow: hidden;
+        transition: border-color var(--transition-duration-fast) var(--ease-out-quad);
+    }
+
+    .elme-config__img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .elme-config__name {
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        overflow-wrap: anywhere;
+    }
+
+    a.elme-config:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        a.elme-config:hover .elme-config__photo {
+            border-color: var(--color-ink);
+        }
+
+        a.elme-config:hover .elme-config__name {
+            text-decoration: underline;
+            text-underline-offset: --spacing(0.75);
+        }
+    }
+
+    .elme-config.is-selected .elme-config__photo {
+        border-color: var(--color-ink);
+        box-shadow: inset 0 0 0 1px var(--color-ink);
+    }
+
+    .elme-config.is-selected .elme-config__name {
+        font-weight: 500;
+    }
+
+    .elme-configs__all {
+        justify-self: start;
+        padding-block: --spacing(1);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        text-decoration: underline;
+        text-underline-offset: --spacing(0.75);
+        cursor: pointer;
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+    }
+
+    /* ---------- dialog: bottom sheet below md, centred panel from md ---------- */
+    .elme-configs-dialog {
+        width: 100%;
+        max-width: 100%;
+        max-height: 92dvh;
+        margin: auto 0 0;
+        padding: 0;
+        border: 0;
+        background-color: var(--color-surface);
+        color: var(--color-ink);
+        box-shadow: 0 --spacing(6) --spacing(15) color-mix(in srgb, var(--color-ink) 22%, transparent);
+        overscroll-behavior: contain;
+
+        &[open] {
+            display: flex;
+            flex-direction: column;
+        }
+
+        &::backdrop {
+            background-color: color-mix(in srgb, var(--color-ink) 50%, transparent);
+        }
+
+        @variant md {
+            max-width: --spacing(180);
+            max-height: min(--spacing(195), 90dvh);
+            margin: auto;
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            &[open] {
+                animation: elme-configs-sheet-in var(--transition-duration-slow) var(--ease-out-quint) both;
+            }
+
+            &[open]::backdrop {
+                animation: elme-configs-fade-in var(--transition-duration-base) var(--ease-out-quad) both;
+            }
+
+            @variant md {
+                &[open] {
+                    animation-name: elme-configs-dialog-in;
+                    animation-duration: var(--transition-duration-base);
+                }
+            }
+        }
+    }
+
+    .elme-configs-dialog__panel {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    .elme-configs-dialog__head {
+        display: flex;
+        flex: none;
+        align-items: flex-start;
+        gap: --spacing(3);
+        padding: --spacing(4) --spacing(5);
+        border-block-end: 1px solid var(--color-border);
+
+        @variant md {
+            padding: --spacing(5) --spacing(6);
+        }
+
+        .elme-ib {
+            margin-block: calc(--spacing(1) * -1);
+            margin-inline-end: calc(--spacing(2) * -1);
+        }
+    }
+
+    .elme-configs-dialog__title {
+        margin: 0;
+        font-family: var(--font-sans);
+        font-size: var(--text-h3);
+        line-height: 1.2;
+        font-weight: 400;
+
+        @variant md {
+            font-size: var(--text-h3-desktop);
+        }
+    }
+
+    .elme-configs-dialog__sub {
+        margin: --spacing(1) 0 0;
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        color: var(--color-ink-muted);
+    }
+
+    .elme-configs-dialog__grid {
+        display: grid;
+        flex: 1;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: --spacing(4) --spacing(3);
+        min-height: 0;
+        margin: 0;
+        padding: --spacing(5);
+        list-style: none;
+        overflow-y: auto;
+
+        @variant md {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: --spacing(6) --spacing(4);
+            padding: --spacing(6);
+        }
+
+        @variant xl {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
+    }
+
+    @keyframes elme-configs-fade-in {
+        from {
+            opacity: 0;
+        }
+    }
+
+    @keyframes elme-configs-sheet-in {
+        from {
+            transform: translateY(100%);
+        }
+    }
+
+    @keyframes elme-configs-dialog-in {
+        from {
+            opacity: 0;
+            transform: translateY(--spacing(2)) scale(0.98);
+        }
+    }
+}

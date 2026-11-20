@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Core wishlist and compare are not part of the Elme product card.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="product_list_item">
+            <arguments>
+                <argument name="hyva_js_block_dependencies" xsi:type="array">
+                    <item name="category.products.list.js.wishlist" xsi:type="boolean">false</item>
+                    <item name="category.products.list.js.compare" xsi:type="boolean">false</item>
+                </argument>
+            </arguments>
+        </referenceBlock>
+        <referenceBlock name="catalog.list.item.wishlist" remove="true"/>
+        <referenceBlock name="category.products.list.js.compare" remove="true"/>
+        <referenceBlock name="category.products.list.js.wishlist" remove="true"/>
+    </body>
+</page>

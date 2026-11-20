@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!--
+ Shared full-bleed base for every Content Studio page: strips the visible
+ Magento admin chrome and puts our own top bar in its place.
+
+ Controllers stay ordinary Magento admin actions (ACL, session, CSRF/form
+ key, RequireJS bootstrap all still apply); only the *visible* chrome blocks
+ from Magento_Backend::default.xml / admin-1column.xml are removed.
+ page.formkey, page.messages and the after.body.start/before.body.end script
+ containers are deliberately left alone.
+
+ page.main.actions is deliberately NOT removed here: ui_component listings
+ register their toolbar buttons into the page.actions.toolbar block that
+ lives inside it (Magento\Ui\Component\Control\ActionPool), and it drops them
+ silently if that block is missing. Pages that build their own toolbar use
+ bart_content_studio_full_bleed_editor instead, which removes it.
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="bart_content_studio_default"/>
+    <body>
+        <attribute name="class" value="studio-page"/>
+        <referenceContainer name="notices.wrapper" remove="true"/>
+        <referenceContainer name="header" remove="true"/>
+        <referenceContainer name="page.menu" remove="true"/>
+        <referenceContainer name="page.breadcrumbs" remove="true"/>
+        <referenceContainer name="footer" remove="true"/>
+        <!-- The adminhtml theme's own default.xml MOVES these out of the parents
+             they are declared in (page.title and notification.messages into
+             header, logo into menu.wrapper) before this handle merges, so
+             removing those parents does not take them down - each has to be
+             named explicitly. This is the same fix Magento's own admin_login.xml
+             applies, for the same reason. menu.wrapper goes too: it is otherwise
+             an empty container that still paints a full-height fixed dark bar
+             down the left edge via .menu-wrapper::before. -->
+        <referenceBlock name="page.title" remove="true"/>
+        <referenceBlock name="notification.messages" remove="true"/>
+        <referenceBlock name="logo" remove="true"/>
+        <referenceContainer name="menu.wrapper" remove="true"/>
+        <referenceContainer name="main.top">
+            <block class="Bart\ContentStudio\Block\Adminhtml\TopBar" name="bart_content_studio.top_bar"
+                   template="Bart_ContentStudio::top-bar.phtml"/>
+            <!-- After the top bar, which carries the icon sprite the splash
+                 references via <use href="#studio-icon-mark">. -->
+            <block class="Bart\ContentStudio\Block\Adminhtml\Splash" name="bart_content_studio.splash"
+                   template="Bart_ContentStudio::splash.phtml" after="bart_content_studio.top_bar"/>
+        </referenceContainer>
+    </body>
+</page>

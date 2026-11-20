@@ -1,0 +1,58 @@
+/*
+ * FE-99: SKU copy control. Looks like plain muted text; tap copies, "Copied" replaces briefly.
+ * Both labels share one grid cell so the control keeps the SKU width (no layout jump).
+ */
+
+@layer components {
+    .elme-copy-sku {
+        display: inline-grid;
+        justify-items: start;
+        align-items: baseline;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        line-height: inherit;
+        text-align: inherit;
+        cursor: pointer;
+        user-select: text;
+        -webkit-tap-highlight-color: transparent;
+        transition: color var(--transition-duration-fast) var(--ease-out-quad);
+    }
+
+    .elme-copy-sku:hover {
+        color: var(--color-ink);
+    }
+
+    .elme-copy-sku:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    .elme-copy-sku.is-copied {
+        color: var(--color-ink);
+        user-select: none;
+    }
+
+    .elme-copy-sku__text,
+    .elme-copy-sku__done {
+        grid-area: 1 / 1;
+    }
+
+    .elme-copy-sku__done {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .elme-copy-sku.is-copied .elme-copy-sku__text {
+        opacity: 0;
+        user-select: none;
+    }
+
+    .elme-copy-sku.is-copied .elme-copy-sku__done {
+        opacity: 1;
+    }
+}

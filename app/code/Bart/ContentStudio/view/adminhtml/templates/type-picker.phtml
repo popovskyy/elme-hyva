@@ -1,0 +1,102 @@
+<?php
+/**
+ * @var \Bart\ContentStudio\Block\Adminhtml\TypePicker $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$types = $block->getStandaloneTypes();
+$comingSoon = $block->getComingSoonTypes();
+?>
+<div class="studio-type-picker" data-studio-type-picker>
+    <?php if ($types === [] && $comingSoon === []): ?>
+        <p class="studio-type-picker__empty">
+            <?= $escaper->escapeHtml(__('No content types are registered yet.')) ?>
+        </p>
+    <?php else: ?>
+        <div class="studio-type-picker__head">
+            <h1 class="studio-type-picker__heading"><?= $escaper->escapeHtml(__('New entry')) ?></h1>
+            <p class="studio-type-picker__lede">
+                <?= $escaper->escapeHtml(__('Pick the kind of content you want to build.')) ?>
+            </p>
+        </div>
+        <?php
+        /*
+         * One grid, real and locked types together: each card carries its own
+         * state (an icon + arrow for a buildable type, a badge for a locked
+         * one), so nothing external - a section heading, a legend - is needed
+         * to tell them apart. That also means the grid keeps reading as a
+         * catalogue at N=1 real type instead of one card floating alone with
+         * a separate "Coming soon" island below it.
+         */
+        ?>
+        <div class="studio-type-picker__grid">
+            <?php foreach ($types as $code => $type): ?>
+                <a class="studio-type-picker__card"
+                   href="<?= $escaper->escapeUrl($block->getEditUrl((string)$code)) ?>">
+                    <svg class="studio-type-picker__icon" aria-hidden="true" focusable="false">
+                        <use href="#<?= $escaper->escapeHtmlAttr($block->getIconSymbol($type)) ?>"></use>
+                    </svg>
+                    <span class="studio-type-picker__card-title">
+                        <?= $escaper->escapeHtml($type['label'] ?? $code) ?>
+                    </span>
+                    <?php if (!empty($type['description'])): ?>
+                        <span class="studio-type-picker__card-desc">
+                            <?= $escaper->escapeHtml($type['description']) ?>
+                        </span>
+                    <?php endif; ?>
+                    <svg class="studio-type-picker__arrow" aria-hidden="true" focusable="false">
+                        <use href="#studio-icon-chevron"></use>
+                    </svg>
+                </a>
+            <?php endforeach; ?>
+
+            <?php
+            /*
+             * Not real content types - nothing is registered, there is
+             * nowhere to navigate - so these are buttons, not links, and are
+             * marked aria-disabled rather than actually disabled: a disabled
+             * element cannot receive focus or a click, and the whole point is
+             * that clicking one still does something (the toast). The badge
+             * is the only status marker - it used to be duplicated with a
+             * section heading above and an "In progress" pill below, saying
+             * the same thing twice.
+             */
+            ?>
+            <?php foreach ($comingSoon as $type): ?>
+                <button type="button"
+                        class="studio-type-picker__card studio-type-picker__card--locked"
+                        aria-disabled="true"
+                        data-coming-soon
+                        data-coming-soon-label="<?= $escaper->escapeHtmlAttr($type['label']) ?>">
+                    <span class="studio-type-picker__badge">
+                        <svg class="studio-type-picker__badge-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <rect x="5" y="11" width="14" height="10" rx="2.5"/>
+                            <path d="M8 11V7.5a4 4 0 0 1 8 0V11" fill="none"/>
+                        </svg>
+                        <?= $escaper->escapeHtml(__('Coming soon')) ?>
+                    </span>
+                    <svg class="studio-type-picker__icon" aria-hidden="true" focusable="false">
+                        <use href="#<?= $escaper->escapeHtmlAttr($block->getIconSymbol($type)) ?>"></use>
+                    </svg>
+                    <span class="studio-type-picker__card-title">
+                        <?= $escaper->escapeHtml($type['label']) ?>
+                    </span>
+                    <?php if (!empty($type['description'])): ?>
+                        <span class="studio-type-picker__card-desc">
+                            <?= $escaper->escapeHtml($type['description']) ?>
+                        </span>
+                    <?php endif; ?>
+                </button>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</div>
+
+<?php if ($comingSoon !== []): ?>
+    <script type="text/x-magento-init">
+    {
+        "[data-studio-type-picker]": {
+            "Bart_ContentStudio/js/type-picker": {}
+        }
+    }
+    </script>
+<?php endif; ?>

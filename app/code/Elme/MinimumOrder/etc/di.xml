@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Elme\Checkout\Model\PlaceOrderValidatorPool">
+        <arguments>
+            <argument name="validators" xsi:type="array">
+                <item name="minimum_order_value" xsi:type="object">Elme\MinimumOrder\Model\Validator\MinimumOrderValue</item>
+            </argument>
+        </arguments>
+    </type>
+    <!-- Core's own check (before /checkout opens) answers with the customer's minimum too -->
+    <type name="Magento\Quote\Model\Quote">
+        <plugin name="elme_minimum_order_use_customer_minimum"
+                type="Elme\MinimumOrder\Plugin\UseCustomerMinimumPlugin"/>
+    </type>
+</config>

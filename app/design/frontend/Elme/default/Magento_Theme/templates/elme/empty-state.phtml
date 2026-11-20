@@ -1,0 +1,55 @@
+<?php
+/**
+ * Empty-state block (cart empty, no search results, no saved lists, …).
+ *
+ * Block data:
+ * - title       (string, required)
+ * - text        (string, optional supporting sentence)
+ * - icon        (string, Lucide icon method name without Html, default "inbox")
+ * - cta_label   (string, optional)
+ * - cta_url     (string, optional; used with cta_label)
+ * - cta_class   (string, default "btn btn-primary")
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+$title = (string) $block->getData('title');
+$text = (string) $block->getData('text');
+$icon = (string) ($block->getData('icon') ?: 'inbox');
+$ctaLabel = (string) $block->getData('cta_label');
+$ctaUrl = (string) $block->getData('cta_url');
+$ctaClass = (string) ($block->getData('cta_class') ?: 'btn btn-primary');
+
+$iconMethod = $icon . 'Html';
+$iconHtml = method_exists($lucideIcons, $iconMethod)
+    ? $lucideIcons->{$iconMethod}('elme-empty__icon', 64, 64, ['aria-hidden' => 'true'])
+    : $lucideIcons->inboxHtml('elme-empty__icon', 64, 64, ['aria-hidden' => 'true']);
+?>
+<div class="elme-empty" role="status">
+    <?= /* @noEscape */ $iconHtml ?>
+    <?php if ($title !== ''): ?>
+        <h2 class="elme-empty__title"><?= $escaper->escapeHtml($title) ?></h2>
+    <?php endif; ?>
+    <?php if ($text !== ''): ?>
+        <p class="elme-empty__text"><?= $escaper->escapeHtml($text) ?></p>
+    <?php endif; ?>
+    <?php if ($ctaLabel !== '' && $ctaUrl !== ''): ?>
+        <div class="elme-empty__actions">
+            <a href="<?= $escaper->escapeUrl($ctaUrl) ?>" class="<?= $escaper->escapeHtmlAttr($ctaClass) ?>">
+                <?= $escaper->escapeHtml($ctaLabel) ?>
+            </a>
+        </div>
+    <?php endif; ?>
+    <?= $block->getChildHtml() ?>
+</div>

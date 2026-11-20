@@ -1,0 +1,242 @@
+{
+  "notice": [
+    "This is a complementary config file for Tailwind v4 and is not a replacement for the Tailwind v3 config file.",
+    "For usage, see the docs: https://docs.hyva.io/hyva-themes/working-with-tailwindcss/using-hyva-modules/",
+    "UX-15: primary and ink share #3A3935 — primary = action fill, ink = text. Soft line = color.border; strong line = form.stroke.",
+    "UX-16: status = success|warning|error|info, each with ground / mark / text (from the old toast set). Olive is brand only. Promo #CB4867 is sale only, never error."
+  ],
+  "tailwind": {
+    "include": [
+      {
+        "src": "vendor/hyva-themes/magento2-default-theme"
+      },
+      {
+        "src": "app/code/Elme/LoginOnly"
+      },
+      {
+        "src": "app/code/Elme/Checkout"
+      },
+      {
+        "src": "app/code/Elme/Theme"
+      },
+      {
+        "src": "app/code/Elme/QuickOrder"
+      },
+      {
+        "src": "app/code/Elme/ProductFamily"
+      },
+      {
+        "src": "app/code/Elme/RecentlyViewed"
+      },
+      {
+        "src": "app/code/Elme/ProductCarousel"
+      },
+      {
+        "src": "app/code/Elme/StoreLocator"
+      },
+      {
+        "src": "app/code/Bart/ContentStudio/view/frontend"
+      },
+      {
+        "src": "app/code/Bart/ContentStudio/Controller/Adminhtml/Entry/PreviewFrame.php"
+      }
+    ],
+    "exclude": [
+      {
+        "src": "vendor/snowdog/module-menu",
+        "comment": "Snowdog TW source uses hover:snowdog-menu-text-hover (@apply) which fails on Tailwind v4; Elme ships its own menu CSS (FE-08/FE-09)"
+      }
+    ]
+  },
+  "tokens": {
+    "values": {
+      "color": {
+        "primary": "#3A3935",
+        "on-primary": "#FFFFFF",
+        "secondary": "#ADBBA1",
+        "on-secondary": "#3A3935",
+        "tertiary": "#D4C8B3",
+        "accent": "#98A8BB",
+        "accent-dark": "#68839C",
+        "ink": "#3A3935",
+        "ink-muted": "#605E55",
+        "ink-subtle": "#6F6D64",
+        "link-hover": "#5F6E67",
+        "page": "#F5F4EF",
+        "surface": "#FFFFFF",
+        "surface-muted": "#F1F0EA",
+        "sand-light": "#E1DBD1",
+        "border": "#D8D5CE",
+        "placeholder": "#64625A",
+        "olive": "#647455",
+        "success-ground": "#E2E8DB",
+        "success-mark": "#5D6C4F",
+        "success-text": "#4A5740",
+        "warning-ground": "#EEE6D6",
+        "warning-mark": "#7A5F34",
+        "warning-text": "#5C4726",
+        "error-ground": "#F1DDD5",
+        "error-mark": "#A5473B",
+        "error-text": "#8A3A30",
+        "info-ground": "#E1E7EC",
+        "info-mark": "#4E6579",
+        "info-text": "#3E5161",
+        "promo": "#CB4867",
+        "swatch-beige": "#C9B894",
+        "swatch-brown": "#7A5A3C",
+        "swatch-white": "#F5F5F1",
+        "swatch-black": "#1C1C1C",
+        "swatch-red": "#B84848",
+        "swatch-green": "#6B8068",
+        "swatch-light-grey": "#C5C7CC",
+        "swatch-mid-grey": "#9A9EA2",
+        "swatch-yellow": "#D4A650",
+        "swatch-charcoal": "#2A2D30",
+        "swatch-blue": "#4A6B8C",
+        "swatch-other": "#CCCCCC"
+      },
+      "text": {
+        "display": "2.25rem",
+        "display--line-height": "1.15",
+        "display-desktop": "3.5rem",
+        "display-serif--line-height": "1.2",
+        "h1": "1.75rem",
+        "h1--line-height": "1.2",
+        "h1-desktop": "2.5rem",
+        "h2": "1.375rem",
+        "h2--line-height": "1.25",
+        "h2-desktop": "1.75rem",
+        "h3": "1.125rem",
+        "h3--line-height": "1.25",
+        "h3-desktop": "1.375rem",
+        "h4": "1rem",
+        "h4--line-height": "1.25",
+        "h4-desktop": "1.125rem",
+        "copy": "0.875rem",
+        "copy--line-height": "1.45",
+        "copy-desktop": "0.9375rem",
+        "note": "0.8125rem",
+        "note--line-height": "1.4",
+        "label": "0.6875rem",
+        "label--line-height": "1.4"
+      },
+      "category-banner": {
+        "content-max": "36rem",
+        "height": "15rem",
+        "height-desktop": "28rem",
+        "radius": "0"
+      },
+      "breakpoint": {
+        "sm": "480px",
+        "md": "768px",
+        "lg": "1025px",
+        "xl": "1280px",
+        "2xl": "1440px",
+        "3xl": "1920px"
+      },
+      "container": {
+        "max-width": "1920px",
+        "gutter": "20px",
+        "gutter-desktop": "40px"
+      },
+      "aside": {
+        "width": "240px",
+        "width-desktop": "288px"
+      },
+      "help": {
+        "main-max": "42.5rem",
+        "content-max": "52rem",
+        "shell-max": "79rem"
+      },
+      "content": {
+        "measure": "50rem"
+      },
+      "radius": {
+        "xs": "0px",
+        "sm": "0px",
+        "md": "0px",
+        "lg": "0px",
+        "xl": "0px",
+        "2xl": "0px",
+        "3xl": "0px",
+        "4xl": "0px",
+        "menu": "0px",
+        "menu-promo": "0px",
+        "leaf": "16px",
+        "leaf-sm": "10px",
+        "leaf-xs": "4px",
+        "leaf-lg": "32px"
+      },
+      "form": {
+        "radius": "0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm)",
+        "stroke": "#8A8888",
+        "bg": "transparent",
+        "color": "#3A3935",
+        "active-color": "#3A3935",
+        "py": "14px",
+        "px": "12px",
+        "height": "50px"
+      },
+      "btn": {
+        "min-height": "50px",
+        "padding-x": "24px",
+        "font-size": "0.9375rem",
+        "letter-spacing": "0.5px"
+      },
+      "ease": {
+        "out-quad": "cubic-bezier(.25, .46, .45, .94)",
+        "out-quart": "cubic-bezier(.165, .84, .44, 1)",
+        "out-quint": "cubic-bezier(.23, 1, .32, 1)",
+        "in-out-cubic": "cubic-bezier(.645, .045, .355, 1)",
+        "in-quart": "cubic-bezier(.895, .03, .685, .22)",
+        "soft": "cubic-bezier(.4, 0, .2, 1)"
+      },
+      "transition-duration": {
+        "micro": "120ms",
+        "fast": "180ms",
+        "base": "240ms",
+        "slow": "300ms",
+        "calm": "450ms",
+        "long": "600ms"
+      }
+    }
+  },
+  "fonts": [
+    {
+      "provider": "fontsource",
+      "name": "Figtree",
+      "cssVariable": "--font-sans",
+      "styles": ["normal"],
+      "weights": ["300 900"],
+      "subsets": ["latin"],
+      "fallbacks": [
+        "Arial",
+        "ui-sans-serif",
+        "system-ui",
+        "sans-serif"
+      ],
+      "preload": true,
+      "adjustFallback": true
+    },
+    {
+      "provider": "local",
+      "name": "Fraunces",
+      "cssVariable": "--font-display",
+      "fallbacks": [
+        "Georgia",
+        "Times New Roman",
+        "serif"
+      ],
+      "preload": false,
+      "adjustFallback": true,
+      "variants": [
+        {
+          "weight": "100 900",
+          "style": "normal",
+          "src": "fraunces/fraunces-latin-soft-normal.woff2",
+          "unicodeRange": "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+        }
+      ]
+    }
+  ]
+}

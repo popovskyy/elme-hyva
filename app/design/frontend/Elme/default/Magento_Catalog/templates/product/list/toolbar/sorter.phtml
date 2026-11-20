@@ -1,0 +1,29 @@
+<?php
+/**
+ * FE-20: Sort select; the options are toolbar/sorter-options.phtml. Labels are not headings.
+ */
+
+declare(strict_types=1);
+
+use Magento\Catalog\Block\Product\ProductList\Toolbar;
+use Magento\Framework\Escaper;
+
+/** @var Toolbar $block */
+/** @var Escaper $escaper */
+
+$sorterId = 'sorter-' . uniqid();
+?>
+<div class="toolbar-sorter sorter flex items-center order-1 col-span-4 sm:col-span-5
+        md:col-span-2 lg:col-span-5 justify-end gap-2">
+    <label class="inline-flex items-center gap-2 text-copy text-ink" for="<?= $escaper->escapeHtmlAttr($sorterId) ?>">
+        <span class="whitespace-nowrap"><?= $escaper->escapeHtml(__('Sort by')) ?></span>
+        <select id="<?= $escaper->escapeHtmlAttr($sorterId) ?>"
+                data-role="sorter"
+                name="sorter"
+                class="form-select sorter-options"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Sort By')) ?>"
+                @change="onSortChange">
+            <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/sorter-options.phtml')) ?>
+        </select>
+    </label>
+</div>

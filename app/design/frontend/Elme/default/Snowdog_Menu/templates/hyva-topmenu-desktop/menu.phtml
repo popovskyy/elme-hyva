@@ -1,0 +1,63 @@
+<?php
+/**
+ * FE-08: Elme desktop mega menu (Snowdog Menu, identifier hyva-topmenu-desktop).
+ * Hover open with delay (no diagonal flicker), keyboard Tab/Enter/Esc, panel to level 3.
+ * The panels themselves are printed after the page content (panels.phtml) so the hero
+ * is not stuck behind the menu HTML.
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Snowdog\Menu\Block\Menu;
+
+/** @var Menu $block */
+/** @var Escaper $escaper */
+
+$menu = $block->getMenu();
+?>
+<?php if ($menu): ?>
+    <?php
+    $menuClass = $menu->getCssClass() ?: 'main-menu';
+    ?>
+    <div class="<?= $escaper->escapeHtmlAttr($menuClass) ?> navigation hidden lg:block grow min-w-0"
+         x-data="initElmeMegaMenu"
+         x-bind="menuListeners">
+        <nav class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__nav"
+             aria-label="<?= $escaper->escapeHtmlAttr(__('Main menu')) ?>">
+            <ul class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__list flex flex-nowrap items-center h-full">
+                <?php foreach ($block->getNodes() as $node): ?>
+                    <?php
+                    $childrenLevel = $node->getLevel() + 1;
+                    $children = $block->getNodes($childrenLevel, $node);
+                    $node->setIsParent((bool) $children);
+                    $nodeId = (string) $node->getId();
+                    $title = (string) $node->getTitle();
+                    $extraClasses = trim((string) $node->getClasses());
+                    $parentClass = $children ? ' ' . $menuClass . '__item--parent' : '';
+                    $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', trim(preg_replace('/\{.*?\}/', '', $title) ?? '')) ?? '');
+                    $itemClass = trim($menuClass . '__item' . $parentClass . ($extraClasses ? ' ' . $extraClasses : '') . ($slug ? ' ' . $slug : ''));
+                    ?>
+                    <li class="<?= $escaper->escapeHtmlAttr($itemClass) ?>"
+                        data-node-id="<?= $escaper->escapeHtmlAttr($nodeId) ?>"
+                        @mouseenter="onItemEnter"
+                        @mouseleave="onItemLeave">
+                        <div class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__trigger flex items-center"
+                            <?php if ($children): ?>
+                             data-node-id="<?= $escaper->escapeHtmlAttr($nodeId) ?>"
+                             @keydown.enter.prevent="onParentKeyToggle"
+                             @keydown.space.prevent="onParentKeyToggle"
+                            <?php endif; ?>>
+                            <?= /* @noEscape */ $block->renderMenuNode($node) ?>
+                        </div>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </nav>
+
+        <div class="menu-overlay"
+             hidden
+             @click="onOverlayClick"
+             aria-hidden="true"></div>
+    </div>
+<?php endif; ?>

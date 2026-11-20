@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Elme\StoreLocator\Api\Data\LocationInterface" type="Elme\StoreLocator\Model\Location"/>
+    <preference for="Elme\StoreLocator\Api\LocationRepositoryInterface" type="Elme\StoreLocator\Model\LocationRepository"/>
+
+    <virtualType name="Elme\StoreLocator\Model\ResourceModel\Location\Grid\Collection"
+                 type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">elme_store_locator_location</argument>
+            <argument name="resourceModel" xsi:type="string">Elme\StoreLocator\Model\ResourceModel\Location</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="elme_storelocator_location_listing_data_source" xsi:type="string">
+                    Elme\StoreLocator\Model\ResourceModel\Location\Grid\Collection
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Framework\Console\CommandListInterface">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="elmeStoreLocatorImport" xsi:type="object">
+                    Elme\StoreLocator\Console\Command\ImportLocations
+                </item>
+            </argument>
+        </arguments>
+    </type>
+</config>

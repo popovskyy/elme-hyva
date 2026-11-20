@@ -1,0 +1,216 @@
+<?php
+/**
+ * Elme FE-25 / FE-27: product info column. FE-26 guests: sign-in price + Apply/Login. FE-27 customers:
+ * price (after render), MOQ stepper, ATC with line total, In your cart, sticky bar. Keep btn-atc (FE-70).
+ * Heart next to ATC is the shopping list (FE-78); core wishlist stays removed.
+ *
+ * Every field may be empty (elme-product-data). Buy box sits above the description on all widths (CSS order).
+ */
+
+declare(strict_types=1);
+
+use Elme\LoginOnly\ViewModel\LoginOnly;
+use Elme\Theme\ViewModel\ProductTile;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\ProductPage;
+use Magento\Catalog\Model\Product;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var ProductPage $productViewModel */
+$productViewModel = $viewModels->require(ProductPage::class);
+/** @var ProductTile $tile */
+$tile = $viewModels->require(ProductTile::class);
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+
+/** @var Product $product */
+$product = $productViewModel->getProduct();
+$subtitle = trim((string) $product->getData('subtitle'));
+$shortDescription = trim((string) $productViewModel->getShortDescription());
+$stockLevel = $tile->getStockLevel($product);
+$isLoggedIn = $loginOnly->isLoggedIn();
+
+// UX-11 essentials next to the buy box: size, material, assembly (planned PIM fields).
+$attributeText = static function (string $code) use ($product): string {
+    $attribute = $product->getResource()->getAttribute($code);
+    if (!$attribute || $product->getData($code) === null || $product->getData($code) === '') {
+        return '';
+    }
+    $value = $attribute->usesSource() ? $product->getAttributeText($code) : $product->getData($code);
+    return trim(is_array($value) ? implode(', ', $value) : (string) $value);
+};
+$size = array_filter([
+    'W' => $attributeText('width'),
+    'D' => $attributeText('depth'),
+    'H' => $attributeText('height'),
+]);
+$sizeParts = [];
+foreach ($size as $letter => $value) {
+    $sizeParts[] = $letter . ' ' . $value;
+}
+$essentials = array_filter([
+    (string) __('Dimensions') => $sizeParts ? implode(' x ', $sizeParts) . ' cm' : '',
+    (string) __('Material') => $attributeText('material'),
+    (string) __('Assembly') => $attributeText('assembly_info'),
+]);
+
+$buyControls = $product->isSaleable()
+    ? trim($block->getChildHtml('product.info.quantity') . $block->getChildHtml('product.info.addtocart'))
+    : '';
+?>
+<div class="elme-pdp__info">
+    <div class="elme-pdp__head">
+        <h1 class="elme-pdp__title" itemprop="name"><?= $escaper->escapeHtml($product->getName()) ?></h1>
+
+        <?php if ($subtitle !== ''): ?>
+            <p class="elme-pdp__subtitle"><?= $escaper->escapeHtml($subtitle) ?></p>
+        <?php endif; ?>
+
+        <div class="elme-pdp__meta">
+            <?php $sku = (string) $product->getSku(); ?>
+            <?php if ($sku !== ''): ?>
+                <p>
+                    <?= $escaper->escapeHtml(__('SKU')) ?>
+                    <button type="button"
+                            class="elme-copy-sku text-ink"
+                            data-sku="<?= $escaper->escapeHtmlAttr($sku) ?>"
+                            aria-label="<?= $escaper->escapeHtmlAttr(__('Copy SKU %1', $sku)) ?>">
+                        <span class="elme-copy-sku__text" itemprop="sku"><?= $escaper->escapeHtml($sku) ?></span>
+                        <span class="elme-copy-sku__done" aria-hidden="true"><?= $escaper->escapeHtml(__('Copied')) ?></span>
+                    </button>
+                </p>
+            <?php endif; ?>
+
+            <?php if ($stockLevel): ?>
+                <p class="elme-card__stock--<?= /* @noEscape */ $stockLevel ?> flex items-center gap-1.5 font-medium">
+                    <span class="size-1.5 shrink-0 rounded-full bg-current" aria-hidden="true"></span>
+                    <?= $escaper->escapeHtml($stockLevel === ProductTile::STOCK_IN ? __('In Stock') : __('Low Stock')) ?>
+                </p>
+            <?php endif; ?>
+            <?= $block->getChildHtml('product.info.stockqty') ?>
+        </div>
+    </div>
+
+    <?php if ($shortDescription !== ''): ?>
+        <div class="elme-pdp__desc" x-data="initElmeClamp">
+            <div id="elme-pdp-desc"
+                 class="elme-pdp__desc-text prose"
+                 x-ref="text"
+                 :class="textClass"
+            ><?= /* @noEscape */ $shortDescription ?></div>
+            <button type="button"
+                    class="elme-pdp__more"
+                    aria-controls="elme-pdp-desc"
+                    :aria-expanded="isOpen"
+                    x-show="canToggle"
+                    x-cloak
+                    @click="toggle"
+            >
+                <span x-show="isClosed"><?= $escaper->escapeHtml(__('Read more')) ?></span>
+                <span x-show="isOpen"><?= $escaper->escapeHtml(__('Read less')) ?></span>
+            </button>
+        </div>
+    <?php endif; ?>
+
+    <?php /* FE-28: family swatches (Elme_ProductFamily), above the buy box on all widths (CSS order) */ ?>
+    <?= $block->getChildHtml('product.info.family') ?>
+    <?php /* FE-84: configuration picker (modules, armchair, 2 to 6 seaters), same place */ ?>
+    <?= $block->getChildHtml('product.info.configurations') ?>
+
+    <div class="elme-pdp__buy"
+         <?php if ($isLoggedIn && $buyControls !== ''): ?>
+         x-data="initElmePdpBuyBox"
+         data-product-id="<?= (int) $product->getId() ?>"
+         data-sku="<?= $escaper->escapeHtmlAttr($product->getSku()) ?>"
+         data-product-name="<?= $escaper->escapeHtmlAttr($product->getName()) ?>"
+         data-in-cart="<?= $escaper->escapeHtmlAttr(__('In your cart: %1')) ?>"
+         x-ref="buyBox"
+         <?php endif; ?>
+    >
+        <?= $block->getChildHtml('alert.urls') ?>
+
+        <?= $block->getChildHtml('product.info.form') ?>
+
+        <?php if ($product->getTypeId() === 'bundle'): ?>
+            <span class="sr-only"><?= $escaper->escapeHtml(__('The price depends on the chosen options')) ?></span>
+        <?php endif; ?>
+
+        <div role="group" aria-label="<?= $escaper->escapeHtmlAttr(__('Price')) ?>">
+            <?= $block->getChildHtml('product.info.price') ?>
+        </div>
+
+        <?= $block->getChildHtml('product.info.guest.buybox') ?>
+
+        <?php if ($buyControls !== ''): ?>
+            <?= /* @noEscape */ $buyControls ?>
+            <?= $block->getChildHtml('addtocart.shortcut.buttons') ?>
+        <?php endif; ?>
+
+        <?= $block->getChildHtml('product.info.additional.actions') ?>
+    </div>
+
+    <?php if ($essentials): ?>
+        <dl class="elme-pdp__essentials" id="elme-pdp-essentials">
+            <?php foreach ($essentials as $label => $value): ?>
+                <div>
+                    <dt><?= $escaper->escapeHtml($label) ?></dt>
+                    <dd><?= $escaper->escapeHtml($value) ?></dd>
+                </div>
+            <?php endforeach; ?>
+        </dl>
+    <?php endif; ?>
+
+    <?= $block->getChildHtml('product.info.details') ?>
+
+    <?= $block->getChildHtml('product.info.additional') ?>
+</div>
+
+<?php if ($isLoggedIn && $buyControls !== ''): ?>
+    <?= $block->getChildHtml('product.info.sticky.atc') ?>
+<?php endif; ?>
+
+<?php if ($shortDescription !== ''): ?>
+<script>
+    function initElmeClamp() {
+        return {
+            open: false,
+            overflows: false,
+            init() {
+                this.$nextTick(() => this.measure());
+                window.addEventListener('resize', () => this.measure(), { passive: true });
+            },
+            measure() {
+                if (!this.open) {
+                    const text = this.$refs.text;
+                    this.overflows = text.scrollHeight > text.clientHeight + 1;
+                }
+            },
+            toggle() {
+                this.open = !this.open;
+            },
+            isOpen() {
+                return this.open;
+            },
+            isClosed() {
+                return this.open === false;
+            },
+            canToggle() {
+                return this.overflows;
+            },
+            textClass() {
+                return { 'is-open': this.open };
+            }
+        };
+    }
+
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeClamp', initElmeClamp), { once: true });
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+<?php endif; ?>

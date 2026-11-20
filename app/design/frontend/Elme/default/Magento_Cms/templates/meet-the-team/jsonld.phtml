@@ -1,0 +1,20 @@
+<?php
+/**
+ * FE-65: WebPage + BreadcrumbList + ItemList #team + Person nodes (one application/ld+json).
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\Team;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+
+$team = $viewModels->require(Team::class);
+if (!$team->isMeetTheTeamPage()) {
+    return;
+}
+?>
+<script type="application/ld+json"><?= /* @noEscape */ $team->getJsonLdScript() ?></script>

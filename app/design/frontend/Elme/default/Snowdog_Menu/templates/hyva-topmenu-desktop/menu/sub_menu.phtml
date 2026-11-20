@@ -1,0 +1,125 @@
+<?php
+/**
+ * FE-08: mega panel - heading with "View all", then CSS columns of level-1 categories with nested
+ * level-2/3 links.
+ * Promo CMS rail (cms_block) uses real Elme photography in menu_promo_* blocks.
+ * The panel is full-bleed under the header; its content sits in the header's container, so the first
+ * column lines up with the logo and the promo rail with the header actions.
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Snowdog\Menu\Block\Menu;
+
+/** @var Escaper $escaper */
+/** @var Menu $block */
+
+$menu = $block->getMenu();
+?>
+<?php if ($menu): ?>
+    <?php
+    $menuClass = $menu->getCssClass() ?: 'main-menu';
+    $parentNode = $block->getParentNode();
+    $level = (int) $block->getLevel();
+    $parentId = (string) $parentNode->getId();
+    $title = (string) $parentNode->getTitle();
+    $cleanTitle = trim((string) preg_replace('/\{.*?\}/', '', $title));
+    ?>
+
+    <?php if ($level === 1): ?>
+        <?php
+        $columnNodes = [];
+        $promoNodes = [];
+        foreach ($block->getSubmenuNodes() as $submenuNode) {
+            if ((string) $submenuNode->getType() === 'cms_block') {
+                $promoNodes[] = $submenuNode;
+            } else {
+                $columnNodes[] = $submenuNode;
+            }
+        }
+        // Few sub-links in the whole section (Sale, Outdoor): a compact panel with large links instead of
+        // near-empty columns. Counted before rendering, so the panel gets its modifier class.
+        $subLinkCount = 0;
+        foreach ($columnNodes as $columnNode) {
+            $subLinkCount += count($block->getNodes($columnNode->getLevel() + 1, $columnNode) ?: []);
+        }
+        $isCompact = $subLinkCount <= 6;
+        $renderLevel1Item = function ($node, int $index = 0) use ($block, $escaper, $menuClass): string {
+            $nodeType = (string) $node->getType();
+            $childrenLevel = $node->getLevel() + 1;
+            $children = $block->getNodes($childrenLevel, $node);
+            $node->setIsParent((bool) $children);
+            $nodeClasses = trim((string) $node->getClasses());
+            $liClass = trim(
+                $menuClass . '__inner-item ' .
+                $menuClass . '__inner-item--level1' .
+                ($children ? ' ' . $menuClass . '__inner-item--parent' : '') .
+                ($nodeClasses ? ' ' . $nodeClasses : '')
+            );
+            return '<li class="' . $escaper->escapeHtmlAttr($liClass) . '"'
+                . ' style="--i: ' . (int) $index . '"'
+                . ' data-node-type="' . $escaper->escapeHtmlAttr($nodeType) . '">'
+                . $block->renderMenuNode($node)
+                . $block->renderSubmenu($children, $node, $childrenLevel)
+                . '</li>';
+        };
+        ?>
+        <div id="submenu-<?= $escaper->escapeHtmlAttr($parentId) ?>"
+             class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-wrapper
+                    <?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-wrapper--level1"
+             data-submenu-id="<?= $escaper->escapeHtmlAttr($parentId) ?>"
+             hidden
+             role="region"
+             aria-label="<?= $escaper->escapeHtmlAttr(__('Submenu for %1', $cleanTitle)) ?>">
+            <div class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__panel container<?= $isCompact ? ' ' . $escaper->escapeHtmlAttr($menuClass) . '__panel--compact' : '' ?>">
+                <div class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__panel-head">
+                    <p class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__panel-title">
+                        <?= $escaper->escapeHtml($cleanTitle) ?>
+                    </p>
+                    <?php if ($block->isViewAllLinkAllowed($parentNode->getType())): ?>
+                        <?= /* @noEscape */ $block->renderViewAllLink($parentNode) ?>
+                    <?php endif; ?>
+                </div>
+                <div class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__panel-body">
+                    <ul class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-list
+                               <?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-list--level1">
+                        <?php foreach ($columnNodes as $index => $node): ?>
+                            <?= /* @noEscape */ $renderLevel1Item($node, $index) ?>
+                        <?php endforeach; ?>
+                    </ul>
+                    <?php if ($promoNodes): ?>
+                        <ul class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__promo-list">
+                            <?php foreach ($promoNodes as $node): ?>
+                                <?= /* @noEscape */ $renderLevel1Item($node, count($columnNodes)) ?>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    <?php elseif ($level > 1): ?>
+        <ul class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-list <?= $escaper->escapeHtmlAttr($menuClass) ?>__inner-list--level<?= (int) $level ?>">
+            <?php foreach ($block->getSubmenuNodes() as $node): ?>
+                <?php
+                $childrenLevel = $node->getLevel() + 1;
+                $children = $block->getNodes($childrenLevel, $node);
+                $node->setIsParent((bool) $children);
+                $nodeType = (string) $node->getType();
+                $nodeClasses = trim((string) $node->getClasses());
+                $liClass = trim(
+                    $menuClass . '__inner-item ' .
+                    $menuClass . '__inner-item--level' . $level .
+                    ($children ? ' ' . $menuClass . '__inner-item--parent' : '') .
+                    ($nodeClasses ? ' ' . $nodeClasses : '')
+                );
+                ?>
+                <li class="<?= $escaper->escapeHtmlAttr($liClass) ?>"
+                    data-node-type="<?= $escaper->escapeHtmlAttr($nodeType) ?>">
+                    <?= /* @noEscape */ $block->renderMenuNode($node) ?>
+                    <?= /* @noEscape */ $block->renderSubmenu($children, $node, $childrenLevel) ?>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
+<?php endif; ?>

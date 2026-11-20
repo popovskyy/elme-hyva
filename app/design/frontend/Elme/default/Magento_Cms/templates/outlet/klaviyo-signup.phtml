@@ -1,0 +1,272 @@
+<?php
+/**
+ * FE-91: /elme-outlet-signup — Magento form that posts to Elme_ThirdParty outlet subscribe,
+ * which adds the profile to Klaviyo list TNqMx7 (same list as production embed WJGDrH).
+ */
+
+declare(strict_types=1);
+
+use Elme\ThirdParty\ViewModel\Config as ThirdPartyConfig;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var ThirdPartyConfig $thirdParty */
+$thirdParty = $viewModels->require(ThirdPartyConfig::class);
+$companyId = $thirdParty->getKlaviyoPublicApiKey();
+$listId = $thirdParty->getOutletListId();
+
+if ($companyId === '' || $listId === '') {
+    return;
+}
+
+$privacyUrl = $block->getUrl('privacy-policy');
+$actionUrl = $block->getUrl('elme_third_party/outlet/subscribe');
+?>
+<section class="elme-outlet-signup container py-8 lg:py-12"
+         aria-labelledby="elme-outlet-signup-heading"
+         x-data="initElmeOutletSignup">
+    <div class="mx-auto w-full max-w-md rounded-sm bg-primary px-5 py-8 text-white lg:px-8 lg:py-10">
+        <h2 id="elme-outlet-signup-heading"
+            class="m-0 mb-6 text-center font-heading text-h3 font-medium text-white lg:text-h3-desktop">
+            <?= $escaper->escapeHtml(__('Sign Up For Outlet Updates')) ?>
+        </h2>
+
+        <div class="mb-0 text-center text-copy text-white"
+             role="status"
+             aria-live="polite"
+             x-show="isSuccess"
+             x-cloak>
+            <p class="m-0" x-text="message"></p>
+        </div>
+
+        <form class="elme-outlet-signup__form flex flex-col gap-4"
+              action="<?= $escaper->escapeUrl($actionUrl) ?>"
+              method="post"
+              novalidate
+              x-show="isFormVisible"
+              @submit.prevent="submitForm">
+            <?= $block->getBlockHtml('formkey') ?>
+            <div class="field">
+                <label class="sr-only" for="elme-outlet-first-name">
+                    <?= $escaper->escapeHtml(__('First Name')) ?>
+                </label>
+                <input id="elme-outlet-first-name"
+                       class="form-input w-full border-0 bg-white text-ink"
+                       type="text"
+                       name="first_name"
+                       required
+                       autocomplete="given-name"
+                       placeholder="<?= $escaper->escapeHtmlAttr(__('First Name')) ?>"
+                       :aria-invalid="isInvalid"
+                       @input="clearError">
+            </div>
+            <div class="field">
+                <label class="sr-only" for="elme-outlet-last-name">
+                    <?= $escaper->escapeHtml(__('Last Name')) ?>
+                </label>
+                <input id="elme-outlet-last-name"
+                       class="form-input w-full border-0 bg-white text-ink"
+                       type="text"
+                       name="last_name"
+                       required
+                       autocomplete="family-name"
+                       placeholder="<?= $escaper->escapeHtmlAttr(__('Last Name')) ?>"
+                       :aria-invalid="isInvalid"
+                       @input="clearError">
+            </div>
+            <div class="field">
+                <label class="sr-only" for="elme-outlet-email">
+                    <?= $escaper->escapeHtml(__('Email')) ?>
+                </label>
+                <input id="elme-outlet-email"
+                       class="form-input w-full border-0 bg-white text-ink"
+                       type="email"
+                       name="email"
+                       required
+                       autocomplete="email"
+                       inputmode="email"
+                       spellcheck="false"
+                       placeholder="<?= $escaper->escapeHtmlAttr(__('Email')) ?>"
+                       :aria-invalid="isInvalid"
+                       @input="clearError">
+            </div>
+            <div class="field">
+                <label class="sr-only" for="elme-outlet-phone">
+                    <?= $escaper->escapeHtml(__('Phone Number')) ?>
+                </label>
+                <input id="elme-outlet-phone"
+                       class="form-input w-full border-0 bg-white text-ink"
+                       type="tel"
+                       name="phone"
+                       required
+                       autocomplete="tel"
+                       inputmode="tel"
+                       placeholder="<?= $escaper->escapeHtmlAttr(__('Phone Number')) ?>"
+                       :aria-invalid="isInvalid"
+                       @input="clearError">
+            </div>
+
+            <p id="elme-outlet-signup-status"
+               class="m-0 min-h-5 text-center text-note"
+               :class="statusClass"
+               aria-live="polite"
+               x-text="message"></p>
+
+            <button type="submit"
+                    class="btn inline-flex min-h-11 w-full items-center justify-center border-0 bg-white
+                           font-heading font-medium uppercase tracking-wide text-primary
+                           hover:bg-surface focus-visible:outline focus-visible:outline-2
+                           focus-visible:outline-offset-2 focus-visible:outline-white
+                           disabled:cursor-wait disabled:opacity-50"
+                    :disabled="isLoading"
+                    :aria-busy="isLoading">
+                <span x-show="isNotLoading"><?= $escaper->escapeHtml(__('Sign up now')) ?></span>
+                <span x-show="isLoading" x-cloak><?= $escaper->escapeHtml(__('Signing up...')) ?></span>
+            </button>
+
+            <p class="m-0 text-center text-note leading-5 text-white">
+                <?= $escaper->escapeHtml(__(
+                    'By clicking Sign up now, you agree to receive marketing text messages from'
+                    . ' Elme Living PTY Ltd at the number provided, including messages sent by autodialer.'
+                    . ' Consent is not a condition of any purchase. Message and data rates may apply.'
+                    . ' Message frequency varies. Reply HELP for help or STOP to cancel.'
+                )) ?>
+                <a class="underline hover:opacity-80"
+                   href="<?= $escaper->escapeUrl($privacyUrl) ?>">
+                    <?= $escaper->escapeHtml(__('Privacy Policy')) ?>
+                </a>
+            </p>
+        </form>
+    </div>
+    <noscript>
+        <p class="mt-4 text-copy text-ink-muted">
+            <?= $escaper->escapeHtml(__(
+                'JavaScript is required to sign up for outlet updates. Enable JavaScript or contact us.'
+            )) ?>
+        </p>
+    </noscript>
+</section>
+<script>
+    function initElmeOutletSignup() {
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+        return {
+            status: '',
+            message: '',
+
+            isLoading() {
+                return this.status === 'loading';
+            },
+            isNotLoading() {
+                return this.status !== 'loading';
+            },
+            isInvalid() {
+                return this.status === 'invalid';
+            },
+            isSuccess() {
+                return this.status === 'success';
+            },
+            isFormVisible() {
+                return this.status !== 'success';
+            },
+            statusClass() {
+                return {
+                    'text-error-text': this.status === 'invalid' || this.status === 'error',
+                    'text-success-text': this.status === 'success',
+                    'text-white': this.status === 'loading' || this.status === ''
+                };
+            },
+            clearError() {
+                if (this.status === 'invalid' || this.status === 'error') {
+                    this.status = '';
+                    this.message = '';
+                }
+            },
+            validate(form) {
+                const first = form.elements.first_name;
+                const last = form.elements.last_name;
+                const email = form.elements.email;
+                const phone = form.elements.phone;
+
+                first.value = first.value.trim();
+                last.value = last.value.trim();
+                email.value = email.value.trim();
+                phone.value = phone.value.trim();
+
+                if (first.value === '') {
+                    first.focus();
+                    return '<?= $escaper->escapeJs(__('Please enter your first name.')) ?>';
+                }
+                if (last.value === '') {
+                    last.focus();
+                    return '<?= $escaper->escapeJs(__('Please enter your last name.')) ?>';
+                }
+                if (email.value === '' || !email.validity.valid || !emailPattern.test(email.value)) {
+                    email.focus();
+                    return '<?= $escaper->escapeJs(__('Please enter a valid email address.')) ?>';
+                }
+                if (phone.value === '') {
+                    phone.focus();
+                    return '<?= $escaper->escapeJs(__('Please enter a valid phone number.')) ?>';
+                }
+                return '';
+            },
+            submitForm() {
+                if (this.isLoading()) {
+                    return;
+                }
+                const form = this.$root.querySelector('form');
+                const error = this.validate(form);
+                if (error) {
+                    this.status = 'invalid';
+                    this.message = error;
+                    return;
+                }
+
+                const body = new FormData(form);
+                body.set('form_key', hyva.getFormKey());
+                this.status = 'loading';
+                this.message = '';
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body,
+                    headers: {'X-Requested-With': 'XMLHttpRequest'}
+                })
+                    .then((response) => response.json().then((data) => ({ok: response.ok, data})))
+                    .then((result) => {
+                        if (result.data && result.data.success) {
+                            this.status = 'success';
+                            this.message = String(result.data.message || '');
+                            return;
+                        }
+                        this.status = 'error';
+                        this.message = String(
+                            (result.data && result.data.message)
+                            || '<?= $escaper->escapeJs(__('Something went wrong with the signup. Please try again.')) ?>'
+                        );
+                    })
+                    .catch(() => {
+                        this.status = 'error';
+                        this.message = '<?= $escaper->escapeJs(__(
+                            'Something went wrong with the signup. Please try again.'
+                        )) ?>';
+                    });
+            }
+        };
+    }
+
+    window.addEventListener(
+        'alpine:init',
+        () => Alpine.data('initElmeOutletSignup', initElmeOutletSignup),
+        {once: true}
+    );
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

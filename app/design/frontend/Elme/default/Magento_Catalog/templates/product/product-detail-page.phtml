@@ -1,0 +1,27 @@
+<?php
+/**
+ * Elme FE-25: product page wrapper. Gallery and info side by side from md; from lg whichever column
+ * is shorter stays pinned while the other scrolls. The detail sections (accordion) are in the info
+ * column. Look: web/tailwind/elme/product/pdp.css.
+ */
+
+declare(strict_types=1);
+
+use Magento\Catalog\Block\Product\View;
+use Magento\Framework\Escaper;
+
+/** @var View $block */
+/** @var Escaper $escaper */
+?>
+<section class="elme-pdp" aria-label="<?= $escaper->escapeHtmlAttr(__('Product Info')) ?>">
+    <?= $block->getChildHtml('product.media') ?>
+    <?= $block->getChildHtml('product.info') ?>
+</section>
+
+<?= $block->getChildHtml('elme.pdp.cms.blocks') ?>
+
+<?= $block->getChildHtml('product_options_wrapper_bottom') ?>
+
+<?php /* FE-30: Complete the look, Frequently bought together, Related products, Shop the Range / Similar tabs
+         (catalog_product_view.xml). Hyva's own related and upsell sliders are removed there. */ ?>
+<?= $block->getChildHtml('elme_pdp_recommendations') ?>

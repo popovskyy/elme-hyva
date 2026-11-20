@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!-- FE-95: SVG favicon + web manifest (cannot use head <link src> for .svg — Magento treats svg as font preload) -->
+        <referenceContainer name="head.additional">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.head.icons"
+                   template="Magento_Theme::html/head/icons.phtml"/>
+        </referenceContainer>
+        <!-- Hyva prefetches a link on hover. Login-only pages must not be prefetched: for a guest the
+             prefetch runs Elme_LoginOnly's redirect and leaves "Please login to access this page."
+             in the session, shown on the next page they open. -->
+        <referenceBlock name="speculationrules">
+            <arguments>
+                <argument name="exclude_list" xsi:type="array">
+                    <item name="quick_order_url" xsi:type="string">quick-order</item>
+                    <item name="quick_order_route" xsi:type="string">quick_order</item>
+                    <item name="compare" xsi:type="string">catalog/product_compare</item>
+                    <item name="multishipping" xsi:type="string">multishipping</item>
+                </argument>
+            </arguments>
+        </referenceBlock>
+        <!-- FE-05: USP strip with Contact Us; CMS block header_promo; login swaps Stockist / Inspiration -->
+        <referenceContainer name="header.container">
+            <block name="elme.header.promo"
+                   template="Magento_Theme::html/header-promo.phtml"
+                   before="skip_to_content"/>
+        </referenceContainer>
+        <!-- FE-06: desktop header chrome + sticky bar; hide compare (not on Elme) -->
+        <referenceBlock name="header-content">
+            <arguments>
+                <argument name="show_compare" xsi:type="boolean">false</argument>
+                <argument name="show_wishlist" xsi:type="boolean">false</argument>
+            </arguments>
+            <block name="header-search-mobile"
+                   template="Magento_Theme::html/header/search-form.phtml">
+                <arguments>
+                    <argument name="input_id" xsi:type="string">search-mobile</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+        <referenceBlock name="header-search">
+            <arguments>
+                <argument name="input_id" xsi:type="string">search</argument>
+            </arguments>
+        </referenceBlock>
+        <referenceBlock name="logo">
+            <arguments>
+                <argument name="logo_file" xsi:type="string">images/logo.svg</argument>
+                <argument name="logo_width" xsi:type="number">180</argument>
+                <argument name="logo_height" xsi:type="number">38</argument>
+                <argument name="logo_alt" xsi:type="string">Elme Living</argument>
+            </arguments>
+        </referenceBlock>
+        <!-- Page titles take the Elme h1 style from elme.css instead of Hyvä's text-h1 font-bold -->
+        <!-- FE-04: layouts whose CMS banner/hero holds the H1 do not render the page title at all (see title.phtml) -->
+        <referenceBlock name="page.main.title">
+            <arguments>
+                <argument name="css_class" xsi:type="string">mb-6</argument>
+                <argument name="skip_on_page_layouts" xsi:type="array">
+                    <item name="banner-breadcrumbs" xsi:type="string">banner-breadcrumbs</item>
+                    <item name="cms-full-width" xsi:type="string">cms-full-width</item>
+                </argument>
+            </arguments>
+        </referenceBlock>
+        <!-- FE-04: breadcrumbs live inside <main>, before the H1, on every layout; the skip link lands on the H1 -->
+        <move element="breadcrumbs" destination="columns.top" before="-"/>
+        <move element="skip_to_content.target" destination="columns.top" before="page.main.title"/>
+        <!-- FE-03: toast stack; FE-60: button ripple; FE-59: custom select; FE-70: animated AJAX add to cart;
+             FE-111: window.elmeFly (hearts + add to cart fly to the header); FE-99: copy SKU -->
+        <referenceContainer name="before.body.end">
+            <block name="elme.toast-stack" template="Magento_Theme::elme/toast-stack.phtml"/>
+            <block name="elme.btn-ripple" template="Magento_Theme::elme/btn-ripple.phtml"/>
+            <block name="elme.fly" template="Magento_Theme::elme/fly.phtml"/>
+            <block name="elme.atc-button" template="Magento_Theme::elme/atc-button.phtml"/>
+            <block name="elme.select.js" template="Magento_Theme::elme/select-js.phtml"/>
+            <block name="elme.copy-sku" template="Magento_Theme::elme/copy-sku.phtml"/>
+            <!-- Product card: hover a colour chip, the card shows that colour -->
+            <block name="elme.card-swatch-preview" template="Magento_Theme::elme/card-swatch-preview.phtml"/>
+            <!-- FE-22: header search autocomplete component (used by both search-form.phtml instances) -->
+            <block name="elme.search.autocomplete" template="Magento_Theme::html/header/search-autocomplete.phtml"/>
+        </referenceContainer>
+
+        <!-- FE-10: Elme footer (logo, CMS link columns, social, payments) -->
+        <referenceBlock name="footer-content">
+            <block name="footer.logo"
+                   as="footer.logo"
+                   template="Magento_Theme::html/footer/logo.phtml"/>
+            <block name="footer.links"
+                   as="footer.links"
+                   template="Magento_Theme::html/footer/links.phtml"/>
+            <block name="footer.social"
+                   as="footer.social"
+                   template="Magento_Theme::html/footer/social.phtml"/>
+            <block name="footer.payments"
+                   as="footer.payments"
+                   template="Magento_Theme::html/footer/payments.phtml"/>
+            <container name="footer.newsletter" as="footer.newsletter" label="Footer newsletter (FE-11)"/>
+        </referenceBlock>
+        <referenceBlock name="footer-static-links" remove="true"/>
+        <referenceBlock name="footer-cms-content" remove="true"/>
+        <referenceBlock name="footer-copyright" remove="true"/>
+
+        <!-- Core wishlist, compare and product reviews. Custom replacements come later. -->
+        <referenceBlock name="catalog.compare.sidebar" remove="true"/>
+        <referenceBlock name="wishlist_sidebar" remove="true"/>
+        <referenceBlock name="customer-account-navigation-wish-list-link" remove="true"/>
+        <referenceBlock name="customer-account-navigation-product-reviews-link" remove="true"/>
+        <referenceBlock name="customer_account_dashboard_info1" remove="true"/>
+        <!-- No downloadable goods. Saved cards stay out until card payments (FE-38).
+             The core reorder box is not the B2B recently-ordered page (FE-43). -->
+        <referenceBlock name="customer-account-navigation-downloadable-products-link" remove="true"/>
+        <referenceBlock name="customer-account-navigation-my-credit-cards-link" remove="true"/>
+        <referenceBlock name="sale.reorder.sidebar" remove="true"/>
+    </body>
+</page>

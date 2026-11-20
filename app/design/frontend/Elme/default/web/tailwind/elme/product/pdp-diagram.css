@@ -1,0 +1,88 @@
+/*
+ * FE-30 "View Dimensions": the link under the Dimensions list and the dialog with the dimension drawing
+ * (Magento_Catalog product/view/sections/product-sections.phtml). The dialog is a plain shell, square corners.
+ */
+
+@layer components {
+    .elme-pdp__diagram-link {
+        display: inline-flex;
+        align-items: center;
+        gap: --spacing(2);
+        margin-top: --spacing(3);
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--color-ink);
+        font-size: var(--text-copy);
+        font-weight: 500;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        cursor: pointer;
+
+        &:hover {
+            color: var(--color-primary);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 4px;
+        }
+    }
+
+    .elme-pdp__diagram {
+        width: min(100vw - --spacing(8), --spacing(220));
+        max-width: none;
+        max-height: calc(100dvh - --spacing(8));
+        margin: auto;
+        padding: 0;
+        border: 0;
+        background: var(--color-surface);
+        color: var(--color-ink);
+        overflow: auto;
+
+        &::backdrop {
+            background: color-mix(in oklab, var(--color-ink) 55%, transparent);
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            &[open] {
+                animation: elme-pdp-diagram-in var(--transition-duration-base) var(--ease-out-quart);
+            }
+        }
+    }
+
+    @keyframes elme-pdp-diagram-in {
+        from {
+            opacity: 0;
+            translate: 0 --spacing(2);
+        }
+    }
+
+    html:has(.elme-pdp__diagram[open]) {
+        overflow: hidden;
+    }
+
+    .elme-pdp__diagram-top {
+        position: sticky;
+        top: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: --spacing(4);
+        padding: --spacing(3) --spacing(4);
+        background: var(--color-surface);
+    }
+
+    .elme-pdp__diagram-title {
+        margin: 0;
+        font-size: var(--text-copy);
+        font-weight: 500;
+    }
+
+    .elme-pdp__diagram-img {
+        display: block;
+        width: 100%;
+        height: auto;
+        padding: --spacing(2) --spacing(4) --spacing(6);
+    }
+}

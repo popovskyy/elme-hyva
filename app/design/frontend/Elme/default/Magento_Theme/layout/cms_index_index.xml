@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!-- FE-14: the home page starts with the CMS content (hero first), not with Hyva's demo hero and product sliders. -->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="hero" remove="true"/>
+        <referenceBlock name="slider-1" remove="true"/>
+        <referenceBlock name="slider-2" remove="true"/>
+    </body>
+</page>

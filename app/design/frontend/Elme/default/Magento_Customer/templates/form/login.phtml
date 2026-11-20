@@ -1,0 +1,184 @@
+<?php
+/**
+ * Hyvä Themes - https://hyva.io
+ * Copyright © Hyvä Themes. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+declare(strict_types=1);
+
+/**
+ * Elme: copy of Hyvä 1.5.3 form/login.phtml for the "Split screen" login (FE-35):
+ * the form title is the page H1 ("Welcome back"), a line on what signing
+ * in gives a trade customer, full-width Sign In with Forgot your password? above it. Same fields, names,
+ * reCAPTCHA hooks and submit flow as Hyvä; the Alpine component is CSP-compatible (methods only, no inline
+ * expressions).
+ */
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\Customer\LoginButton;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Hyva\Theme\ViewModel\ReCaptcha;
+use Magento\Customer\Block\Form\Login;
+use Magento\Customer\Model\Account\Redirect;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var Login $block */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var LoginButton $loginButtonViewModel */
+$loginButtonViewModel = $viewModels->require(LoginButton::class);
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+
+// Do not replace this with $viewModels->require(ReCaptcha::class); that might break the dependency
+// on the Magento_ReCaptchaCustomer module
+/** @var ReCaptcha|null $recaptcha */
+$recaptcha = $block->getData('viewModelRecaptcha');
+?>
+<div class="elme-login__form">
+    <form class="form form-login"
+          action="<?= $escaper->escapeUrl($block->getPostActionUrl()) ?>"
+          method="post"
+          x-data="initElmeLoginForm"
+          @submit.prevent="submitForm"
+          id="customer-login-form">
+        <?= $block->getBlockHtml('formkey') ?>
+        <fieldset class="fieldset login">
+            <legend class="sr-only"><?= $escaper->escapeHtml(__('Login')) ?></legend>
+            <h1 class="elme-login__title"><?= $escaper->escapeHtml(__('Welcome back')) ?></h1>
+            <p class="elme-login__sub">
+                <?= $escaper->escapeHtml(__('Sign in to see your trade prices (ex GST), stock and Quick Order.')) ?>
+            </p>
+
+            <div class="field email required">
+                <label class="label" for="email">
+                    <span><?= $escaper->escapeHtml(__('Email')) ?></span>
+                </label>
+                <div class="control">
+                    <input name="login[username]"
+                           class="form-input w-full"
+                           required
+                           value="<?= $escaper->escapeHtmlAttr($block->getUsername()) ?>"
+                           autocomplete="<?= $block->isAutocompleteDisabled() ? 'off' : 'username' ?>"
+                           id="email"
+                           type="email"
+                           placeholder="<?= $escaper->escapeHtmlAttr(__('you@yourstore.com.au')) ?>"
+                           title="<?= $escaper->escapeHtmlAttr(__('Email')) ?>">
+                </div>
+            </div>
+
+            <div class="field password required">
+                <label for="pass" class="label">
+                    <span><?= $escaper->escapeHtml(__('Password')) ?></span>
+                </label>
+                <div class="control elme-login__password">
+                    <input name="login[password]"
+                           class="form-input w-full"
+                           required
+                           type="password"
+                           :type="passwordType"
+                           autocomplete="<?= $block->isAutocompleteDisabled() ? 'off' : 'current-password' ?>"
+                           id="pass"
+                           title="<?= $escaper->escapeHtmlAttr(__('Password')) ?>">
+                    <button type="button"
+                            class="elme-login__eye"
+                            @click="togglePassword"
+                            :aria-pressed="ariaPressed"
+                            aria-pressed="false"
+                            :aria-label="eyeLabel"
+                            aria-label="<?= $escaper->escapeHtmlAttr(__('Show Password')) ?>">
+                        <span x-show="isHidden" aria-hidden="true">
+                            <?= $lucideIcons->eyeHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                        </span>
+                        <span x-show="showPassword" x-cloak aria-hidden="true">
+                            <?= $lucideIcons->eyeOffHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <?= $recaptcha ? $recaptcha->getInputHtml(ReCaptcha::RECAPTCHA_FORM_ID_CUSTOMER_LOGIN) : '' ?>
+            <?= $block->getChildHtml('form_additional_info') ?>
+
+            <div class="elme-login__forgot">
+                <a href="<?= $escaper->escapeUrl($block->getForgotPasswordUrl()) ?>">
+                    <?= $escaper->escapeHtml(__('Forgot your password?')) ?>
+                </a>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-full" name="send"
+                <?php if ($loginButtonViewModel->disabled()): ?> disabled data-recaptcha-btn<?php endif; ?>>
+                <span><?= $escaper->escapeHtml(__('Sign In')) ?></span>
+            </button>
+
+            <template x-if="displayErrorMessage">
+                <p class="elme-login__error" role="alert">
+                    <?= $lucideIcons->circleAlertHtml('shrink-0', 20, 20, ['aria-hidden' => 'true']) ?>
+                    <template x-for="errorMessage in errorMessages">
+                        <span x-html-safe="errorMessage"></span>
+                    </template>
+                </p>
+            </template>
+        </fieldset>
+    </form>
+    <?php if ($recaptcha): ?>
+        <div class="w-full">
+            <?= $recaptcha->getLegalNoticeHtml(ReCaptcha::RECAPTCHA_FORM_ID_CUSTOMER_LOGIN) ?>
+        </div>
+    <?php endif; ?>
+</div>
+<script>
+    function initElmeLoginForm() {
+        return {
+            errors: 0,
+            hasCaptchaToken: 0,
+            showPassword: false,
+            displayErrorMessage: false,
+            errorMessages: [],
+            togglePassword() {
+                this.showPassword = !this.showPassword;
+            },
+            isHidden() {
+                return !this.showPassword;
+            },
+            passwordType() {
+                return this.showPassword ? 'text' : 'password';
+            },
+            ariaPressed() {
+                return this.showPassword ? 'true' : 'false';
+            },
+            eyeLabel() {
+                return this.showPassword
+                    ? '<?= $escaper->escapeJs(__('Hide Password')) ?>'
+                    : '<?= $escaper->escapeJs(__('Show Password')) ?>';
+            },
+            setErrorMessages(messages) {
+                this.errorMessages = [messages];
+                this.displayErrorMessage = this.errorMessages.length;
+            },
+            submitForm() {
+                // do not rename $form, the variable is the expected name in the recaptcha output
+                const $form = document.querySelector('#customer-login-form');
+                <?= $recaptcha ? $recaptcha->getValidationJsHtml(ReCaptcha::RECAPTCHA_FORM_ID_CUSTOMER_LOGIN) : '' ?>
+                const redirectUrl = hyva.getCookie('<?= $escaper->escapeJs(Redirect::LOGIN_REDIRECT_URL) ?>');
+                const hasLogoutSuccess = redirectUrl?.includes('logoutSuccess');
+
+                if (hasLogoutSuccess) {
+                    hyva.setCookie('<?= $escaper->escapeJs(Redirect::LOGIN_REDIRECT_URL) ?>', window.location.href);
+                }
+
+                if (this.errors === 0) {
+                    $form.submit();
+                }
+            }
+        }
+    }
+
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeLoginForm', initElmeLoginForm), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

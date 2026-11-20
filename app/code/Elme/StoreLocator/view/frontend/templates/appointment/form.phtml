@@ -1,0 +1,488 @@
+<?php
+/**
+ * FE-90: /book-appointment. Trade customers request a showroom visit (date, hourly slot, party size);
+ * the request is emailed to the showroom team. Guests get a log-in / apply gate, like production.
+ * Production embedded a Microsoft Bookings page whose mailbox no longer exists, so the form is native.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ * @var \Hyva\Theme\ViewModel\HyvaCsp $hyvaCsp
+ */
+
+declare(strict_types=1);
+
+use Elme\StoreLocator\ViewModel\AppointmentForm;
+use Elme\StoreLocator\ViewModel\Hours;
+use Hyva\Theme\ViewModel\LucideIcons;
+
+/** @var AppointmentForm $form */
+$form = $block->getData('view_model');
+/** @var LucideIcons $lucide */
+$lucide = $viewModels->require(LucideIcons::class);
+$iconAttrs = ['aria-hidden' => 'true', 'stroke-width' => '1.5'];
+
+$presenter = $form->getPresenter();
+$showrooms = $form->getShowrooms();
+$selected = $form->getSelectedShowroom();
+$loggedIn = $form->isLoggedIn();
+$sent = $loggedIn ? $form->takeSentRequest() : null;
+$openDays = $form->getOpenDaysLabels();
+$selectedKey = $selected ? $selected->getUrlKey() : '';
+$selectedInterests = $form->getSelectedInterests();
+$notesMax = $form->getNotesMax();
+$fieldClass = 'field required';
+?>
+<section id="elme-appointment"
+         class="elme-appointment grid gap-10 pb-12 lg:grid-cols-12 lg:gap-12"
+         aria-label="<?= $escaper->escapeHtmlAttr(__('Showroom appointment')) ?>">
+    <div class="min-w-0 lg:col-span-7 xl:col-span-8">
+        <p class="mb-8 max-w-2xl text-copy text-ink-muted text-pretty lg:text-copy-desktop">
+            <?= $escaper->escapeHtml(__(
+                'See our furniture, artificial flowers and plants, and homewares in person. Our showroom is open to registered trade customers by appointment: pick a day and time, and the showroom team will confirm your visit.'
+            )) ?>
+        </p>
+
+        <?php if (!$showrooms): ?>
+            <p class="border border-border bg-surface p-5 text-copy lg:text-copy-desktop">
+                <?= $escaper->escapeHtml(__('No showroom is taking appointments right now.')) ?>
+                <a href="<?= $escaper->escapeUrl($block->getUrl('', ['_direct' => 'contact-us'])) ?>"
+                   class="underline underline-offset-2 hover:text-link-hover"><?= $escaper->escapeHtml(__('Contact us')) ?></a>
+            </p>
+        <?php elseif ($sent): ?>
+            <div class="border border-border bg-surface p-5 md:p-8"
+                 role="status"
+                 x-data="initElmeAppointmentSent">
+                <div class="mb-4 flex items-start gap-3">
+                    <?= $lucide->circleCheckHtml('mt-1 shrink-0 text-olive', 28, 28, $iconAttrs) ?>
+                    <h2 class="m-0 text-h2 lg:text-h2-desktop" tabindex="-1" x-ref="heading">
+                        <?= $escaper->escapeHtml(__('Request sent')) ?>
+                    </h2>
+                </div>
+                <p class="mb-6 max-w-xl text-copy text-pretty lg:text-copy-desktop">
+                    <?= $escaper->escapeHtml(__(
+                        'Thanks, %1. Your request is with the showroom team. They will confirm your visit by email or phone within one business day.',
+                        explode(' ', (string) $sent['name'])[0]
+                    )) ?>
+                </p>
+                <dl class="mb-6 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-copy lg:text-copy-desktop">
+                    <dt class="text-ink-muted"><?= $escaper->escapeHtml(__('Showroom')) ?></dt>
+                    <dd class="m-0"><?= $escaper->escapeHtml((string) $sent['showroom_name']) ?></dd>
+                    <dt class="text-ink-muted"><?= $escaper->escapeHtml(__('Date')) ?></dt>
+                    <dd class="m-0"><?= $escaper->escapeHtml((string) $sent['date_label']) ?></dd>
+                    <dt class="text-ink-muted"><?= $escaper->escapeHtml(__('Time')) ?></dt>
+                    <dd class="m-0"><?= $escaper->escapeHtml((string) $sent['time_label']) ?></dd>
+                    <dt class="text-ink-muted"><?= $escaper->escapeHtml(__('Visitors')) ?></dt>
+                    <dd class="m-0"><?= (int) $sent['visitors'] ?></dd>
+                </dl>
+                <p class="m-0 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                    <?php if ($selected): ?>
+                        <a href="<?= $escaper->escapeUrl($presenter->getDirectionsUrl($selected)) ?>"
+                           class="btn btn-primary"
+                           target="_blank"
+                           rel="noopener">
+                            <?= $escaper->escapeHtml(__('Get directions')) ?>
+                            <span class="sr-only"><?= $escaper->escapeHtml(__('(opens Google Maps)')) ?></span>
+                        </a>
+                    <?php endif; ?>
+                    <a href="<?= $escaper->escapeUrl($form->getPageUrl()) ?>" class="btn btn-secondary">
+                        <?= $escaper->escapeHtml(__('Book another visit')) ?>
+                    </a>
+                </p>
+            </div>
+            <script>
+                function initElmeAppointmentSent() {
+                    return {
+                        init() {
+                            this.$nextTick(() => this.$refs.heading.focus({ preventScroll: true, focusVisible: false }));
+                        }
+                    };
+                }
+                window.addEventListener(
+                    'alpine:init',
+                    () => Alpine.data('initElmeAppointmentSent', initElmeAppointmentSent),
+                    { once: true }
+                );
+            </script>
+            <?php $hyvaCsp->registerInlineScript() ?>
+        <?php elseif (!$loggedIn): ?>
+            <div class="border border-border bg-surface p-5 md:p-8">
+                <h2 class="mb-3 text-h3 lg:text-h3-desktop">
+                    <?= $escaper->escapeHtml(__('Log in to book a visit')) ?>
+                </h2>
+                <p class="mb-6 max-w-xl text-copy text-ink-muted text-pretty lg:text-copy-desktop">
+                    <?= $escaper->escapeHtml(__(
+                        'Showroom appointments are for registered Elme Living trade customers. Log in to choose a day and time, or apply for a trade account first.'
+                    )) ?>
+                </p>
+                <p class="m-0 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                    <a href="<?= $escaper->escapeUrl($form->getLoginUrl()) ?>" class="btn btn-primary">
+                        <?= $escaper->escapeHtml(__('Log in')) ?>
+                    </a>
+                    <a href="<?= $escaper->escapeUrl($form->getApplyUrl()) ?>" class="btn btn-secondary">
+                        <?= $escaper->escapeHtml(__('Apply for a trade account')) ?>
+                    </a>
+                </p>
+            </div>
+        <?php else: ?>
+            <form class="elme-appointment__form"
+                  action="<?= $escaper->escapeUrl($form->getFormAction()) ?>"
+                  method="post"
+                  novalidate
+                  x-data="initElmeAppointmentForm"
+                  data-schedule="<?= $escaper->escapeHtmlAttr($form->getScheduleJson()) ?>"
+                  data-open-days="<?= $escaper->escapeHtmlAttr((string) json_encode($openDays)) ?>"
+                  data-day-names="<?= $escaper->escapeHtmlAttr((string) json_encode(array_map(
+                      static fn (string $day): string => (string) __($day),
+                      Hours::DAY_LABELS
+                  ))) ?>"
+                  data-closed-day="<?= $escaper->escapeHtmlAttr(__('The showroom is closed on %1. Choose another day.')) ?>"
+                  data-closed-date="<?= $escaper->escapeHtmlAttr(__('The showroom is closed that day. Choose another day.')) ?>"
+                  @submit="onSubmit">
+                <fieldset class="mb-8 border-0 p-0">
+                    <legend class="mb-5 text-h3 lg:text-h3-desktop"><?= $escaper->escapeHtml(__('Your visit')) ?></legend>
+
+                    <?php if (count($showrooms) > 1): ?>
+                        <div class="<?= $fieldClass ?> mb-5">
+                            <label class="label" for="elme-appointment-showroom"><?= $escaper->escapeHtml(__('Showroom')) ?></label>
+                            <select id="elme-appointment-showroom"
+                                    class="form-select w-full"
+                                    name="showroom"
+                                    required
+                                    x-ref="showroom"
+                                    @change="onShowroomChange">
+                                <?php foreach ($showrooms as $key => $showroom): ?>
+                                    <option value="<?= $escaper->escapeHtmlAttr($key) ?>"<?= $key === $selectedKey ? ' selected' : '' ?>>
+                                        <?= $escaper->escapeHtml($showroom->getName()) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php else: ?>
+                        <input type="hidden" name="showroom" value="<?= $escaper->escapeHtmlAttr($selectedKey) ?>" x-ref="showroom">
+                    <?php endif; ?>
+
+                    <div class="grid gap-5 md:grid-cols-2">
+                        <div class="<?= $fieldClass ?>">
+                            <label class="label" for="elme-appointment-date"><?= $escaper->escapeHtml(__('Date')) ?></label>
+                            <input id="elme-appointment-date"
+                                   class="form-input w-full"
+                                   type="date"
+                                   name="date"
+                                   required
+                                   min="<?= $escaper->escapeHtmlAttr($form->getMinDate()) ?>"
+                                   max="<?= $escaper->escapeHtmlAttr($form->getMaxDate()) ?>"
+                                   value="<?= $escaper->escapeHtmlAttr($form->getFieldValue('date')) ?>"
+                                   aria-describedby="elme-appointment-date-hint elme-appointment-date-error"
+                                   x-ref="date"
+                                   @change="onDateChange">
+                            <p id="elme-appointment-date-hint" class="mt-1 mb-0 text-note text-ink-muted" x-text="openDaysLabel">
+                                <?= $escaper->escapeHtml(__('Open %1', $openDays[$selectedKey] ?? '')) ?>
+                            </p>
+                            <p id="elme-appointment-date-error"
+                               class="mt-1 mb-0 text-note text-error-text"
+                               aria-live="polite"
+                               x-text="dateError"></p>
+                        </div>
+
+                        <div class="<?= $fieldClass ?>">
+                            <label class="label" for="elme-appointment-time"><?= $escaper->escapeHtml(__('Time')) ?></label>
+                            <select id="elme-appointment-time"
+                                    class="form-select w-full"
+                                    name="time"
+                                    required
+                                    data-elme-searchable="0"
+                                    x-ref="time">
+                                <option value=""><?= $escaper->escapeHtml(__('Please select')) ?></option>
+                                <?php foreach ($form->getTimeSlots() as $slot => $label): ?>
+                                    <option value="<?= $escaper->escapeHtmlAttr($slot) ?>"<?= $form->getFieldValue('time') === $slot ? ' selected' : '' ?>>
+                                        <?= $escaper->escapeHtml($label) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="<?= $fieldClass ?>">
+                            <label class="label" for="elme-appointment-visitors"><?= $escaper->escapeHtml(__('Number of visitors')) ?></label>
+                            <select id="elme-appointment-visitors"
+                                    class="form-select w-full"
+                                    name="visitors"
+                                    required
+                                    data-elme-searchable="0">
+                                <?php $visitors = (int) ($form->getFieldValue('visitors') ?: 1); ?>
+                                <?php for ($count = 1; $count <= $form->getVisitorsMax(); $count++): ?>
+                                    <option value="<?= $count ?>"<?= $count === $visitors ? ' selected' : '' ?>><?= $count ?></option>
+                                <?php endfor; ?>
+                            </select>
+                        </div>
+                    </div>
+
+                    <fieldset class="mt-6 border-0 p-0">
+                        <legend class="mb-3 text-copy font-medium lg:text-copy-desktop">
+                            <?= $escaper->escapeHtml(__('What would you like to see?')) ?>
+                            <span class="font-normal text-ink-muted"><?= $escaper->escapeHtml(__('(optional)')) ?></span>
+                        </legend>
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            <?php foreach ($form->getInterests() as $code => $label): ?>
+                                <div class="field choice flex items-center gap-3">
+                                    <input type="checkbox"
+                                           class="form-checkbox"
+                                           id="elme-appointment-interest-<?= $escaper->escapeHtmlAttr($code) ?>"
+                                           name="interests[]"
+                                           value="<?= $escaper->escapeHtmlAttr($code) ?>"
+                                           <?= in_array($code, $selectedInterests, true) ? 'checked' : '' ?>>
+                                    <label class="text-copy lg:text-copy-desktop"
+                                           for="elme-appointment-interest-<?= $escaper->escapeHtmlAttr($code) ?>">
+                                        <?= $escaper->escapeHtml(__($label)) ?>
+                                    </label>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </fieldset>
+                </fieldset>
+
+                <fieldset class="mb-8 border-0 p-0">
+                    <legend class="mb-5 text-h3 lg:text-h3-desktop"><?= $escaper->escapeHtml(__('Your details')) ?></legend>
+                    <div class="grid gap-5 md:grid-cols-2">
+                        <div class="<?= $fieldClass ?>">
+                            <label class="label" for="elme-appointment-name"><?= $escaper->escapeHtml(__('Your Name')) ?></label>
+                            <input id="elme-appointment-name" class="form-input w-full" type="text" name="name" required
+                                   autocomplete="name"
+                                   value="<?= $escaper->escapeHtmlAttr($form->getFieldValue('name')) ?>">
+                        </div>
+                        <div class="<?= $fieldClass ?>">
+                            <label class="label" for="elme-appointment-company"><?= $escaper->escapeHtml(__('Company')) ?></label>
+                            <input id="elme-appointment-company" class="form-input w-full" type="text" name="company" required
+                                   autocomplete="organization"
+                                   value="<?= $escaper->escapeHtmlAttr($form->getFieldValue('company')) ?>">
+                        </div>
+                        <div class="<?= $fieldClass ?>">
+                            <label class="label" for="elme-appointment-email"><?= $escaper->escapeHtml(__('Email')) ?></label>
+                            <input id="elme-appointment-email" class="form-input w-full" type="email" name="email" required
+                                   autocomplete="email" inputmode="email" spellcheck="false"
+                                   value="<?= $escaper->escapeHtmlAttr($form->getFieldValue('email')) ?>">
+                        </div>
+                        <div class="<?= $fieldClass ?>">
+                            <label class="label" for="elme-appointment-telephone"><?= $escaper->escapeHtml(__('Phone')) ?></label>
+                            <input id="elme-appointment-telephone" class="form-input w-full" type="tel" name="telephone" required
+                                   autocomplete="tel" inputmode="tel"
+                                   value="<?= $escaper->escapeHtmlAttr($form->getFieldValue('telephone')) ?>">
+                        </div>
+                        <div class="field md:col-span-2">
+                            <label class="label" for="elme-appointment-notes">
+                                <?= $escaper->escapeHtml(__('Anything we should know?')) ?>
+                                <span class="text-ink-muted"><?= $escaper->escapeHtml(__('(optional)')) ?></span>
+                            </label>
+                            <textarea id="elme-appointment-notes"
+                                      class="form-textarea w-full"
+                                      name="notes"
+                                      rows="4"
+                                      maxlength="<?= (int) $notesMax ?>"
+                                      autocomplete="off"
+                                      placeholder="<?= $escaper->escapeHtmlAttr(__('For example: products or ranges you want to see, a new store fit-out, access needs')) ?>"><?= $escaper->escapeHtml($form->getFieldValue('notes')) ?></textarea>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <?= $block->getBlockHtml('formkey') ?>
+                <div class="sr-only" aria-hidden="true">
+                    <label for="elme-appointment-hideit"><?= $escaper->escapeHtml(__('Leave blank')) ?></label>
+                    <input type="text" id="elme-appointment-hideit" name="hideit" value="" tabindex="-1" autocomplete="off">
+                </div>
+
+                <div class="flex flex-col gap-3 md:flex-row md:items-center md:gap-6">
+                    <button type="submit"
+                            class="btn btn-primary"
+                            :disabled="isSubmitting"
+                            :aria-busy="isSubmitting">
+                        <span x-text="submitLabel"><?= $escaper->escapeHtml(__('Request appointment')) ?></span>
+                    </button>
+                    <p class="m-0 text-note text-ink-muted">
+                        <?= $escaper->escapeHtml(__('The showroom team confirms every visit by email or phone within one business day.')) ?>
+                    </p>
+                </div>
+            </form>
+            <script>
+                function initElmeAppointmentForm() {
+                    const WEEKDAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+                    return {
+                        schedule: {},
+                        openDays: {},
+                        dayNames: {},
+                        showroom: '',
+                        dateError: '',
+                        submitting: false,
+                        submitIdleLabel: '<?= $escaper->escapeJs(__('Request appointment')) ?>',
+                        submitBusyLabel: '<?= $escaper->escapeJs(__('Sending...')) ?>',
+                        openPrefix: '<?= $escaper->escapeJs(__('Open')) ?>',
+
+                        init() {
+                            const data = this.$root.dataset;
+                            this.schedule = JSON.parse(data.schedule || '{}');
+                            this.openDays = JSON.parse(data.openDays || '{}');
+                            this.dayNames = JSON.parse(data.dayNames || '{}');
+                            this.showroom = this.$refs.showroom.value;
+                            this.refreshSlots();
+                        },
+
+                        isSubmitting() {
+                            return this.submitting;
+                        },
+
+                        submitLabel() {
+                            return this.submitting ? this.submitBusyLabel : this.submitIdleLabel;
+                        },
+
+                        openDaysLabel() {
+                            const label = this.openDays[this.showroom] || '';
+                            return label ? this.openPrefix + ' ' + label : '';
+                        },
+
+                        onShowroomChange() {
+                            this.showroom = this.$event.target.value;
+                            this.refreshSlots();
+                        },
+
+                        onDateChange() {
+                            this.refreshSlots();
+                        },
+
+                        slotsFor(value) {
+                            const showroom = this.schedule[this.showroom];
+                            const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || '');
+                            if (!showroom || !match) {
+                                return null;
+                            }
+                            if (Object.prototype.hasOwnProperty.call(showroom.holidays, value)) {
+                                return { slots: showroom.holidays[value], holiday: true };
+                            }
+                            const day = WEEKDAYS[new Date(Date.UTC(+match[1], +match[2] - 1, +match[3])).getUTCDay()];
+
+                            return { slots: showroom.days[day] || [], holiday: false, day: day };
+                        },
+
+                        refreshSlots() {
+                            const dateInput = this.$refs.date;
+                            const timeSelect = this.$refs.time;
+                            const result = this.slotsFor(dateInput.value);
+                            const allowed = result ? result.slots : null;
+
+                            Array.from(timeSelect.options).forEach((option) => {
+                                if (option.value === '') {
+                                    return;
+                                }
+                                const off = allowed !== null && allowed.indexOf(option.value) === -1;
+                                option.disabled = off;
+                                option.hidden = off;
+                            });
+                            if (timeSelect.selectedOptions[0] && timeSelect.selectedOptions[0].disabled) {
+                                timeSelect.value = '';
+                            }
+
+                            this.dateError = '';
+                            if (result && result.slots.length === 0) {
+                                const data = this.$root.dataset;
+                                this.dateError = result.holiday
+                                    ? data.closedDate
+                                    : data.closedDay.replace('%1', this.dayNames[result.day] || result.day);
+                            }
+                            dateInput.setCustomValidity(this.dateError);
+                        },
+
+                        onSubmit() {
+                            if (this.submitting) {
+                                this.$event.preventDefault();
+                                return;
+                            }
+                            const form = this.$event.target;
+                            if (!form.checkValidity()) {
+                                this.$event.preventDefault();
+                                form.reportValidity();
+                                return;
+                            }
+                            this.submitting = true;
+                        }
+                    };
+                }
+                window.addEventListener(
+                    'alpine:init',
+                    () => Alpine.data('initElmeAppointmentForm', initElmeAppointmentForm),
+                    { once: true }
+                );
+            </script>
+            <?php $hyvaCsp->registerInlineScript() ?>
+        <?php endif; ?>
+    </div>
+
+    <?php if ($selected): ?>
+        <?php
+        $phone = (string) $selected->getPhone();
+        $parking = trim((string) $selected->getParkingInstructions());
+        ?>
+        <aside class="min-w-0 lg:col-span-5 xl:col-span-4"
+               aria-labelledby="elme-appointment-showroom-name">
+            <div class="border border-border bg-surface p-5 md:p-8">
+                <p class="mb-2 text-label font-medium uppercase tracking-wide text-olive">
+                    <?= $escaper->escapeHtml($presenter->getTypeLabel($selected)) ?>
+                </p>
+                <h2 id="elme-appointment-showroom-name" class="mb-5 font-heading text-h4 lg:text-h4-desktop">
+                    <a href="<?= $escaper->escapeUrl($presenter->getLocationUrl($selected)) ?>"
+                       class="text-ink no-underline hover:underline hover:text-link-hover">
+                        <?= $escaper->escapeHtml($selected->getName()) ?>
+                    </a>
+                </h2>
+                <ul class="m-0 flex list-none flex-col gap-4 p-0 text-copy lg:text-copy-desktop">
+                    <li class="flex gap-3">
+                        <?= $lucide->mapPinHtml('mt-0.5 shrink-0 text-olive', 20, 20, $iconAttrs) ?>
+                        <div>
+                            <address class="mb-1 not-italic">
+                                <?= $escaper->escapeHtml((string) $selected->getStreet()) ?><br>
+                                <?= $escaper->escapeHtml(trim(sprintf(
+                                    '%s %s %s',
+                                    (string) $selected->getCity(),
+                                    $selected->getState(),
+                                    $selected->getPostcode()
+                                ))) ?>
+                            </address>
+                            <a href="<?= $escaper->escapeUrl($presenter->getDirectionsUrl($selected)) ?>"
+                               class="text-copy underline underline-offset-2 hover:text-link-hover"
+                               target="_blank"
+                               rel="noopener">
+                                <?= $escaper->escapeHtml(__('Get directions')) ?>
+                                <span class="sr-only"><?= $escaper->escapeHtml(__('(opens Google Maps)')) ?></span>
+                            </a>
+                        </div>
+                    </li>
+                    <?php if (($openDays[$selectedKey] ?? '') !== ''): ?>
+                        <li class="flex gap-3">
+                            <?= $lucide->clockHtml('mt-0.5 shrink-0 text-olive', 20, 20, $iconAttrs) ?>
+                            <span><?= $escaper->escapeHtml($openDays[$selectedKey]) ?></span>
+                        </li>
+                    <?php endif; ?>
+                    <?php if ($phone !== ''): ?>
+                        <li class="flex gap-3">
+                            <?= $lucide->phoneHtml('mt-0.5 shrink-0 text-olive', 20, 20, $iconAttrs) ?>
+                            <a href="<?= $escaper->escapeUrl($presenter->getTelHref($phone)) ?>"
+                               class="underline underline-offset-2 hover:text-link-hover">
+                                <?= $escaper->escapeHtml($phone) ?>
+                            </a>
+                        </li>
+                    <?php endif; ?>
+                    <?php if ($parking !== ''): ?>
+                        <li class="flex gap-3">
+                            <?= $lucide->carHtml('mt-0.5 shrink-0 text-olive', 20, 20, $iconAttrs) ?>
+                            <span class="text-pretty"><?= $escaper->escapeHtml($parking) ?></span>
+                        </li>
+                    <?php endif; ?>
+                </ul>
+                <p class="mt-5 mb-0 border-t border-border pt-4 text-copy">
+                    <a href="<?= $escaper->escapeUrl($presenter->getListUrl()) ?>"
+                       class="underline underline-offset-2 hover:text-link-hover">
+                        <?= $escaper->escapeHtml(__('All showroom and pick-up locations')) ?>
+                    </a>
+                </p>
+            </div>
+        </aside>
+    <?php endif; ?>
+</section>

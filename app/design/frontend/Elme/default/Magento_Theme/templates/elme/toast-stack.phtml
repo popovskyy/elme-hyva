@@ -1,0 +1,159 @@
+<?php
+/**
+ * Ephemeral toast stack (FE-03 / FE-41), a charcoal bar at the bottom (web/tailwind/components/messages.css).
+ * Dispatch: window.dispatchEvent(new CustomEvent('elme-toast', {
+ *   detail: {
+ *     type: 'success'|'error'|'notice'|'warning', text: '...', hideAfter: 4000,
+ *     title: 'Added to cart',                     // optional bold first line, text becomes the second
+ *     image: 'https://.../thumb.jpg',             // optional product photo in place of the status badge
+ *     link: { url: '/quick-order/cart/', label: 'View cart' } // optional action on the right
+ *   }
+ * }))
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$lucideIcons = $viewModels->require(LucideIcons::class);
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<div
+    class="elme-toast-stack"
+    x-data="initElmeToastStack"
+    x-bind="eventListeners"
+    aria-live="polite"
+    aria-relevant="additions"
+>
+    <template x-for="toast in toasts" :key="toast.id">
+        <div
+            class="message"
+            :class="toastClass"
+            :style="toastStyle"
+            role="status"
+            :aria-live="toastLive"
+        >
+            <template x-if="toast.image">
+                <img class="elme-toast__thumb" :src="toast.image" alt="" width="56" height="56">
+            </template>
+            <template x-if="hasBadge">
+                <span class="message__badge" aria-hidden="true"></span>
+            </template>
+            <span class="elme-toast__body">
+                <span class="elme-toast__title" x-show="toast.title" x-text="toast.title"></span>
+                <span class="message__text" x-show="toast.text" x-text="toast.text"></span>
+            </span>
+            <template x-if="toast.link">
+                <a class="elme-toast__link" :href="toastLinkUrl" x-text="toastLinkLabel"></a>
+            </template>
+            <button
+                type="button"
+                class="message__close"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Close notification')) ?>"
+                @click="dismiss"
+                :data-toast-id="toast.id"
+            >
+                <?= $lucideIcons->xHtml('stroke-current', 18, 18, ['aria-hidden' => 'true']); ?>
+            </button>
+            <template x-if="toast.hideAfter">
+                <span class="elme-toast__timer" aria-hidden="true"></span>
+            </template>
+        </div>
+    </template>
+</div>
+<script>
+    function initElmeToastStack() {
+        return {
+            toasts: [],
+            nextId: 1,
+            defaultHideAfter: 5000,
+            leaveAfter: 180,
+
+            eventListeners: {
+                ['@elme-toast.window'](event) {
+                    this.pushToast(event.detail || {});
+                }
+            },
+
+            pushToast(detail) {
+                const text = (detail.text || '').trim();
+                const title = (detail.title || '').trim();
+                if (!text && !title) return;
+
+                const id = this.nextId++;
+                const type = detail.type || 'notice';
+                const hideAfter = detail.hideAfter === 0
+                    ? 0
+                    : (detail.hideAfter || this.defaultHideAfter);
+                const image = detail.image || '';
+                const link = detail.link && detail.link.url && detail.link.label
+                    ? { url: detail.link.url, label: detail.link.label }
+                    : null;
+
+                this.toasts.push({ id, type, text, title, image, link, hideAfter, leaving: false });
+
+                if (hideAfter > 0) {
+                    setTimeout(() => this.removeById(id), hideAfter);
+                }
+            },
+
+            dismiss() {
+                const id = Number(this.$el.dataset.toastId);
+                this.removeById(id);
+            },
+
+            removeById(id) {
+                const toast = this.toasts.find((item) => item.id === id);
+                if (!toast || toast.leaving) return;
+
+                toast.leaving = true;
+                setTimeout(() => {
+                    this.toasts = this.toasts.filter((item) => item.id !== id);
+                }, this.leaveAfter);
+            },
+
+            toastClass() {
+                const toast = this.toast;
+                return [
+                    toast.type,
+                    toast.title ? 'has-title' : '',
+                    toast.image ? 'has-image' : '',
+                    toast.leaving ? 'is-leaving' : ''
+                ].join(' ').trim();
+            },
+
+            // the sage line under the bar runs for as long as the toast stays
+            toastStyle() {
+                return this.toast.hideAfter ? '--toast-life: ' + this.toast.hideAfter + 'ms' : '';
+            },
+
+            hasBadge() {
+                return !this.toast.image;
+            },
+
+            toastLinkUrl() {
+                return this.toast.link ? this.toast.link.url : '';
+            },
+
+            toastLinkLabel() {
+                return this.toast.link ? this.toast.link.label : '';
+            },
+
+            toastLive() {
+                return this.toast.type === 'error' ? 'assertive' : 'polite';
+            }
+        }
+    }
+
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeToastStack', initElmeToastStack), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

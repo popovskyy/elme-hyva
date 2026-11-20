@@ -1,0 +1,90 @@
+/**
+ * Elme CSS entry. Add a partial in the folder it belongs to under ./elme/ and import it here, in that
+ * folder's block. Do not put component rules in this file.
+ *
+ * elme/foundation/     type, leaf corners, buttons and motion shared by many screens
+ * elme/layout/         page frame: header, menus, search box, footer
+ * elme/home/           home page blocks
+ * elme/plp/            category and search listing pages
+ * elme/product/        product card, product page, add to cart, hearts and lists
+ * elme/cart-checkout/  cart, checkout, order success
+ * elme/account/        login and the customer account pages
+ * elme/content/        CMS and Content Studio blocks, content pages, 404
+ * elme/help/           help centre pages
+ */
+
+/* foundation */
+@import "./elme/foundation/typography.css";
+@import "./elme/foundation/display.css";
+@import "./elme/foundation/prose.css";
+@import "./elme/foundation/leaf.css";
+@import "./elme/foundation/glass.css";
+@import "./elme/foundation/buttons.css";
+@import "./elme/foundation/icon-button.css";
+@import "./elme/foundation/motion-burst.css";
+@import "./elme/foundation/dust.css";
+@import "./elme/foundation/snap-carousel.css";
+
+/* layout */
+@import "./elme/layout/header.css";
+@import "./elme/layout/search-autocomplete.css";
+@import "./elme/layout/mobile-menu.css";
+@import "./elme/layout/mega-menu.css";
+@import "./elme/layout/footer.css";
+@import "./elme/layout/third-party.css";
+
+/* content */
+@import "./elme/content/shared-blocks.css";
+@import "./elme/content/content-studio.css";
+@import "./elme/content/lookbook.css";
+@import "./elme/content/content-page.css";
+@import "./elme/content/collaboration.css";
+@import "./elme/content/style-sourcebook.css";
+@import "./elme/content/store-locator.css";
+@import "./elme/content/noroute.css";
+
+/* product */
+@import "./elme/product/add-to-cart.css";
+@import "./elme/product/product-card.css";
+@import "./elme/product/product-carousel.css";
+@import "./elme/product/copy-sku.css";
+@import "./elme/product/pdp.css";
+@import "./elme/product/pdp-recommendations.css";
+@import "./elme/product/pdp-diagram.css";
+@import "./elme/product/family-swatches.css";
+@import "./elme/product/family-configurations.css";
+@import "./elme/product/heart.css";
+@import "./elme/product/list-picker.css";
+
+/* cart and checkout */
+@import "./elme/cart-checkout/cart.css";
+@import "./elme/cart-checkout/cart-bar.css";
+@import "./elme/cart-checkout/checkout.css";
+@import "./elme/cart-checkout/order-success.css";
+
+/* home */
+@import "./elme/home/hero.css";
+@import "./elme/home/category-tiles.css";
+@import "./elme/home/instagram-slider.css";
+@import "./elme/home/home-motion.css";
+@import "./elme/home/home-statement.css";
+@import "./elme/home/home-calm.css";
+
+/* plp */
+@import "./elme/plp/recently-viewed.css";
+@import "./elme/plp/category-banner.css";
+@import "./elme/plp/plp-filters.css";
+@import "./elme/plp/plp-quickbar.css";
+@import "./elme/plp/plp-view.css";
+@import "./elme/plp/search-results.css";
+@import "./elme/plp/guest-trade-banner.css";
+
+/* account */
+@import "./elme/account/shopping-lists.css";
+@import "./elme/account/login.css";
+
+/* help */
+@import "./elme/help/help.css";
+@import "./elme/help/faqs.css";
+@import "./elme/help/become-stockist.css";
+@import "./elme/help/contact.css";

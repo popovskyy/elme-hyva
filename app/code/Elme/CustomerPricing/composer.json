@@ -1,0 +1,24 @@
+{
+    "name": "elme/module-customer-pricing",
+    "description": "Elme Living per-customer prices from the Pronto price mappings, the same on the price endpoint and in the cart",
+    "type": "magento2-module",
+    "require": {
+        "php": "~8.3.0||~8.4.0",
+        "elme/module-login-only": "*",
+        "magento/framework": "*",
+        "magento/module-catalog": "*",
+        "magento/module-configurable-product": "*",
+        "magento/module-customer": "*",
+        "magento/module-eav": "*",
+        "magento/module-quote": "*",
+        "magento/module-store": "*"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Elme\\CustomerPricing\\": ""
+        }
+    }
+}

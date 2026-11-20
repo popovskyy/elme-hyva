@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <!-- Every area: a cart flagged for a recollect can be loaded by admin or cron code too, and must reprice there. -->
+    <event name="sales_quote_collect_totals_before">
+        <observer name="elme_customer_pricing_apply" instance="Elme\CustomerPricing\Observer\ApplyCustomerPrices"/>
+    </event>
+    <event name="customer_save_after_data_object">
+        <observer name="elme_customer_pricing_recollect" instance="Elme\CustomerPricing\Observer\RecollectOnProntoIdChange"/>
+    </event>
+</config>

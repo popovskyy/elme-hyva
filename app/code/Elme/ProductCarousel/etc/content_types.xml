@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!--
+    FE-17: the product carousel as a Content Studio entry, for the home page and any page built from entries.
+    The template renders Elme\ProductCarousel\Block\Carousel, the same block the widget and the PDP / cart / 404
+    layouts use.
+-->
+<content_types xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:noNamespaceSchemaLocation="urn:magento:module:Bart_ContentStudio:etc/content_types.xsd">
+    <type code="product_carousel"
+          label="Product carousel"
+          standalone="true"
+          group="home"
+          icon="image-text"
+          description="A slider of product cards: trending, new or a category. Hidden when it has no products."
+          template="Elme_ProductCarousel::content-type/product-carousel.phtml"
+          version="1">
+
+        <field name="title" type="text" label="Title" required="true" maxlength="60"
+               description="e.g. Trending now, New arrivals."/>
+        <field name="source" type="select" label="Products" default="trending">
+            <option value="trending" label="Trending (category set in Stores > Configuration > Elme > Catalog)"/>
+            <option value="new" label="New"/>
+            <option value="category" label="A category"/>
+        </field>
+        <field name="category_id" type="number" label="Category ID" min="1"
+               description="Only for &quot;A category&quot;. The ID is in Catalog > Categories."/>
+        <field name="limit" type="number" label="Number of products" default="12" min="3" max="24"/>
+    </type>
+</content_types>

@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-18: Elme category banner (H1 + breadcrumbs + description + optional image).
+ * Suppresses Hyvä category.image / page.main.title / category.description so there is one H1
+ * and one hero image. BreadcrumbList stays on the breadcrumbs block (FE-55 consolidates later).
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="category.view.container" htmlClass="category-view">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="category.banner"
+                   template="Magento_Catalog::category/banner.phtml"
+                   before="-">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">Elme\Theme\ViewModel\CategoryBanner</argument>
+                </arguments>
+                <block class="Magento\Framework\View\Element\Template"
+                       name="category.banner.image"
+                       as="banner_image"
+                       template="Magento_Catalog::category/banner/image.phtml">
+                    <arguments>
+                        <argument name="view_model" xsi:type="object">Elme\Theme\ViewModel\CategoryBanner</argument>
+                    </arguments>
+                </block>
+            </block>
+            <!-- UX-02: guest trade path; HideForLoggedIn keeps the HTML off logged-in FPC -->
+            <block class="Elme\LoginOnly\Block\HideForLoggedIn"
+                   name="category.guest.trade.banner"
+                   template="Elme_LoginOnly::catalog/guest-trade-banner.phtml"
+                   after="category.banner"/>
+        </referenceContainer>
+
+        <referenceBlock name="catalog.compare.sidebar" remove="true"/>
+        <referenceBlock name="category.image" remove="true"/>
+        <referenceBlock name="category.description" remove="true"/>
+        <referenceBlock name="page.main.title" remove="true"/>
+
+        <move element="breadcrumbs" destination="category.banner" before="-"/>
+
+        <!-- FE-20: no core list/grid mode (product_list_mode); FE-87 switches the view client side in the toolbar. -->
+        <referenceBlock name="product_list_toolbar">
+            <action method="disableViewSwitcher"/>
+            <!-- FE-21: Filters button + drawer and selected-filter chips (facets from Elme_Search, D2) -->
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.listing.filters"
+                   as="elme_filters"
+                   template="Magento_Catalog::product/list/filters.phtml">
+                <arguments>
+                    <argument name="swatch_facets" xsi:type="array">
+                        <item name="colour_group" xsi:type="string">colour_group</item>
+                    </argument>
+                </arguments>
+                <!-- FE-110: sticky quick-filter bar (All filters + one-tap chips); rendered by filters.phtml -->
+                <block class="Magento\Framework\View\Element\Template"
+                       name="elme.listing.quickbar"
+                       as="elme_quickbar"
+                       template="Magento_Catalog::product/list/filters-quickbar.phtml"/>
+            </block>
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.listing.filters.chips"
+                   as="elme_filters_chips"
+                   template="Magento_Catalog::product/list/filters-chips.phtml"/>
+        </referenceBlock>
+
+        <!-- FE-21: filters live in a drawer, so the empty left sidebar of layered navigation goes -->
+        <referenceBlock name="catalog.leftnav" remove="true"/>
+        <referenceBlock name="category.products.list">
+            <arguments>
+                <!-- the list classes stay literal here so Tailwind finds them -->
+                <argument name="grid_columns_class" xsi:type="string">sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4</argument>
+            </arguments>
+        </referenceBlock>
+    </body>
+</page>

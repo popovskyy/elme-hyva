@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Elme_StoreLocator::locations"
+             title="Showroom Locations"
+             module="Elme_StoreLocator"
+             sortOrder="85"
+             parent="Magento_Backend::content"
+             resource="Elme_StoreLocator::locations"/>
+        <add id="Elme_StoreLocator::location"
+             title="Locations"
+             module="Elme_StoreLocator"
+             sortOrder="10"
+             parent="Elme_StoreLocator::locations"
+             action="elme_storelocator/location/index"
+             resource="Elme_StoreLocator::location"/>
+    </menu>
+</config>

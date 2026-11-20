@@ -1,0 +1,182 @@
+#!/usr/bin/env bash
+# One-command local install of the Elme Living stack (Docker + Magento + Hyva theme assets).
+#
+#   cp auth.json.sample auth.json     # put your repo.magento.com keys in it first
+#   bin/setup
+#
+# Safe to run again: it skips what is already done, runs setup:upgrade instead of
+# setup:install when app/etc/env.php exists, and never drops the database.
+#
+# Needs: Docker with the compose plugin (v2), mkcert, sudo (only to add the hosts entry).
+# The store comes up with CMS pages from the data patches but without products: no DB dump
+# ships with the repo.
+
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+HOST="elme-hyva.local"
+BASE_URL="https://${HOST}/"
+THEME_DIR="app/design/frontend/Elme/default/web/tailwind"
+ADMIN_USER="admin"
+ADMIN_PASS="admin123"
+
+say()  { printf '\n==> %s\n' "$*"; }
+warn() { printf 'WARN: %s\n' "$*" >&2; }
+die()  { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
+php_run() { bin/clinotty bash -c "$*"; }
+
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+    sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+    exit 0
+fi
+
+# Poll a command until it succeeds. wait_for <label> <seconds> <command...>
+wait_for() {
+    local label="$1" limit="$2" waited=0
+    shift 2
+    printf 'Waiting for %s ' "$label"
+    until "$@" >/dev/null 2>&1; do
+        waited=$((waited + 3))
+        if [ "$waited" -ge "$limit" ]; then
+            printf '\n'
+            die "$label did not become ready in ${limit}s (docker compose logs --tail 50)"
+        fi
+        printf '.'
+        sleep 3
+    done
+    printf ' ok\n'
+}
+
+port_busy() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
+
+# 1. Preflight ------------------------------------------------------------------------------
+
+say "Checking the machine"
+docker compose version >/dev/null 2>&1 || die "Docker with the compose plugin (v2) is required."
+docker info >/dev/null 2>&1 || die "The Docker daemon is not running or not reachable by this user."
+command -v mkcert >/dev/null 2>&1 || die "mkcert is required (https://github.com/FiloSottile/mkcert), it makes the local HTTPS certificate."
+
+[ -f auth.json ] || die "auth.json is missing: cp auth.json.sample auth.json and put your repo.magento.com keys in it."
+if grep -q '<public-key>\|<private-key>' auth.json; then
+    die "auth.json still has the placeholder keys: put your repo.magento.com keys in it."
+fi
+
+if [ "$(uname -s)" = "Linux" ] && [ "$(id -u)" != "1000" ]; then
+    warn "Your user id is $(id -u). The PHP container runs as 1000:1000, so it may not be able to write to this folder."
+fi
+
+if [ -z "$(docker ps -q --filter name=^elme_varnish$)" ]; then
+    for port in 80 443; do
+        if port_busy "$port"; then
+            die "Port $port is already in use (another local Magento stack?). Stop it first, or remap the ports in docker-compose.override.yml."
+        fi
+    done
+fi
+
+# 2. Hosts entry ----------------------------------------------------------------------------
+
+if ! grep -Eq "^[^#]*[[:space:]]${HOST}([[:space:]]|\$)" /etc/hosts; then
+    say "Adding ${HOST} to /etc/hosts (sudo)"
+    echo "127.0.0.1 ${HOST}" | sudo tee -a /etc/hosts >/dev/null
+fi
+
+# 3. Local HTTPS certificate (before compose up: the ssl-terminator mounts it) --------------
+
+CERT_DIR="magento-docker/certs"
+if [ ! -f "${CERT_DIR}/${HOST}.pem" ] || [ ! -f "${CERT_DIR}/${HOST}-key.pem" ]; then
+    say "Creating the local HTTPS certificate"
+    mkcert -install
+    mkdir -p "$CERT_DIR"
+    (cd "$CERT_DIR" && mkcert -cert-file "${HOST}.pem" -key-file "${HOST}-key.pem" "$HOST")
+fi
+
+# 4. Containers -----------------------------------------------------------------------------
+
+say "Building and starting the containers (the first build takes several minutes)"
+docker compose up -d --build
+
+say "Waiting for the services"
+wait_for "MariaDB" 180 docker exec elme_mariadb mariadb-admin ping -uroot -proot --silent
+wait_for "OpenSearch" 240 docker exec elme_php curl -sf http://opensearch:9200
+wait_for "RabbitMQ" 180 docker exec elme_rabbitmq rabbitmq-diagnostics -q ping
+wait_for "Valkey" 60 docker exec elme_redis valkey-cli ping
+
+# 5. PHP dependencies -----------------------------------------------------------------------
+
+say "composer install"
+php_run "composer install --no-interaction"
+
+# composer deploys magento2-base into the project root and overwrites tracked files there
+# (our 503 pages in pub/errors). Put the committed versions back.
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git checkout -- pub/errors
+fi
+
+# 6. Magento install or upgrade -------------------------------------------------------------
+
+# app/etc/env.php is not in git: no env.php means a fresh instance.
+FRESH=0
+if [ ! -f app/etc/env.php ] || ! grep -q "'install'" app/etc/env.php; then
+    FRESH=1
+    say "setup:install (fresh instance)"
+    php_run "bin/magento setup:install \
+      --base-url=${BASE_URL} --use-secure=1 --use-secure-admin=1 \
+      --db-host=mariadb --db-name=elme_magento --db-user=elme --db-password=elme \
+      --admin-user=${ADMIN_USER} --admin-password='${ADMIN_PASS}' --admin-email=admin@${HOST} \
+      --admin-firstname=Admin --admin-lastname=Elme \
+      --backend-frontname=admin --language=en_AU --currency=AUD --timezone=Australia/Melbourne \
+      --search-engine=opensearch --opensearch-host=opensearch --opensearch-port=9200 --opensearch-index-prefix=elme \
+      --cache-backend=redis --cache-backend-redis-server=redis --cache-backend-redis-db=0 \
+      --page-cache=redis --page-cache-redis-server=redis --page-cache-redis-db=1 \
+      --session-save=redis --session-save-redis-host=redis --session-save-redis-db=2 \
+      --amqp-host=rabbitmq --amqp-port=5672 --amqp-user=guest --amqp-password=guest \
+      --http-cache-hosts=varnish:80"
+else
+    say "setup:upgrade (instance already installed)"
+    php_run "bin/magento setup:upgrade"
+fi
+
+# 7. Theme and config -----------------------------------------------------------------------
+
+say "Activating the Elme theme and Varnish"
+THEME_ID="$(docker exec elme_mariadb mariadb -uelme -pelme elme_magento -N -B \
+    -e "SELECT theme_id FROM theme WHERE area='frontend' AND theme_path='Elme/default'")"
+[ -n "$THEME_ID" ] || die "The theme Elme/default is not registered in the database."
+php_run "bin/magento config:set design/theme/theme_id ${THEME_ID}"
+php_run "bin/magento config:set system/full_page_cache/caching_application 2"
+php_run "bin/magento config:set system/full_page_cache/varnish/backend_host nginx"
+php_run "bin/magento config:set system/full_page_cache/varnish/backend_port 8080"
+
+if ! php_run "bin/magento deploy:mode:show" | grep -qi "developer"; then
+    php_run "bin/magento deploy:mode:set developer"
+fi
+
+# 8. Theme assets ---------------------------------------------------------------------------
+
+# app/etc/hyva-themes.json and the Tailwind inputs under web/tailwind/generated, plus the
+# self-hosted font under web/fonts/generated, are not in git. The page preloads that font, so
+# it has to exist. We do not run "npm run build": styles.css is committed.
+say "Generating Hyva theme assets (npm ci needs the network)"
+php_run "bin/magento hyva:config:generate"
+php_run "cd ${THEME_DIR} && npm ci && npm run generate"
+
+# 9. Finish ---------------------------------------------------------------------------------
+
+php_run "bin/magento cache:flush" >/dev/null
+
+# Varnish keeps the backend marked sick for a few probes after PHP warms up, so the first
+# requests can answer 503. Wait until the storefront really answers.
+say "Waiting for the storefront"
+wait_for "the storefront" 180 curl -skf -o /dev/null --resolve "${HOST}:443:127.0.0.1" "${BASE_URL}"
+
+cat <<EOF
+
+Done.
+  Storefront : ${BASE_URL}
+  Admin      : ${BASE_URL}admin   (${ADMIN_USER} / ${ADMIN_PASS}, local only)
+  Mail UI    : http://localhost:8028
+  CSS watch  : bin/clinotty bash -c "cd ${THEME_DIR} && npm run watch"
+EOF
+if [ "$FRESH" = 1 ]; then
+    echo "There are no products yet: ask the team for a database dump if you need catalogue data."
+fi

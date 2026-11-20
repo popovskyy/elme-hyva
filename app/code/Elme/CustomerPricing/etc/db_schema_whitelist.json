@@ -1,0 +1,83 @@
+{
+    "pronto_elme_customer_mapping": {
+        "column": {
+            "entity_id": true,
+            "pronto_customer_id": true,
+            "marketing_flag": true,
+            "region_group": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PRONTO_ELME_CUSTOMER_MAPPING_PRONTO_CUSTOMER_ID": true
+        }
+    },
+    "pronto_elme_sku_group_mapping": {
+        "column": {
+            "entity_id": true,
+            "sku": true,
+            "group_code": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PRONTO_ELME_SKU_GROUP_MAPPING_SKU_GROUP_CODE": true
+        }
+    },
+    "pronto_elme_price_list": {
+        "column": {
+            "entity_id": true,
+            "sku": true,
+            "is_prom_price_active": true,
+            "prom_price": true,
+            "price": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PRONTO_ELME_PRICE_LIST_SKU": true
+        }
+    },
+    "pronto_elme_price_list_mapping": {
+        "column": {
+            "entity_id": true,
+            "sku": true,
+            "region_group": true,
+            "is_prom_price_active": true,
+            "prom_price": true,
+            "price": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "index": {
+            "PRONTO_ELME_PRICE_LIST_MAPPING_REGION_GROUP": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PRONTO_ELME_PRICE_LIST_MAPPING_SKU_REGION_GROUP": true
+        }
+    },
+    "pronto_elme_cust_mkt_mapping": {
+        "column": {
+            "entity_id": true,
+            "discount_type": true,
+            "sku": true,
+            "item_group": true,
+            "pronto_customer_id": true,
+            "marketing_flag": true,
+            "discount": true,
+            "price": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PRONTO_ELME_CUST_MKT_MAPPING_DISCOUNT_TYPE_PRONTO_CSTR_ID_SKU": true,
+            "PRONTO_ELME_CUST_MKT_MAPPING_DISCOUNT_TYPE_MARKETING_FLAG_SKU": true,
+            "UNQ_619AA68CAEC989653EB821CB762C9787": true
+        }
+    }
+}

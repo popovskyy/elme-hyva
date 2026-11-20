@@ -1,0 +1,180 @@
+/*
+ * Home "Statement" run: welcome_cta as a large statement,
+ * promo_split as a dark band with a big line and a ticker, catalogue_covers as books on a sand band.
+ * Layout lives in the templates; this file holds sizes, the ticker loop and the book hover.
+ */
+@layer components {
+    .elme-welcome-cta__heading {
+        max-width: 16ch;
+        font-size: var(--text-display);
+        line-height: var(--text-display--line-height);
+
+        @variant md {
+            font-size: var(--text-display-desktop);
+            line-height: var(--text-display--line-height);
+        }
+
+        /* Wide enough for two lines: "Wholesale artificial flowers, plants / and home decor…" */
+        @variant lg {
+            max-width: 22em;
+        }
+
+        @variant xl {
+            font-size: calc(var(--spacing) * 16);
+            line-height: 1.06;
+        }
+    }
+
+    .elme-promo-split__kicker {
+        margin-bottom: --spacing(2);
+        font-size: var(--text-h2);
+        line-height: var(--text-h2--line-height);
+
+        @variant lg {
+            font-size: var(--text-h2-desktop);
+            line-height: 1.2;
+        }
+    }
+
+    .elme-promo-split__highlight {
+        font-size: calc(var(--spacing) * 14);
+        line-height: 0.95;
+
+        @variant lg {
+            font-size: calc(var(--spacing) * 18);
+            white-space: nowrap;
+        }
+
+        @variant xl {
+            font-size: calc(var(--spacing) * 22);
+        }
+    }
+
+    .elme-promo-split--dark .elme-promo-split__kicker,
+    .elme-promo-split--dark .elme-promo-split__highlight {
+        color: var(--color-on-primary);
+    }
+
+    /* Ticker: two equal halves. The track moves left by one half, so the loop has no seam.
+       Each half repeats the line (--elme-ticker-repeats) so a wide screen never shows a blank. */
+    .elme-ticker__group {
+        display: flex;
+        flex: none;
+    }
+
+    .elme-ticker__item {
+        padding: --spacing(3.5) --spacing(5);
+        font-size: var(--text-h3);
+
+        @variant lg {
+            padding: --spacing(5) --spacing(7);
+            font-size: var(--text-h2-desktop);
+        }
+    }
+
+    .elme-ticker__sep {
+        padding-left: --spacing(10);
+        color: var(--color-secondary);
+    }
+
+    .elme-ticker {
+        margin-inline: calc(var(--entry-bleed) * -1);
+    }
+
+    :is(.cms-page-view, .cms-index-index).page-layout-1column .elme-ticker {
+        width: 100vw;
+        max-width: 100vw;
+        margin-inline: calc(50% - 50vw);
+    }
+
+    /* Sand and ink bands paint past the 1920 container. The section stays put;
+       the shadow is the colour in the side margins. clip-path stops it covering
+       the blocks above and below, and it does not add a scrollbar. */
+    :is(.cms-page-view, .cms-index-index).page-layout-1column .elme-promo-split--dark,
+    :is(.cms-page-view, .cms-index-index).page-layout-1column .elme-catalogue-covers {
+        clip-path: inset(0 -100vmax);
+    }
+
+    :is(.cms-page-view, .cms-index-index).page-layout-1column .elme-promo-split--dark {
+        box-shadow: 0 0 0 100vmax var(--color-ink);
+    }
+
+    :is(.cms-page-view, .cms-index-index).page-layout-1column .elme-catalogue-covers {
+        box-shadow: 0 0 0 100vmax var(--color-sand-light);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .elme-ticker__track {
+            animation: elme-ticker calc(30s * var(--elme-ticker-repeats, 8)) linear infinite;
+        }
+
+        .elme-ticker:hover .elme-ticker__track {
+            animation-play-state: paused;
+        }
+    }
+
+    .elme-catalogue-covers__inner {
+        display: grid;
+        gap: --spacing(8);
+        padding-inline: max(var(--entry-bleed), var(--container-gutter));
+
+        @variant md {
+            padding-inline: max(var(--entry-bleed), var(--container-gutter-desktop));
+        }
+
+        /* Title and covers sit together in the middle of the band. 112px from lg, 160px from xl. */
+        @variant lg {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: calc(var(--spacing) * 28);
+        }
+
+        @variant xl {
+            gap: calc(var(--spacing) * 40);
+        }
+    }
+
+    .elme-catalogue-covers__shelf {
+        gap: --spacing(5);
+
+        @variant lg {
+            flex: 0 1 calc(var(--spacing) * 140);
+            width: calc(var(--spacing) * 140);
+            max-width: 100%;
+            min-width: 0;
+            gap: --spacing(12);
+        }
+    }
+
+    .elme-catalogue-covers__cover {
+        box-shadow: 0 calc(var(--spacing) * 5) calc(var(--spacing) * 10)
+            color-mix(in oklab, var(--color-ink) 28%, transparent);
+        transform: rotate(-3deg);
+        transition: transform var(--transition-duration-fast) var(--ease-out-quint);
+    }
+
+    .elme-catalogue-covers__shelf li:nth-child(even) .elme-catalogue-covers__cover {
+        transform: rotate(2.5deg);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        .elme-catalogue-covers__shelf li .elme-catalogue-covers__book:is(:hover, :focus-visible) .elme-catalogue-covers__cover {
+            transform: translateY(calc(var(--spacing) * -2)) rotate(-3deg);
+        }
+
+        .elme-catalogue-covers__shelf li:nth-child(even) .elme-catalogue-covers__book:is(:hover, :focus-visible) .elme-catalogue-covers__cover {
+            transform: translateY(calc(var(--spacing) * -2)) rotate(2.5deg);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .elme-catalogue-covers__cover {
+            transition: none;
+        }
+    }
+}
+
+@keyframes elme-ticker {
+    to { transform: translateX(-50%); }
+}

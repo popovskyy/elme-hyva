@@ -1,0 +1,54 @@
+Attribute today,Code that reads it (M2 modules; POS / Shipment Service),What the logic does,Decision,Target EL OS,Target B2C
+dropship_live_approved,-,DS live status automation (cron every 3 min + save observer): status = approved AND supply,"Keep (temporary, D25)",-,dropship_live_approved
+dropship_made_to_order,Bart/DropShip,"DS made-to-order: supply = supplier flag dropship_available instead of qty; CLI MarkMadeToOrder; ApplyMadeToOrderDefaults sets made_to_order + backorders. Feature merged 2026-09-22, 0 values in the 2026-10-15 dump = not rolled out yet","Keep (temporary, D25): PIM field -> Shipment Service + M2",-,dropship_made_to_order
+dropship_available,Bart/DropShip,"Supplier-sent availability for MTO dropship items (supplier stock API / CSV, stored on the source item and the product)","Move with DS stock to the Shipment Service (supply signal, not product data)",-,- (Shipment Service)
+supplier_lead_time,Bart/DropShip Bart/OverdoseStorelocator Bart/ShipmentEta,ETA for dropship items,"Shipment Service (from PIM, D25 temp.)",-,-
+elme_dropship,-,No code reads it,Drop,-,-
+customer_id,Bart/DropShip (writer only),Supplier account id derived from the SKU by a DropShip cron; nothing reads it (supplier lookups use the SKU),Drop (Q-196),-,-
+warehouse_cost,Bart/Tracking (TripleWhale),Sent to TripleWhale as product cost (profit analytics),Keep B2C; not PIM. Source today = manual Firebear import; DWH does not extract cost (Q-196),-,warehouse_cost
+is_kit_component,Bart/PosIntegration; POS bff (Kit Configurator),POS Kit Configurator: which products can be added to a kit; set from the DWH kit-components walk (POS + M2 var script). Newer than the dump,"Keep B2C, derived from the Pronto BOM (DWH B2C)",-,is_kit_component
+family_sort_order,Bart/ProductFamilyConfigurator; POS bff,Primary order of the PDP family configurator (M2 + POS); newer than the dump (0 values),Keep: family member order in the PIM family,family_sort_order,family_sort_order
+items_sold,Bart/Catalog Bart/Merchandise Bart/ProductFamilyConfigurator; POS bff,"Popularity: family configurator tiebreak (M2 + POS), sort; computed from orders by Bart_Merchandise",Keep as M2-owned computed attribute (not PIM); Search Service gets its own sales signal,-,items_sold
+stk_user_group_2,Bart/Checkout Bart/ConcreteAndMarbleDelivery Bart/FreightMetro Bart/OverdoseStorelocator ElmeLiving/Catalog Bart/Nosto; POS,"Assembly, specialist delivery code, Concrete & Marble and Freight Metro carriers, interstate, POS line checks; EL: large-item rule (GetLargeProductIdsFromQuote)",Keep in BOTH instances,stk_user_group_2,stk_user_group_2
+recycling_code,Bart/Catalog Bart/Checkout,Checkout AssemblyAndRecycling / RecyclingCost use the value as the recycling service item (REMOVALOLDMATT),Rule: product_type -> recycling service code (config); exactly the 415 mattress items today,-,rule
+show_toppling_warning,Bart/Catalog,PDP warning block,Rule: product_type list (config),rule,rule
+free_assembly,Bart/Checkout Bart/jl,Cart template hides the assembly option when set; never set (0 on all items). $0 assembly for stk group 4 is config (auto-assembly),Drop,-,-
+fcs_timber,Bart/Catalog Bart/sg; POS pdp-attributes,PDP shows FSC Timber only when the value is Yes; POS allowlist. Never Yes,Drop (D24),-,-
+buyer_code,Bart/Catalog Bart/Checkout Bart/OverdoseStorelocator Bart/ShipmentEta,"Alexandria rule: buyer code 39 + units per carton > 1 -> Alexandria stock counts / DC choice (checkout, qty)",Shipment Service only: the rule already exists there (alexandria-home-delivery),-,-
+is_click_and_collect,Bart/Checkout Bart/OverdoseStorelocator Bart/ShipmentEta Bart/SplitShipment,C&C gate in checkout (legacy storelocator) and SplitShipment,Shipment Service only (from PIM); M2 asks it live,-,-
+disable_stores_cnc,Bart/Checkout Bart/OverdoseStorelocator Bart/ShipmentEta,C&C exclusions (legacy storelocator),Shipment Service only,-,-
+available_interstate_nsw,Bart/Catalog Bart/OverdoseStorelocator Bart/ShipmentEta,"Interstate shipping gate (legacy storelocator, export to Shipment Service)",Shipment Service only,-,-
+available_interstate_qld,Bart/Catalog Bart/OverdoseStorelocator Bart/ShipmentEta,same,Shipment Service only,-,-
+available_interstate_vic,Bart/Catalog Bart/OverdoseStorelocator Bart/ShipmentEta,same,Shipment Service only,-,-
+stock_group,Bart/DataWarehouse Bart/ShipmentEta,"DWH sync, export to Shipment Service; POS reads it from DWH",Shipment Service / POS via DWH,-,-
+unit_desc,Bart/Catalog,Excluded from the Packaging tab,Shipment Service / Pronto only,-,-
+pack_cubic_size,Bart/Catalog,Excluded from the Packaging tab,Shipment Service / Pronto only,-,-
+pack_weight,Bart/Catalog,Excluded from the Packaging tab,Shipment Service / Pronto only,-,-
+fusedship_product_data,Bart/Fusedship Bart/ShipmentEta Machship/Fusedship,Fusedship carrier payload + Shipment Service export; constant values,Drop (S-02),-,-
+promo_text,Bart/AlgoliaSearchUi Bart/Catalog Bart/jl Bart/sg,"Promo label on PLP / PDP; prod runs config-driven promo (promo_general/enabled = 1, use_product_attributes = 0), so product values are ignored",Drop: config + label rules (S-11),-,-
+promo_text_color,Bart/AlgoliaSearchUi Bart/Catalog Bart/jl Bart/sg,same as promo_text,Drop: theme config,-,-
+cart_coupon_tooltip_block_id,Bart/Catalog,Per-product override of the cart coupon tooltip; config-driven on prod,Drop: config,-,-
+mattress_pdp_cms_blocks,Bart/Catalog Bart/ContentBlocks Bart/jl_v2,Mattress PDP CMS stack (JL v2),Merge into M2-owned pdp_cms_blocks,-,pdp_cms_blocks
+highlights_block_id,Bart/Catalog Bart/jl_v2 Bart/sg,"PDP highlights CMS block (JL v2, SG)",Merge into pdp_cms_blocks,-,pdp_cms_blocks
+perfect_coastal_interior,Bart/Catalog Bart/jl,JL PDP campaign block (<1%),Merge into pdp_cms_blocks (content moves to a CMS block),-,pdp_cms_blocks
+summer_refresh,Bart/Catalog Bart/jl,JL PDP campaign block (<1%),Merge into pdp_cms_blocks (content moves to a CMS block),-,pdp_cms_blocks
+lookbook_collection_block_id,Bart/Catalog Bart/jl_v2 Bart/sg,PDP lookbook block; no values,Drop (D24),-,-
+mgs_lookbook,Bart/MgsLookbook MGS/Lookbook,MGS Lookbook link (<1%),Drop with the MGS Lookbook module,-,-
+awards,Bart/Catalog Bart/sg,SG mattress awards; no values,Drop (D24),-,-
+mattress_features,Bart/Catalog Bart/sg,SG mattress feature icons; no values,Drop (D24),-,-
+shipping_and_returns,ElmeLiving/Catalog,"EL PDP tab when filled (<1%, JL only)",Drop: CMS by product_type,-,-
+brochure_and_manuals,ElmeLiving/Catalog,EL PDP tab when filled; no values,Drop (D24),-,-
+stock_availability,Bart/AlgoliaSearchUi Bart/Catalog Bart/el Bart/jl Bart/OverdoseProductLabel Bart/Pronto Bart/ShipmentEta Bart/SplitOrderItems ElmeLiving/QuickOrder,Stock labels / filters (legacy),Shipment Service live labels + Search Service stock fields,-,-
+storelocator_item_qty,Bart/Catalog,Inventory sort helper (cron),Search Service sort from Shipment Service stock,-,-
+od_source_item_qty,Bart/FirebearImportExport,Firebear stock import columns (od_source_item_*),Shipment Service (stock),-,-
+length_range,-,No code; filter only,Search Service derives size bands,-,-
+width_range_cm,-,No code; filter only,Search Service derives size bands,-,-
+banner_url,Overdose/ProductBanners,PLP banner products (Overdose_ProductBanners),Search Service merchandising,-,-
+terms_conditions_url_key,Bart/Catalog (attribute set mapper only),Only in the attribute set mapper; constant,Drop: config,-,-
+use_promo_banner,Bart/Catalog (attribute set mapper only),Only in the attribute set mapper; 0 everywhere,Drop,-,-
+synced_to_yotpo_product,Bart/Yotpo,Yotpo sync state,"Integration table, not EAV",-,-
+videowise_product_data_sha,Videowise/VideowiseApp,Videowise sync hash,"Integration table, not EAV",-,-
+special_price,Bart/AlgoliaSearchUi Bart/Catalog Bart/CategoryAutomation Bart/DataWarehouse Bart/InventoryKitProduct Bart/XtentoProductExport ElmeLiving/CustomPricing,B2C prices + EL CustomPricing reads it (R2 port),Keep in BOTH (DWH),special_price,special_price
+warranty,Bart/Catalog Bart/Checkout Bart/ContentBlocks; POS bff (free text),"PDP tab, checkout warranty, POS reads free text","Keep as TEXT (resolved snippet), not a select",-,warranty
+upsell_sku_1,Bart/Catalog (MattressUpsell),Mattress upsell block,bundle_links,-,bundle_links
+"Not read by any code (name match only, or no reference)",-,"allow_*, giftcard_*, links_*, use_config_*, *_tgtr_*, facebook_* (51), bed_features, brochure_link, demo, main_colour, news_to_date, old_id, custom_design*, custom_layout*, m_seo_canonical, marketing_priority, meta_keyword, msrp_display_actual_price_type, gift_*, is_returnable, elasticsearchcore_ignore, viewa_id. Generic names (details, direction, faq, dimension, page_layout, options_container) match unrelated code; the attributes have no values or are layout defaults.",Drop,-,-

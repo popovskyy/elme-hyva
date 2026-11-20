@@ -1,0 +1,48 @@
+<?php
+/**
+ * Become a Stockist collage on the home page (styles in web/tailwind/elme/home/home-motion.css).
+ * The three photos fall into place once when the collage scrolls in. If it is already on screen,
+ * it stays put. Without this script, or without IntersectionObserver, nothing is hidden.
+ * Hero motion is separate (web/tailwind/elme/home/hero.css) and does not use this script.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<script>
+    (() => {
+        const collage = document.querySelector('#maincontent .elme-collage');
+
+        if (!collage || !('IntersectionObserver' in window)) {
+            return;
+        }
+
+        const markIn = () => collage.classList.add('is-in');
+
+        if (collage.getBoundingClientRect().top < window.innerHeight) {
+            markIn();
+        } else {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        markIn();
+                        observer.disconnect();
+                    }
+                });
+            }, {rootMargin: '0px 0px -8% 0px', threshold: 0.12});
+
+            observer.observe(collage);
+        }
+
+        document.documentElement.classList.add('elme-motion');
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

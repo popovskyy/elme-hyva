@@ -1,0 +1,161 @@
+/*
+ * FE-13 shared CMS blocks: Our Difference (.elme-our-difference) and Need assistance?
+ * (.elme-need-assistance). Classes live in CMS HTML / theme templates, not Page Builder inline styles.
+ * Look: centred quote, Need assistance as a letterhead (heading beside the contacts).
+ */
+@layer components {
+    /* Our Difference: the first sentence as a centred quote (h2), the rest under it. */
+    .elme-our-difference {
+        display: grid;
+        justify-items: center;
+        gap: --spacing(5);
+        max-width: 72rem;
+        margin-inline: auto;
+        padding-block: --spacing(14) --spacing(10);
+        text-align: center;
+
+        @variant md {
+            padding-block: --spacing(24) --spacing(16);
+        }
+    }
+
+    .elme-our-difference__title {
+        max-width: 16ch;
+        margin: 0;
+        font-family: var(--font-heading);
+        font-weight: 400;
+        font-size: var(--text-display);
+        line-height: var(--text-display--line-height);
+        color: var(--color-ink);
+        text-wrap: balance;
+
+        @variant md {
+            font-size: calc(var(--spacing) * 12);
+            line-height: 1.12;
+        }
+
+        /* Two lines on desktop, not four. */
+        @variant lg {
+            max-width: 22em;
+        }
+    }
+
+    .elme-our-difference__title em {
+        font-style: italic;
+    }
+
+    .elme-our-difference__body p {
+        max-width: 62ch;
+        margin: 0;
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        color: var(--color-ink-subtle);
+
+        @variant md {
+            font-size: var(--text-copy-desktop);
+            line-height: var(--text-copy--line-height);
+        }
+    }
+
+    /* Need assistance? Letterhead. Stacked on a hairline when the block is narrow (phones, the help
+       side column). From 56rem the heading sits beside the three contacts. The block is its own
+       container, so it follows its column. */
+    .elme-need-assistance {
+        container-type: inline-size;
+        margin-bottom: --spacing(14);
+        color: var(--color-ink);
+    }
+
+    .elme-need-assistance__inner {
+        display: grid;
+        gap: --spacing(5);
+    }
+
+    .elme-need-assistance__title {
+        margin: 0;
+        font-family: var(--font-heading);
+        font-weight: 400;
+        font-size: var(--text-display);
+        line-height: var(--text-display--line-height);
+        color: inherit;
+    }
+
+    .elme-need-assistance__cells {
+        display: grid;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .elme-need-assistance__cells > li + li {
+        margin-top: --spacing(4);
+        padding-top: --spacing(4);
+        border-top: 1px solid var(--color-border);
+    }
+
+    .elme-need-assistance__cell {
+        display: block;
+        min-width: 0;
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .elme-need-assistance__label {
+        display: block;
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        color: var(--color-ink-muted);
+    }
+
+    .elme-need-assistance__value {
+        display: block;
+        margin-top: --spacing(1);
+        font-size: var(--text-base);
+        font-weight: 400;
+        line-height: var(--text-base--line-height);
+        color: var(--color-ink);
+        overflow-wrap: anywhere;
+    }
+
+    .elme-need-assistance__cell:is(:hover, :focus-visible) .elme-need-assistance__value {
+        color: var(--color-link-hover);
+    }
+
+    .elme-need-assistance__cell:focus-visible {
+        outline: --spacing(0.5) solid currentColor;
+        outline-offset: --spacing(1);
+    }
+
+    @container (min-width: 56rem) {
+        .elme-need-assistance__inner {
+            grid-template-columns: 15rem minmax(0, 1fr);
+            align-items: center;
+            gap: --spacing(12);
+        }
+
+        .elme-need-assistance__cells {
+            grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.25fr) max-content;
+        }
+
+        .elme-need-assistance__value--line {
+            white-space: nowrap;
+            overflow-wrap: normal;
+        }
+
+        .elme-need-assistance__cells > li {
+            padding-left: --spacing(7);
+            border-left: 1px solid var(--color-border);
+        }
+
+        .elme-need-assistance__cells > li:first-child {
+            padding-left: 0;
+            border-left: 0;
+        }
+
+        .elme-need-assistance__cells > li + li {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: 0;
+        }
+    }
+}

@@ -1,0 +1,951 @@
+<?php
+/**
+ * /quick-order/?list=Name - open a shopping list. Create (no ?list=) stores a new empty list (a taken name is
+ * refused) and returns here. Qty edits save the named list, one save at a time; the pencil renames it. Add a SKU
+ * checks the SKU on the server. Add to cart merges the rows into the Quick Order cart.
+ */
+
+declare(strict_types=1);
+
+use Elme\QuickOrder\Model\CartList;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+$listName = trim((string) $block->getRequest()->getParam('list'));
+if ($listName === CartList::NAME) {
+    $listName = '';
+}
+$listsUrl = $block->getUrl('quick_order/template');
+?>
+<section class="elme-cart"
+         x-data="initElmeShoppingList"
+         :class="savingClass">
+    <a class="elme-cart__back" href="<?= $escaper->escapeUrl($listsUrl) ?>">
+        <?= $lucideIcons->chevronLeftHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+        <?= $escaper->escapeHtml(__('My Shopping List')) ?>
+    </a>
+    <?php if ($listName === ''): ?>
+        <h1 class="elme-cart__title"><?= $escaper->escapeHtml(__('New list')) ?></h1>
+    <?php else: ?>
+        <div class="elme-cart__title-row" x-show="isNotRenaming">
+            <h1 class="elme-cart__title" x-text="listName"><?= $escaper->escapeHtml($listName) ?></h1>
+            <button type="button"
+                    class="elme-ib"
+                    x-ref="renameButton"
+                    x-show="isReady"
+                    @click="startRename"
+                    :disabled="locked"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Rename list')) ?>">
+                <?= $lucideIcons->pencilHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+            </button>
+        </div>
+        <form class="elme-cart__rename" x-show="isRenaming" x-cloak @submit="submitRename">
+            <label class="elme-cart__create-name">
+                <span class="sr-only"><?= $escaper->escapeHtml(__('List name')) ?></span>
+                <input type="text"
+                       class="form-input w-full"
+                       maxlength="255"
+                       x-ref="renameInput"
+                       :value="renameValue"
+                       @input="setRenameValue"
+                       @keydown.escape.stop="cancelRename"
+                       :aria-invalid="hasRenameError"
+                       aria-describedby="qo-list-rename-error">
+            </label>
+            <button type="submit" class="btn btn-primary" :disabled="locked">
+                <?= $escaper->escapeHtml(__('Save')) ?>
+            </button>
+            <button type="button" class="btn btn-secondary" @click="cancelRename" :disabled="locked">
+                <?= $escaper->escapeHtml(__('Cancel')) ?>
+            </button>
+            <p id="qo-list-rename-error" class="elme-cart__field-error" role="alert" x-show="hasRenameError" x-text="renameError"></p>
+        </form>
+    <?php endif; ?>
+
+    <?php if ($listName === ''): ?>
+        <form class="elme-cart__create" @submit="createList">
+            <label class="elme-cart__create-name">
+                <span class="sr-only"><?= $escaper->escapeHtml(__('List name')) ?></span>
+                <input type="text"
+                       class="form-input w-full"
+                       maxlength="255"
+                       required
+                       :value="newName"
+                       @input="setNewName"
+                       :aria-invalid="hasCreateError"
+                       aria-describedby="qo-list-create-error"
+                       placeholder="<?= $escaper->escapeHtmlAttr(__('List name')) ?>">
+            </label>
+            <button type="submit" class="btn btn-primary" :disabled="saving">
+                <?= $escaper->escapeHtml(__('Create')) ?>
+            </button>
+            <p id="qo-list-create-error" class="elme-cart__field-error" role="alert" x-show="hasCreateError" x-text="createError" x-cloak></p>
+        </form>
+    <?php else: ?>
+        <div class="elme-cart__loading" x-show="isLoading" aria-busy="true">
+            <p class="sr-only"><?= $escaper->escapeHtml(__('Loading your list...')) ?></p>
+            <div class="elme-cart__bone" aria-hidden="true">
+                <span class="elme-cart__bone-photo"></span>
+                <span class="elme-cart__bone-copy">
+                    <span class="elme-cart__bone-line"></span>
+                    <span class="elme-cart__bone-line"></span>
+                </span>
+            </div>
+        </div>
+        <p class="elme-cart__error" role="alert" x-show="hasLoadError" x-text="loadError" x-cloak></p>
+        <div class="elme-cart__empty" x-show="isMissing" x-cloak>
+            <?= $lucideIcons->clipboardListHtml('', 40, 40, ['aria-hidden' => 'true']) ?>
+            <p><?= $escaper->escapeHtml(__('This list was not found.')) ?></p>
+            <a class="btn btn-primary" href="<?= $escaper->escapeUrl($listsUrl) ?>">
+                <?= $escaper->escapeHtml(__('My Shopping List')) ?>
+            </a>
+        </div>
+
+        <div x-show="isReady" x-cloak>
+            <form class="elme-cart__add" @submit="addSku">
+                <label class="elme-cart__add-sku">
+                    <span class="sr-only"><?= $escaper->escapeHtml(__('SKU')) ?></span>
+                    <input type="text"
+                           class="form-input w-full"
+                           x-ref="skuInput"
+                           :value="skuQuery"
+                           @input="setSkuQuery"
+                           :aria-invalid="hasAddError"
+                           aria-describedby="qo-list-add-error qo-list-sku-hint"
+                           placeholder="<?= $escaper->escapeHtmlAttr(__('Add a SKU')) ?>"
+                           autocapitalize="characters"
+                           spellcheck="false"
+                           autocomplete="off">
+                </label>
+                <label>
+                    <span class="sr-only"><?= $escaper->escapeHtml(__('Qty')) ?></span>
+                    <input type="number"
+                           class="form-input w-full text-center"
+                           inputmode="numeric"
+                           min="1"
+                           :value="addQty"
+                           @input="setAddQty">
+                </label>
+                <button type="submit" class="btn btn-secondary" :disabled="locked">
+                    <?= $escaper->escapeHtml(__('Add')) ?>
+                </button>
+                <p id="qo-list-add-error" class="elme-cart__field-error" role="alert" x-show="hasAddError" x-text="addError"></p>
+                <?php /* No SKU search endpoint yet (BE-11): say what to type instead of offering autocomplete */ ?>
+                <p id="qo-list-sku-hint" class="elme-cart__hint">
+                    <?= $lucideIcons->infoHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                    <span><?= $escaper->escapeHtml(__('Type the full SKU as printed on the product page, for example FS.114.WH.')) ?></span>
+                </p>
+            </form>
+
+            <div class="elme-cart__empty" x-show="isEmpty" x-cloak>
+                <?= $lucideIcons->clipboardListHtml('', 40, 40, ['aria-hidden' => 'true']) ?>
+                <p><?= $escaper->escapeHtml(__('This list has no products yet. Add a SKU above, or use the heart on a product.')) ?></p>
+            </div>
+
+            <div class="elme-cart__layout" x-show="hasItems">
+                <div>
+                    <div class="elme-cart__head">
+                        <span class="elme-cart__head-product"><?= $escaper->escapeHtml(__('Product')) ?></span>
+                        <span class="elme-cart__head-qty"><?= $escaper->escapeHtml(__('Qty')) ?></span>
+                        <span class="elme-cart__head-total"><?= $escaper->escapeHtml(__('Total')) ?></span>
+                    </div>
+                    <ul>
+                        <template x-for="item in items" :key="item.sku">
+                            <li class="elme-dust">
+                                <div>
+                                    <div class="elme-cart__line">
+                                        <a class="elme-cart__photo" :href="item.url" x-show="hasUrl" tabindex="-1" aria-hidden="true">
+                                            <img :src="item.image" :alt="item.name" width="96" height="96" loading="lazy">
+                                        </a>
+                                        <div class="elme-cart__photo" x-show="hasNoUrl" aria-hidden="true">
+                                            <img :src="item.image" alt="" width="96" height="96" loading="lazy">
+                                        </div>
+                                        <div class="elme-cart__info">
+                                            <a class="elme-cart__name" :href="item.url" x-show="hasUrl" x-text="item.name"></a>
+                                            <p class="elme-cart__name" x-show="hasNoUrl" x-text="item.name"></p>
+                                            <p class="elme-cart__sku" x-text="item.sku"></p>
+                                            <p class="elme-cart__stock" :class="stockClass" x-show="hasStockLabel">
+                                                <span class="elme-cart__dot" aria-hidden="true"></span>
+                                                <span x-text="stockLabel"></span>
+                                            </p>
+                                            <p class="elme-cart__unit" x-show="hasPrice">
+                                                <span x-text="unitPrice"></span>
+                                            </p>
+                                            <p class="elme-cart__message" role="alert" x-show="hasMessage" x-text="item.message"></p>
+                                            <div class="elme-cart__actions hidden lg:flex">
+                                                <button type="button" class="elme-cart__textbtn elme-cart__remove-text" @click="removeItem" :disabled="locked">
+                                                    <?= $escaper->escapeHtml(__('Remove')) ?>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <p class="elme-cart__row-total"><span class="elme-cart__tick" x-text="rowTotal"></span></p>
+                                        <div class="elme-cart__ctrl">
+                                            <div class="elme-cart__qty">
+                                                <div class="elme-qty">
+                                                    <button type="button"
+                                                            class="elme-qty__btn"
+                                                            @click="decrement"
+                                                            :disabled="cannotDecrement"
+                                                            aria-label="<?= $escaper->escapeHtmlAttr(__('Decrease quantity')) ?>">
+                                                        <?= $lucideIcons->minusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                                                    </button>
+                                                    <label class="sr-only" :for="qtyId"><?= $escaper->escapeHtml(__('Qty')) ?></label>
+                                                    <input type="number"
+                                                           class="elme-qty__input"
+                                                           inputmode="numeric"
+                                                           :id="qtyId"
+                                                           :value="item.qty"
+                                                           :min="item.min"
+                                                           :step="item.step"
+                                                           :disabled="locked"
+                                                           @change="onQtyChange">
+                                                    <button type="button"
+                                                            class="elme-qty__btn"
+                                                            @click="increment"
+                                                            :disabled="locked"
+                                                            aria-label="<?= $escaper->escapeHtmlAttr(__('Increase quantity')) ?>">
+                                                        <?= $lucideIcons->plusHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <button type="button"
+                                                    class="elme-ib elme-ib--danger elme-cart__trash"
+                                                    @click="removeItem"
+                                                    :disabled="locked"
+                                                    :aria-label="removeLabel">
+                                                <?= $lucideIcons->trash2Html('', 20, 20, ['aria-hidden' => 'true']) ?>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </template>
+                    </ul>
+                </div>
+                <aside class="elme-cart__summary">
+                    <h2 class="elme-cart__summary-title"><?= $escaper->escapeHtml(__('List')) ?></h2>
+                    <p class="elme-cart__summary-count" x-text="lineCountLabel"></p>
+                    <dl class="elme-cart__money">
+                        <div>
+                            <dt><?= $escaper->escapeHtml(__('Subtotal (ex GST)')) ?></dt>
+                            <dd x-text="totals.subtotal_formatted"></dd>
+                        </div>
+                        <div>
+                            <dt><?= $escaper->escapeHtml(__('GST')) ?></dt>
+                            <dd x-text="totals.gst_formatted"></dd>
+                        </div>
+                        <div class="elme-cart__money-total">
+                            <dt><?= $escaper->escapeHtml(__('Total (inc GST)')) ?></dt>
+                            <dd><span class="elme-cart__tick" x-ref="summaryTotal" x-text="totals.total_formatted"></span></dd>
+                        </div>
+                    </dl>
+                    <div class="elme-cart__summary-cta">
+                        <button type="button"
+                                class="btn btn-primary w-full justify-center"
+                                @click="addAll"
+                                :disabled="cannotAdd"
+                                :aria-busy="addingBusy">
+                            <?= $lucideIcons->shoppingCartHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                            <?= $escaper->escapeHtml(__('Add to cart')) ?>
+                        </button>
+                        <?= $block->getChildHtml('save-status', false) ?>
+                    </div>
+                    <a class="elme-cart__continue" href="<?= $escaper->escapeUrl($block->getUrl('quick_order/cart')) ?>">
+                        <?= $escaper->escapeHtml(__('View cart')) ?>
+                    </a>
+                </aside>
+            </div>
+
+            <div class="elme-cart__bar" x-show="hasItems">
+                <div class="elme-cart__bar-total">
+                    <span class="elme-cart__bar-label"><?= $escaper->escapeHtml(__('Total (inc GST)')) ?></span>
+                    <span class="elme-cart__bar-amount">
+                        <span class="elme-cart__tick" x-ref="barTotal" x-text="totals.total_formatted"></span>
+                    </span>
+                    <?= $block->getChildHtml('save-status', false) ?>
+                </div>
+                <button type="button"
+                        class="btn btn-primary"
+                        @click="addAll"
+                        :disabled="cannotAdd"
+                        :aria-busy="addingBusy">
+                    <?= $escaper->escapeHtml(__('Add to cart')) ?>
+                </button>
+            </div>
+            <p class="sr-only" aria-live="polite" x-text="saveLabel"></p>
+            <p class="sr-only" role="status" x-text="announcement"></p>
+        </div>
+    <?php endif; ?>
+</section>
+<script>
+    function initElmeShoppingList() {
+        const listName = '<?= $escaper->escapeJs($listName) ?>';
+        const getUrl = '<?= $escaper->escapeJs($block->getUrl('quick_order/list/get')) ?>';
+        const saveUrl = '<?= $escaper->escapeJs($block->getUrl('quick_order/list/save')) ?>';
+        const renameUrl = '<?= $escaper->escapeJs($block->getUrl('quick_order/list/rename')) ?>';
+        const cartSaveUrl = '<?= $escaper->escapeJs($block->getUrl('quick_order/cart/save')) ?>';
+        const here = '<?= $escaper->escapeJs($block->getUrl('quick_order')) ?>';
+        const failed = '<?= $escaper->escapeJs(__('Could not save the list.')) ?>';
+        const added = '<?= $escaper->escapeJs(__('Added to your cart.')) ?>';
+        const renamed = '<?= $escaper->escapeJs(__('List renamed.')) ?>';
+        const nameRequired = '<?= $escaper->escapeJs(__('List name is required.')) ?>';
+        const skuRequired = '<?= $escaper->escapeJs(__('Please enter a SKU.')) ?>';
+        const qtyRequired = '<?= $escaper->escapeJs(__('Please enter a quantity greater than 0.')) ?>';
+        const DEBOUNCE_MS = 600;
+        // how long "Saved" stays before the status goes back to "All changes saved"
+        const SAVED_MS = 1400;
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+        /** The new number slides in from below (up) or above (down); fast token, ease-out-quart. */
+        function tick(el, dir) {
+            if (!el || !el.animate || !dir || reduceMotion.matches) {
+                return;
+            }
+            const root = getComputedStyle(document.documentElement);
+            el.animate([
+                {transform: 'translateY(' + (dir > 0 ? '0.4em' : '-0.4em') + ')', opacity: 0},
+                {transform: 'none', opacity: 1}
+            ], {
+                duration: parseFloat(root.getPropertyValue('--transition-duration-fast')) || 180,
+                easing: root.getPropertyValue('--ease-out-quart').trim() || 'ease-out'
+            });
+        }
+        let savedTimer = null;
+
+        // Saves run one after another (chain). Every local qty edit bumps `edits`; a server answer that started
+        // before the last edit is dropped, the save of that edit answers instead (as window.elmeQuickOrderCart).
+        // Kept out of the Alpine state: a Promise behind Alpine's proxy cannot be awaited.
+        let timer = null;
+        let chain = Promise.resolve();
+        let queued = false;
+        let edits = 0;
+        // totals the server sent while a row was turning to dust: shown after its gap has closed
+        let heldTotals = null;
+
+        return {
+            listName: listName,
+            isNew: listName === '',
+            newName: '',
+            createError: '',
+            skuQuery: '',
+            addQty: '1',
+            addError: '',
+            list: null,
+            totals: {},
+            found: null,
+            saving: false,
+            justSaved: false,
+            adding: false,
+            locked: false,
+            loadError: '',
+            isRenaming: false,
+            renameValue: '',
+            renameError: '',
+            // sku -> {item, index} of rows turning to dust: still in the page, no longer in the saved rows
+            removing: {},
+            announcement: '',
+
+            init() {
+                if (!this.isNew) {
+                    this.load();
+                    window.addEventListener('pagehide', () => this.sendPendingOnLeave());
+                }
+            },
+
+            async load() {
+                const seen = edits;
+                try {
+                    const url = new URL(getUrl, window.location.origin);
+                    url.searchParams.set('name', this.listName);
+                    const response = await fetch(url.toString(), {
+                        cache: 'no-store',
+                        headers: {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'}
+                    });
+                    const data = await response.json();
+                    if (!data.success) {
+                        throw new Error(data.message || failed);
+                    }
+                    if (seen !== edits) {
+                        return;
+                    }
+                    this.found = !!data.found;
+                    this.list = data.list || {items: [], totals: {}};
+                    this.setTotals(this.list.totals || {});
+                    this.loadError = '';
+                } catch (error) {
+                    if (seen !== edits) {
+                        return;
+                    }
+                    this.loadError = error.message;
+                    this.found = null;
+                }
+            },
+
+            /** Totals come from the server; when the total changes, it ticks in the summary and the bar. */
+            setTotals(totals) {
+                if (this.isRemoving()) {
+                    heldTotals = totals;
+                    return;
+                }
+                const before = Number(this.totals.total);
+                this.totals = totals;
+                const after = Number(totals.total);
+                if (before && after && before !== after) {
+                    this.$nextTick(() => {
+                        tick(this.$refs.barTotal, after > before ? 1 : -1);
+                        tick(this.$refs.summaryTotal, after > before ? 1 : -1);
+                    });
+                }
+            },
+
+            /** Row total ticks as soon as the qty changes in the page. */
+            tickRow(from, dir) {
+                const row = from && from.closest('li');
+                this.$nextTick(() => tick(row && row.querySelector('.elme-cart__tick'), dir));
+            },
+
+            setSaving(value, ok) {
+                const was = this.saving;
+                this.saving = value;
+                clearTimeout(savedTimer);
+                this.justSaved = false;
+                if (was && !value && ok) {
+                    this.justSaved = true;
+                    savedTimer = setTimeout(() => {
+                        this.justSaved = false;
+                    }, SAVED_MS);
+                }
+            },
+
+            /** The list as shown: a row turning to dust stays in place even when a reload no longer has it. */
+            items() {
+                const items = this.list && this.list.items ? this.list.items : [];
+                const leaving = Object.keys(this.removing);
+                if (!leaving.length) {
+                    return items;
+                }
+                const shown = items.slice();
+                leaving.forEach((sku) => {
+                    if (!shown.some((item) => item.sku === sku)) {
+                        const row = this.removing[sku];
+                        shown.splice(Math.min(row.index, shown.length), 0, row.item);
+                    }
+                });
+                return shown;
+            },
+            /** The list as saved: without the rows on their way out. */
+            keptItems() {
+                return this.items().filter((item) => !this.removing[item.sku]);
+            },
+            isRemoving() {
+                return Object.keys(this.removing).length > 0;
+            },
+            rows() {
+                return this.keptItems()
+                    .filter((item) => item.qty > 0)
+                    .map((item) => ({sku: item.sku, qty: item.qty}));
+            },
+            isLoading() {
+                return !this.isNew && this.found === null && !this.loadError;
+            },
+            hasLoadError() {
+                return Boolean(this.loadError);
+            },
+            isMissing() {
+                return this.found === false;
+            },
+            isReady() {
+                return this.found === true;
+            },
+            isEmpty() {
+                return this.isReady() && this.items().length === 0;
+            },
+            hasItems() {
+                return this.items().length > 0;
+            },
+            // a save on its way does not block: addAll waits for it (flush) and shows the button busy
+            cannotAdd() {
+                return this.locked || !this.keptItems().some((item) => item.available);
+            },
+            savingClass() {
+                return this.saving ? 'is-saving' : '';
+            },
+            saveState() {
+                if (this.saving) {
+                    return 'saving';
+                }
+                return this.justSaved ? 'saved' : 'idle';
+            },
+            // the live region speaks only real changes, never the idle text
+            saveLabel() {
+                if (this.saving) {
+                    return '<?= $escaper->escapeJs(__('Saving...')) ?>';
+                }
+                return this.justSaved ? '<?= $escaper->escapeJs(__('Saved')) ?>' : '';
+            },
+            addingBusy() {
+                return this.adding ? 'true' : false;
+            },
+            removeLabel() {
+                return hyva.str('<?= $escaper->escapeJs(__('Remove %1')) ?>', this.item.name);
+            },
+            lineCountLabel() {
+                const count = this.items().length;
+                return count === 1
+                    ? '<?= $escaper->escapeJs(__('1 line')) ?>'
+                    : hyva.str('<?= $escaper->escapeJs(__('%1 lines')) ?>', count);
+            },
+            hasCreateError() {
+                return this.createError ? 'true' : false;
+            },
+            hasAddError() {
+                return this.addError ? 'true' : false;
+            },
+            hasRenameError() {
+                return this.renameError ? 'true' : false;
+            },
+            isNotRenaming() {
+                return !this.isRenaming;
+            },
+
+            setNewName() {
+                this.newName = this.$event.target.value || '';
+                this.createError = '';
+            },
+            setSkuQuery() {
+                this.skuQuery = this.$event.target.value || '';
+                this.addError = '';
+            },
+            setAddQty() {
+                this.addQty = this.$event.target.value || '';
+                this.addError = '';
+            },
+            setRenameValue() {
+                this.renameValue = this.$event.target.value || '';
+                this.renameError = '';
+            },
+
+            qtyId() {
+                return 'qo-list-qty-' + this.item.sku;
+            },
+            hasUrl() {
+                return Boolean(this.item.url);
+            },
+            hasNoUrl() {
+                return !this.item.url;
+            },
+            hasStockLabel() {
+                return Boolean(this.item.stock && this.item.stock.qty_formatted);
+            },
+            stockClass() {
+                const level = this.item.stock && this.item.stock.level;
+                return level ? 'is-' + level : '';
+            },
+            stockLabel() {
+                return hyva.str('<?= $escaper->escapeJs(__('%1 in stock')) ?>', this.item.stock.qty_formatted);
+            },
+            hasPrice() {
+                return Boolean(this.item.price);
+            },
+            unitPrice() {
+                return this.item.price
+                    ? hyva.str('<?= $escaper->escapeJs(__('%1 each, ex GST')) ?>', this.item.price.final_formatted)
+                    : '';
+            },
+            hasMessage() {
+                return Boolean(this.item.message);
+            },
+            rowTotal() {
+                return this.item.price ? hyva.formatPrice(this.item.price.final * this.item.qty) : '';
+            },
+            cannotDecrement() {
+                return this.locked || this.item.qty <= this.item.min;
+            },
+
+            /**
+             * A typed qty becomes the nearest valid one: at least the minimum, on the step. 0 or an empty field
+             * is the minimum; only Remove takes a row away.
+             */
+            validQty(item, raw) {
+                const min = item.min > 0 ? item.min : 1;
+                const step = item.step > 0 ? item.step : 1;
+                const qty = hyva.safeParseNumber(raw);
+                if (!(qty > min)) {
+                    return min;
+                }
+                return Math.round((min + Math.round((qty - min) / step) * step) * 10000) / 10000;
+            },
+
+            increment() {
+                if (this.locked) {
+                    return;
+                }
+                this.item.qty = this.validQty(this.item, this.item.qty + this.item.step);
+                this.tickRow(this.$event.currentTarget, 1);
+                this.queueSave();
+            },
+            decrement() {
+                if (this.locked) {
+                    return;
+                }
+                this.item.qty = this.validQty(this.item, this.item.qty - this.item.step);
+                this.tickRow(this.$event.currentTarget, -1);
+                this.queueSave();
+            },
+            onQtyChange() {
+                const qty = this.validQty(this.item, this.$event.target.value);
+                // :value does not repaint when the qty stays the same (typed 0 on a row at its minimum)
+                this.$event.target.value = qty;
+                if (qty !== this.item.qty) {
+                    this.tickRow(this.$event.target, qty > this.item.qty ? 1 : -1);
+                    this.item.qty = qty;
+                    this.queueSave();
+                }
+            },
+            /**
+             * Asks first. The save without the row starts at once while the row turns to dust; the row leaves the
+             * list (and the totals change) after its gap has closed. A failed save brings the row back.
+             */
+            async removeItem() {
+                const trigger = this.$event.currentTarget;
+                const sku = this.item.sku;
+                const name = this.item.name;
+                if (this.locked || this.removing[sku]) {
+                    return;
+                }
+                const confirmed = await window.elmeConfirm({
+                    title: hyva.str('<?= $escaper->escapeJs(__('Remove %1 from this list?')) ?>', name),
+                    confirmLabel: '<?= $escaper->escapeJs(__('Remove')) ?>',
+                    trigger: trigger
+                });
+                const items = this.items();
+                const index = items.findIndex((item) => item.sku === sku);
+                if (!confirmed || this.locked || index < 0 || this.removing[sku]) {
+                    return;
+                }
+                edits++;
+                this.removing[sku] = {item: JSON.parse(JSON.stringify(items[index])), index: index};
+                const row = trigger.closest('.elme-cart__line');
+                const gone = window.elmeDust.dissolve(row);
+                window.elmeDust.focusNext(
+                    row,
+                    trigger.classList.contains('elme-cart__trash') ? '.elme-cart__trash' : '.elme-cart__remove-text',
+                    this.$refs.skuInput
+                );
+                const saved = this.enqueueSave();
+                await gone;
+                const ok = await saved;
+                delete this.removing[sku];
+                if (ok) {
+                    this.list.items = this.list.items.filter((item) => item.sku !== sku);
+                    this.announcement = hyva.str('<?= $escaper->escapeJs(__('%1 removed from this list.')) ?>', name);
+                }
+                if (!this.isRemoving() && heldTotals) {
+                    const totals = heldTotals;
+                    heldTotals = null;
+                    this.setTotals(totals);
+                }
+                if (!ok) {
+                    await window.elmeDust.restore(row, trigger);
+                }
+            },
+
+            queueSave() {
+                edits++;
+                // the status says Saving from the edit on: the totals are stale until the server answers
+                this.setSaving(true);
+                clearTimeout(timer);
+                timer = setTimeout(() => this.enqueueSave(), DEBOUNCE_MS);
+            },
+
+            /** Resolves with the result of the save that carries the current rows (true when it was saved). */
+            enqueueSave() {
+                clearTimeout(timer);
+                timer = null;
+                if (!queued) {
+                    queued = true;
+                    chain = chain.then(() => {
+                        queued = false;
+                        return this.runSave();
+                    });
+                }
+                return chain;
+            },
+
+            async runSave() {
+                const sent = edits;
+                let ok = true;
+                this.setSaving(true);
+                try {
+                    const data = await this.post(saveUrl, {
+                        form_key: hyva.getFormKey(),
+                        name: this.listName,
+                        mode: 'replace',
+                        items: this.rows()
+                    });
+                    if (!data.success) {
+                        throw new Error(data.message || failed);
+                    }
+                } catch (error) {
+                    ok = false;
+                    this.toast('error', error.message || failed);
+                }
+                if (sent === edits) {
+                    await this.load();
+                }
+                this.setSaving(queued || Boolean(timer), ok);
+                return ok;
+            },
+
+            /** Resolves when no edit waits and no save is on its way. */
+            async flush() {
+                for (;;) {
+                    if (timer) {
+                        this.enqueueSave();
+                    }
+                    const current = chain;
+                    await current;
+                    if (current === chain && !timer) {
+                        return;
+                    }
+                }
+            },
+
+            // Leaving within the debounce: send the edit anyway (keepalive, as the Quick Order cart does)
+            sendPendingOnLeave() {
+                if (!timer) {
+                    return;
+                }
+                clearTimeout(timer);
+                timer = null;
+                fetch(saveUrl, {
+                    method: 'POST',
+                    keepalive: true,
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        form_key: hyva.getFormKey(),
+                        name: this.listName,
+                        mode: 'replace',
+                        items: this.rows()
+                    })
+                }).catch(() => {});
+            },
+
+            async addSku(event) {
+                event.preventDefault();
+                const sku = this.skuQuery.trim();
+                const qty = hyva.safeParseNumber(this.addQty);
+                if (!sku) {
+                    this.addError = skuRequired;
+                    return;
+                }
+                if (!(qty > 0)) {
+                    this.addError = qtyRequired;
+                    return;
+                }
+                if (this.locked) {
+                    return;
+                }
+                // no qty edits while the add is on its way: the next save would send rows without the new SKU
+                this.locked = true;
+                this.addError = '';
+                let ok = false;
+                try {
+                    await this.flush();
+                    this.setSaving(true);
+                    const data = await this.post(saveUrl, {
+                        form_key: hyva.getFormKey(),
+                        name: this.listName,
+                        mode: 'add',
+                        items: [{sku: sku, qty: qty}]
+                    });
+                    if (!data.success) {
+                        this.addError = data.message || failed;
+                        return;
+                    }
+                    this.skuQuery = '';
+                    this.addQty = '1';
+                    await this.load();
+                    ok = true;
+                } catch (error) {
+                    this.addError = error.message || failed;
+                } finally {
+                    this.setSaving(false, ok);
+                    this.locked = false;
+                }
+            },
+
+            async addAll() {
+                if (this.cannotAdd() || this.adding) {
+                    return;
+                }
+                this.adding = true;
+                try {
+                    await this.flush();
+                    const items = this.keptItems()
+                        .filter((item) => item.available && item.qty > 0)
+                        .map((item) => ({sku: item.sku, qty: item.qty}));
+                    if (!items.length) {
+                        return;
+                    }
+                    const data = await this.post(cartSaveUrl, {
+                        form_key: hyva.getFormKey(),
+                        mode: 'merge',
+                        items: items
+                    });
+                    if (!data.success) {
+                        throw new Error(data.message || failed);
+                    }
+                    const errors = data.errors || {};
+                    const first = Object.keys(errors)[0];
+                    this.toast(first ? 'error' : 'success', first ? errors[first] : added);
+                    if (window.elmeQuickOrderCart) {
+                        window.elmeQuickOrderCart.load(true);
+                    }
+                } catch (error) {
+                    this.toast('error', error.message || failed);
+                } finally {
+                    this.adding = false;
+                }
+            },
+
+            async createList(event) {
+                event.preventDefault();
+                const name = this.newName.trim();
+                if (!name) {
+                    this.createError = nameRequired;
+                    return;
+                }
+                this.saving = true;
+                this.createError = '';
+                try {
+                    const data = await this.post(saveUrl, {
+                        form_key: hyva.getFormKey(),
+                        name: name,
+                        mode: 'create',
+                        items: []
+                    });
+                    if (!data.success) {
+                        this.createError = data.message || failed;
+                        this.saving = false;
+                        return;
+                    }
+                    const url = new URL(here, window.location.origin);
+                    url.searchParams.set('list', data.name || name);
+                    window.location.assign(url.toString());
+                } catch (error) {
+                    this.createError = error.message || failed;
+                    this.saving = false;
+                }
+            },
+
+            startRename() {
+                if (this.locked) {
+                    return;
+                }
+                this.renameValue = this.listName;
+                this.renameError = '';
+                this.isRenaming = true;
+                this.$nextTick(() => {
+                    this.$refs.renameInput.focus();
+                    this.$refs.renameInput.select();
+                });
+            },
+            cancelRename() {
+                if (this.locked) {
+                    return;
+                }
+                this.closeRename();
+            },
+            closeRename() {
+                this.isRenaming = false;
+                this.renameError = '';
+                this.$nextTick(() => this.$refs.renameButton.focus());
+            },
+
+            async submitRename(event) {
+                event.preventDefault();
+                const name = this.renameValue.trim();
+                if (!name) {
+                    this.renameError = nameRequired;
+                    return;
+                }
+                if (this.locked) {
+                    return;
+                }
+                if (name === this.listName) {
+                    this.closeRename();
+                    return;
+                }
+                this.locked = true;
+                this.renameError = '';
+                try {
+                    // a save still waiting goes out under the old name first
+                    await this.flush();
+                    const data = await this.post(renameUrl, {
+                        form_key: hyva.getFormKey(),
+                        name: this.listName,
+                        new_name: name
+                    });
+                    if (!data.success) {
+                        this.renameError = data.message || failed;
+                        return;
+                    }
+                    const oldName = this.listName;
+                    this.listName = data.name || name;
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('list', this.listName);
+                    window.history.replaceState(window.history.state, '', url.toString());
+                    document.title = document.title.replace(oldName, this.listName);
+                    this.closeRename();
+                    this.toast('success', renamed);
+                } catch (error) {
+                    this.renameError = error.message || failed;
+                } finally {
+                    this.locked = false;
+                }
+            },
+
+            async post(url, body) {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    cache: 'no-store',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json().catch(() => null);
+                if (!data) {
+                    throw new Error(failed);
+                }
+                return data;
+            },
+
+            toast(type, text) {
+                window.dispatchEvent(new CustomEvent('elme-toast', {detail: {type: type, text: text}}));
+            }
+        };
+    }
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeShoppingList', initElmeShoppingList), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

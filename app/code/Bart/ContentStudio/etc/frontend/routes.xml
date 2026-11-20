@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
+    <!--
+        Same frontName as the admin route by design - routers are separate.
+        Preview sandbox 404s without a live token.
+    -->
+    <router id="standard">
+        <route id="bart_content_studio" frontName="bart_content_studio">
+            <module name="Bart_ContentStudio"/>
+        </route>
+    </router>
+</config>

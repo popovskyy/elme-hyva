@@ -1,0 +1,651 @@
+//
+//  Content Studio grid skin.
+//
+//  Unlike the editor, the listing page keeps Magento's ui_component grid: the
+//  data provider, filters, sorting, paging, bookmarks and - most importantly -
+//  the Export to ZIP / Delete mass actions all already work and are covered by
+//  the stage-5 verification. Rewriting them by hand would re-earn that from
+//  scratch for a purely visual gain. So this file re-skins the stock markup
+//  with our own tokens instead.
+//
+//  Every rule is scoped under `.studio-page`, which only the Content Studio
+//  full-bleed layout handle puts on <body> - so none of this leaks into any
+//  other admin grid. That scoping is also why the selectors below are allowed
+//  to be as blunt as they are.
+//
+
+.studio-page {
+    font-family: var(--studio-font-ui);
+
+    // -----------------------------------------------------------------------
+    // Page actions bar - where the ui_component registers its own buttons
+    // -----------------------------------------------------------------------
+
+    .page-main-actions {
+        margin: 0;
+        padding: 0 var(--studio-space-6) var(--studio-space-4);
+        border: 0;
+        background: transparent;
+    }
+
+    .page-actions .page-actions-buttons > button {
+        float: none;
+        min-height: 40px;
+        margin: 0 0 0 var(--studio-space-2);
+        padding: 0 var(--studio-space-5);
+        border: 1px solid var(--studio-color-border);
+        border-radius: var(--studio-radius-sm);
+        background: var(--studio-color-surface);
+        box-shadow: var(--studio-shadow-sm);
+        color: var(--studio-color-text);
+        font-family: var(--studio-font-ui);
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0;
+        text-shadow: none;
+        text-transform: none;
+        transition: transform var(--studio-duration-fast) var(--studio-ease-out),
+            box-shadow var(--studio-duration-fast) var(--studio-ease-out),
+            border-color var(--studio-duration-fast) var(--studio-ease-out),
+            background var(--studio-duration-fast) var(--studio-ease-out);
+
+        &:hover {
+            border-color: var(--studio-color-border-strong);
+            background: var(--studio-color-surface);
+            box-shadow: var(--studio-shadow-md);
+        }
+
+        &:active {
+            transform: scale(.97);
+        }
+    }
+
+    .page-actions .page-actions-buttons > button.primary {
+        border-color: var(--studio-color-accent);
+        background: var(--studio-color-accent);
+        color: var(--studio-color-accent-contrast);
+
+        &:hover {
+            border-color: var(--studio-color-accent-hover);
+            background: var(--studio-color-accent-hover);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Grid container
+    // -----------------------------------------------------------------------
+
+    .admin__data-grid-outer-wrap {
+        padding: 0 var(--studio-space-6) var(--studio-space-7);
+    }
+
+    .admin__data-grid-header {
+        margin: 0 0 var(--studio-space-3);
+        padding: 0;
+        background: transparent;
+    }
+
+    .admin__data-grid-header-row {
+        padding: 0;
+    }
+
+    // The row Action menu is absolutely positioned inside a cell, so any
+    // clipping ancestor cuts it off - which is why "Edit" was unreachable.
+    //
+    // !important is needed, not preferred: Bart_App/css/data-grid-scroll.css
+    // sets `overflow: auto !important` on this element for every grid in the
+    // admin. That file gives all the other grids a horizontal scrollbar and is
+    // none of this module's business, so it is left alone and beaten on
+    // specificity here instead - `.studio-page` is only ever on Content
+    // Studio's own pages.
+    //
+    // The trade: this grid loses horizontal scrolling. Nine narrow columns on a
+    // full-bleed page do not need it, and a reachable Edit action is worth more
+    // than a scrollbar that never appears.
+    .admin__data-grid-wrap {
+        padding: 0;
+        border: 1px solid var(--studio-color-border);
+        border-radius: var(--studio-radius-lg);
+        background: var(--studio-color-surface);
+        box-shadow: var(--studio-shadow-sm);
+        overflow: visible !important;
+    }
+
+    // Room below the table so the menu of a last row opens into empty page
+    // rather than against the viewport edge on a short listing.
+    .admin__data-grid-outer-wrap {
+        min-height: 420px;
+        overflow: visible;
+    }
+
+    .data-grid thead tr:first-child th:first-child {
+        border-top-left-radius: var(--studio-radius-lg);
+    }
+
+    .data-grid thead tr:first-child th:last-child {
+        border-top-right-radius: var(--studio-radius-lg);
+    }
+
+    .data-grid tbody tr:last-child td:first-child {
+        border-bottom-left-radius: var(--studio-radius-lg);
+    }
+
+    .data-grid tbody tr:last-child td:last-child {
+        border-bottom-right-radius: var(--studio-radius-lg);
+    }
+
+    .data-grid {
+        width: 100%;
+        border: 0;
+        font-family: var(--studio-font-ui);
+        font-size: 14px;
+    }
+
+    // Muted grey on the warm header band was too close in value to read
+    // comfortably; small uppercase text needs more contrast than body copy,
+    // not less, because the letterforms are already harder work.
+    .data-grid thead tr th,
+    .data-grid thead tr th.data-grid-th {
+        padding: var(--studio-space-4) var(--studio-space-4);
+        border: 0;
+        border-bottom: 1px solid var(--studio-color-border-strong);
+        background: var(--studio-color-bg);
+        color: var(--studio-color-text);
+        font-family: var(--studio-font-ui);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+        text-shadow: none;
+    }
+
+    // Native sticky header row (the stock JS clone is off, see the listing
+    // XML). The bottom rule is a shadow, not the border: a sticky cell's
+    // collapsed border stays behind in the table while the cell scrolls.
+    .data-grid thead tr th {
+        position: sticky;
+        z-index: 3;
+        top: 0;
+        box-shadow: inset 0 -1px 0 var(--studio-color-border-strong);
+    }
+
+    // Magento's floating page-actions bar has the same 88px menu offset;
+    // the buttons stay where they are at the top of the page instead.
+    .page-actions._fixed {
+        position: static;
+        box-shadow: none;
+    }
+
+    .page-actions-placeholder {
+        display: none;
+    }
+
+    .data-grid thead tr th.data-grid-th:hover,
+    .data-grid thead tr th._sortable:hover {
+        background: var(--studio-color-sunken);
+        color: var(--studio-color-text);
+    }
+
+    .data-grid tbody tr td,
+    .data-grid tbody tr td.data-grid-cell-content {
+        padding: var(--studio-space-4);
+        border: 0;
+        border-bottom: 1px solid var(--studio-color-border);
+        background: transparent;
+        color: var(--studio-color-text);
+        font-size: 14px;
+        vertical-align: middle;
+    }
+
+    .data-grid tbody tr:hover td {
+        background: var(--studio-color-bg);
+    }
+
+    .data-grid tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    // Empty state - stock renders a bare row of muted text; give it room so it
+    // reads as a considered state rather than a rendering accident.
+    .data-grid tbody .data-grid-tr-no-data td {
+        padding: var(--studio-space-7) var(--studio-space-4);
+        color: var(--studio-color-text-muted);
+        font-size: 15px;
+        text-align: center;
+    }
+
+    // -----------------------------------------------------------------------
+    // Toolbar controls (Filters / bookmarks view / Columns) and paging
+    // -----------------------------------------------------------------------
+
+    .admin__data-grid-header .action-default,
+    .admin__data-grid-header .admin__action-dropdown {
+        min-height: 38px;
+        border: 1px solid var(--studio-color-border);
+        border-radius: var(--studio-radius-sm);
+        background: var(--studio-color-surface);
+        box-shadow: none;
+        color: var(--studio-color-text);
+        font-family: var(--studio-font-ui);
+        font-size: 13px;
+        font-weight: 500;
+        text-shadow: none;
+        transition: border-color var(--studio-duration-fast) var(--studio-ease-out),
+            background var(--studio-duration-fast) var(--studio-ease-out);
+
+        &:hover {
+            border-color: var(--studio-color-border-strong);
+            background: var(--studio-color-surface);
+        }
+    }
+
+    // The "Filters" toggle button + its advanced panel (ID range, Status,
+    // Updated date...) are replaced wholesale by the search box above the grid
+    // plus the type chips row rendered separately in TypeChips.phtml - no
+    // dropdown-style filter panel in this grid at all. The Filters ui_component
+    // still exists and still runs (type-chips.js drives it programmatically),
+    // it just never renders anything visible of its own.
+    .data-grid-filters-actions-wrap,
+    .admin__data-grid-filters-wrap {
+        display: none;
+    }
+
+    // "Default View" bookmarks dropdown - stock Magento saved-views chrome.
+    // Useless here (one short grid, type chips already own filtering). Keep the
+    // <bookmark> ui_component so column/paging state still persists; hide only
+    // the eye dropdown.
+    .admin__data-grid-action-bookmarks {
+        display: none;
+    }
+
+    // Stock styles this as a full-bleed strip with top/bottom borders only, so
+    // it gets `padding-top/bottom` and no horizontal padding at all - flush
+    // text reads as deliberate when there is no side border to touch. This skin
+    // turns it into a bordered, rounded card, at which point "Active filters:"
+    // sat directly against the left edge. The side gutter has to come back.
+    .admin__data-grid-filters-current {
+        padding: var(--studio-space-3) var(--studio-space-5);
+        border: 1px solid var(--studio-color-border);
+        border-radius: var(--studio-radius-md);
+        background: var(--studio-color-surface);
+        box-shadow: var(--studio-shadow-sm);
+    }
+
+    // The stock keyword search box (view/base/web/templates/grid/search/search.html
+    // in Magento_Ui) - kept as the native widget, only server-side matching
+    // changed (see KeywordSearch). Restyled as one rounded field instead of a
+    // bare text input with a detached magnifier button.
+    .data-grid-search-control-wrap {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        min-width: 280px;
+    }
+
+    .data-grid-search-label {
+        // Visually hidden, not display:none: the label stays in the
+        // accessibility tree for the input it points at.
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+    }
+
+    .data-grid-search-control {
+        width: 100%;
+        min-height: 40px;
+        padding: 0 var(--studio-space-6) 0 var(--studio-space-5);
+        border: 1px solid var(--studio-color-border);
+        border-radius: 999px;
+        background-color: var(--studio-color-surface);
+        box-shadow: none;
+        color: var(--studio-color-text);
+        font-family: var(--studio-font-ui);
+        font-size: 14px;
+        transition: border-color var(--studio-duration-fast) var(--studio-ease-out);
+
+        &::placeholder {
+            color: var(--studio-color-text-muted);
+        }
+
+        &:hover {
+            border-color: var(--studio-color-border-strong);
+        }
+
+        &:focus {
+            border-color: var(--studio-color-accent);
+            box-shadow: var(--studio-ring);
+        }
+    }
+
+    .data-grid-search-control-wrap .action-submit {
+        position: absolute;
+        right: var(--studio-space-3);
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        border: 0;
+        background: transparent center / 16px no-repeat;
+        // A magnifying-glass drawn the same way the outline icons in the
+        // editor are (currentColor strokes), so it needs no separate asset
+        // and follows the surrounding text colour.
+        background-image: ~"url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22none%22 stroke=%22%238a8477%22 stroke-width=%221.6%22><circle cx=%228.5%22 cy=%228.5%22 r=%226%22/><line x1=%2113%22 y1=%2213%22 x2=%2218%22 y2=%2218%22 stroke-linecap=%22round%22/></svg>')";
+        cursor: pointer;
+
+        span {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+        }
+    }
+
+    .admin__control-text,
+    .admin__control-select,
+    .admin__control-multiselect {
+        min-height: 38px;
+        border: 1px solid var(--studio-color-border);
+        border-radius: var(--studio-radius-sm);
+        background-color: var(--studio-color-bg);
+        box-shadow: none;
+        color: var(--studio-color-text);
+        font-family: var(--studio-font-ui);
+        font-size: 14px;
+
+        &:hover {
+            border-color: var(--studio-color-border-strong);
+        }
+
+        &:focus {
+            border-color: var(--studio-color-accent);
+            box-shadow: var(--studio-ring);
+        }
+    }
+
+    .admin__data-grid-pager-wrap {
+        padding: var(--studio-space-4) 0 0;
+        color: var(--studio-color-text-muted);
+        font-size: 13px;
+    }
+
+    .admin__data-grid-pager .action-previous,
+    .admin__data-grid-pager .action-next {
+        border: 1px solid var(--studio-color-border);
+        border-radius: var(--studio-radius-sm);
+        background: var(--studio-color-surface);
+    }
+
+    .admin__control-support-text {
+        color: var(--studio-color-text-muted);
+    }
+
+    // Mass-action dropdown sitting above the table
+    .admin__data-grid-header .action-select-wrap .action-select {
+        min-height: 38px;
+        border: 1px solid var(--studio-color-border);
+        border-radius: var(--studio-radius-sm);
+        background: var(--studio-color-surface);
+        color: var(--studio-color-text);
+        font-family: var(--studio-font-ui);
+        font-size: 13px;
+    }
+
+    .data-grid-cell-content {
+        font-size: 14px;
+    }
+
+    // -----------------------------------------------------------------------
+    // Row Action menu
+    //
+    // Stock renders this as a blue link with a bordered toggle box glued to
+    // its right (.action-select:before) and a bare white list. Both pseudo
+    // elements come from the shared .action-toggle-triangle mixin, so the
+    // toggle box is switched off here and only the caret is kept.
+    // -----------------------------------------------------------------------
+
+    .data-grid .action-select-wrap {
+        display: inline-block;
+        position: relative;
+
+        .action-select {
+            min-height: 32px;
+            padding: 0 var(--studio-space-6) 0 var(--studio-space-3);
+            border: 1px solid transparent;
+            border-radius: var(--studio-radius-sm);
+            background: transparent;
+            box-shadow: none;
+            color: var(--studio-color-text-muted);
+            font-family: var(--studio-font-ui);
+            font-size: 13px;
+            font-weight: 500;
+            text-shadow: none;
+            transition: color var(--studio-duration-fast) var(--studio-ease-out),
+                border-color var(--studio-duration-fast) var(--studio-ease-out),
+                background var(--studio-duration-fast) var(--studio-ease-out);
+
+            // The stock toggle box; the caret alone reads better here.
+            &:before {
+                display: none;
+            }
+
+            &:after {
+                border-color: currentColor transparent transparent transparent;
+            }
+
+            &:hover {
+                border-color: var(--studio-color-border);
+                background: var(--studio-color-surface);
+                color: var(--studio-color-text);
+
+                &:before {
+                    border-color: transparent;
+                }
+            }
+        }
+
+        &._active {
+            // Above the following rows and the card's own shadow.
+            z-index: 200;
+
+            .action-select {
+                border-color: var(--studio-color-border);
+                background: var(--studio-color-surface);
+                color: var(--studio-color-text);
+            }
+        }
+
+        .action-menu {
+            top: calc(100% + 4px);
+            left: auto;
+            right: 0;
+            z-index: 201;
+            min-width: 176px;
+            margin: 0;
+            padding: var(--studio-space-1);
+            border: 1px solid var(--studio-color-border);
+            border-radius: var(--studio-radius-md);
+            background: var(--studio-color-surface);
+            box-shadow: var(--studio-shadow-lg);
+            transform-origin: top right;
+            animation: studio-action-menu-enter 180ms var(--studio-ease-out) both;
+        }
+
+        .action-menu-item {
+            display: block;
+            padding: var(--studio-space-2) var(--studio-space-3);
+            border: 0;
+            border-radius: var(--studio-radius-sm);
+            color: var(--studio-color-text);
+            font-family: var(--studio-font-ui);
+            font-size: 13px;
+            line-height: 1.4;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: color var(--studio-duration-fast) var(--studio-ease-out),
+                background var(--studio-duration-fast) var(--studio-ease-out);
+
+            &:hover {
+                background: var(--studio-color-accent-soft);
+                color: var(--studio-color-accent);
+            }
+        }
+    }
+
+    // Keep the actions column tight to the right edge so the menu has a
+    // natural anchor.
+    .data-grid .data-grid-actions-cell {
+        text-align: right;
+    }
+
+    // -----------------------------------------------------------------------
+    // Type chips - TypeChips.phtml, rendered above the ui_component grid.
+    // Pill buttons, not a <select>: every type (plus "All types") is reachable
+    // in one click, with its own count, and type-chips.js drives the grid's
+    // existing (hidden) Filters component so the underlying request is the
+    // same one a native column filter would make.
+    // -----------------------------------------------------------------------
+
+    // TypeChips.phtml renders outside .admin__data-grid-outer-wrap (it sits
+    // above the ui_component entirely, see the layout handle), so it has none
+    // of that wrapper's horizontal padding on its own - without this it hangs
+    // off the left edge of the page while the table below it is indented.
+    .studio-grid-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--studio-space-2);
+        margin: 0 0 var(--studio-space-4);
+        padding: 0 var(--studio-space-6);
+    }
+
+    .studio-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--studio-space-2);
+        min-height: 36px;
+        padding: 0 var(--studio-space-4);
+        border: 1px solid var(--studio-color-border);
+        border-radius: 999px;
+        background: var(--studio-color-surface);
+        color: var(--studio-color-text);
+        font-family: var(--studio-font-ui);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: border-color var(--studio-duration-fast) var(--studio-ease-out),
+            background var(--studio-duration-fast) var(--studio-ease-out),
+            color var(--studio-duration-fast) var(--studio-ease-out),
+            transform var(--studio-duration-fast) var(--studio-ease-out);
+
+        &:hover {
+            border-color: var(--studio-color-border-strong);
+        }
+
+        &:active {
+            transform: scale(.97);
+        }
+
+        &.is-active {
+            border-color: var(--studio-color-accent);
+            background: var(--studio-color-accent);
+            color: var(--studio-color-accent-contrast);
+
+            .studio-chip__count {
+                color: var(--studio-color-accent-contrast);
+                opacity: .75;
+            }
+        }
+    }
+
+    .studio-chip__count {
+        color: var(--studio-color-text-muted);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+@keyframes studio-action-menu-enter {
+    from {
+        opacity: 0;
+        transform: scale(.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .studio-page .action-menu {
+        animation: none;
+    }
+}
+
+// ---------------------------------------------------------------------------
+//  Filters toggle + footer
+//
+//  Stock marks the open Filters tab with a 3px #eb5202 bar drawn as an :after,
+//  and leaves the panel's own buttons on the default admin blue/brown. None of
+//  that belongs in this palette, and the orange in particular reads as a
+//  warning rather than "this panel is open".
+// ---------------------------------------------------------------------------
+
+.studio-page {
+    .data-grid-filters-action-wrap .action-default._active {
+        border-color: var(--studio-color-border);
+        border-bottom-color: var(--studio-color-surface);
+        background-color: var(--studio-color-surface);
+        color: var(--studio-color-text);
+
+        &:after {
+            background-color: var(--studio-color-accent);
+            height: 2px;
+        }
+    }
+
+    .admin__data-grid-filters-footer {
+        .action-primary,
+        .action-secondary {
+            min-height: 38px;
+            padding: 0 var(--studio-space-5);
+            border: 1px solid var(--studio-color-accent);
+            border-radius: var(--studio-radius-sm);
+            background: var(--studio-color-accent);
+            box-shadow: none;
+            color: var(--studio-color-accent-contrast);
+            font-family: var(--studio-font-ui);
+            font-size: 13px;
+            font-weight: 600;
+            text-shadow: none;
+            text-transform: none;
+
+            &:hover {
+                border-color: var(--studio-color-accent-hover);
+                background: var(--studio-color-accent-hover);
+                color: var(--studio-color-accent-contrast);
+            }
+        }
+
+        // "Cancel" is a link in stock markup, and admin blue on warm paper is
+        // the loudest thing in the panel.
+        .action-tertiary,
+        .action-default:not(.action-primary):not(.action-secondary) {
+            border: 0;
+            background: none;
+            box-shadow: none;
+            color: var(--studio-color-text-muted);
+            font-family: var(--studio-font-ui);
+            font-size: 13px;
+            text-decoration: none;
+
+            &:hover,
+            &:focus {
+                color: var(--studio-color-text);
+                text-decoration: none;
+            }
+        }
+    }
+}

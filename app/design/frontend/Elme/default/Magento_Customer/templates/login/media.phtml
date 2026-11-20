@@ -1,0 +1,36 @@
+<?php
+/**
+ * FE-35 login, "Split screen": the photo half. A tall flower photo
+ * (a wide one on phones) that drifts very slowly, with a line about the trade site on a bottom scrim.
+ * Decorative for screen readers: the form column holds the H1 and the text that matters.
+ * Also used by the registration page (customer_account_create.xml) with its own photo and line via the block
+ * arguments image_desktop, image_mobile, kicker and quote.
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+$desktop = (string) ($block->getData('image_desktop') ?: 'images/sample-images/stems-tall.jpg');
+$mobile = (string) ($block->getData('image_mobile') ?: 'images/sample-images/stems-mobile.jpg');
+$kicker = (string) ($block->getData('kicker') ?: __('Elme Living trade'));
+$quote = (string) ($block->getData('quote') ?: __('Artificial flowers, plants and home decor for Australian retailers.'));
+?>
+<div class="elme-login__media" aria-hidden="true">
+    <picture>
+        <source media="(min-width: 768px)"
+                srcset="<?= $escaper->escapeUrl($block->getViewFileUrl($desktop)) ?>">
+        <img src="<?= $escaper->escapeUrl($block->getViewFileUrl($mobile)) ?>"
+             alt=""
+             fetchpriority="high"
+             class="elme-login__img">
+    </picture>
+    <div class="elme-login__caption">
+        <p class="elme-login__kicker"><?= $escaper->escapeHtml(__($kicker)) ?></p>
+        <p class="elme-login__quote"><?= $escaper->escapeHtml(__($quote)) ?></p>
+    </div>
+</div>

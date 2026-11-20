@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-65 Meet the Team: full-width CMS page. Content Studio `team` holds the H1 (page.main.title is
+ * skipped on cms-full-width). JSON-LD merges ContentPage WebPage/BreadcrumbList with Person + ItemList.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="elme_content_page_seo"/>
+    <body>
+        <referenceBlock name="content.page.jsonld" template="Magento_Cms::meet-the-team/jsonld.phtml"/>
+    </body>
+</page>

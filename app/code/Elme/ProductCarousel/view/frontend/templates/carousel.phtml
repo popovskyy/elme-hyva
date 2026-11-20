@@ -1,0 +1,277 @@
+<?php
+/**
+ * FE-17: titled slider of FE-19 product cards (trending / new / a category / related).
+ *
+ * Cards are rendered on the server (crawlers see them, nothing shifts while loading). Swipe on touch, prev / next
+ * arrows from desktop (elme/foundation/snap-carousel.css). No products: nothing is printed, title included.
+ * Look: web/tailwind/elme/product/product-carousel.css. Source: Elme\ProductCarousel\Api\ProviderInterface.
+ *
+ * @var \Elme\ProductCarousel\Block\Carousel $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+
+$items = $block->getItems();
+if ($items === []) {
+    return;
+}
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+
+$domId = $block->getDomId();
+$headingId = $domId . '-heading';
+$trackId = $domId . '-track';
+$title = $block->getTitle();
+$headingTag = $block->getHeadingTag();
+$count = count($items);
+$isCarousel = $count > 1;
+// Inside a tab panel (tabs.phtml) the panel owns the spacing
+$spacing = $block->isEmbedded() ? '' : 'my-8 lg:my-12';
+?>
+<section id="<?= $escaper->escapeHtmlAttr($domId) ?>"
+         class="elme-pc elme-snap-carousel relative -mx-(--entry-bleed) <?= $escaper->escapeHtmlAttr($spacing) ?>"
+         <?php if ($title !== ''): ?>
+         aria-labelledby="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+         <?php else: ?>
+         aria-label="<?= $escaper->escapeHtmlAttr(__('Products')) ?>"
+         <?php endif; ?>
+         <?php if ($isCarousel): ?>
+         x-data="initElmeProductCarousel"
+         aria-roledescription="<?= $escaper->escapeHtmlAttr(__('carousel')) ?>"
+         <?php endif; ?>
+>
+    <?php if ($title !== ''): ?>
+        <<?= /* @noEscape */ $headingTag ?> id="<?= $escaper->escapeHtmlAttr($headingId) ?>"
+            class="elme-pc__title m-0 mb-4 text-display text-ink lg:mb-6 lg:text-display-desktop">
+            <?= $escaper->escapeHtml($title) ?>
+        </<?= /* @noEscape */ $headingTag ?>>
+    <?php endif; ?>
+
+    <div class="relative">
+        <?php if ($isCarousel): ?>
+            <button type="button"
+                    class="elme-snap-carousel__arrow elme-snap-carousel__arrow--prev"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Previous products')) ?>"
+                    aria-controls="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+                    x-ref="prev"
+                    @click="prev"
+                    disabled>
+                <?= $lucideIcons->chevronLeftHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+            </button>
+            <button type="button"
+                    class="elme-snap-carousel__arrow elme-snap-carousel__arrow--next"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Next products')) ?>"
+                    aria-controls="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+                    x-ref="next"
+                    @click="next"
+                    disabled>
+                <?= $lucideIcons->chevronRightHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+            </button>
+        <?php endif; ?>
+
+        <ul id="<?= $escaper->escapeHtmlAttr($trackId) ?>"
+            class="elme-pc__track elme-snap-carousel__track flex list-none snap-x snap-mandatory items-stretch
+                   overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            <?php if ($isCarousel): ?>
+            x-ref="track"
+            @scroll.passive="onScroll"
+            <?php endif; ?>
+        >
+            <?php foreach (array_values($items) as $index => $item): ?>
+                <li class="elme-pc__slide flex shrink-0 snap-start list-none max-md:w-[min(70vw,16.5rem)]"
+                    <?php if ($isCarousel): ?>
+                    role="group"
+                    aria-roledescription="<?= $escaper->escapeHtmlAttr(__('slide')) ?>"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('%1 of %2', $index + 1, $count)) ?>"
+                    <?php endif; ?>
+                >
+                    <?= /* @noEscape */ $item['html'] ?>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+
+    <?php if ($isCarousel): ?>
+        <?php /* Scroll line (from lg, elme/product/product-carousel.css): how far the row is scrolled; drag the bar or
+                 click the line to move. JS hides it when every card fits. Arrows and keyboard stay the way in for AT. */ ?>
+        <div class="elme-pc__rail" x-ref="rail" aria-hidden="true">
+            <span class="elme-pc__thumb" x-ref="thumb"></span>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($isCarousel): ?>
+        <script>
+            function initElmeProductCarousel() {
+                return {
+                    reduceMotion: false,
+                    drag: null,
+
+                    init() {
+                        const track = this.$refs.track;
+                        const rail = this.$refs.rail;
+
+                        this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                        this.syncArrows();
+                        track.addEventListener('scrollend', () => this.syncArrows());
+
+                        if (typeof ResizeObserver === 'function') {
+                            new ResizeObserver(() => this.syncArrows()).observe(track);
+                        }
+
+                        rail.addEventListener('pointerdown', (event) => this.dragStart(event));
+                        rail.addEventListener('pointermove', (event) => this.dragMove(event));
+                        rail.addEventListener('pointerup', (event) => this.dragEnd(event));
+                        rail.addEventListener('pointercancel', (event) => this.dragEnd(event));
+                    },
+
+                    onScroll() {
+                        this.syncArrows();
+                    },
+
+                    step() {
+                        const track = this.$refs.track;
+                        const item = track.querySelector('.elme-pc__slide');
+
+                        if (!item) {
+                            return 0;
+                        }
+
+                        const trackStyle = window.getComputedStyle(track);
+                        const gap = parseFloat(trackStyle.columnGap) || parseFloat(trackStyle.gap) || 0;
+
+                        return item.getBoundingClientRect().width + gap;
+                    },
+
+                    go(direction) {
+                        const amount = this.step() * direction;
+
+                        if (!amount) {
+                            return;
+                        }
+
+                        this.$refs.track.scrollBy({
+                            left: amount,
+                            behavior: this.reduceMotion ? 'auto' : 'smooth'
+                        });
+                        // scrollend is missing in some browsers; sync after the typical smooth duration.
+                        setTimeout(() => this.syncArrows(), this.reduceMotion ? 0 : 400);
+                    },
+
+                    next() {
+                        this.go(1);
+                    },
+
+                    prev() {
+                        this.go(-1);
+                    },
+
+                    syncArrows() {
+                        const track = this.$refs.track;
+                        const max = track.scrollWidth - track.clientWidth;
+                        const left = track.scrollLeft;
+                        const edge = 2;
+
+                        this.$refs.prev.disabled = left <= edge;
+                        this.$refs.next.disabled = left >= max - edge;
+                        this.syncRail(left, max);
+                    },
+
+                    // The bar is as wide as the visible part of the row and moves with the scroll position.
+                    syncRail(left, max) {
+                        const rail = this.$refs.rail;
+                        const thumb = this.$refs.thumb;
+                        const track = this.$refs.track;
+
+                        if (max <= 2) {
+                            delete rail.dataset.active;
+                            return;
+                        }
+
+                        const railWidth = rail.clientWidth;
+                        const thumbWidth = Math.max(railWidth * track.clientWidth / track.scrollWidth, 48);
+                        const x = (railWidth - thumbWidth) * Math.min(Math.max(left / max, 0), 1);
+
+                        rail.dataset.active = '';
+                        thumb.style.width = thumbWidth + 'px';
+                        thumb.style.transform = 'translateX(' + x + 'px)';
+                    },
+
+                    // Press on the bar: drag it. Press on the line: the bar jumps under the pointer, and the drag goes on from there.
+                    dragStart(event) {
+                        if (event.button !== 0 || !('active' in this.$refs.rail.dataset)) {
+                            return;
+                        }
+
+                        const track = this.$refs.track;
+                        const rail = this.$refs.rail;
+                        const thumb = this.$refs.thumb;
+
+                        track.style.scrollSnapType = 'none';
+
+                        if (event.target !== thumb) {
+                            const box = rail.getBoundingClientRect();
+                            const travel = box.width - thumb.offsetWidth;
+                            const ratio = travel > 0
+                                ? Math.min(Math.max((event.clientX - box.left - thumb.offsetWidth / 2) / travel, 0), 1)
+                                : 0;
+
+                            track.scrollLeft = ratio * (track.scrollWidth - track.clientWidth);
+                        }
+
+                        this.drag = {x: event.clientX, left: track.scrollLeft};
+                        rail.setPointerCapture(event.pointerId);
+                        rail.dataset.dragging = '';
+                        event.preventDefault();
+                    },
+
+                    dragMove(event) {
+                        if (!this.drag) {
+                            return;
+                        }
+
+                        const track = this.$refs.track;
+                        const travel = this.$refs.rail.clientWidth - this.$refs.thumb.offsetWidth;
+                        const max = track.scrollWidth - track.clientWidth;
+
+                        if (travel > 0) {
+                            track.scrollLeft = this.drag.left + (event.clientX - this.drag.x) * max / travel;
+                        }
+                    },
+
+                    dragEnd(event) {
+                        if (!this.drag) {
+                            return;
+                        }
+
+                        this.drag = null;
+                        delete this.$refs.rail.dataset.dragging;
+                        this.$refs.rail.releasePointerCapture(event.pointerId);
+                        // Back to snapping: the row settles on the nearest card.
+                        this.$refs.track.style.scrollSnapType = '';
+                    }
+                };
+            }
+
+            // Every carousel on the page prints this script; the component is registered once.
+            window.addEventListener(
+                'alpine:init',
+                () => {
+                    if (!window.elmeProductCarouselRegistered) {
+                        window.elmeProductCarouselRegistered = true;
+                        Alpine.data('initElmeProductCarousel', initElmeProductCarousel);
+                    }
+                },
+                {once: true}
+            );
+        </script>
+        <?php $hyvaCsp->registerInlineScript() ?>
+    <?php endif; ?>
+</section>

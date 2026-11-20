@@ -1,0 +1,16 @@
+<?php
+/**
+ * FE-08: CMS promo tile inside the mega panel (sub_menu.phtml renders it in the promo rail).
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Snowdog\Menu\Block\NodeType\CmsBlock;
+
+/** @var CmsBlock $block */
+/** @var Escaper $escaper */
+?>
+<div class="main-menu__promo-slot">
+    <?= /* @noEscape */ $block->getHtml($block->getId(), $block->getLevel()) ?>
+</div>

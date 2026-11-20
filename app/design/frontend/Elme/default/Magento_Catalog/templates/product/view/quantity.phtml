@@ -1,0 +1,94 @@
+<?php
+/**
+ * FE-27: PDP qty stepper for logged-in customers. Starts at MOQ, steps by QtyRules step, snaps typed
+ * values on change. Live max comes from /qty-rules/rules after render (not in FPC HTML). Guests never
+ * see this block (removed in elme_customer_guest.xml).
+ */
+
+declare(strict_types=1);
+
+use Elme\QtyRules\Model\QtyRules;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Catalog\Block\Product\View;
+use Magento\Framework\Escaper;
+
+/** @var View $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+if (!$block->shouldRenderQuantity() || !$block->getProduct()->isSaleable()) {
+    return;
+}
+
+/** @var QtyRules $qtyRules */
+$qtyRules = $viewModels->require(QtyRules::class);
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+$product = $block->getProduct();
+$productId = (int) $product->getId();
+['min' => $min, 'step' => $step] = $qtyRules->getMinAndStep($product);
+$minLabel = $qtyRules->formatQty($min);
+$stepLabel = $qtyRules->formatQty($step);
+$inputId = 'qty-' . $productId;
+$hasMoq = $min > 1.0 || $step > 1.0;
+$moqLine = $hasMoq
+    ? (string) __('Min. order %1 · sold in multiples of %2', $minLabel, $stepLabel)
+    : '';
+?>
+<div class="elme-pdp__qty"
+     x-data="initElmePdpQty"
+     data-min="<?= $escaper->escapeHtmlAttr($minLabel) ?>"
+     data-step="<?= $escaper->escapeHtmlAttr($stepLabel) ?>"
+     data-product-id="<?= $productId ?>"
+     data-rounded-message="<?= $escaper->escapeHtmlAttr(__('Sold in multiples of %1. Quantity changed to %2.')) ?>"
+     data-max-message="<?= $escaper->escapeHtmlAttr(__('Only %1 available. Quantity changed to %2.')) ?>"
+>
+    <label for="<?= $escaper->escapeHtmlAttr($inputId) ?>" class="sr-only">
+        <?= $escaper->escapeHtml(__('Quantity')) ?>
+    </label>
+    <div class="elme-qty elme-pdp__stepper" :class="stepperClasses">
+        <button type="button"
+                class="elme-qty__btn"
+                @click="decrement"
+                :disabled="isDecrementDisabled"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Decrease quantity')) ?>"
+                aria-controls="<?= $escaper->escapeHtmlAttr($inputId) ?>"
+        >
+            <?= $lucideIcons->minusHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+        </button>
+        <input type="number"
+               id="<?= $escaper->escapeHtmlAttr($inputId) ?>"
+               name="qty"
+               form="product_addtocart_form"
+               value="<?= $escaper->escapeHtmlAttr($minLabel) ?>"
+               min="<?= $escaper->escapeHtmlAttr($minLabel) ?>"
+               step="<?= $escaper->escapeHtmlAttr($stepLabel) ?>"
+               inputmode="numeric"
+               class="elme-qty__input"
+               x-ref="input"
+               :value="qty"
+               :aria-invalid="isError"
+               :aria-describedby="noteId"
+               @change="onChange"
+               @input="onInput"
+        >
+        <button type="button"
+                class="elme-qty__btn"
+                @click="increment"
+                :disabled="isIncrementDisabled"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Increase quantity')) ?>"
+                aria-controls="<?= $escaper->escapeHtmlAttr($inputId) ?>"
+        >
+            <?= $lucideIcons->plusHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+        </button>
+    </div>
+    <p class="elme-pdp__moq text-note"
+       :id="noteId"
+       :class="noteClasses"
+       role="status"
+    >
+        <span x-text="note"><?= $escaper->escapeHtml($moqLine) ?></span>
+    </p>
+</div>

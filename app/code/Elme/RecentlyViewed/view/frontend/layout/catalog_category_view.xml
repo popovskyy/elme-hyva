@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * FE-24: recently viewed strips below the PLP product grid (never above — UX-03).
+ * Category history write + shared storage API. Magento/Hyvä sidebar widget removed.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="recently_viewed_products.default_widget_plp" remove="true"/>
+
+        <referenceContainer name="content">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.recently.viewed.categories"
+                   template="Elme_RecentlyViewed::strip-categories.phtml"
+                   after="category.products"/>
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.recently.viewed.products"
+                   template="Elme_RecentlyViewed::strip-products.phtml"
+                   after="elme.recently.viewed.categories"/>
+        </referenceContainer>
+
+        <referenceContainer name="after.body.start">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.recently.viewed.storage"
+                   template="Elme_RecentlyViewed::js/storage.phtml"/>
+        </referenceContainer>
+        <referenceContainer name="before.body.end">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.recently.viewed.register.category"
+                   template="Elme_RecentlyViewed::register-category.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

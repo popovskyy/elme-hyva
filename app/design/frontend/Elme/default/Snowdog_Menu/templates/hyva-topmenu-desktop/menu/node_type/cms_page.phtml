@@ -1,0 +1,28 @@
+<?php
+/**
+ * FE-08: CMS page node — same link chrome as custom_url.
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Snowdog\Menu\Block\NodeType\CmsPage;
+
+/** @var CmsPage $block */
+/** @var Escaper $escaper */
+
+$menuClass = $block->getMenuClass() ?: 'main-menu';
+$title = (string) $block->getTitle();
+$classLink = $block->getIsRoot() ? $menuClass . '__link' : $menuClass . '__inner-link';
+$nodeClasses = trim((string) $block->getNodeClasses());
+if ($nodeClasses !== '') {
+    $classLink .= ' ' . $nodeClasses;
+}
+$url = method_exists($block, 'getPageUrl') ? (string) $block->getPageUrl($block->getId()) : '#';
+?>
+<a href="<?= $escaper->escapeUrl($url) ?>"
+   class="<?= $escaper->escapeHtmlAttr($classLink) ?>">
+    <span class="<?= $escaper->escapeHtmlAttr($menuClass) ?>__item-text">
+        <?= $escaper->escapeHtml($title) ?>
+    </span>
+</a>

@@ -1,0 +1,339 @@
+//
+//  Pre-save review overlay - js/editor/review.js.
+//
+//  Clicking Save opens this instead of writing immediately: a short branded
+//  "Building preview" beat, then the block itself at full width, and only
+//  there the button that actually commits.
+//
+//  The stage carries `.studio-preview` as well as its own class, so every
+//  content-type renderer keeps the styling it already has in _preview.less.
+//  What this file adds is scale - that panel is tuned for a 420px column, and
+//  its 10-13px type is the wrong read for a full-screen final check. Overrides
+//  are written as `.studio-review__stage.studio-preview .cs-*` (0-3-0) so they
+//  beat `_preview.less` (0-2-0) on specificity rather than on import order.
+//
+
+.studio-review {
+    position: fixed;
+    inset: 0;
+    // Level with the arrival splash - the two never coexist - and below the
+    // toast (10001), so the "saved" message still lands on top of this.
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    background: var(--studio-color-canvas);
+    font-family: var(--studio-font-ui);
+    color: var(--studio-color-text);
+
+    &[hidden] {
+        display: none;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Bar
+// ---------------------------------------------------------------------------
+
+.studio-review__bar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--studio-space-5);
+    padding: var(--studio-space-4) var(--studio-space-6);
+    border-bottom: 1px solid var(--studio-color-border);
+    background: var(--studio-color-bg);
+    box-shadow: var(--studio-shadow-sm);
+}
+
+.studio-review__heading {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.studio-review__title {
+    margin: 0;
+    font-family: var(--studio-font-display);
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 1.2;
+}
+
+.studio-review__subtitle {
+    margin: 0;
+    overflow: hidden;
+    color: var(--studio-color-text-muted);
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.studio-review__actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: var(--studio-space-3);
+}
+
+// ---------------------------------------------------------------------------
+// Stage
+// ---------------------------------------------------------------------------
+
+.studio-review__stage {
+    flex: 1 1 auto;
+    overflow: auto;
+    padding: var(--studio-space-7) var(--studio-space-6);
+    opacity: 1;
+    transition: opacity var(--studio-duration-base) var(--studio-ease-out);
+
+    // Held back while the splash runs, so the block is already laid out and
+    // the reveal is a fade rather than a reflow the user watches happen.
+    &.is-pending {
+        opacity: 0;
+    }
+}
+
+// No padding of its own: the section band inside fills it edge to edge, which
+// is how the block reads on a product page. `overflow: hidden` is what clips
+// the band's square corners back to this card's radius.
+.studio-review__block {
+    max-width: 1200px;
+    margin: 0 auto;
+    overflow: hidden;
+    border: 1px solid var(--studio-color-border);
+    border-radius: var(--studio-radius-lg);
+    background: var(--studio-color-surface);
+    box-shadow: var(--studio-shadow-md);
+}
+
+// ---------------------------------------------------------------------------
+// "Building preview" splash
+//
+// Borrows the arrival splash's vocabulary (_module.less) - the mark, the
+// wide-tracked caps, the drawn rule - but stages it as a build rather than a
+// reveal: a halo breathes behind the mark, the copy rises under it, and a rule
+// fills left to right like the thing is being assembled. It runs ~1.5s and
+// BUILD_MIN_MS holds a beat past the fill so it resolves instead of cutting.
+//
+// Every animation hangs off `.is-running`, which review.js removes and re-adds
+// on each open. The node is reused, so without that restart the sequence would
+// only ever play the first time the overlay was opened.
+// ---------------------------------------------------------------------------
+
+.studio-review__splash {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    // Same warm wash the editor page uses, so the moment belongs to the app
+    // rather than reading as a plain modal scrim.
+    background: radial-gradient(120% 70% at 50% 0%, #fdfbf7 0%, rgba(253, 251, 247, 0) 62%),
+        var(--studio-color-canvas);
+    opacity: 1;
+    transition: opacity 320ms var(--studio-ease-out);
+
+    &[hidden] {
+        display: none;
+    }
+
+    &.is-leaving {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
+.studio-review__splash-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--studio-space-4);
+    padding: var(--studio-space-6);
+    text-align: center;
+}
+
+// Positioning context for the halo, which has to sit behind the mark without
+// pushing it around.
+.studio-review__splash-orb {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 96px;
+    height: 96px;
+    margin-bottom: var(--studio-space-2);
+}
+
+.studio-review__splash-halo {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--studio-color-accent-soft) 0%, rgba(231, 239, 233, 0) 70%);
+}
+
+.studio-review__splash-mark {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    color: var(--studio-color-accent);
+}
+
+.studio-review__splash-label {
+    margin: 0;
+    color: var(--studio-color-text);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .38em;
+    text-indent: .38em;
+    text-transform: uppercase;
+}
+
+.studio-review__splash-note {
+    margin: 0;
+    max-width: 420px;
+    color: var(--studio-color-text-muted);
+    font-size: 15px;
+    line-height: 1.5;
+
+    &:empty {
+        display: none;
+    }
+}
+
+// A track with its own fill, rather than a bar that scales itself: the track
+// stays put at full width so there is something for the fill to travel along.
+.studio-review__splash-rule {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    width: 180px;
+    height: 2px;
+    margin-top: var(--studio-space-3);
+    border-radius: 2px;
+    background: var(--studio-color-border);
+}
+
+.studio-review__splash-rule-fill {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 2px;
+    background: var(--studio-color-accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+}
+
+.studio-review__splash.is-running {
+    .studio-review__splash-halo {
+        animation: studio-review-halo 2200ms var(--studio-ease-out) both;
+    }
+
+    .studio-review__splash-mark {
+        animation: studio-review-mark 760ms var(--studio-ease-out) 80ms both;
+    }
+
+    .studio-review__splash-label {
+        animation: studio-review-rise 640ms var(--studio-ease-out) 240ms both;
+    }
+
+    .studio-review__splash-note {
+        animation: studio-review-rise 640ms var(--studio-ease-out) 360ms both;
+    }
+
+    .studio-review__splash-rule {
+        animation: studio-review-fade 400ms var(--studio-ease-out) 380ms both;
+    }
+
+    // Finishes at 420 + 1100 = 1520ms; BUILD_MIN_MS (1750) reveals just after.
+    .studio-review__splash-rule-fill {
+        animation: studio-review-fill 1100ms var(--studio-ease-in-out) 420ms both;
+    }
+}
+
+@keyframes studio-review-halo {
+    0% {
+        opacity: 0;
+        transform: scale(.7);
+    }
+
+    45% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: .65;
+        transform: scale(1.06);
+    }
+}
+
+@keyframes studio-review-mark {
+    0% {
+        opacity: 0;
+        transform: scale(.86) translateY(6px);
+    }
+
+    62% {
+        opacity: 1;
+        transform: scale(1.03) translateY(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes studio-review-rise {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes studio-review-fade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes studio-review-fill {
+    from {
+        transform: scaleX(0);
+    }
+
+    to {
+        transform: scaleX(1);
+    }
+}
+
+// review.js skips the splash entirely under reduced motion, so these only
+// matter if it is toggled mid-session - but a half-drawn rule frozen on screen
+// is exactly the artefact that leaves.
+@media (prefers-reduced-motion: reduce) {
+    .studio-review__splash.is-running {
+        .studio-review__splash-halo,
+        .studio-review__splash-mark,
+        .studio-review__splash-label,
+        .studio-review__splash-note,
+        .studio-review__splash-rule,
+        .studio-review__splash-rule-fill {
+            animation: none;
+        }
+    }
+
+    .studio-review__splash-rule-fill {
+        transform: scaleX(1);
+    }
+}

@@ -1,0 +1,26 @@
+{
+    "name": "elme/module-qty-rules",
+    "description": "Elme Living MOQ rules: minimum and step quantity for templates and every add-to-cart path",
+    "type": "magento2-module",
+    "require": {
+        "php": "~8.3.0||~8.4.0",
+        "magento/framework": "*",
+        "magento/module-catalog": "*",
+        "magento/module-catalog-inventory": "*",
+        "magento/module-checkout": "*",
+        "magento/module-configurable-product": "*",
+        "magento/module-inventory-configuration-api": "*",
+        "magento/module-inventory-sales-api": "*",
+        "magento/module-quote": "*",
+        "magento/module-sales": "*",
+        "magento/module-store": "*"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Elme\\QtyRules\\": ""
+        }
+    }
+}

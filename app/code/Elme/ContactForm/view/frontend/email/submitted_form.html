@@ -1,0 +1,48 @@
+<!--
+/**
+ * FE-46: trade contact form email to the store contact address.
+ */
+-->
+<!--@subject {{trans "Contact Form"}} @-->
+<!--@vars {
+"var data.comment":"Message",
+"var data.email":"Sender Email",
+"var data.name":"Sender Name",
+"var data.telephone":"Sender Telephone",
+"var data.company":"Company",
+"var data.business_type_label":"Business Type",
+"var data.enquiry_type_label":"Enquiry Type"
+} @-->
+
+{{template config_path="design/email/header_template"}}
+
+<table class="message-details">
+    <tr>
+        <td><strong>{{trans "Name"}}</strong></td>
+        <td>{{var data.name}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Email"}}</strong></td>
+        <td>{{var data.email}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Phone"}}</strong></td>
+        <td>{{var data.telephone}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Company"}}</strong></td>
+        <td>{{var data.company}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Business Type"}}</strong></td>
+        <td>{{var data.business_type_label}}</td>
+    </tr>
+    <tr>
+        <td><strong>{{trans "Enquiry Type"}}</strong></td>
+        <td>{{var data.enquiry_type_label}}</td>
+    </tr>
+</table>
+<p><strong>{{trans "Message"}}</strong></p>
+<p>{{var data.comment}}</p>
+
+{{template config_path="design/email/footer_template"}}

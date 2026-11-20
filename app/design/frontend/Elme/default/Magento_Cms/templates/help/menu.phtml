@@ -1,0 +1,81 @@
+<?php
+/**
+ * FE-45 help side nav, redesigned (help centre look).
+ * One list for every width: a swipeable row of chips on phones and tablets (the current page is scrolled into view),
+ * a vertical menu with icons from lg up. The current page is a link with aria-current="page".
+ * No Alpine: a small inline script only scrolls the phone row and toggles its edge fade.
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\HelpPages;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$help = $viewModels->require(HelpPages::class);
+$lucideIcons = $viewModels->require(LucideIcons::class);
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+$items = $help->getMenuItems();
+
+$icons = [
+    'contact-us' => 'message-circle',
+    'shipping-and-returns' => 'truck',
+    'faqs' => 'circle-help',
+    'become-a-stockist' => 'store',
+    'website-terms-conditions' => 'file-text',
+    'terms-conditions-of-trade' => 'scroll-text',
+    'privacy-policy' => 'shield-check',
+];
+?>
+<nav class="elme-help-nav" aria-labelledby="elme-help-nav-heading">
+    <p class="elme-help-nav__heading" id="elme-help-nav-heading"><?= $escaper->escapeHtml(__('Help centre')) ?></p>
+    <div class="elme-help-nav__rail" data-elme-help-rail>
+        <ul class="elme-help-nav__list">
+            <?php foreach ($items as $item): ?>
+                <li class="elme-help-nav__item">
+                    <a class="elme-help-nav__link"
+                       href="<?= $escaper->escapeUrl($item['url']) ?>"
+                       <?php if ($item['current']): ?>aria-current="page"<?php endif; ?>>
+                        <span class="elme-help-nav__icon" aria-hidden="true">
+                            <?= $lucideIcons->renderHtml($icons[$item['identifier']] ?? 'circle-help', '', 18, 18, ['aria-hidden' => 'true']) ?>
+                        </span>
+                        <span class="elme-help-nav__label"><?= $escaper->escapeHtml(__($item['label'])) ?></span>
+                        <span class="elme-help-nav__arrow" aria-hidden="true">
+                            <?= $lucideIcons->chevronRightHtml('', 16, 16, ['aria-hidden' => 'true']) ?>
+                        </span>
+                    </a>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+</nav>
+<script>
+    (function () {
+        const rail = document.querySelector('[data-elme-help-rail]');
+        if (!rail) {
+            return;
+        }
+        const list = rail.firstElementChild;
+        function updateFade() {
+            const max = list.scrollWidth - list.clientWidth;
+            rail.classList.toggle('is-scrollable-start', list.scrollLeft > 4);
+            rail.classList.toggle('is-scrollable-end', max - list.scrollLeft > 4);
+        }
+        const current = list.querySelector('[aria-current="page"]');
+        if (current && list.scrollWidth > list.clientWidth) {
+            list.scrollLeft = Math.max(0, current.parentElement.offsetLeft - 20);
+        }
+        updateFade();
+        list.addEventListener('scroll', updateFade, { passive: true });
+        window.addEventListener('resize', updateFade, { passive: true });
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

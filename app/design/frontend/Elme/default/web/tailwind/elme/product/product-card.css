@@ -1,0 +1,236 @@
+/*
+ * FE-19 product card: Magento_Catalog::product/list/item.phtml (PLP, search, carousels, wishlist).
+ * White image tile, square, the photo fits inside it (products are cut out on white).
+ */
+@layer components {
+    .elme-card__media img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    /* Hover (screens that can hover): the card in a listing rises a little with a soft shadow, and the colour chips of
+       its family slide in under the photo (their row keeps its space, so nothing moves). Hovering a chip swaps the
+       photo (Magento_Theme::elme/card-swatch-preview.phtml). Carousels keep their cards flat: their scroll box would
+       clip the lift. Touch screens keep the chips visible all the time. */
+    #product-list .elme-card {
+        transition:
+            translate var(--transition-duration-base) var(--ease-out-quart),
+            box-shadow var(--transition-duration-base) var(--ease-out-quart);
+    }
+
+    @media (hover: hover) {
+        #product-list .elme-card:hover {
+            translate: 0 calc(var(--spacing) * -0.75);
+            box-shadow: 0 --spacing(3.5) --spacing(7) calc(var(--spacing) * -3) color-mix(in oklab, var(--color-ink) 28%, transparent);
+        }
+
+        .elme-card__swatches {
+            opacity: 0;
+            translate: 0 --spacing(1);
+            transition:
+                opacity var(--transition-duration-fast) var(--ease-out-quart),
+                translate var(--transition-duration-fast) var(--ease-out-quart);
+        }
+
+        .elme-card:hover .elme-card__swatches,
+        .elme-card:focus-within .elme-card__swatches {
+            opacity: 1;
+            translate: 0;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        #product-list .elme-card,
+        .elme-card__swatches {
+            transition: none;
+        }
+
+        #product-list .elme-card:hover {
+            translate: none;
+        }
+    }
+
+    /* Two lines of name always take two lines, so SKU, price and buttons line up across a row. */
+    .elme-card__name {
+        min-height: calc(2 * var(--text-copy) * var(--text-copy--line-height));
+
+        @variant lg {
+            min-height: calc(2 * var(--text-copy-desktop) * var(--text-copy--line-height));
+        }
+    }
+
+    .elme-card__price {
+        min-height: --spacing(6);
+    }
+
+    .elme-card__badge {
+        padding: --spacing(1) --spacing(2);
+        font-size: var(--text-label);
+        line-height: var(--text-label--line-height);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--color-on-primary);
+    }
+
+    .elme-card__badge--sale {
+        background: var(--color-promo);
+    }
+
+    .elme-card__badge--new {
+        background: var(--color-olive);
+    }
+
+    /* FE-73: heart opens Add to Shopping List. Square, like the rest of the card. */
+    .elme-card__heart,
+    .elme-save {
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        width: --spacing(10);
+        height: --spacing(10);
+        color: var(--color-ink);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm);
+        cursor: pointer;
+        transition: color var(--transition-duration-fast) var(--ease-out-quad), background-color var(--transition-duration-fast) var(--ease-out-quad);
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 2px;
+        }
+    }
+
+    .elme-card__heart {
+        position: absolute;
+        top: --spacing(2);
+        inset-inline-end: --spacing(2);
+        z-index: 2;
+
+        @variant lg {
+            top: --spacing(3);
+            inset-inline-end: --spacing(3);
+        }
+    }
+
+    .elme-save {
+        width: --spacing(12);
+        height: auto;
+        align-self: stretch;
+        min-height: --spacing(12);
+    }
+
+    @media (hover: hover) {
+        .elme-card__heart:hover,
+        .elme-save:hover {
+            color: var(--color-primary);
+            background: var(--color-page);
+        }
+    }
+
+    /* One line reserved even when out of stock (no label), so a row of tiles stays level. */
+    .elme-card__stock {
+        min-height: var(--text-note--line-height);
+    }
+
+    .elme-card__stock--in {
+        color: var(--color-success-text);
+    }
+
+    .elme-card__stock--low {
+        color: var(--color-warning-text);
+    }
+
+    .elme-card__moq {
+        min-height: var(--text-note--line-height);
+    }
+
+    /* Qty stepper: − [qty] +, as tall as the button next to it. Leaf corners like the button (elme/foundation/leaf.css). */
+    .elme-qty {
+        display: flex;
+        align-items: stretch;
+        min-height: --spacing(11);
+        border: 1px solid var(--color-border);
+        border-radius: 0 var(--radius-leaf) 0 var(--radius-leaf);
+        background: var(--color-surface);
+    }
+
+    /* the hover fill follows the rounded corners */
+    .elme-qty > .elme-qty__btn:first-child {
+        border-end-start-radius: inherit;
+    }
+
+    .elme-qty > .elme-qty__btn:last-child {
+        border-start-end-radius: inherit;
+    }
+
+    .elme-qty__btn {
+        display: grid;
+        place-items: center;
+        width: --spacing(11);
+        flex-shrink: 0;
+        color: var(--color-ink);
+        cursor: pointer;
+        transition: background-color var(--transition-duration-fast) var(--ease-out-quad);
+
+        &:hover:not(:disabled) {
+            background: var(--color-surface-muted);
+        }
+
+        &:disabled {
+            color: var(--color-placeholder);
+            cursor: default;
+        }
+
+        &:focus-visible {
+            outline: --spacing(0.5) solid var(--color-ink);
+            outline-offset: calc(var(--spacing) * -0.5);
+        }
+    }
+
+    /* On a card the stepper is exactly as tall as Add to Cart, so the button is the same height stacked (carousel,
+       narrow column) and side by side (wide column): the row never stretches the button. */
+    .elme-card__actions > .elme-qty {
+        height: var(--btn-min-height);
+        min-height: 0;
+    }
+
+    .elme-card__actions .elme-qty__input {
+        height: 100%;
+        min-height: 0;
+    }
+
+    .elme-qty__input {
+        flex: 1 1 auto;
+        width: --spacing(12);
+        min-width: 0;
+        border: 0;
+        /* the stepper carries the leaf; the field in the middle stays square */
+        border-radius: 0;
+        padding: 0;
+        background: transparent;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+        appearance: textfield;
+
+        /* Sticky bar repeats the qty as a span. An input centres its text; a span does not. */
+        &:where(span) {
+            display: grid;
+            place-items: center;
+            line-height: 1;
+        }
+
+        &::-webkit-inner-spin-button,
+        &::-webkit-outer-spin-button {
+            appearance: none;
+            margin: 0;
+        }
+
+        &:focus-visible {
+            outline: --spacing(0.5) solid var(--color-ink);
+            outline-offset: calc(var(--spacing) * -0.5);
+        }
+    }
+}

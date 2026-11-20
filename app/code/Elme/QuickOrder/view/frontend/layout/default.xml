@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!-- The Quick Order cart is the only cart: no Magento mini-cart (FE-32 builds the header panel) -->
+        <referenceBlock name="cart-drawer" remove="true"/>
+        <!-- FE-78: the heart's list picker (data-elme-qo-add-to-list); guests see login -->
+        <referenceContainer name="before.body.end">
+            <block name="elme.quick-order.add-to-list-modal"
+                   template="Elme_QuickOrder::add-to-list/modal.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

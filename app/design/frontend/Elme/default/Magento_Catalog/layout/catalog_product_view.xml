@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<!-- FE-12 Instagram + FE-13 Our Difference. FE-25 layout. FE-27 sticky ATC + buy box JS (logged-in only via handle). -->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!-- Core wishlist, compare and reviews. Heart = shopping list (FE-78); no second wishlist. -->
+        <referenceBlock name="product.info.review" remove="true"/>
+        <referenceBlock name="product.info.addtowishlist" remove="true"/>
+        <referenceBlock name="product.info.addtocompare" remove="true"/>
+        <referenceBlock name="reviews.tab" remove="true"/>
+        <referenceBlock name="review_list" remove="true"/>
+        <referenceBlock name="product.review.form" remove="true"/>
+        <!-- FE-25: the product name is the H1 inside the info column (product/view/product-info.phtml) -->
+        <referenceBlock name="page.main.title" remove="true"/>
+        <referenceBlock name="product.info.title" remove="true"/>
+        <referenceBlock name="product.info.stockstatus" remove="true"/>
+        <referenceBlock name="product.price.tier" remove="true"/>
+        <!-- FE-25: detail sections are an accordion inside the info column -->
+        <move element="product.info.details" destination="product.info"/>
+        <!-- FE-29: per product type CMS blocks, full width below the two columns -->
+        <referenceBlock name="product.detail.page">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.pdp.cms.blocks"
+                   template="Magento_Catalog::product/view/cms-blocks.phtml">
+                <arguments>
+                    <argument name="identifier_templates" xsi:type="array">
+                        <item name="middle" xsi:type="string">pdp_middle_page_%s</item>
+                        <item name="material" xsi:type="string">pdp_material_info_block_%s</item>
+                    </argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+        <!-- FE-30: Hyva's related / upsell sliders give way to our carousels (FE-17) of FE-19 cards. Each block hides
+             itself when it has no products, the tabs hide an empty tab.
+             Complete the look = Up-sell links, Frequently bought together = Cross-sell links, Related = Related
+             Products (the `source` argument; change it here to switch a block to another link type). -->
+        <referenceBlock name="related" remove="true"/>
+        <referenceBlock name="upsell" remove="true"/>
+        <referenceBlock name="product.detail.page">
+            <container name="elme.pdp.recommendations" as="elme_pdp_recommendations" htmlTag="div" htmlClass="elme-pdp-recs">
+                <block class="Elme\ProductCarousel\Block\Carousel"
+                       name="elme.pdp.complete.look"
+                       template="Elme_ProductCarousel::carousel.phtml">
+                    <arguments>
+                        <argument name="source" xsi:type="string">upsell</argument>
+                        <argument name="title" xsi:type="string" translate="true">Complete the look</argument>
+                    </arguments>
+                </block>
+                <block class="Elme\ProductCarousel\Block\Carousel"
+                       name="elme.pdp.frequently.bought"
+                       template="Elme_ProductCarousel::carousel.phtml">
+                    <arguments>
+                        <argument name="source" xsi:type="string">cross_sell</argument>
+                        <argument name="title" xsi:type="string" translate="true">Frequently bought together</argument>
+                    </arguments>
+                </block>
+                <block class="Elme\ProductCarousel\Block\Carousel"
+                       name="elme.pdp.related"
+                       template="Elme_ProductCarousel::carousel.phtml">
+                    <arguments>
+                        <argument name="source" xsi:type="string">related</argument>
+                        <argument name="title" xsi:type="string" translate="true">Related products</argument>
+                    </arguments>
+                </block>
+                <block class="Magento\Framework\View\Element\Template"
+                       name="elme.pdp.recommendation.tabs"
+                       template="Elme_ProductCarousel::tabs.phtml">
+                    <block class="Elme\ProductCarousel\Block\Carousel"
+                           name="elme.pdp.shop.range"
+                           template="Elme_ProductCarousel::carousel.phtml">
+                        <arguments>
+                            <argument name="source" xsi:type="string">range</argument>
+                            <argument name="tab_title" xsi:type="string" translate="true">Shop the Range</argument>
+                        </arguments>
+                    </block>
+                    <block class="Elme\ProductCarousel\Block\Carousel"
+                           name="elme.pdp.similar"
+                           template="Elme_ProductCarousel::carousel.phtml">
+                        <arguments>
+                            <argument name="source" xsi:type="string">similar</argument>
+                            <argument name="tab_title" xsi:type="string" translate="true">Similar Products</argument>
+                        </arguments>
+                    </block>
+                </block>
+            </container>
+        </referenceBlock>
+        <!-- FE-27: sticky ATC + buy-box JS; guests remove these in elme_customer_guest.xml -->
+        <referenceBlock name="product.info">
+            <block class="Magento\Catalog\Block\Product\View"
+                   name="product.info.sticky.atc"
+                   template="Magento_Catalog::product/view/sticky-atc.phtml"/>
+        </referenceBlock>
+        <referenceContainer name="before.body.end">
+            <block name="elme.pdp.buybox.js"
+                   template="Magento_Catalog::product/view/buybox-js.phtml"/>
+        </referenceContainer>
+        <referenceBlock name="recently_viewed_products.default_widget_pdp">
+            <arguments>
+                <argument name="show_buttons" xsi:type="string">add_to_cart</argument>
+            </arguments>
+        </referenceBlock>
+        <referenceContainer name="content">
+            <block class="Bart\ContentStudio\Block\Entry"
+                   name="elme.instagram.slider"
+                   after="-">
+                <arguments>
+                    <argument name="identifier" xsi:type="string">home-instagram-slider</argument>
+                    <argument name="filter_by_product" xsi:type="boolean">true</argument>
+                </arguments>
+            </block>
+            <block class="Magento\Cms\Block\Block"
+                   name="elme.our.difference"
+                   after="elme.instagram.slider">
+                <arguments>
+                    <argument name="block_id" xsi:type="string">our_difference</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>
+

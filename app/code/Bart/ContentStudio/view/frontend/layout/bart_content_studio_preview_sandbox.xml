@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <!-- Belt-and-braces alongside PreviewCacheBypass: a token URL that
+             leaks is worthless within fifteen minutes, but never indexed. -->
+        <meta name="robots" content="NOINDEX,NOFOLLOW"/>
+        <!-- Plain script, not Alpine: the badge should still count down when
+             something else on the page has broken. -->
+        <script src="Bart_ContentStudio::js/preview/badge.js" defer="defer"/>
+    </head>
+    <body>
+        <!-- The entry sits in `.column.main`, the same column a CMS page
+             renders the widget in, so container width and gutters match. -->
+        <attribute name="class" value="cms-page-view"/>
+        <referenceBlock name="page.main.title" remove="true"/>
+        <referenceBlock name="breadcrumbs" remove="true"/>
+        <referenceContainer name="content">
+            <block class="Bart\ContentStudio\Block\Preview\Sandbox"
+                   name="bart_content_studio.preview.sandbox"
+                   template="Bart_ContentStudio::preview/sandbox.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

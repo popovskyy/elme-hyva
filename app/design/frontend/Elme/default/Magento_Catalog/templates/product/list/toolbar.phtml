@@ -1,0 +1,322 @@
+<?php
+/**
+ * FE-20: PLP toolbar shell (sort / amount / pager / limiter). FE-21: Filters button and chips on the top toolbar
+ * (child blocks elme_filters / elme_filters_chips, layout catalog_category_view.xml).
+ * CSP-safe Alpine; scroll-to-grid on page changes (QA #1). No JSON-LD (FE-55).
+ * Sort and per-page URLs come from ListingFilters::getToolbarUrlParts(), so a filtered listing keeps the stable
+ * facet query (config order, code[]= for several values) and the other parameters sorted by name.
+ * FE-87: "View as: Grid | List". The switch is client side: the same cards, laid out by
+ * #product-list[data-plp-view] (web/tailwind/elme/plp/plp-view.css). The choice sits in the session cookie
+ * elme_plp_view, so there is no reload, no second cached copy of the page, and it follows the customer
+ * through paging, filtering and other listings.
+ */
+
+declare(strict_types=1);
+
+use Elme\Search\ViewModel\ListingFilters;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Catalog\Block\Product\ProductList\Toolbar;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var Toolbar $block */
+/** @var HyvaCsp $hyvaCsp */
+/** @var ViewModelRegistry $viewModels */
+
+$additionalOptions = ['page' => 'p'];
+$toolbarOptionsJson = $block->getWidgetOptionsJson($additionalOptions);
+/** @var ListingFilters $listingFilters */
+$listingFilters = $viewModels->require(ListingFilters::class);
+$urlPartsJson = (string) json_encode($listingFilters->getToolbarUrlParts(), JSON_UNESCAPED_SLASHES);
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+?>
+<?php if ($block->getCollection()->getSize()): ?>
+    <?php if ($block->getIsBottom()): ?>
+    <div x-data="initElmeProductListToolbar"
+         data-toolbar-options="<?= $escaper->escapeHtmlAttr($toolbarOptionsJson) ?>"
+         data-url-parts="<?= $escaper->escapeHtmlAttr($urlPartsJson) ?>"
+         class="toolbar toolbar-products elme-plp-toolbar grid grid-cols-4 sm:grid-cols-8 md:grid-cols-4
+            lg:grid-cols-8 grid-flow-row gap-2 items-center min-h-10">
+            <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/amount.phtml')) ?>
+            <?= $block->getPagerHtml() ?>
+            <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/limiter.phtml')) ?>
+    </div>
+    <?php else: ?>
+    <?php // FE-21 / FE-110: amount, view switch and sort; selected-filter chips below. ?>
+    <?php // FE-110: the quick bar (+ drawer) is a direct child of #product-list, so it can stay sticky over the whole grid. ?>
+    <?php
+    // FE-109: the quick bar carries Sort (desktop bar, phone Filter / Sort pill). Each select gets its own
+    // initElmeProductListToolbar scope, so sorting works the same as here. Without the bar the row keeps it.
+    $filtersBlock = $listingFilters->isAvailable() && $block->isExpanded() ? $block->getChildBlock('elme_filters') : false;
+    $quickbarBlock = $filtersBlock ? $filtersBlock->getChildBlock('elme_quickbar') : false;
+    $sortInBar = (bool) $quickbarBlock;
+    if ($quickbarBlock) {
+        $quickbarBlock->addData([
+            'sort_scope_attributes' => 'x-data="initElmeProductListToolbar"'
+                . ' data-toolbar-options="' . $escaper->escapeHtmlAttr($toolbarOptionsJson) . '"'
+                . ' data-url-parts="' . $escaper->escapeHtmlAttr($urlPartsJson) . '"',
+            'sorter_html' => $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/sorter.phtml')),
+            'sort_options_html' => $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/sorter-options.phtml')),
+        ]);
+    }
+    ?>
+    <?= /** @noEscape */ trim((string) $block->getChildHtml('elme_filters')) ?>
+    <div x-data="initElmeProductListToolbar"
+         data-toolbar-options="<?= $escaper->escapeHtmlAttr($toolbarOptionsJson) ?>"
+         data-url-parts="<?= $escaper->escapeHtmlAttr($urlPartsJson) ?>"
+         class="toolbar toolbar-products elme-plp-toolbar flex flex-wrap items-center gap-x-2 md:gap-x-6 gap-y-3 min-h-10 pt-6 lg:pt-3 pb-3 justify-between md:justify-start">
+        <?php if ($block->isExpanded()): ?>
+            <?php // Phones: sort on the left, view switch on the right, one row; the item count lives by the pager below. ?>
+            <?php // From md: one row, in DOM order, with the count. ?>
+            <div class="order-2 flex items-center md:contents">
+                <div class="hidden md:block md:order-2">
+                    <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/amount.phtml')) ?>
+                </div>
+                <div class="elme-view-switch md:order-3 md:ms-auto"
+                     role="group"
+                     aria-label="<?= $escaper->escapeHtmlAttr(__('View as')) ?>"
+                     x-data="initElmePlpViewSwitch"
+                >
+                    <span class="elme-view-switch__label" aria-hidden="true"><?= $escaper->escapeHtml(__('View as')) ?></span>
+                    <button type="button"
+                            class="elme-view-switch__btn elme-view-switch__btn--grid"
+                            data-view="grid"
+                            aria-pressed="true"
+                            :aria-pressed="gridPressed"
+                            @click="setView"
+                    >
+                        <?= $lucideIcons->layoutGridHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                        <span><?= $escaper->escapeHtml(__('Grid')) ?></span>
+                    </button>
+                    <button type="button"
+                            class="elme-view-switch__btn elme-view-switch__btn--list"
+                            data-view="list"
+                            aria-pressed="false"
+                            :aria-pressed="listPressed"
+                            @click="setView"
+                    >
+                        <?= $lucideIcons->layoutListHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                        <span><?= $escaper->escapeHtml(__('List')) ?></span>
+                    </button>
+                </div>
+            </div>
+            <div class="order-1 md:order-4<?= $sortInBar ? ' lg:hidden' : '' ?>">
+                <?= /** @noEscape */ $block->fetchView($block->getTemplateFile('Magento_Catalog::product/list/toolbar/sorter.phtml')) ?>
+            </div>
+        <?php endif ?>
+    </div>
+    <?php // FE-87: runs before the cards are parsed, so a customer who chose List never sees the grid first. ?>
+    <script>
+        (function () {
+            const list = document.getElementById('product-list');
+            if (list && /(?:^|;\s*)elme_plp_view=list(?:;|$)/.test(document.cookie)) {
+                list.dataset.plpView = 'list';
+            }
+        })();
+    </script>
+    <?php $hyvaCsp->registerInlineScript() ?>
+    <?= $block->getChildHtml('elme_filters_chips') ?>
+    <?php endif ?>
+    <?php // Register Alpine once on the top toolbar (rendered before the bottom one). ?>
+    <?php if (!$block->getIsBottom()): ?>
+<script>
+    function initElmeProductListToolbar() {
+        return {
+            options: {},
+            urlParts: {base: '', facets: '', kept: {}, page: 1},
+
+            init() {
+                const raw = JSON.parse(this.$root.dataset.toolbarOptions || '{}');
+                this.options = raw.productListToolbarForm || {};
+                this.urlParts = Object.assign(this.urlParts, JSON.parse(this.$root.dataset.urlParts || '{}'));
+                this.scrollToGridIfPaged();
+            },
+
+            /**
+             * Parameters other than the facets (sort, limit, search text), plus the page when it is above 1.
+             */
+            getUrlParams() {
+                const params = Object.assign({}, this.urlParts.kept || {});
+                if (this.urlParts.page > 1) {
+                    params[this.options.page] = String(this.urlParts.page);
+                }
+                return params;
+            },
+
+            getCurrentLimit() {
+                return this.getUrlParams()[this.options.limit] || this.options.limitDefault;
+            },
+
+            getCurrentPage() {
+                return this.urlParts.page || 1;
+            },
+
+            /**
+             * PHP rawurlencode(): encodeURIComponent leaves ! ' ( ) * as they are.
+             */
+            encode(value) {
+                return encodeURIComponent(value)
+                    .replace(/[!'()*]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase());
+            },
+
+            /**
+             * Same form as Elme\Search\ViewModel\ListingFilters::buildUrl(): the facet query first, then the
+             * other parameters sorted by name; no p=1.
+             */
+            buildUrl(paramData) {
+                const parts = this.urlParts.facets ? [this.urlParts.facets] : [];
+                Object.keys(paramData)
+                    .filter((name) => !(name === this.options.page && String(paramData[name]) === '1'))
+                    .sort((a, b) => (a < b ? -1 : (a > b ? 1 : 0)))
+                    .forEach((name) => parts.push(this.encode(name) + '=' + this.encode(paramData[name])));
+                return this.urlParts.base + (parts.length ? '?' + parts.join('&') : '');
+            },
+
+            go(paramData) {
+                if (this.options.post) {
+                    hyva.postForm({action: this.urlParts.base, data: paramData, skipUenc: true});
+                    return;
+                }
+                location.href = this.buildUrl(paramData);
+            },
+
+            changeUrl(paramName, paramValue, defaultValue) {
+                const paramData = this.getUrlParams();
+                const currentPage = this.getCurrentPage();
+                let newPage;
+
+                if (currentPage > 1 && paramName === this.options.limit) {
+                    newPage = Math.floor(this.getCurrentLimit() * (currentPage - 1) / paramValue) + 1;
+
+                    if (newPage > 1) {
+                        paramData[this.options.page] = newPage;
+                    } else {
+                        delete paramData[this.options.page];
+                    }
+                }
+
+                paramData[paramName] = paramValue;
+
+                if (!this.options.post && paramValue === defaultValue.toString()) {
+                    delete paramData[paramName];
+                }
+
+                this.go(paramData);
+            },
+
+            /**
+             * Price low/high are two select options that map to product_list_order=price + product_list_dir.
+             */
+            changeSortWithDir(order, dir) {
+                const paramData = this.getUrlParams();
+
+                paramData[this.options.order] = order;
+                paramData[this.options.direction] = dir;
+
+                if (order === this.options.orderDefault.toString()) {
+                    delete paramData[this.options.order];
+                }
+                if (dir === this.options.directionDefault.toString()) {
+                    delete paramData[this.options.direction];
+                }
+
+                this.go(paramData);
+            },
+
+            onSortChange() {
+                const value = this.$event.target.value;
+                if (value === 'price_asc') {
+                    this.changeSortWithDir('price', 'asc');
+                    return;
+                }
+                if (value === 'price_desc') {
+                    this.changeSortWithDir('price', 'desc');
+                    return;
+                }
+                // Only price has two directions in the select. Every other sort runs in its natural direction,
+                // sent when the page default is the other one: search results default to desc (for relevance),
+                // which would list Product Name Z-A. Also drops the direction left over from a price sort.
+                this.changeSortWithDir(value, this.naturalDirection(value));
+            },
+
+            naturalDirection(order) {
+                return ['relevance', 'newest', 'news_from_date', 'created_at'].indexOf(order) === -1 ? 'asc' : 'desc';
+            },
+
+            onLimitChange() {
+                const value = this.$event.target.value;
+                this.changeUrl(this.options.limit, value, this.options.limitDefault);
+            },
+
+            scrollToGridIfPaged() {
+                if (window.__elmePlpScrolledToGrid) {
+                    return;
+                }
+                const page = new URLSearchParams(window.location.search).get('p');
+                if (!page || page === '1') {
+                    return;
+                }
+                const grid = document.getElementById('product-list');
+                if (!grid) {
+                    return;
+                }
+                window.__elmePlpScrolledToGrid = true;
+                const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                this.$nextTick(() => {
+                    grid.scrollIntoView({
+                        behavior: reduceMotion ? 'auto' : 'smooth',
+                        block: 'start'
+                    });
+                });
+            }
+        };
+    }
+    /**
+     * FE-87: Grid / List. The view is an attribute on #product-list; CSS does the rest.
+     */
+    function initElmePlpViewSwitch() {
+        return {
+            view: 'grid',
+
+            init() {
+                const list = document.getElementById('product-list');
+                this.view = list && list.dataset.plpView === 'list' ? 'list' : 'grid';
+            },
+
+            gridPressed() {
+                return this.view === 'grid' ? 'true' : 'false';
+            },
+
+            listPressed() {
+                return this.view === 'list' ? 'true' : 'false';
+            },
+
+            setView() {
+                const view = this.$event.currentTarget.dataset.view === 'list' ? 'list' : 'grid';
+                if (view === this.view) {
+                    return;
+                }
+                this.view = view;
+                const list = document.getElementById('product-list');
+                if (list) {
+                    list.dataset.plpView = view;
+                }
+                hyva.setSessionCookie('elme_plp_view', view);
+            }
+        };
+    }
+    window.addEventListener(
+        'alpine:init',
+        () => {
+            Alpine.data('initElmeProductListToolbar', initElmeProductListToolbar);
+            Alpine.data('initElmePlpViewSwitch', initElmePlpViewSwitch);
+        },
+        {once: true}
+    );
+</script>
+        <?php $hyvaCsp->registerInlineScript() ?>
+    <?php endif; ?>
+<?php endif ?>

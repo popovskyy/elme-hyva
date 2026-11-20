@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!-- Home page, "Calm gallery" (picked 31 Oct 2026):
+     CMS content (hero, welcome intro, category grid, From the showroom, Become a Stockist), then the
+     FE-12 Instagram slider. Our Difference and Need assistance? live on About us
+     and the help pages, not on home or in the footer. Motion on this page is the hero
+     (web/tailwind/elme/home/hero.css) and the Become a Stockist collage
+     (Magento_Theme::html/home-motion.phtml, home-motion.css). -->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <!-- FE-100: Fraunces for above-fold home hero -->
+        <font src="fonts/fraunces/fraunces-latin-soft-normal.woff2"/>
+    </head>
+    <body>
+        <referenceContainer name="head.additional">
+            <block name="elme.home.hero.preload"
+                   template="Elme_Theme::hero-preload.phtml"/>
+        </referenceContainer>
+        <referenceContainer name="content">
+            <block class="Bart\ContentStudio\Block\Entry"
+                   name="elme.instagram.slider"
+                   after="-">
+                <arguments>
+                    <argument name="identifier" xsi:type="string">home-instagram-slider</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+        <referenceContainer name="before.body.end">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.home.motion"
+                   template="Magento_Theme::html/home-motion.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

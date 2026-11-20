@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <preference for="Bart\ContentStudio\Api\Data\EntryInterface" type="Bart\ContentStudio\Model\Entry"/>
+    <preference for="Bart\ContentStudio\Api\EntryRepositoryInterface" type="Bart\ContentStudio\Model\EntryRepository"/>
+
+    <!-- content_types.xml reader: mirrors Magento\Widget\Model\Config\Reader's wiring -->
+    <virtualType name="Bart\ContentStudio\Model\Schema\ValidationState"
+                 type="Magento\Framework\Config\ValidationState\Configurable">
+        <arguments>
+            <argument name="required" xsi:type="boolean">true</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Bart\ContentStudio\Model\Schema\Reader">
+        <arguments>
+            <argument name="fileName" xsi:type="string">content_types.xml</argument>
+            <argument name="schemaLocator" xsi:type="object">Bart\ContentStudio\Model\Schema\SchemaLocator</argument>
+            <argument name="validationState" xsi:type="object">Bart\ContentStudio\Model\Schema\ValidationState</argument>
+            <argument name="fileResolver" xsi:type="object">Magento\Framework\App\Config\FileResolver</argument>
+        </arguments>
+    </type>
+
+    <!-- Grid data source (ui_component listing) -->
+    <virtualType name="Bart\ContentStudio\Model\ResourceModel\Entry\Grid\Collection"
+                 type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">bart_content_studio_entry</argument>
+            <argument name="resourceModel" xsi:type="string">Bart\ContentStudio\Model\ResourceModel\Entry</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="bart_content_studio_entry_listing_data_source" xsi:type="string">
+                    Bart\ContentStudio\Model\ResourceModel\Entry\Grid\Collection
+                </item>
+                <!-- Page Builder "Content Studio" type: the entry picker -->
+                <item name="bart_content_studio_pagebuilder_select_grid_data_source" xsi:type="string">
+                    Bart\ContentStudio\Model\ResourceModel\Entry\Grid\Collection
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Grid keyword search: adds one more entry, "studio_keyword", to the
+         same shared pool Magento itself uses for "regular" and "fulltext". The
+         key is namespaced to this module, so every other admin grid using the
+         generic DataProvider is unaffected. See KeywordSearch/KeywordFilterApplier. -->
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\FilterPool">
+        <arguments>
+            <argument name="appliers" xsi:type="array">
+                <item name="studio_keyword" xsi:type="object">
+                    Bart\ContentStudio\Model\ResourceModel\Entry\Grid\Filter\KeywordFilterApplier
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- SearchCriteria plumbing for EntryRepository::getList() -->
+    <virtualType name="Bart\ContentStudio\Model\Api\SearchCriteria\EntryCollectionProcessor"
+                 type="Magento\Framework\Api\SearchCriteria\CollectionProcessor">
+        <arguments>
+            <argument name="processors" xsi:type="array">
+                <item name="filters" xsi:type="object">
+                    Magento\Framework\Api\SearchCriteria\CollectionProcessor\FilterProcessor
+                </item>
+                <item name="sorting" xsi:type="object">
+                    Magento\Framework\Api\SearchCriteria\CollectionProcessor\SortingProcessor
+                </item>
+                <item name="pagination" xsi:type="object">
+                    Magento\Framework\Api\SearchCriteria\CollectionProcessor\PaginationProcessor
+                </item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Bart\ContentStudio\Model\EntryRepository">
+        <arguments>
+            <argument name="collectionProcessor" xsi:type="object">
+                Bart\ContentStudio\Model\Api\SearchCriteria\EntryCollectionProcessor
+            </argument>
+        </arguments>
+    </type>
+
+    <!--
+        Narrowed template filter for entry content - see
+        Bart\ContentStudio\Model\Template\SafeFilter's doc comment. Scoped to
+        Block\Entry only; the global FilterProvider (used by CMS blocks/pages)
+        is untouched.
+    -->
+    <virtualType name="Bart\ContentStudio\Model\Template\FilterProvider" type="Magento\Cms\Model\Template\FilterProvider">
+        <arguments>
+            <argument name="pageFilter" xsi:type="string">Bart\ContentStudio\Model\Template\SafeFilter</argument>
+            <argument name="blockFilter" xsi:type="string">Bart\ContentStudio\Model\Template\SafeFilter</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- One node, not two: Mapper\Dom::convert keys <type> by name *within a
+         single document*, so a second <type name="...\Block\Entry"> later in this
+         file overwrites this one rather than merging with it. It happens to
+         work today only because another module's di.xml is processed first;
+         were this file ever first, `filterProvider` would silently fall back to
+         the global FilterProvider and {{block}}/{{layout}} would go live inside
+         entry content. Keep every Block\Entry argument here.
+
+         `typeViewModels`: per-type view models for server-rendered templates. A
+         type declared in another module registers its own from that module's
+         own di.xml the same way; Block\Entry only looks the code up, it knows
+         nothing about any particular type. -->
+    <type name="Bart\ContentStudio\Block\Entry">
+        <arguments>
+            <argument name="filterProvider" xsi:type="object">Bart\ContentStudio\Model\Template\FilterProvider</argument>
+            <argument name="typeViewModels" xsi:type="array"/>
+        </arguments>
+    </type>
+
+    <type name="Magento\Framework\Console\CommandListInterface">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="bart_studio_export" xsi:type="object">Bart\ContentStudio\Console\Command\Export</item>
+                <item name="bart_studio_import" xsi:type="object">Bart\ContentStudio\Console\Command\Import</item>
+            </argument>
+        </arguments>
+    </type>
+
+</config>

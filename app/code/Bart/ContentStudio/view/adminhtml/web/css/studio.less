@@ -1,0 +1,12 @@
+//
+//  Content Studio stylesheet entry point.
+//
+//  Layout references this as `Bart_ContentStudio::css/studio.css`. Magento's
+//  LESS preprocessor only compiles a request whose path ends in `.css`, then
+//  resolves it back to the `.less` source of the same name - so pointing
+//  <css src="..."> straight at a `.less` file (or at a `source/_partial.less`)
+//  ships the raw LESS to the browser and the styles silently never apply.
+//  Everything real lives in the source/ partials imported below.
+//
+
+@import 'source/_module.less';

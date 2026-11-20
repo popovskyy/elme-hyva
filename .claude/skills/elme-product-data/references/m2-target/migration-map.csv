@@ -1,0 +1,378 @@
+Attribute today,Label,Type,Filled EL,Filled JL,Filled SG,Audit verdict,PIM field,Target EL OS,Target B2C,How,Note
+assembly,Assembly,int/select,96%,79%,66%,Keep,assembly_info,assembly,assembly,Same code,Clean the ~25 options
+buyer_code,Buyer Code,varchar/text,89%,89%,84%,Keep,buyer_code,-,-,Logic Check: Shipment Service only: the rule already exists there (alexandria-home-delivery),"Alexandria rule: buyer code 39 + units per carton > 1 -> Alexandria stock counts / DC choice (checkout, qty)"
+special_care,Care Instructions,text/textarea,99%,84%,74%,Keep,care_instructions,special_care,special_care,Same code,S-06: 20 texts cover 87% of items
+colour_super_sku,Colour Super SKU,varchar/text,65%,40%,21%,Keep,colour_super_sku,family_code,family_code,Merged,S-09. No configurable products (user 2026-11-12). PIM field colour_super_sku renamed family_code
+condition_code,Condition code,int/select,41%,44%,48%,Keep,condition_code,condition_code,condition_code,Same code,
+description,Description,text/textarea,82%,63%,52%,Keep,description,description,description,Same code,
+disclaimer,Disclaimer,text/textarea,65%,58%,50%,Keep,disclaimer,disclaimer,disclaimer,Same code,S-06: about 5 texts with HTML variants
+google_product_category,Google Product Category,varchar/select,<1%,<1%,<1%,Keep,feed_mapping,google_product_category,google_product_category,Same code,
+product_label,Product Label,varchar/multiselect,31%,46%,44%,Keep,labels,product_label,product_label,Same code,Clean list (33M junk option rows today)
+price,Price,decimal/price,51%,48%,54%,Keep,list_price,price,price,Same code,B2B selling prices = contract price tables (D14); this is the list price
+made_to_order,Is Made To Order product,int/boolean,100%,100%,100%,Keep,made_to_order,made_to_order,made_to_order,Same code,
+name,Product Name,varchar/text,100%,100%,100%,Keep,name,name,name,Same code,Global only (PIM Spec section 1)
+stk_user_group_2,Parcel Classification,varchar/text,92%,90%,87%,Keep,parcel_class,stk_user_group_2,stk_user_group_2,Logic Check: Keep in BOTH instances,"Assembly, specialist delivery code, Concrete & Marble and Freight Metro carriers, interstate, POS line checks; EL: large-item rule (GetLargeProductIdsFromQuote)"
+postage_handling,Product Note,text/textarea,12%,13%,21%,Keep,product_note,product_note,product_note,Merged,"Same data, misnamed code today"
+product_set,Product Set,int/select,84%,84%,76%,Keep,product_type,product_type,product_type,Merged,"1:1 with the used attribute sets of today (tab Product Types, S-14). New code because the values change"
+range,Range,varchar/text,88%,99%,98%,Keep,range,range,range,Same code,Lead-time use moves to lead_time_class (Shipment Service only)
+recycling_code,Recycling code,varchar/text,<1%,<1%,2%,Keep,recycling_code,-,rule,Logic Check: Rule: product_type -> recycling service code (config); exactly the 415 mattress items today,Checkout AssemblyAndRecycling / RecyclingCost use the value as the recycling service item (REMOVALOLDMATT)
+yotpo_group,Yotpo Group,varchar/text,46%,31%,15%,Keep,review_group,-,yotpo_group,Same code,Yotpo is off on EL (Q-178)
+short_description,Short Description,text/textarea,82%,62%,50%,Keep,short_description,short_description,short_description,Same code,
+sku,SKU,static/text,100%,100%,100%,Keep,sku,sku,sku,Same code,"8,503 SKUs contain #"
+composition,Composition,varchar/text,79%,73%,56%,Keep,specs.composition,composition,composition,Same code,Typed because feeds use it
+fabric,Fabric,varchar/text,73%,73%,57%,Keep,specs.fabric,fabric,fabric,Same code,
+stock_group,Stock Group,varchar/text,69%,90%,87%,Keep,stock_group,-,-,Logic Check: Shipment Service / POS via DWH,"DWH sync, export to Shipment Service; POS reads it from DWH"
+subtitle,Subtitle,varchar/text,40%,25%,1%,Keep,subtitle,subtitle,subtitle,Same code,
+supplier_lead_time,Supplier Lead Time,varchar/text,<1%,<1%,<1%,Keep,supplier_lead_time,-,-,"Logic Check: Shipment Service (from PIM, D25 temp.)",ETA for dropship items
+unit_desc,Unit Description,varchar/text,91%,88%,81%,Keep,unit_of_measure,-,-,Logic Check: Shipment Service / Pronto only,Excluded from the Packaging tab
+units_per_ctn,Units Per Carton,int/weight,72%,90%,86%,Keep,units_per_carton,units_per_ctn,units_per_ctn,Same code,
+url_key,URL Key,varchar/text,100%,100%,100%,Keep,url_key,url_key,url_key,Same code,Empty = M2 builds it from the name
+visibility,Visibility,int/select,100%,100%,100%,Keep,visibility,visibility,visibility,Same code,
+assembly_code,Assembly Code,varchar/text,59%,58%,43%,Merge,assembly_service,-,assembly_code,Same code,4 values
+assembly_price,Assembly Price,decimal/price,60%,71%,65%,Merge,assembly_service,-,assembly_price,Same code,DWH already extracts item.assembly_price; free_assembly not carried (S-03)
+free_assembly,Free Assembly,int/boolean,100%,100%,100%,Merge,assembly_service,-,-,Logic Check: Drop,Cart template hides the assembly option when set; never set (0 on all items). $0 assembly for stk group 4 is config (auto-assembly)
+discounted_price,Discounted Price,decimal/text,63%,67%,65%,Merge,b2c_promo_display,-,discounted_price,Same code,
+multibuy_price_max,Multibuy Price To,decimal/text,60%,38%,39%,Merge,b2c_promo_display,-,multibuy_price_min / multibuy_price_max,Merged,"promo_text -> label rule, promo_text_color -> theme config (S-11)"
+multibuy_price_min,Multibuy Price From,decimal/text,60%,38%,39%,Merge,b2c_promo_display,-,multibuy_price_min / multibuy_price_max,Merged,"promo_text -> label rule, promo_text_color -> theme config (S-11)"
+promo_text,Current Promotion,varchar/text,<1%,8%,8%,Merge,b2c_promo_display,-,-,Logic Check: Drop: config + label rules (S-11),"Promo label on PLP / PDP; prod runs config-driven promo (promo_general/enabled = 1, use_product_attributes = 0), so product values are ignored"
+promo_text_color,Promo Text Color,varchar/text,61%,64%,55%,Merge,b2c_promo_display,-,-,Logic Check: Drop: theme config,same as promo_text
+brand,Brand,varchar/text,99%,88%,80%,Merge,brand,brand,brand,Same code,Text with 24 values today -> controlled list
+mattress_super_sku,Mattress Super SKU,varchar/text,<1%,<1%,<1%,Merge,bundle_links,family_code,family_code,Merged,S-09. No configurable products (user 2026-11-12). PIM field colour_super_sku renamed family_code
+upsell_qty_1,Mattress upsell Qty 1,varchar/text,<1%,<1%,<1%,Merge,bundle_links,-,bundle_links,Logic Check: bundle_links,Mattress upsell block
+upsell_sku_1,Mattress upsell SKU 1,varchar/text,<1%,<1%,<1%,Merge,bundle_links,-,bundle_links,Logic Check: bundle_links,Mattress upsell block
+ctn10_depth,Carton 10 depth,decimal/weight,11%,<1%,,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn10_length,Carton 10 length,decimal/weight,11%,<1%,,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn10_weight,Carton 10 weight,decimal/weight,11%,<1%,,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn10_width,Carton 10 width,decimal/weight,11%,<1%,,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn1_depth,Carton 1 depth,decimal/weight,92%,90%,86%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn1_length,Carton 1 length,decimal/weight,92%,90%,86%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn1_weight,Carton 1 weight,decimal/weight,92%,90%,86%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn1_width,Carton 1 width,decimal/weight,92%,90%,86%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn2_depth,Carton 2 depth,decimal/weight,43%,37%,32%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn2_length,Carton 2 length,decimal/weight,43%,37%,32%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn2_weight,Carton 2 weight,decimal/weight,43%,36%,32%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn2_width,Carton 2 width,decimal/weight,43%,37%,32%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn3_depth,Carton 3 depth,decimal/weight,38%,30%,28%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn3_length,Carton 3 length,decimal/weight,38%,30%,28%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn3_weight,Carton 3 weight,decimal/weight,37%,29%,27%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn3_width,Carton 3 width,decimal/weight,38%,30%,28%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn4_depth,Carton 4 depth,decimal/weight,29%,20%,19%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn4_length,Carton 4 length,decimal/weight,29%,20%,19%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn4_weight,Carton 4 weight,decimal/weight,29%,20%,19%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn4_width,Carton 4 width,decimal/weight,29%,20%,19%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn5_depth,Carton 5 depth,decimal/weight,21%,11%,12%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn5_length,Carton 5 length,decimal/weight,21%,11%,12%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn5_weight,Carton 5 weight,decimal/weight,21%,11%,12%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn5_width,Carton 5 width,decimal/weight,21%,11%,12%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn6_depth,Carton 6 depth,decimal/weight,15%,4%,4%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn6_length,Carton 6 length,decimal/weight,15%,5%,4%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn6_weight,Carton 6 weight,decimal/weight,15%,4%,4%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn6_width,Carton 6 width,decimal/weight,15%,4%,4%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn7_depth,Carton 7 depth,decimal/weight,11%,<1%,,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn7_length,Carton 7 length,decimal/weight,12%,2%,2%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn7_weight,Carton 7 weight,decimal/weight,11%,<1%,,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn7_width,Carton 7 width,decimal/weight,12%,2%,2%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn8_depth,Carton 8 depth,decimal/weight,11%,<1%,,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn8_length,Carton 8 length,decimal/weight,11%,<1%,,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn8_weight,Carton 8 weight,decimal/weight,11%,<1%,,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn8_width,Carton 8 width,decimal/weight,11%,<1%,,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn9_depth,Carton 9 depth,decimal/weight,11%,<1%,,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn9_length,Carton 9 length,decimal/weight,11%,<1%,,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn9_weight,Carton 9 weight,decimal/weight,11%,<1%,,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+ctn9_width,Carton 9 width,decimal/weight,11%,<1%,,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+no_of_ctns,Number of Cartons,int/weight,91%,90%,86%,Merge,cartons,cartons,cartons,Merged,S-01. Read-only in M2; freight rating = Shipment Service with cartons from PIM
+dropship_live_approved,Dropship Approved To Be Live,int/boolean,95%,87%,86%,Merge,dropship,-,dropship_live_approved,"Logic Check: Keep (temporary, D25)",DS live status automation (cron every 3 min + save observer): status = approved AND supply
+status,Enable Product,int/select,100%,100%,100%,Merge,channel_assignment,status,status,OOTB,
+color,Color,int/select,99%,99%,99%,Merge,colour,color,color,Same code,S-08
+colour,Colour,text/text,99%,85%,76%,Merge,colour,color,color,OOTB,S-08
+depth,Depth (cm),varchar/text,53%,50%,15%,Merge,dimensions,depth,depth,Same code,S-07: front-back = Pronto fgWidth; rugs / wall art label it Length
+fg_depth,FG depth,decimal/weight,72%,78%,82%,Merge,dimensions,height,height,Merged,S-07: vertical = Pronto fgDepth
+fg_length,FG length,decimal/weight,72%,78%,82%,Merge,dimensions,width,width,Merged,S-07: left-right = Pronto fgLength
+fg_weight,FG weight,decimal/weight,76%,82%,84%,Merge,dimensions,weight,weight,OOTB,"Assembled product weight, kg (S-07). Carton weights are in cartons"
+fg_width,FG width,decimal/weight,72%,78%,82%,Merge,dimensions,depth,depth,Merged,S-07: front-back = Pronto fgWidth; rugs / wall art label it Length
+height,Height (cm),varchar/text,91%,73%,57%,Merge,dimensions,height,height,Same code,S-07: vertical = Pronto fgDepth
+length,Length (cm),text/text,38%,27%,51%,Merge,dimensions,width or depth,width or depth,Merged,S-07: by product_type
+weight,Weight (kg),decimal/weight,74%,84%,83%,Merge,dimensions,weight,weight,Same code,"Assembled product weight, kg (S-07). Carton weights are in cartons"
+width,Width (cm),decimal/weight,91%,76%,64%,Merge,dimensions,width,width,Same code,S-07: left-right = Pronto fgLength
+dropship_available,Dropship Available,int/boolean,43%,49%,45%,Not PIM,,-,- (Shipment Service),"Logic Check: Move with DS stock to the Shipment Service (supply signal, not product data)","Supplier-sent availability for MTO dropship items (supplier stock API / CSV, stored on the source item and the product)"
+dropship_made_to_order,Dropship Made To Order,int/boolean,43%,49%,45%,Merge,dropship,-,dropship_made_to_order,"Logic Check: Keep (temporary, D25): PIM field -> Shipment Service + M2","DS made-to-order: supply = supplier flag dropship_available instead of qty; CLI MarkMadeToOrder; ApplyMadeToOrderDefaults sets made_to_order + backorders. Feature merged 2026-09-22, 0 values in the 2026-10-15 dump = not rolled out yet"
+elme_dropship,Elme Dropship,int/boolean,85%,96%,95%,Merge,dropship,-,-,Logic Check: Drop,No code reads it
+fcs_timber,FCS Timber?,int/boolean,71%,80%,77%,Merge,features,-,-,Logic Check: Drop (D24),PDP shows FSC Timber only when the value is Yes; POS allowlist. Never Yes
+goodweave,Goodweave?,int/select,<1%,<1%,<1%,Merge,features,features,features,Merged,fcs_timber not carried: 0 on every product (S-03)
+handmade,Handmade?,text/text,<1%,<1%,<1%,Merge,features,features,features,Merged,fcs_timber not carried: 0 on every product (S-03)
+hypoallergenic,Hypoallergenic?,text/text,<1%,<1%,1%,Merge,features,features,features,Merged,fcs_timber not carried: 0 on every product (S-03)
+recliner,Recliner,int/select,,<1%,,Merge,features,features,features,Merged,fcs_timber not carried: 0 on every product (S-03)
+removable_covers,Removable Covers,int/select,38%,35%,2%,Merge,features,features,features,Merged,fcs_timber not carried: 0 on every product (S-03)
+stackable,Stackable,int/select,<1%,<1%,<1%,Merge,features,features,features,Merged,fcs_timber not carried: 0 on every product (S-03)
+waterproof,Waterproof,int/select,<1%,<1%,<1%,Merge,features,features,features,Merged,fcs_timber not carried: 0 on every product (S-03)
+watertight,Watertight,int/select,<1%,,,Merge,features,features,features,Merged,fcs_timber not carried: 0 on every product (S-03)
+available_interstate_nsw,Interstate NSW,int/boolean,100%,100%,100%,Merge,fulfilment_options,-,-,Logic Check: Shipment Service only,"Interstate shipping gate (legacy storelocator, export to Shipment Service)"
+available_interstate_qld,Interstate QLD,int/boolean,100%,100%,100%,Merge,fulfilment_options,-,-,Logic Check: Shipment Service only,same
+available_interstate_vic,Interstate VIC,int/boolean,100%,100%,100%,Merge,fulfilment_options,-,-,Logic Check: Shipment Service only,same
+disable_stores_cnc,Disallow Click & Collect From Stores,int/boolean,99%,97%,97%,Merge,fulfilment_options,-,-,Logic Check: Shipment Service only,C&C exclusions (legacy storelocator)
+is_click_and_collect,Click and Collect Allow,int/boolean,100%,100%,100%,Merge,fulfilment_options,-,-,Logic Check: Shipment Service only (from PIM); M2 asks it live,C&C gate in checkout (legacy storelocator) and SplitShipment
+hover_image,Hover Image,varchar/media_image,99%,67%,61%,Merge,images,hover_image,hover_image,Same code,
+image,Base,varchar/media_image,100%,69%,64%,Merge,images,image / small_image / thumbnail / swatch_image,image / small_image / thumbnail / swatch_image,OOTB,Global only. Labels -> gallery alt text (S-10)
+image_label,Image Label,varchar/text,6%,5%,6%,Merge,images,media_gallery,media_gallery,Merged,S-10: gallery alt text
+small_image,Small,varchar/media_image,100%,69%,64%,Merge,images,image / small_image / thumbnail / swatch_image,image / small_image / thumbnail / swatch_image,OOTB,Global only. Labels -> gallery alt text (S-10)
+small_image_label,Small Image Label,varchar/text,6%,5%,6%,Merge,images,media_gallery,media_gallery,Merged,S-10: gallery alt text
+swatch_image,Swatch,varchar/media_image,72%,51%,45%,Merge,images,image / small_image / thumbnail / swatch_image,image / small_image / thumbnail / swatch_image,OOTB,Global only. Labels -> gallery alt text (S-10)
+thumbnail,Thumbnail,varchar/media_image,100%,69%,64%,Merge,images,image / small_image / thumbnail / swatch_image,image / small_image / thumbnail / swatch_image,OOTB,Global only. Labels -> gallery alt text (S-10)
+thumbnail_label,Thumbnail Label,varchar/text,6%,5%,6%,Merge,images,media_gallery,media_gallery,Merged,S-10: gallery alt text
+publishing_date,Publishing Date,datetime/datetime,8%,7%,9%,Merge,launch_date,news_from_date,news_from_date,OOTB,S-12
+bed_type,Bed Material,int/select,21%,26%,52%,Merge,material,material,material,Merged,"Facets: select in M2, not filterable (Search Service, S-18)"
+casegood_material,Material,text/multiselect,<1%,<1%,<1%,Merge,material,material,material,Merged,"Facets: select in M2, not filterable (Search Service, S-18)"
+material,Material,int/select,83%,72%,64%,Merge,material,material,material,Same code,"Facets: select in M2, not filterable (Search Service, S-18)"
+rug_material,Rug Material,int/select,<1%,<1%,<1%,Merge,material,material,material,Merged,"Facets: select in M2, not filterable (Search Service, S-18)"
+sofa_style,Material,text/multiselect,48%,45%,2%,Merge,material,material,material,Merged,"Facets: select in M2, not filterable (Search Service, S-18)"
+mattress_brand,Mattress Brand,int/select,<1%,<1%,2%,Merge,mattress_facets,-,mattress_brand,Same code,
+mattress_range,Mattress Range,int/select,<1%,<1%,<1%,Merge,mattress_facets,-,mattress_range,Same code,
+dimensions_between_the_legs,Dimensions Between the Legs,varchar/text,<1%,<1%,,Merge,measurements,measurements,measurements,Merged,"[{name, value, unit}]"
+drawer_dimensions,Drawer Dimensions,varchar/text,<1%,2%,4%,Merge,measurements,measurements,measurements,Merged,"[{name, value, unit}]"
+height_clearance,Height Clearance (cm),varchar/text,<1%,<1%,<1%,Merge,measurements,measurements,measurements,Merged,"[{name, value, unit}]"
+internal_storage,Internal Storage Dimension,varchar/text,<1%,<1%,<1%,Merge,measurements,measurements,measurements,Merged,"[{name, value, unit}]"
+seat_depth,Seat Depth (cm),varchar/text,27%,26%,2%,Merge,measurements,measurements,measurements,Merged,"[{name, value, unit}]"
+seat_height,Seat Height (cm),varchar/text,36%,34%,2%,Merge,measurements,measurements,measurements,Merged,"[{name, value, unit}]"
+seat_width,Seat Width (cm),varchar/text,<1%,<1%,<1%,Merge,measurements,measurements,measurements,Merged,"[{name, value, unit}]"
+shelf_spacing,Shelf Spacing,varchar/text,<1%,<1%,,Merge,measurements,measurements,measurements,Merged,"[{name, value, unit}]"
+slat_height_from_base,Slat height from base,varchar/text,,<1%,<1%,Merge,measurements,measurements,measurements,Merged,"[{name, value, unit}]"
+weight_limit,Weight Limit (kg),varchar/text,5%,4%,8%,Merge,measurements,measurements,measurements,Merged,"[{name, value, unit}]"
+freedom_price,Freedom MOQ,varchar/text,12%,<1%,,Merge,order_rules,stock item,-,Merged,order_rules: stock item fields from DWH B2B (meaning to confirm with EL)
+pack_cubic_size,Pack Cubic Size,decimal/weight,89%,87%,81%,Merge,pack,-,-,Logic Check: Shipment Service / Pronto only,Excluded from the Packaging tab
+pack_weight,Pack Weight,decimal/weight,89%,88%,81%,Merge,pack,-,-,Logic Check: Shipment Service / Pronto only,Excluded from the Packaging tab
+is_kit_component,Is Kit Component,int/boolean,69%,59%,53%,Merge,product_structure,-,is_kit_component,"Logic Check: Keep B2C, derived from the Pronto BOM (DWH B2C)",POS Kit Configurator: which products can be added to a kit; set from the DWH kit-components walk (POS + M2 var script). Newer than the dump
+special_from_date,Special Price From Date,datetime/date,10%,20%,22%,Merge,promo_price,-,special_price / special_from_date / special_to_date,OOTB,
+special_price,Special Price,decimal/price,8%,22%,22%,Merge,promo_price,special_price,special_price,Logic Check: Keep in BOTH (DWH),B2C prices + EL CustomPricing reads it (R2 port)
+special_to_date,Special Price To Date,datetime/date,5%,19%,21%,Merge,promo_price,-,special_price / special_from_date / special_to_date,OOTB,
+number_of_seats,Number of Seats,varchar/text,<1%,<1%,,Merge,seats,seats,seats,Merged,
+seats,Seats,int/select,<1%,<1%,,Merge,seats,seats,seats,Same code,
+meta_description,Meta Description,varchar/textarea,16%,<1%,<1%,Merge,seo,meta_description,meta_description,Same code,meta_keyword not carried
+meta_title,Meta Title,varchar/text,16%,<1%,<1%,Merge,seo,meta_title,meta_title,Same code,Fallback template when empty (S-13)
+coffee_shape,Shape,int/select,<1%,<1%,,Merge,shape,shape,shape,Merged,
+rug_shape,Rug Shape,int/select,<1%,<1%,<1%,Merge,shape,shape,shape,Merged,
+shape,Shape,text/text,<1%,<1%,<1%,Merge,shape,shape,shape,Same code,
+country_of_manufacture,Country of Manufacture,varchar/select,22%,<1%,<1%,Merge,shipping_flags,country_of_manufacture,country_of_manufacture,Same code,S-02
+fusedship_product_data,Fusedship Product Data,text/textarea,94%,87%,80%,Merge,shipping_flags,-,-,Logic Check: Drop (S-02),Fusedship carrier payload + Shipment Service export; constant values
+rug_size,Rug Size,int/select,<1%,<1%,<1%,Merge,size,size,size,Merged,PIM vocabulary scoped per product_type
+size,Size,int/select,35%,40%,55%,Merge,size,size,size,Same code,PIM vocabulary scoped per product_type
+cuttable_tearable,Cuttable / Tearable,varchar/text,<1%,,,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+cutting_method,Cutting Method,int/select,<1%,,,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+detachable_sections,Detachable Sections,varchar/text,<1%,<1%,<1%,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+dishwasher_safe,Dishwasher Safe,varchar/text,<1%,,,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+double_sided,Double-Sided,varchar/text,<1%,,,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+drainage_hole,Drainage Hole,varchar/text,,<1%,<1%,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+drawer_side,Drawer Side,int/select,,<1%,<1%,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+glassmaking_technique,Glassmaking Technique,int/select,<1%,,,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+hand_painted,Hand Painted,varchar/text,<1%,<1%,<1%,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+hanging_info,Hanging Info,text/textarea,,<1%,<1%,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+microwave_safe,Microwave Safe,varchar/text,<1%,,,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+open_centre_compartment,Open Centre Compartment,varchar/text,,<1%,,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+oven_safe,Oven Safe,varchar/text,<1%,,,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+pile_height,Pile Height (cm),varchar/text,<1%,<1%,<1%,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+plant_height,Plant Height,int/select,<1%,<1%,<1%,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+pot_dimensions,Pot Dimensions,varchar/text,2%,<1%,<1%,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+quality,Quality,int/select,<1%,,,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+scent,Scent,varchar/text,,<1%,<1%,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+uv_resistant,UV Resistant,varchar/text,<1%,,,Merge,specs.decor_other,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+bulb_included,Bulb Included?,text/text,<1%,<1%,<1%,Merge,specs.lighting,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+cord_length,Cord Length (cm),varchar/text,<1%,<1%,1%,Merge,specs.lighting,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+fitting_type,Fitting Type,varchar/text,<1%,<1%,1%,Merge,specs.lighting,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+max_wattage,Max Wattage,text/text,<1%,<1%,<1%,Merge,specs.lighting,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+switch,Switch,varchar/text,<1%,<1%,<1%,Merge,specs.lighting,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+actifresh,ActiFresh,varchar/text,<1%,<1%,<1%,Merge,specs.mattress,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+bottom_wall_fabric,Bottom Wall Fabric,varchar/text,<1%,<1%,<1%,Merge,specs.mattress,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+comfort_layer,Comfort Layer,varchar/text,,<1%,<1%,Merge,specs.mattress,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+cooling_fabric,Cooling Fabric,varchar/text,,<1%,<1%,Merge,specs.mattress,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+edge_support,Edge support,varchar/text,<1%,<1%,1%,Merge,specs.mattress,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+fire_retardant,Fire Retardant,varchar/text,<1%,,,Merge,specs.mattress,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+pillow_top,Pillow Top,varchar/text,<1%,<1%,<1%,Merge,specs.mattress,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+quilt_layer,Quilt Layer,varchar/text,<1%,<1%,<1%,Merge,specs.mattress,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+side_wall_fabric,Side Wall Fabric,varchar/text,<1%,<1%,<1%,Merge,specs.mattress,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+skirt,Skirt,varchar/text,,<1%,<1%,Merge,specs.mattress,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+spring_count,Spring Count,varchar/text,,<1%,<1%,Merge,specs.mattress,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+spring_unit,Spring Unit,varchar/text,<1%,,,Merge,specs.mattress,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+ticking,Ticking Fabric,varchar/text,<1%,<1%,1%,Merge,specs.mattress,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+ultrafresh,Ultrafresh,varchar/text,,<1%,<1%,Merge,specs.mattress,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+waterproof_membrane,Waterproof membrane,varchar/text,,<1%,<1%,Merge,specs.mattress,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+zoning,Zoning,varchar/text,<1%,<1%,1%,Merge,specs.mattress,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+adjustability,Adjustability,varchar/text,<1%,<1%,,Merge,specs.upholstery,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+bed_slat,Bed Slats,text/text,13%,16%,32%,Merge,specs.upholstery,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+construction,Construction,text/text,1%,3%,6%,Merge,specs.upholstery,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+cushion_filling,Cushion filling,varchar/text,13%,13%,1%,Merge,specs.upholstery,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+filling,Filling,varchar/text,24%,21%,1%,Merge,specs.upholstery,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+frame,Frame,int/select,<1%,<1%,<1%,Merge,specs.upholstery,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+frame_colour,Frame Colour,text/text,<1%,<1%,1%,Merge,specs.upholstery,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+leg_colour,Leg Colour,text/text,47%,47%,24%,Merge,specs.upholstery,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+leg_material,Leg Material,text/text,47%,48%,25%,Merge,specs.upholstery,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+suspension,Suspension,varchar/text,38%,36%,2%,Merge,specs.upholstery,specifications,specifications,Key in specifications JSON,"Ordered [{code, label, value}], read-only in M2 (S-21)"
+aesthetic,Aesthetic,varchar/text,<1%,<1%,<1%,Merge,style,style,style,Merged,
+art_style_elme,Style,text/multiselect,<1%,<1%,<1%,Merge,style,style,style,Merged,
+rug_style,Aesthetic,int/select,<1%,<1%,1%,Merge,style,style,style,Merged,
+supplier_sku,Supplier SKU,text/text,4%,5%,9%,Keep (temporary),supplier_sku,-,supplier_sku,Same code,Until the Supplier Portal
+art_type,Art Type,int/select,,<1%,<1%,Merge,type_detail,type_detail,type_detail,Merged,Options scoped per product_type
+bed_category,Bed Type,text/multiselect,16%,20%,40%,Merge,type_detail,type_detail,type_detail,Merged,Options scoped per product_type
+mirror_type,Mirror Type,int/select,<1%,<1%,<1%,Merge,type_detail,type_detail,type_detail,Merged,Options scoped per product_type
+plant_type,Plant Type,int/select,4%,<1%,<1%,Merge,type_detail,type_detail,type_detail,Merged,Options scoped per product_type
+sofa_type,Type,text/multiselect,49%,46%,3%,Merge,type_detail,type_detail,type_detail,Merged,Options scoped per product_type
+vessel_type,Vessel Type,int/select,4%,<1%,<1%,Merge,type_detail,type_detail,type_detail,Merged,Options scoped per product_type
+chaise_side,Chaise Side,int/select,5%,4%,<1%,Merge,variant_axes,chaise_side,chaise_side,Same code,
+feel,Comfort Level,int/select,38%,34%,3%,Merge,variant_axes,feel,feel,Same code,
+orientation,Orientation,int/select,<1%,<1%,<1%,Merge,variant_axes,orientation,orientation,Same code,
+show_material_popup,Show Material Features Popup,int/boolean,100%,100%,100%,Merge,warnings,show_material_popup,show_material_popup,Same code,45% = 1 (upholstered types)
+show_toppling_warning,Show Toppling Warning,int/boolean,100%,100%,100%,Merge,warnings,rule,rule,Logic Check: Rule: product_type list (config),PDP warning block
+warranty,Warranty,text/textarea,89%,87%,79%,Merge,warranty,-,warranty,"Logic Check: Keep as TEXT (resolved snippet), not a select","PDP tab, checkout warranty, POS reads free text"
+fusedship_product_cartons,Fusedship Product Cartons,text/textarea,97%,95%,91%,Derive,cartons,cartons,cartons,Merged,"S-01: second copy of the carton list; initial load reads it for the 3,777 JSON-only items"
+colour_group,Colour,int/select,90%,95%,93%,Derive,colour_group,colour_group,colour_group,Same code,
+dimension,Dimensions,varchar/text,22%,<1%,1%,Derive,dimensions,derived,derived,Derived,display string built from width / depth / height (S-07)
+length_range,Width (cm),int/select,<1%,<1%,<1%,Derive,size_bands,-,-,Logic Check: Search Service derives size bands,No code; filter only
+width_range_cm,Depth (cm),int/select,<1%,<1%,,Derive,size_bands,-,-,Logic Check: Search Service derives size bands,No code; filter only
+banner_url,Banner url,varchar/text,,,<1%,Not PIM,,-,-,Logic Check: Search Service merchandising,PLP banner products (Overdose_ProductBanners)
+cart_coupon_tooltip_block_id,Cart Coupon Tooltip CSM Block,varchar/select,74%,67%,60%,Not PIM,,-,-,Logic Check: Drop: config,Per-product override of the cart coupon tooltip; config-driven on prod
+created_at,NULL,static/date,100%,100%,100%,Not PIM,,OOTB system,OOTB system,OOTB (not mapped from PIM),
+custom_design,New Theme,varchar/select,<1%,,,Not PIM,,-,-,Not carried,"S-05: config, layout or CMS, not product data (theme / CMS block by product_type)"
+custom_design_from,Active From,datetime/date,,,,Not PIM,,-,-,Not carried,"S-05: config, layout or CMS, not product data (theme / CMS block by product_type)"
+custom_design_to,Active To,datetime/date,,,,Not PIM,,-,-,Not carried,"S-05: config, layout or CMS, not product data (theme / CMS block by product_type)"
+custom_layout,New Layout,varchar/select,,,,Not PIM,,-,-,Not carried,"S-05: config, layout or CMS, not product data (theme / CMS block by product_type)"
+custom_layout_update,Layout Update XML,text/textarea,,,,Not PIM,,-,-,Not carried,"S-05: config, layout or CMS, not product data (theme / CMS block by product_type)"
+custom_layout_update_file,Custom Layout Update,varchar/select,,,,Not PIM,,-,-,Not carried,"S-05: config, layout or CMS, not product data (theme / CMS block by product_type)"
+customer_id,Customer ID,int/text,<1%,7%,11%,Not PIM,,-,-,Logic Check: Drop (Q-196),Supplier account id derived from the SKU by a DropShip cron; nothing reads it (supplier lookups use the SKU)
+elasticsearchcore_ignore,Ignore the product for indexation,int/boolean,100%,100%,100%,Not PIM,,-,-,Not carried,"S-17: stock, integration state or unused (warehouse_cost, customer_id: Q-196)"
+gallery,Image Gallery,varchar/gallery,,,,Not PIM,,OOTB system,OOTB system,OOTB (not mapped from PIM),
+gift_message_available,Allow Gift Message,varchar/select,99%,87%,79%,Not PIM,,-,-,Not carried,"S-05: config, layout or CMS, not product data (theme / CMS block by product_type)"
+gift_wrapping_available,Allow Gift Wrapping,varchar/select,99%,87%,79%,Not PIM,,-,-,Not carried,"S-05: config, layout or CMS, not product data (theme / CMS block by product_type)"
+gift_wrapping_price,Price for Gift Wrapping,decimal/price,12%,3%,5%,Not PIM,,-,-,Not carried,"S-05: config, layout or CMS, not product data (theme / CMS block by product_type)"
+has_options,NULL,static/text,100%,100%,100%,Not PIM,,OOTB system,OOTB system,OOTB (not mapped from PIM),
+highlights_block_id,Highlights CSM Block,varchar/select,<1%,<1%,<1%,Not PIM,,-,pdp_cms_blocks,Logic Check: Merge into pdp_cms_blocks,"PDP highlights CMS block (JL v2, SG)"
+is_returnable,Enable RMA,varchar/select,71%,44%,42%,Not PIM,,-,-,Not carried,"S-05: config, layout or CMS, not product data (theme / CMS block by product_type)"
+items_sold,Item sold,int/text,100%,100%,100%,Not PIM,,-,items_sold,Logic Check: Keep as M2-owned computed attribute (not PIM); Search Service gets its own sales signal,"Popularity: family configurator tiebreak (M2 + POS), sort; computed from orders by Bart_Merchandise"
+lookbook_collection_block_id,Lookbook Collection CSM Block,varchar/select,,,,Not PIM,,-,-,Logic Check: Drop (D24),PDP lookbook block; no values
+m_seo_canonical,Canonical URL,text/text,,,,Not PIM,,-,-,Not carried,"S-05: config, layout or CMS, not product data (theme / CMS block by product_type)"
+marketing_priority,Marketing Priority,varchar/text,<1%,<1%,<1%,Not PIM,,-,-,Not carried,"S-17: stock, integration state or unused (warehouse_cost, customer_id: Q-196)"
+mattress_pdp_cms_blocks,Mattress PDP CMS blocks,varchar/text,<1%,<1%,<1%,Not PIM,,-,pdp_cms_blocks,Logic Check: Merge into M2-owned pdp_cms_blocks,Mattress PDP CMS stack (JL v2)
+meta_keyword,Meta Keywords,text/textarea,16%,<1%,<1%,Not PIM,,-,-,Not carried,S-13
+mgs_lookbook,Lookbook,int/select,<1%,<1%,<1%,Not PIM,,-,-,Logic Check: Drop with the MGS Lookbook module,MGS Lookbook link (<1%)
+minimal_price,Minimal Price,decimal/price,,,,Not PIM,,OOTB system,OOTB system,OOTB (not mapped from PIM),
+msrp,Minimum Advertised Price,decimal/price,,,,Not PIM,,OOTB system,OOTB system,OOTB (not mapped from PIM),
+msrp_display_actual_price_type,Display Actual Price,varchar/select,100%,100%,100%,Not PIM,,-,-,Not carried,"S-05: config, layout or CMS, not product data (theme / CMS block by product_type)"
+od_source_item_cdc_date,OD - CDC Date From Od Source Item,datetime/date,,,,Not PIM,,-,-,Logic Check: Shipment Service (stock),Firebear stock import columns (od_source_item_*)
+od_source_item_location,OD - Location From Od Source Item,varchar/multiselect,59%,21%,11%,Not PIM,,-,-,Logic Check: Shipment Service (stock),Firebear stock import columns (od_source_item_*)
+od_source_item_qty,OD - QTY From Od Source Item,varchar/text,59%,21%,11%,Not PIM,,-,-,Logic Check: Shipment Service (stock),Firebear stock import columns (od_source_item_*)
+od_source_item_qty_back_ordered,OD - QTY Backordered From Od Source Item,varchar/text,,,,Not PIM,,-,-,Logic Check: Shipment Service (stock),Firebear stock import columns (od_source_item_*)
+od_source_item_qty_on_order,OD - QTY On Order From Od Source Item,varchar/text,,,,Not PIM,,-,-,Logic Check: Shipment Service (stock),Firebear stock import columns (od_source_item_*)
+options_container,Display Product Options In,varchar/select,100%,100%,100%,Not PIM,,-,-,Not carried,"S-05: config, layout or CMS, not product data (theme / CMS block by product_type)"
+page_layout,Layout,varchar/select,24%,<1%,<1%,Not PIM,,-,-,Not carried,"S-05: config, layout or CMS, not product data (theme / CMS block by product_type)"
+perfect_coastal_interior,Perfect Coastal Interior block,text/textarea,<1%,<1%,<1%,Not PIM,,-,pdp_cms_blocks,Logic Check: Merge into pdp_cms_blocks (content moves to a CMS block),JL PDP campaign block (<1%)
+price_type,Dynamic Price,int/boolean,,,,Not PIM,,OOTB system,OOTB system,OOTB (not mapped from PIM),
+price_view,Price View,int/select,,,,Not PIM,,OOTB system,OOTB system,OOTB (not mapped from PIM),
+quantity_and_stock_status,Quantity,int/select,90%,87%,83%,Not PIM,,OOTB system,OOTB system,OOTB (not mapped from PIM),
+required_options,NULL,static/text,100%,100%,100%,Not PIM,,OOTB system,OOTB system,OOTB (not mapped from PIM),
+shipment_type,Ship Bundle Items,int/select,,,,Not PIM,,OOTB system,OOTB system,OOTB (not mapped from PIM),
+shipping_and_returns,Shipping & Returns,text/textarea,,<1%,,Not PIM,,-,-,Logic Check: Drop: CMS by product_type,"EL PDP tab when filled (<1%, JL only)"
+sku_type,Dynamic SKU,int/boolean,,,,Not PIM,,OOTB system,OOTB system,OOTB (not mapped from PIM),
+stock_availability,Stock Availability,int/select,14%,6%,8%,Not PIM,,-,-,Logic Check: Shipment Service live labels + Search Service stock fields,Stock labels / filters (legacy)
+storelocator_item_qty,Qty in all stores,int/text,100%,100%,100%,Not PIM,,-,-,Logic Check: Search Service sort from Shipment Service stock,Inventory sort helper (cron)
+summer_refresh,Summer refresh block,text/textarea,<1%,<1%,<1%,Not PIM,,-,pdp_cms_blocks,Logic Check: Merge into pdp_cms_blocks (content moves to a CMS block),JL PDP campaign block (<1%)
+synced_to_yotpo_product,Synced to Yotpo,int/boolean,95%,93%,89%,Not PIM,,-,-,"Logic Check: Integration table, not EAV",Yotpo sync state
+tax_class_id,Tax Class,int/select,100%,100%,100%,Not PIM,,tax_class_id,tax_class_id,OOTB,M2 default
+terms_conditions_url_key,Terms conditions url key,varchar/text,99%,87%,79%,Not PIM,,-,-,Logic Check: Drop: config,Only in the attribute set mapper; constant
+tier_price,Tier Price,decimal/text,,,,Not PIM,,OOTB system,OOTB system,OOTB (not mapped from PIM),
+updated_at,NULL,static/date,100%,100%,100%,Not PIM,,OOTB system,OOTB system,OOTB (not mapped from PIM),
+url_path,NULL,varchar/text,,,,Not PIM,,OOTB system,OOTB system,OOTB (not mapped from PIM),
+use_promo_banner,Use promo banner,int/boolean,100%,100%,100%,Not PIM,,-,-,Logic Check: Drop,Only in the attribute set mapper; 0 everywhere
+videowise_product_data_sha,Videowise Product Data SHA,varchar/text,26%,10%,4%,Not PIM,,-,-,"Logic Check: Integration table, not EAV",Videowise sync hash
+viewa_id,Viewa ID Num,int/text,<1%,<1%,<1%,Drop,,-,-,Not carried,Q-171
+warehouse_cost,Warehouse cost,decimal/price,4%,8%,10%,Not PIM,,-,warehouse_cost,Logic Check: Keep B2C; not PIM. Source today = manual Firebear import; DWH does not extract cost (Q-196),Sent to TripleWhale as product cost (profit analytics)
+weight_type,Dynamic Weight,int/boolean,,,,Not PIM,,OOTB system,OOTB system,OOTB (not mapped from PIM),
+category_ids,Categories,static/text,100%,100%,100%,Not PIM,categories (TBC),relation,relation,Relation,D17 / Q-187
+media_gallery,Media Gallery,static/gallery,100%,100%,100%,Not PIM,images,media_gallery,media_gallery,OOTB,
+allow_message,Allow Message,int/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+allow_open_amount,Open Amount,int/select,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+awards,Mattress Awards List,varchar/text,,,,Drop,,-,-,Logic Check: Drop (D24),SG mattress awards; no values
+bed_features,Bed Features,text/multiselect,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+brochure_and_manuals,Brochure & Manuals,text/textarea,,,,Drop,,-,-,Logic Check: Drop (D24),EL PDP tab when filled; no values
+brochure_link,Brochure Link,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+demo,Demo,int/select,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+details,Details,text/textarea,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+direction,Direction,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+email_template,Email Template,varchar/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_age_group,Age Group,text/select,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_age_range,Age Range,text/text,,<1%,<1%,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_baby_food_stage,Baby Food Stage,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_capacity,Capacity,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_color,Color,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_compatible_devices,Compatible Devices,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_decor_style,Decor Style,text/select,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_digital_zoom,Digital Zoom,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_display_technology,Display Technology,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_finish,Finish,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_gemstone,Gemstone,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_gender,Gender,text/select,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_health_concern,Health Concern,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_ingredients,Ingredients,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_is_assembly_required,Is Assembly Required,text/select,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_material,Material,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_maximum_weight,Maximum Weight,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_megapixels,Megapixels,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_minimum_weight,Minimum Weight,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_model,Model,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_number_of_licenses,Number of Licenses,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_operating_system,Operating System,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_optical_zoom,Optical Zoom,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_package_quantity,Package Quantity,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_pattern,Pattern,text/select,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_product_depth,Product Depth,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_product_form,Product Form,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_product_height,Product Height,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_product_length,Product Length,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_product_weight,Product Weight,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_product_width,Product Width,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_recommended_use,Recommended Use,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_resolution,Resolution,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_scent,Scent,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_screen_size,Screen Size,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_shoe_width,Shoe Width,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_size,Size,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_storage_capacity,Storage Capacity,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_style,Style,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_system_requirements,Software System Requirements,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_thread_count,Thread Count,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_video_game_platform,Video Game Platform,text/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+family_sort_order,Family Configuration Sort Order,int/text,,,,Drop,,family_sort_order,family_sort_order,Logic Check: Keep: family member order in the PIM family,Primary order of the PDP family configurator (M2 + POS); newer than the dump (0 values)
+faq,FAQ,text/textarea,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+giftcard_amounts,Amount,decimal/price,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+giftcard_type,Card Type,int/select,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+is_redeemable,Is Redeemable,int/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+lifetime,Lifetime,int/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+links_exist,NULL,int/NULL,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+links_purchased_separately,Links can be purchased separately,int/NULL,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+links_title,Links title,varchar/NULL,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+main_colour,Colour,text/multiselect,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+mattress_features,Mattress Features,varchar/multiselect,,,,Drop,,-,-,Logic Check: Drop (D24),SG mattress feature icons; no values
+news_to_date,Set Product as New to Date,datetime/date,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+old_id,NULL,int/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+open_amount_max,Open Amount To,decimal/price,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+open_amount_min,Open Amount From,decimal/price,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+related_tgtr_position_behavior,Related Target Rule Position Behavior,int/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+related_tgtr_position_limit,Related Target Rule Rule Based Positions,int/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+samples_title,Samples title,varchar/NULL,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+specific_view,Specific view,int/select,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+upsell_tgtr_position_behavior,Upsell Target Rule Position Behavior,int/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+upsell_tgtr_position_limit,Upsell Target Rule Rule Based Positions,int/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+use_config_allow_message,Use Config Allow Message,int/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+use_config_email_template,Use Config Email Template,int/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+use_config_is_redeemable,Use Config Is Redeemable,int/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+use_config_lifetime,Use Config Lifetime,int/text,,,,Drop,,-,-,Not carried,No values in prod (D24) or duplicate
+facebook_brand,Brand,text/text,<1%,1%,2%,Drop,brand,brand,brand,Merged,Text with 24 values today -> controlled list
+size_skus,Size SKUs,varchar/text,,,,Drop,-,family_code,family_code,Merged,S-09. No configurable products (user 2026-11-12). PIM field colour_super_sku renamed family_code
+size_super_sku,Size Super SKU,varchar/text,,,,Drop,-,family_code,family_code,Merged,S-09. No configurable products (user 2026-11-12). PIM field colour_super_sku renamed family_code
+upsell_qty_2,Mattress upsell Qty 2,varchar/text,,,,Drop,-,tax_class_id,tax_class_id,OOTB,Not product data
+upsell_sku_2,Mattress upsell SKU 2,varchar/text,,,,Drop,-,tax_class_id,tax_class_id,OOTB,Not product data
+image_diagram,Image Diagram,varchar/text,,,,Drop,diagram_image,media_gallery,media_gallery,Merged,gallery role diagram
+news_from_date,Set Product as New from Date,datetime/date,,,,Drop,-,news_from_date,news_from_date,OOTB,now filled from PIM launch_date (S-12)
+glass_finish,Glass Finish,int/select,,,,Drop,-,tax_class_id,tax_class_id,OOTB,Not product data
+top_wall_fabric,Top Wall Fabric,varchar/text,,,,Drop,-,tax_class_id,tax_class_id,OOTB,Not product data
+woolcloud,WoolCloud,varchar/text,,,,Drop,-,tax_class_id,tax_class_id,OOTB,Not product data
+art_style,Art Style,int/select,,,,Drop,-,tax_class_id,tax_class_id,OOTB,Not product data
+od_source_item_supplier_id,OD - Supplier ID From Od Source Item,varchar/text,,,,Drop,-,-,-,Logic Check: Shipment Service (stock),Firebear stock import columns (od_source_item_*)
+video_url,YouTube Video URL,varchar/text,,,,Drop,-,tax_class_id,tax_class_id,OOTB,Not product data
+warranty_cart_item_description,Warranty cart item description,text/textarea,,,,Drop,-,tax_class_id,tax_class_id,OOTB,Not product data

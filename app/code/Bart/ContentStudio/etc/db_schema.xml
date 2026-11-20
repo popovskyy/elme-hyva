@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+
+    <table name="bart_content_studio_entry" resource="default" engine="innodb" comment="Content Studio Entry">
+        <column xsi:type="int" name="entry_id" padding="10" unsigned="true" nullable="false" identity="true"
+                comment="Entry ID"/>
+        <column xsi:type="varchar" name="identifier" nullable="false" length="255" comment="Entry Identifier"/>
+        <column xsi:type="varchar" name="type" nullable="false" length="64" comment="Content Type Code"/>
+        <column xsi:type="varchar" name="title" nullable="true" length="255" comment="Admin Title"/>
+        <column xsi:type="smallint" name="is_active" unsigned="false" nullable="false" default="1"
+                comment="Is Active"/>
+        <column xsi:type="mediumtext" name="data" nullable="true" comment="Content Data (JSON)"/>
+        <column xsi:type="int" name="version" padding="10" unsigned="true" nullable="false" default="1"
+                comment="Optimistic Lock Version"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false"
+                default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false"
+                default="CURRENT_TIMESTAMP" comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entry_id"/>
+        </constraint>
+        <index referenceId="BART_CONTENT_STUDIO_ENTRY_IDENTIFIER" indexType="btree">
+            <column name="identifier"/>
+        </index>
+        <index referenceId="BART_CONTENT_STUDIO_ENTRY_TYPE" indexType="btree">
+            <column name="type"/>
+        </index>
+        <index referenceId="BART_CONTENT_STUDIO_ENTRY_TITLE_IDENTIFIER" indexType="fulltext">
+            <column name="title"/>
+            <column name="identifier"/>
+        </index>
+    </table>
+
+    <table name="bart_content_studio_entry_store" resource="default" engine="innodb"
+           comment="Content Studio Entry To Store Linkage">
+        <column xsi:type="int" name="entry_id" padding="10" unsigned="true" nullable="false" identity="false"/>
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" identity="false"
+                comment="Store ID"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entry_id"/>
+            <column name="store_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="BART_CS_ENTRY_STORE_ENTRY_ID_BART_CS_ENTRY_ENTRY_ID"
+                    table="bart_content_studio_entry_store" column="entry_id"
+                    referenceTable="bart_content_studio_entry" referenceColumn="entry_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign" referenceId="BART_CS_ENTRY_STORE_STORE_ID_STORE_STORE_ID"
+                    table="bart_content_studio_entry_store" column="store_id"
+                    referenceTable="store" referenceColumn="store_id" onDelete="CASCADE"/>
+        <index referenceId="BART_CS_ENTRY_STORE_STORE_ID" indexType="btree">
+            <column name="store_id"/>
+        </index>
+    </table>
+
+</schema>

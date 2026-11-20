@@ -1,0 +1,20 @@
+<?php
+/**
+ * FE-49: CollectionPage / ItemList (looks only) / BreadcrumbList — no Product / Offer / prices.
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\Lookbook;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+
+$lookbook = $viewModels->require(Lookbook::class);
+if (!$lookbook->isShopTheLooksPage()) {
+    return;
+}
+?>
+<script type="application/ld+json"><?= /* @noEscape */ $lookbook->getJsonLdScript() ?></script>

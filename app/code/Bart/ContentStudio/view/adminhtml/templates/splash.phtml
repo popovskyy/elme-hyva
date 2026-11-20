@@ -1,0 +1,102 @@
+<?php
+/**
+ * @var \Bart\ContentStudio\Block\Adminhtml\Splash $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<?php
+/*
+ * The wordmark is rendered twice, once per half. Both copies sit in exactly
+ * the same place and each half is clipped to its own side of the screen, so
+ * the split runs straight through the letterforms: whatever falls on the pale
+ * side is green, whatever falls on the green side is pale.
+ *
+ * The whole overlay is aria-hidden - it is a decorative moment that removes
+ * itself after a beat, and duplicated text is worse for a screen reader than
+ * no text at all.
+ */
+?>
+<?php
+/*
+ * Critical styles, inline and first.
+ *
+ * Everything else about the splash lives in studio.css, but studio.css is an
+ * external stylesheet: until it is fetched and applied, `.studio-splash` is an
+ * ordinary block in the document flow and the admin page renders above and
+ * around it - which is exactly the "I can see the logo through the splash"
+ * report. These few declarations are the ones that have to be true from the
+ * very first paint: cover the viewport, be opaque, and be split.
+ *
+ * Values are duplicated from _tokens.less (--studio-color-bg / -accent) rather
+ * than read from it, because a custom property is itself defined in the file
+ * that has not loaded yet. Keep them in step by hand.
+ */
+?>
+<style>
+    .studio-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        background: #fbf9f5;
+    }
+
+    .studio-splash__half {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .studio-splash__half--light {
+        clip-path: inset(0 50% 0 0);
+        background: #fbf9f5;
+        color: #4f6f5b;
+    }
+
+    .studio-splash__half--dark {
+        clip-path: inset(0 0 0 50%);
+        background: #4f6f5b;
+        color: #fbf9f5;
+    }
+</style>
+<div class="studio-splash" data-studio-splash aria-hidden="true">
+    <?php foreach (['light', 'dark'] as $half): ?>
+        <div class="studio-splash__half studio-splash__half--<?= $escaper->escapeHtmlAttr($half) ?>">
+            <div class="studio-splash__inner">
+                <p class="studio-splash__eyebrow">Bart Group</p>
+                <svg class="studio-splash__mark"><use href="#studio-icon-mark"></use></svg>
+                <p class="studio-splash__title">Content Studio</p>
+                <p class="studio-splash__tagline"><?= $escaper->escapeHtml($block->getTagline()) ?></p>
+                <span class="studio-splash__rule"></span>
+            </div>
+        </div>
+    <?php endforeach; ?>
+</div>
+
+<script>
+    // Runs before paint, deliberately outside RequireJS: the overlay has to be
+    // in the markup to cover the page while it assembles, so the decision to
+    // skip it must happen synchronously rather than after modules load.
+    //
+    // "Arriving in the module" is judged by the referrer: coming from outside
+    // Content Studio (or straight from a bookmark, where referrer is empty)
+    // plays it; moving between Studio pages does not. That keeps it a genuine
+    // arrival moment without a stored flag that silently suppresses it forever.
+    (function () {
+        'use strict';
+        var el = document.currentScript.previousElementSibling;
+
+        if (el && document.referrer.indexOf('bart_content_studio') !== -1) {
+            el.parentNode.removeChild(el);
+        }
+    }());
+</script>
+
+<script type="text/x-magento-init">
+{
+    "[data-studio-splash]": {
+        "Bart_ContentStudio/js/splash": {}
+    }
+}
+</script>

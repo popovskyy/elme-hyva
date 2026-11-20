@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Indexer/etc/indexer.xsd">
+    <indexer id="elme_search_products" view_id="elme_search_products"
+             class="Elme\Search\Model\Indexer\ProductIndexer">
+        <title translate="true">Elme Product Search</title>
+        <description translate="true">Builds elme_products_[store] for ProductSearchInterface (listings, search, facets)</description>
+        <dependencies>
+            <indexer id="catalog_category_product"/>
+            <indexer id="catalog_product_price"/>
+            <indexer id="cataloginventory_stock"/>
+        </dependencies>
+    </indexer>
+</config>

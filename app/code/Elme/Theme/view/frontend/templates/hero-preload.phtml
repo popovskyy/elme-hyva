@@ -1,0 +1,28 @@
+<?php
+/**
+ * Homepage LCP image. Printed in <head> so the request starts before the menu HTML.
+ */
+
+declare(strict_types=1);
+
+use Elme\Theme\ViewModel\HomeHeroPreload;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HomeHeroPreload $preload */
+$preload = $viewModels->require(HomeHeroPreload::class);
+
+foreach ($preload->getLinks() as $link): ?>
+<link rel="preload"
+      as="image"
+      fetchpriority="high"
+      href="<?= $escaper->escapeUrl($link['href']) ?>"
+      <?php if ($link['media'] !== ''): ?>
+      media="<?= $escaper->escapeHtmlAttr($link['media']) ?>"
+      <?php endif; ?>>
+<?php endforeach; ?>

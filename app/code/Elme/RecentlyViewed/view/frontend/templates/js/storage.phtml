@@ -1,0 +1,101 @@
+<?php
+/**
+ * FE-24: shared browser-storage helpers for recently viewed categories / products.
+ * Loaded once on PLP and PDP. No prices ever stored (FE-53 / guests).
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Elme\RecentlyViewed\ViewModel\Config;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+$config = $viewModels->require(Config::class);
+if (!$config->isEnabled()) {
+    return;
+}
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<script>
+    window.elmeRecentlyViewed = window.elmeRecentlyViewed || (() => {
+        const categoriesKey = '<?= $escaper->escapeJs($config->getCategoriesStorageKey()) ?>';
+        const productsKey = '<?= $escaper->escapeJs($config->getProductsStorageKey()) ?>';
+        const lifetimeMs = <?= (int) $config->getLifetimeSeconds() ?> * 1000;
+        const capacity = <?= (int) $config->getCapacity() ?>;
+
+        function storage() {
+            return hyva.getBrowserStorage();
+        }
+
+        function read(key) {
+            try {
+                const raw = storage().getItem(key);
+                const list = raw ? JSON.parse(raw) : [];
+                return Array.isArray(list) ? list : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function write(key, list) {
+            storage().setItem(key, JSON.stringify(list));
+        }
+
+        function prune(list) {
+            const now = Date.now();
+            return list
+                .filter(item => item && item.id && item.ts && (item.ts + lifetimeMs) > now)
+                .slice(0, capacity);
+        }
+
+        function track(key, item) {
+            const id = parseInt(item.id, 10) || 0;
+            if (!id) {
+                return;
+            }
+            const next = prune(read(key).filter(existing => parseInt(existing.id, 10) !== id));
+            next.unshift(Object.assign({}, item, {id: id, ts: Date.now()}));
+            write(key, prune(next));
+        }
+
+        return {
+            capacity: capacity,
+            cardsUrl: '<?= $escaper->escapeJs($config->getProductCardsUrl()) ?>',
+
+            trackCategory(item) {
+                track(categoriesKey, item);
+            },
+
+            trackProduct(item) {
+                track(productsKey, item);
+            },
+
+            /**
+             * Newest first. excludeId skips the current page entity (QA #0).
+             */
+            listCategories(excludeId) {
+                const exclude = parseInt(excludeId, 10) || 0;
+                return prune(read(categoriesKey)).filter(item => parseInt(item.id, 10) !== exclude);
+            },
+
+            listProducts(excludeId) {
+                const exclude = parseInt(excludeId, 10) || 0;
+                return prune(read(productsKey)).filter(item => parseInt(item.id, 10) !== exclude);
+            },
+
+            clearCategories() {
+                write(categoriesKey, []);
+            },
+
+            clearProducts() {
+                write(productsKey, []);
+            }
+        };
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

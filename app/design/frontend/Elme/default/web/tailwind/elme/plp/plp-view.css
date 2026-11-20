@@ -1,0 +1,204 @@
+/*
+ * FE-87 "View as: Grid | List" on the category and search listing.
+ * Magento_Catalog::product/list/toolbar.phtml sets #product-list[data-plp-view="list"]; the cards are the same
+ * markup in both views (Magento_Catalog::product/list/item.phtml), so a list row has what the card has.
+ */
+@layer components {
+    .elme-view-switch {
+        display: flex;
+        align-items: center;
+        gap: --spacing(1);
+        font-size: var(--text-copy);
+        color: var(--color-ink);
+
+        @variant md {
+            gap: --spacing(3);
+        }
+    }
+
+    .elme-view-switch__label {
+        display: none;
+        white-space: nowrap;
+
+        @variant md {
+            display: inline;
+        }
+    }
+
+    .elme-view-switch__btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: --spacing(1.5);
+        min-width: --spacing(11);
+        min-height: --spacing(11);
+        color: var(--color-ink-muted);
+        cursor: pointer;
+        transition: color var(--transition-duration-fast) var(--ease-out-quad);
+
+        /* Phones: icon only, the word stays for screen readers. */
+        & > span {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+            white-space: nowrap;
+
+            @variant md {
+                position: static;
+                width: auto;
+                height: auto;
+                overflow: visible;
+                clip-path: none;
+            }
+        }
+
+        /* Leaf corners from md, where the word carries the mark; on phones the pressed mark is a bottom line
+           that a rounded corner would bend. The focus ring follows the corner. */
+        @variant md {
+            min-width: 0;
+            border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm);
+        }
+
+        &:hover {
+            color: var(--color-ink);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+    }
+
+    /* The pressed look follows the attribute the early script sets, so it is right before Alpine starts. */
+    #product-list:not([data-plp-view="list"]) .elme-view-switch__btn--grid,
+    #product-list[data-plp-view="list"] .elme-view-switch__btn--list {
+        color: var(--color-ink);
+        box-shadow: inset 0 -2px 0 currentcolor;
+
+        /* From md the word is visible and carries the mark; on phones the icon button does. */
+        @variant md {
+            box-shadow: none;
+            text-decoration: underline;
+            text-underline-offset: --spacing(1.5);
+        }
+    }
+}
+
+/*
+ * List rows: each row is a white leaf (top-right and bottom-left corners round), a photo with its text beside it.
+ * One column on phones and tablets, two across from lg, so nothing stretches over a wide screen.
+ * Not in a layer on purpose: these rules replace Tailwind utilities that sit on the card (grid columns, flex-col,
+ * paddings, w-full), and utilities win over anything inside @layer components.
+ */
+#product-list[data-plp-view="list"] {
+    & .products > ul {
+        grid-template-columns: minmax(0, 1fr);
+        gap: --spacing(3);
+
+        @variant lg {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: --spacing(5);
+        }
+    }
+
+    & .elme-card {
+        flex-direction: row;
+        /* the li is a column: grow so the two rows of a line are the same height */
+        flex-grow: 1;
+        height: auto;
+        padding: --spacing(4);
+        border-radius: 0 --spacing(6) 0 --spacing(6);
+
+        @variant md {
+            padding: --spacing(5);
+            border-radius: 0 var(--radius-leaf-lg) 0 var(--radius-leaf-lg);
+        }
+
+        @variant lg {
+            padding: --spacing(6);
+        }
+    }
+
+    & .elme-card__media {
+        flex: 0 0 auto;
+        align-self: flex-start;
+        width: --spacing(22);
+
+        @variant md {
+            width: --spacing(28);
+        }
+
+        @variant lg {
+            width: --spacing(36);
+        }
+    }
+
+    & .elme-card__heart {
+        top: 0;
+        inset-inline-end: 0;
+        width: --spacing(8);
+        height: --spacing(8);
+    }
+
+    & .elme-card__badge {
+        top: --spacing(1);
+        left: --spacing(1);
+    }
+
+    & .product-info {
+        min-width: 0;
+        justify-content: center;
+        gap: --spacing(0.5);
+        padding: --spacing(1) 0 --spacing(1) --spacing(4);
+
+        @variant md {
+            padding-inline-start: --spacing(5);
+        }
+    }
+
+    /* Rows are one per line: nothing to keep level, so the reserved lines of the grid card go. */
+    & .elme-card__name {
+        min-height: 0;
+    }
+
+    & .elme-card__stock[aria-hidden="true"],
+    & .elme-card__moq.invisible {
+        display: none;
+    }
+
+    & .elme-card__price {
+        margin-top: --spacing(1);
+    }
+
+    /* No hover reveal in a row: the colour chips are always there, so their row is not an empty gap. */
+    & .elme-card__swatches {
+        opacity: 1;
+        translate: none;
+    }
+
+    & .product-info > .elme-card__actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: --spacing(2);
+        margin-top: --spacing(2.5);
+        padding-top: 0;
+    }
+
+    & .elme-card__atc {
+        width: auto;
+    }
+
+    /* Phones: the photo, the stepper and the button have to fit inside the padded row. */
+    @media not (min-width: 768px) {
+        & .elme-qty {
+            width: --spacing(23);
+        }
+
+        & .elme-card__atc {
+            padding-inline: --spacing(3);
+        }
+    }
+}

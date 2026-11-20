@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <!--
+            Favicon.ico is Magento_Theme/web/favicon.ico (auto-injected by Renderer::prepareFavicon).
+            SVG icon + manifest.json: Magento_Theme::html/head/icons.phtml via default.xml (svg-as-font Renderer quirk).
+            manifest.json (not .webmanifest) so Magento/nginx serve application/json; theme-color = token color.primary (#3A3935).
+        -->
+        <link src="Magento_Theme::favicon/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+        <meta name="theme-color" content="#3A3935"/>
+        <!-- hyva-fonts:start -->
+        <!-- Figtree -->
+        <font src="fonts/generated/figtree-latin-300-900-normal.woff2"/>
+        <!-- hyva-fonts:end -->
+    </head>
+</page>

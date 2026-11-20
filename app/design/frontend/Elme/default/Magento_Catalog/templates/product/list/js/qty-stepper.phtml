@@ -1,0 +1,67 @@
+<?php
+/**
+ * FE-19: qty stepper of the product card (Magento_Catalog::product/list/item.phtml). Rendered once per page
+ * as a block JS dependency of the tile, only when a tile shows the stepper.
+ *
+ * <div x-data="initElmeQtyStepper" data-min="6" data-step="6"> ... <input x-ref="input" name="qty"> ...</div>
+ * Jumps by data-step from data-min; a typed qty is rounded up to the next valid multiple on change.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<script>
+    function initElmeQtyStepper() {
+        return {
+            min: 1,
+            step: 1,
+            qty: 1,
+
+            init() {
+                this.min = parseFloat(this.$root.dataset.min) || 1;
+                this.step = parseFloat(this.$root.dataset.step) || this.min;
+                this.set(this.$refs.input.value);
+            },
+
+            // MOQ 6: 6, 12, 18... anything else goes up to the next one
+            snap(value) {
+                const qty = parseFloat(value);
+                if (!(qty > this.min)) {
+                    return this.min;
+                }
+                const steps = Math.ceil(Math.round((qty - this.min) / this.step * 1e4) / 1e4);
+                return Math.round((this.min + steps * this.step) * 1e4) / 1e4;
+            },
+
+            set(value) {
+                this.qty = this.snap(value);
+                this.$refs.input.value = this.qty;
+            },
+
+            increment() {
+                this.set(this.qty + this.step);
+            },
+
+            decrement() {
+                this.set(this.qty - this.step);
+            },
+
+            normalize() {
+                this.set(this.$refs.input.value);
+            },
+
+            isAtMin() {
+                return this.qty <= this.min;
+            }
+        };
+    }
+
+    window.addEventListener('alpine:init', () => Alpine.data('initElmeQtyStepper', initElmeQtyStepper), {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

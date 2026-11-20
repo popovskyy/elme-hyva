@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <!-- FE-11: "Be the first to know" form in the footer aside, above the social icons -->
+        <move element="form.subscribe" destination="footer.newsletter"/>
+    </body>
+</page>

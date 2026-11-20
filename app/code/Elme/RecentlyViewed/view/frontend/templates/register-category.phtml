@@ -1,0 +1,37 @@
+<?php
+/**
+ * FE-24: write the current category into browser storage on PLP.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Elme\RecentlyViewed\ViewModel\CategoryRecorder;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+$recorder = $viewModels->require(CategoryRecorder::class);
+if (!$recorder->isEnabled()) {
+    return;
+}
+
+$data = $recorder->getCategoryData();
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<script>
+    (function () {
+        if (!window.elmeRecentlyViewed) {
+            return;
+        }
+        window.elmeRecentlyViewed.trackCategory({
+            id: <?= (int) $data['id'] ?>,
+            name: '<?= $escaper->escapeJs($data['name']) ?>',
+            url: '<?= $escaper->escapeJs($data['url']) ?>',
+            image: '<?= $escaper->escapeJs($data['image']) ?>'
+        });
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

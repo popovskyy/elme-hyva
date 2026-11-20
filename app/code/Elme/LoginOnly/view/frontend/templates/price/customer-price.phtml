@@ -1,0 +1,81 @@
+<?php
+/**
+ * The logged-in customer's own price. The HTML only holds a placeholder (it is cached per customer group);
+ * the price loads per customer from /customer-price/prices once the page is rendered.
+ * Needs Elme_LoginOnly::js/customer-price.phtml once per page (added for logged-in customers on every page).
+ *
+ * Block data: product_id (or a block with getProduct()), show_tax_label, pdp (bool: large PDP row).
+ * No itemprop/offers (FE-27 SEO): Pronto prices must not enter Offer microdata or server HTML numbers.
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+$productId = (int) ($block->getData('product_id') ?: $block->getProduct()?->getId());
+if (!$productId) {
+    return;
+}
+$isPdp = (bool) $block->getData('pdp');
+$showTax = (bool) $block->getData('show_tax_label');
+$boxClass = $isPdp
+    ? 'price-box elme-customer-price elme-pdp__price'
+    : 'price-box elme-customer-price flex flex-wrap items-baseline gap-x-2 min-h-6';
+$skeletonClass = $isPdp
+    ? 'elme-skeleton elme-pdp__price-skeleton'
+    : 'elme-skeleton h-5 w-20 self-center';
+?>
+<div class="<?= $escaper->escapeHtmlAttr($boxClass) ?>"
+     x-data="initElmeCustomerPrice"
+     @configurable-selection-changed.window="onOptionsChanged"
+     data-product-id="<?= /* @noEscape */ $productId ?>"
+     data-pdp="<?= $isPdp ? '1' : '0' ?>"
+>
+    <span class="<?= $escaper->escapeHtmlAttr($skeletonClass) ?>" x-show="isLoading" aria-hidden="true"></span>
+    <span class="sr-only" x-show="isLoading"><?= $escaper->escapeHtml(__('Loading your price')) ?></span>
+
+    <template x-if="hasDiscount">
+        <p class="elme-pdp__price-row<?= $isPdp ? '' : ' flex flex-wrap items-baseline gap-x-2' ?>">
+            <span class="old-price">
+                <span class="sr-only"><?= $escaper->escapeHtml(__('Was')) ?></span>
+                <s class="price" x-text="regularPrice"></s>
+            </span>
+            <span class="final-price">
+                <span class="sr-only"><?= $escaper->escapeHtml(__('Now')) ?></span>
+                <span class="price" x-text="finalPrice"></span>
+                <?php if ($showTax): ?>
+                    <span class="elme-pdp__ex-gst"><?= $escaper->escapeHtml(__('ex. GST')) ?></span>
+                <?php endif; ?>
+            </span>
+        </p>
+    </template>
+
+    <template x-if="isContractPrice">
+        <p class="elme-pdp__price-row<?= $isPdp ? '' : ' flex flex-wrap items-baseline gap-x-2' ?>">
+            <?php if ($isPdp): ?>
+                <span class="elme-pdp__your-price"><?= $escaper->escapeHtml(__('Your price')) ?></span>
+            <?php endif; ?>
+            <span class="final-price">
+                <span class="price" x-text="finalPrice"></span>
+                <?php if ($showTax): ?>
+                    <span class="elme-pdp__ex-gst"><?= $escaper->escapeHtml(__('ex. GST')) ?></span>
+                <?php endif; ?>
+            </span>
+        </p>
+    </template>
+
+    <template x-if="isPlainPrice">
+        <p class="elme-pdp__price-row<?= $isPdp ? '' : ' flex flex-wrap items-baseline gap-x-2' ?>">
+            <span class="final-price">
+                <span class="price" x-text="finalPrice"></span>
+                <?php if ($showTax): ?>
+                    <span class="elme-pdp__ex-gst"><?= $escaper->escapeHtml(__('ex. GST')) ?></span>
+                <?php endif; ?>
+            </span>
+        </p>
+    </template>
+</div>

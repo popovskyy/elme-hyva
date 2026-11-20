@@ -1,0 +1,35 @@
+<!--
+    Stage of the "Content Studio" Page Builder type. Reuses Block's classes
+    (pagebuilder-block, -placeholder, -overlay) so the placeholder, hover
+    overlay and spinner look and behave as Block's do.
+
+    The entry is an <iframe> of entry/previewFrame (admin-served, same origin,
+    the store theme's styles.css). pointer-events: none keeps every mouse event
+    on the stage, so select, move, duplicate and remove work as for Block.
+-->
+<div class="pagebuilder-content-type pagebuilder-block pagebuilder-content-studio"
+     event="{ mouseover: onMouseOver, mouseout: onMouseOut }, mouseoverBubble: false"
+     css="{'pagebuilder-block-overlay': frameUrl()}">
+    <div attr="data.main.attributes" ko-style="data.main.style" css="data.main.css">
+        <div if="notice" class="message message-warning pagebuilder-content-studio__notice">
+            <span text="notice"></span>
+        </div>
+        <!-- ko if: frameUrl -->
+            <iframe class="pagebuilder-content-studio__frame"
+                    tabindex="-1"
+                    scrolling="no"
+                    aria-hidden="true"
+                    attr="{ src: frameUrl(), title: frameTitle() }"
+                    event="{ load: onFrameLoad }"></iframe>
+        <!-- /ko -->
+        <div ifnot="frameUrl" class="pagebuilder-block-placeholder">
+            <span class="placeholder-text" text="placeholderText"></span>
+        </div>
+    </div>
+    <div data-role="spinner" class="admin__data-grid-loading-mask" if="loading">
+        <div class="spinner">
+            <span repeat="8"></span>
+        </div>
+    </div>
+    <render args="getOptions().template"></render>
+</div>

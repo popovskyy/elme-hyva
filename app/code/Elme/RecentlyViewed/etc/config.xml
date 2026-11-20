@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <elme_catalog>
+            <recently_viewed>
+                <enabled>1</enabled>
+                <!-- 7 days, same as old ElmeLiving_RecentlyViewedCategory on website 5 -->
+                <lifetime>604800</lifetime>
+                <capacity>10</capacity>
+            </recently_viewed>
+        </elme_catalog>
+    </default>
+</config>
