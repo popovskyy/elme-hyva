@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FE-114 phone navigation: options</title>
+<style>
+/* Figtree from the theme (tokens: web/tailwind/hyva.config.json -> fonts) */
+@font-face {
+  font-family: "Figtree";
+  src: url("../../app/design/frontend/Elme/default/web/fonts/generated/figtree-latin-300-900-normal.woff2") format("woff2");
+  font-weight: 300 900;
+  font-display: swap;
+}
+:root {
+  /* hyva.config.json tokens.values.color */
+  --ink: #3A3935;
+  --ink-muted: #605E55;
+  --page: #F5F4EF;
+  --surface: #FFFFFF;
+  --surface-muted: #F1F0EA;
+  --sand-light: #E1DBD1;
+  --border: #D8D5CE;
+  --olive: #647455;
+  --secondary: #ADBBA1;
+  --promo: #CB4867;
+  /* leaf corners: top-right and bottom-left rounded */
+  --leaf: 0 16px 0 16px;
+  --leaf-sm: 0 10px 0 10px;
+  --leaf-xs: 0 4px 0 4px;
+  --spring: cubic-bezier(.34, 1.45, .5, 1);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 400 16px/1.4 "Figtree", Arial, system-ui, sans-serif; }
+h1, h2, h3 { font-weight: 500; margin: 0; }
+button { font: inherit; color: inherit; }
+.wrap { max-width: 1500px; margin: 0 auto; padding: 32px 24px 80px; }
+h1 { font-size: 28px; line-height: 1.2; }
+.lede { color: var(--ink-muted); margin: 8px 0 24px; max-width: 46rem; }
+
+/* controls on the page */
+.seg { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface); border: 1px solid var(--border); }
+.seg label { cursor: pointer; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg span { display: block; padding: 8px 16px; border-radius: var(--leaf-sm); }
+.seg input:checked + span { background: var(--ink); color: #fff; }
+.seg input:focus-visible + span { outline: 2px solid var(--olive); outline-offset: 2px; }
+
+.decision { background: var(--surface); border: 1px solid var(--border); padding: 20px 24px; margin: 0 0 40px; }
+.decision h2 { font-size: 20px; margin-bottom: 4px; }
+.decision p { margin: 4px 0 12px; color: var(--ink-muted); max-width: 52rem; }
+.choices { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin-top: 12px; }
+.choice { display: block; border: 1px solid var(--border); padding: 14px 16px; cursor: pointer; background: var(--page); }
+.choice:has(input:checked) { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); background: var(--surface); }
+.choice input { margin-right: 8px; accent-color: var(--ink); }
+.choice b { font-weight: 500; }
+.choice small { display: block; margin-top: 6px; color: var(--ink-muted); font-size: 14px; }
+.fixed { margin-top: 14px; font-size: 14px; color: var(--ink-muted); }
+
+/* one variant */
+.variant { margin: 0 0 56px; }
+.variant > h2 { font-size: 22px; }
+.variant > p { margin: 4px 0 16px; color: var(--ink-muted); max-width: 52rem; }
+.frames { display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap; }
+.cap { font-size: 13px; color: var(--ink-muted); margin: 8px 0 0; }
+.jump { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.jump button { border: 1px solid var(--border); background: var(--surface); padding: 4px 10px; cursor: pointer; border-radius: var(--leaf-xs); font-size: 13px; }
+
+/* desktop frame: 1280 px page shown at 70% */
+.desk { width: 900px; max-width: 100%; height: 560px; overflow: auto; border: 1px solid var(--border); background: var(--surface); }
+.desk img { display: block; width: 1280px; zoom: .7; }
+
+/* phone frame, 390 px wide */
+.phone { position: relative; width: 390px; height: 780px; flex: none; overflow: hidden; background: var(--page);
+  border: 6px solid #1c1c1c; border-radius: 40px; box-sizing: content-box; }
+.phone__scroll { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
+.phone__scroll::-webkit-scrollbar { display: none; }
+.phone__page { position: relative; width: 390px; }
+.phone__page img { display: block; width: 390px; height: auto; }
+.phone__patch { position: absolute; left: 12px; top: 62px; height: 46px; background: var(--surface); }
+.phone__burger { position: absolute; left: 10px; top: 62px; width: 46px; height: 46px; background: none; border: 0; cursor: pointer; }
+.phone__burger:focus-visible { outline: 2px solid var(--olive); }
+.phone__home { position: absolute; left: 50%; bottom: 8px; width: 134px; height: 5px; margin-left: -67px; background: #111; border-radius: 3px; z-index: 40; pointer-events: none; }
+.toast { position: absolute; left: 12px; right: 12px; top: 10px; z-index: 35; background: var(--ink); color: #fff; padding: 8px 12px; border-radius: var(--leaf-sm);
+  font-size: 13px; opacity: 0; transform: translateY(-6px); transition: opacity .2s, transform .2s; pointer-events: none; }
+.toast.is-on { opacity: 1; transform: none; }
+
+/* the bar: plate and lens are siblings, so the lens can see the page */
+.bar { position: absolute; left: 12px; right: 12px; bottom: 26px; height: 64px; z-index: 20; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.bar__plate { position: absolute; inset: 0; border-radius: var(--leaf); }
+.bar__lens { position: absolute; left: 6px; top: 6px; bottom: 6px; border-radius: var(--leaf-sm); translate: var(--lx, 0px) 0; scale: 1; transition: translate .45s var(--spring), scale .3s var(--spring), opacity .2s; }
+.bar.is-drag .bar__lens { transition: scale .3s var(--spring); scale: 1.14 1.1; }
+.bar__tabs { position: absolute; inset: 6px; display: flex; margin: 0; padding: 0; list-style: none; }
+.bar__tab { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: none; border: 0; padding: 0; cursor: pointer; color: var(--ink); position: relative; }
+.bar__tab svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.bar__tab span.l { font-size: 11px; line-height: 1; font-weight: 500; white-space: nowrap; }
+.bar__tab[aria-current="page"], .bar__tab.is-hot { font-weight: 600; }
+.bar__tab:focus-visible { outline: 2px solid var(--olive); outline-offset: -2px; border-radius: var(--leaf-sm); }
+.bar__badge { position: absolute; top: 4px; left: calc(50% + 4px); min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--ink); color: #fff; font-size: 10px; line-height: 16px; font-weight: 600; text-align: center; }
+
+/* B: frosted glass plate and lens */
+.bar--glass .bar__plate {
+  background: rgba(255, 255, 255, .6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.7);
+  backdrop-filter: blur(20px) saturate(1.7);
+  border: 1px solid rgba(255, 255, 255, .7);
+  box-shadow: 0 8px 28px rgba(58, 57, 53, .22), inset 0 1px 0 rgba(255, 255, 255, .8);
+}
+.bar--glass .bar__lens {
+  background: rgba(255, 255, 255, .4);
+  -webkit-backdrop-filter: blur(3px) brightness(1.1) saturate(1.8);
+  backdrop-filter: blur(3px) brightness(1.1) saturate(1.8);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .85), inset 0 -6px 12px rgba(255, 255, 255, .35), 0 3px 10px rgba(58, 57, 53, .18);
+}
+/* C: the same bar, solid */
+.bar--solid .bar__plate { background: var(--surface); border: 1px solid var(--border); box-shadow: 0 6px 20px rgba(58, 57, 53, .16); }
+.bar--solid .bar__lens { background: var(--sand-light); box-shadow: inset 0 0 0 1px var(--border); }
+/* fallbacks the build will keep: no backdrop-filter, or the OS asks for less transparency */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .bar--glass .bar__plate { background: var(--surface); }
+  .bar--glass .bar__lens { background: var(--sand-light); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .bar--glass .bar__plate { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .bar--glass .bar__lens { background: var(--sand-light); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bar__lens, .bar.is-drag .bar__lens { transition: none; }
+  .toast { transition: none; }
+}
+
+/* sheet and drawer cover the bar; shells stay square */
+.scrim { position: absolute; inset: 0; z-index: 25; background: rgba(58, 57, 53, .45); opacity: 0; pointer-events: none; transition: opacity .2s; }
+.scrim.is-on { opacity: 1; pointer-events: auto; }
+.sheet, .drawer { position: absolute; z-index: 30; background: var(--surface); display: flex; flex-direction: column; transition: translate .3s cubic-bezier(.2, .8, .2, 1); }
+.sheet { left: 0; right: 0; bottom: 0; height: 66%; translate: 0 100%; padding-bottom: 34px; }
+.drawer { left: 0; top: 0; bottom: 0; width: 86%; translate: -100% 0; padding-bottom: 34px; }
+.sheet.is-on, .drawer.is-on { translate: 0 0; }
+@media (prefers-reduced-motion: reduce) { .sheet, .drawer, .scrim { transition: none; } }
+.sh-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 8px; }
+.sh-head h3 { font-size: 20px; }
+.sh-x { width: 40px; height: 40px; display: grid; place-items: center; background: var(--surface-muted); border: 0; border-radius: var(--leaf-sm); cursor: pointer; }
+.sh-x svg, .row svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.sh-body { overflow-y: auto; padding: 4px 12px 12px; }
+.sh-search { margin: 4px 20px 8px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: var(--leaf-sm); padding: 10px 12px; color: var(--ink-muted); font-size: 15px; }
+.sh-search svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; }
+.row { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 13px 12px; background: none; border: 0; border-bottom: 1px solid var(--border); text-align: left; cursor: pointer; font-size: 16px; }
+.row:hover, .row:focus-visible { background: var(--surface-muted); border-radius: var(--leaf-xs); }
+.row.sub { padding-left: 28px; color: var(--ink-muted); font-size: 15px; }
+.row .chev { display: flex; transition: rotate .2s; }
+.row[aria-expanded="true"] .chev { rotate: 90deg; }
+.row .tile { width: 36px; height: 36px; display: grid; place-items: center; background: var(--sand-light); border-radius: var(--leaf-sm); margin-right: 12px; flex: none; }
+.row .lbl { display: flex; align-items: center; flex: 1; }
+.also { margin-top: 8px; padding-top: 4px; }
+.also h4 { margin: 12px 12px 0; font-size: 12px; font-weight: 500; color: var(--ink-muted); }
+.sh-note { margin: 6px 12px 0; font-size: 12px; color: var(--ink-muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>FE-114: phone navigation, three looks</h1>
+  <p class="lede">Real Elme home page (full-page screenshots of the local site). Below 768 px only: the desktop frames show that nothing changes from tablet up. Scroll the phones, tap the tabs, press and drag on the bar. The bar hides in checkout and while a field has focus (not shown here).</p>
+
+  <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin-bottom:24px">
+    <span>Shown to</span>
+    <div class="seg" role="radiogroup" aria-label="Customer type">
+      <label><input type="radio" name="role" value="trade" checked><span>Trade customer</span></label>
+      <label><input type="radio" name="role" value="guest"><span>Guest</span></label>
+    </div>
+  </div>
+
+  <section class="decision" aria-labelledby="dec-title">
+    <h2 id="dec-title">Open decision: where do Contact, Become a Stockist and My Account go, and does the burger stay?</h2>
+    <p>With the bar, the Shop sheet carries the category tree, Search is a tab, and Quick Order, Lists and Cart are one tap. What is left in the burger today is Contact, My Account and (guests) Become a Stockist. Pick one and look at looks 2 and 3 change.</p>
+    <div class="choices" role="radiogroup" aria-label="Burger decision">
+      <label class="choice"><input type="radio" name="burger" value="go" checked><b>Burger goes</b>
+        <small>Header shows logo and the account icon only. The Shop sheet ends with quiet links: Contact, and My Account for trade customers. Guests get Become a Stockist as a tab. Contact also stays in the footer. One menu source, no duplicate tree.</small></label>
+      <label class="choice"><input type="radio" name="burger" value="stay"><b>Burger stays as a small "More" drawer</b>
+        <small>The burger stays at the left of the header and opens a short drawer: My Account, Contact. The header search icon goes (it is a tab now). Costs one more icon in the header, keeps the habit.</small></label>
+    </div>
+    <p class="fixed">Not open: My Account stays an icon in the header in both. Guests never get a cart, Quick Order or lists.</p>
+  </section>
+
+  <!-- 1 -->
+  <section class="variant" aria-labelledby="v1">
+    <h2 id="v1">1. Burger menu as today</h2>
+    <p>Everything in the burger drawer (FE-07, FE-09): Quick Order and Shopping list are two taps away, cart and search are header icons.</p>
+    <div class="frames">
+      <div><div class="phone" data-kind="a"></div><div class="jump" data-for="a"></div><p class="cap">Phone, 390 px. Tap the burger.</p></div>
+      <div><div class="desk"><img src="mobile-tab-bar/home-1280.png" alt="Elme home page at 1280 px"></div><p class="cap">Wide screen, 1280 px, shown at 70%. Unchanged.</p></div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="variant" aria-labelledby="v2">
+    <h2 id="v2">2. Frosted glass bar with a sliding lens</h2>
+    <p>A floating bar above the home indicator: a frosted plate and a lens over the active tab. Press and drag, the lens grows and settles on the nearest tab. Solid fill when the browser has no blur or the phone asks for reduced transparency.</p>
+    <div class="frames">
+      <div><div class="phone" data-kind="b"></div><div class="jump" data-for="b"></div><p class="cap">Phone, 390 px. Jump to the photos to see the glass.</p></div>
+      <div><div class="desk"><img src="mobile-tab-bar/home-1280.png" alt="Elme home page at 1280 px"></div><p class="cap">Wide screen, 1280 px, shown at 70%. Unchanged: no bar from 768 px.</p></div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="variant" aria-labelledby="v3">
+    <h2 id="v3">3. The same bar, solid</h2>
+    <p>Same bar, same lens and drag, but a white plate with a border and a sand lens. No blur, no cost on old phones, always the same contrast.</p>
+    <div class="frames">
+      <div><div class="phone" data-kind="c"></div><div class="jump" data-for="c"></div><p class="cap">Phone, 390 px.</p></div>
+      <div><div class="desk"><img src="mobile-tab-bar/home-1280.png" alt="Elme home page at 1280 px"></div><p class="cap">Wide screen, 1280 px, shown at 70%. Unchanged: no bar from 768 px.</p></div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* Throwaway chooser script: plain JS, not theme code. */
+const ICON = {
+  grid: '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
+  search: '<path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/>',
+  qo: '<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>',
+  heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+  cart: '<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>',
+  store: '<path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/>',
+  login: '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/>',
+  user: '<circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>',
+  msg: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  chev: '<path d="m9 18 6-6-6-6"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>'
+};
+const svg = (n) => '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICON[n] + '</svg>';
+
+const TABS = {
+  trade: [
+    {id: 'shop', label: 'Shop', icon: 'grid', url: 'category sheet'},
+    {id: 'search', label: 'Search', icon: 'search', url: 'search panel'},
+    {id: 'qo', label: 'Quick Order', icon: 'qo', url: '/quick-order'},
+    {id: 'lists', label: 'Lists', icon: 'heart', url: '/quick-order/template'},
+    {id: 'cart', label: 'Cart', icon: 'cart', url: '/quick-order/cart', badge: 3}
+  ],
+  guest: [
+    {id: 'shop', label: 'Shop', icon: 'grid', url: 'category sheet'},
+    {id: 'search', label: 'Search', icon: 'search', url: 'search panel'},
+    {id: 'stockist', label: 'Stockist', icon: 'store', url: '/become-a-stockist'},
+    {id: 'login', label: 'Log in', icon: 'login', url: '/customer/account/login'}
+  ]
+};
+const SHOP = [
+  {t: 'New'},
+  {t: 'Flowers & Plants', kids: ['Arrangements', 'Fruit & Veg', 'Bouquets & Bundles', 'Floral Stems', 'Greenery Stems']},
+  {t: 'Homewares', kids: []}, {t: 'Furniture', kids: []}, {t: 'Outdoor', kids: []}, {t: 'Sale'}
+];
+const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const state = {role: 'trade', burger: 'go'};
+const phones = [];
+
+function shopRows(open) {
+  return SHOP.map((r, i) => {
+    if (!r.kids) return '<button class="row" data-go="' + esc(r.t) + '"><span class="lbl">' + esc(r.t) + '</span></button>';
+    const kids = open === i ? r.kids.map((k) => '<button class="row sub" data-go="' + esc(k) + '"><span class="lbl">' + esc(k) + '</span></button>').join('') : '';
+    return '<button class="row" data-open="' + i + '" aria-expanded="' + (open === i) + '"><span class="lbl">' + esc(r.t) + '</span><span class="chev">' + svg('chev') + '</span></button>' + kids;
+  }).join('');
+}
+function linkRow(icon, label, go) {
+  return '<button class="row" data-go="' + go + '"><span class="lbl"><span class="tile">' + svg(icon) + '</span>' + label + '</span></button>';
+}
+
+function build(host) {
+  const kind = host.dataset.kind;
+  const p = {host, kind, active: 0, prev: 0, open: 1, drag: false, startX: 0, moved: false, timer: 0};
+  host.innerHTML =
+    '<div class="phone__scroll"><div class="phone__page"><img src="mobile-tab-bar/home-390.png" alt="Elme home page on a phone">' +
+    (kind === 'a' ? '' : '<div class="phone__patch"></div>') +
+    '<button class="phone__burger" aria-label="Open menu"></button></div></div>' +
+    (kind === 'a' ? '' : '<nav class="bar bar--' + (kind === 'b' ? 'glass' : 'solid') + '" aria-label="Main"><div class="bar__plate"></div><div class="bar__lens"></div><ul class="bar__tabs"></ul></nav>') +
+    '<div class="toast" role="status"></div><div class="scrim"></div>' +
+    (kind === 'a' ? '' : '<section class="sheet" role="dialog" aria-label="Shop"></section>') +
+    '<aside class="drawer" role="dialog" aria-label="Menu"></aside><div class="phone__home"></div>';
+  p.q = (s) => host.querySelector(s);
+  p.scroll = p.q('.phone__scroll');
+  p.burgerBtn = p.q('.phone__burger');
+  p.burgerBtn.addEventListener('click', () => openLayer(p, 'drawer'));
+  p.q('.scrim').addEventListener('click', () => closeLayers(p));
+  host.addEventListener('click', (e) => onRow(p, e));
+  if (kind !== 'a') bindBar(p);
+  document.querySelector('.jump[data-for="' + kind + '"]').innerHTML =
+    '<button data-y="0">Top</button><button data-y="1150">Photos</button><button data-y="3160">Dark panels</button>';
+  document.querySelector('.jump[data-for="' + kind + '"]').addEventListener('click', (e) => {
+    if (e.target.dataset.y) p.scroll.scrollTo({top: +e.target.dataset.y});
+  });
+  phones.push(p);
+  return p;
+}
+
+function toast(p, text) {
+  const t = p.q('.toast');
+  t.textContent = text;
+  t.classList.add('is-on');
+  clearTimeout(p.timer);
+  p.timer = setTimeout(() => t.classList.remove('is-on'), 2200);
+}
+function openLayer(p, which) {
+  closeLayers(p, true);
+  p.q('.scrim').classList.add('is-on');
+  p.q(which === 'drawer' ? '.drawer' : '.sheet').classList.add('is-on');
+  p.layer = which;
+}
+function closeLayers(p, quiet) {
+  p.host.querySelectorAll('.is-on').forEach((el) => { if (!el.classList.contains('toast')) el.classList.remove('is-on'); });
+  if (!quiet && p.layer === 'sheet') {
+    p.active = p.prev;
+    placeLens(p);
+    const t = p.host.querySelector('.bar__tab'); if (t) t.focus();
+  }
+  if (!quiet) p.layer = null;
+}
+function onRow(p, e) {
+  const open = e.target.closest('[data-open]');
+  if (open) { p.open = p.open === +open.dataset.open ? -1 : +open.dataset.open; fill(p); return; }
+  if (e.target.closest('.sh-x')) { closeLayers(p); return; }
+  const go = e.target.closest('[data-go]');
+  if (go) {
+    const was = p.layer;
+    closeLayers(p, true);
+    p.layer = null;
+    p.active = p.prev; placeLens(p);
+    toast(p, 'Opens ' + go.dataset.go + (p.kind === 'a' ? ' (burger, then the row: 2 taps for a link, 3 for a sub-category)' : was === 'sheet' ? ' (Shop, then the row: 2 taps)' : ''));
+  }
+}
+
+function fill(p) {
+  const trade = state.role === 'trade';
+  const drawer = p.q('.drawer');
+  const head = (title) => '<div class="sh-head"><h3>' + title + '</h3><button class="sh-x" aria-label="Close">' + svg('x') + '</button></div>';
+  if (p.kind === 'a') {
+    drawer.innerHTML = head('Menu') + '<div class="sh-search">' + svg('search') + 'Search products by style, rooms</div><div class="sh-body">' + shopRows(p.open) +
+      '<div class="also">' +
+      (trade ? linkRow('heart', 'Shopping list', '/quick-order/template (burger, then the row: 2 taps)') + linkRow('qo', 'Quick Order', '/quick-order (burger, then the row: 2 taps)') + linkRow('user', 'My Account', '/customer/account') + linkRow('msg', 'Contact', '/contact')
+             : linkRow('login', 'Trade login', '/customer/account/login') + linkRow('msg', 'Contact', '/contact') + linkRow('store', 'Become a Stockist', '/become-a-stockist')) +
+      '</div></div>';
+    return;
+  }
+  p.q('.sheet').innerHTML = head('Shop') + '<div class="sh-body">' + shopRows(p.open) +
+    (state.burger === 'go' ? '<div class="also"><h4>Also</h4>' + (trade ? linkRow('user', 'My Account', '/customer/account') : '') + linkRow('msg', 'Contact', '/contact') + '</div>' : '') + '</div>';
+  drawer.innerHTML = head('More') + '<div class="sh-body">' + (trade ? linkRow('user', 'My Account', '/customer/account') : '') + linkRow('msg', 'Contact', '/contact') +
+    '<p class="sh-note">The category tree is in the Shop tab.</p></div>';
+}
+
+function render(p) {
+  const trade = state.role === 'trade';
+  fill(p);
+  const stay = state.burger === 'stay';
+  if (p.kind === 'a') return;
+  const patch = p.q('.phone__patch');
+  // go: burger and search icon removed; stay: only the search icon (a tab now)
+  patch.style.left = stay ? '56px' : '12px';
+  patch.style.width = stay ? '48px' : '92px';
+  p.burgerBtn.style.display = stay ? '' : 'none';
+  const tabs = TABS[state.role];
+  if (p.active >= tabs.length) p.active = 0;
+  p.q('.bar__tabs').innerHTML = tabs.map((t, i) =>
+    '<li style="flex:1 1 0;display:flex;min-width:0"><button class="bar__tab" style="flex:1" data-i="' + i + '"' + (i === p.active ? ' aria-current="page"' : '') + '>' +
+    svg(t.icon) + '<span class="l">' + t.label + '</span>' +
+    (t.badge ? '<span class="bar__badge">' + t.badge + '</span>' : '') + '</button></li>').join('');
+  placeLens(p);
+}
+function geom(p) {
+  const bar = p.q('.bar');
+  const n = TABS[state.role].length;
+  const inner = bar.clientWidth - 12;
+  return {bar, n, slot: inner / n, inner};
+}
+function placeLens(p, x) {
+  if (p.kind === 'a') return;
+  const g = geom(p);
+  const lens = p.q('.bar__lens');
+  lens.style.width = g.slot + 'px';
+  lens.style.setProperty('--lx', (x === undefined ? p.active * g.slot : x) + 'px');
+  p.host.querySelectorAll('.bar__tab').forEach((b, i) => {
+    if (i === p.active) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    b.classList.toggle('is-hot', x !== undefined && i === Math.round(x / g.slot));
+  });
+}
+function nearest(p, clientX) {
+  const g = geom(p);
+  const x = clientX - g.bar.getBoundingClientRect().left - 6;
+  return Math.max(0, Math.min(g.n - 1, Math.floor(x / g.slot)));
+}
+function bindBar(p) {
+  const bar = p.q('.bar');
+  bar.addEventListener('pointerdown', (e) => {
+    p.drag = true; p.moved = false; p.startX = e.clientX; p.down = nearest(p, e.clientX);
+    bar.setPointerCapture(e.pointerId);
+    bar.classList.add('is-drag');
+  });
+  bar.addEventListener('pointermove', (e) => {
+    if (!p.drag) return;
+    if (Math.abs(e.clientX - p.startX) > 4) p.moved = true;
+    if (!p.moved) return;
+    const g = geom(p);
+    const x = e.clientX - g.bar.getBoundingClientRect().left - 6 - g.slot / 2;
+    p.q('.bar__lens').style.transition = 'scale .3s cubic-bezier(.34,1.45,.5,1)';
+    placeLens(p, Math.max(0, Math.min(g.inner - g.slot, x)));
+  });
+  const end = (e) => {
+    if (!p.drag) return;
+    p.drag = false;
+    bar.classList.remove('is-drag');
+    p.q('.bar__lens').style.transition = '';
+    const i = nearest(p, e.clientX);
+    pick(p, p.moved ? i : p.down);
+  };
+  bar.addEventListener('pointerup', end);
+  bar.addEventListener('pointercancel', () => { p.drag = false; bar.classList.remove('is-drag'); placeLens(p); });
+  bar.addEventListener('keydown', (e) => {
+    const g = geom(p);
+    let i = null;
+    if (e.key === 'ArrowRight') i = Math.min(g.n - 1, p.active + 1);
+    if (e.key === 'ArrowLeft') i = Math.max(0, p.active - 1);
+    if (i !== null) { e.preventDefault(); pick(p, i); p.host.querySelectorAll('.bar__tab')[i].focus(); }
+  });
+}
+function pick(p, i) {
+  const tab = TABS[state.role][i];
+  const old = p.active;
+  p.active = i;
+  placeLens(p);
+  if (tab.id === 'shop') {
+    if (p.layer !== 'sheet') p.prev = old;
+    openLayer(p, 'sheet');
+    return;
+  }
+  p.prev = i;
+  toast(p, 'Opens ' + tab.url + ' (1 tap)');
+}
+
+document.querySelectorAll('.phone').forEach((h) => build(h));
+function renderAll() { phones.forEach(render); }
+document.querySelectorAll('input[name=role]').forEach((r) => r.addEventListener('change', () => { state.role = r.value; renderAll(); }));
+document.querySelectorAll('input[name=burger]').forEach((r) => r.addEventListener('change', () => { state.burger = r.value; renderAll(); }));
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') phones.forEach((p) => p.layer && closeLayers(p)); });
+renderAll();
+window.addEventListener('resize', () => phones.forEach((p) => placeLens(p)));
+</script>
+</body>
+</html>
