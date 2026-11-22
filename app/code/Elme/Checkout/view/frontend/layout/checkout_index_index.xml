@@ -10,6 +10,8 @@
         <!-- default -> default_hyva still adds the menus; CSP is enforced here and the page has its own header -->
         <referenceBlock name="elme.mega.panels" remove="true"/>
         <referenceBlock name="elme.mobile.menu.dialog" remove="true"/>
+        <!-- FE-114: no phone tab bar in checkout -->
+        <referenceBlock name="elme.tab-bar" remove="true"/>
         <!-- The steps carry the visible titles, as on the old checkout; the h1 stays for screen readers -->
         <referenceBlock name="page.main.title">
             <arguments>
