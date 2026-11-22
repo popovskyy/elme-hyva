@@ -77,7 +77,8 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
         const MAX_FLYERS = 5;
         // the header row slides back in (--transition-duration-fast) before the cart icon is measured
         const REVEAL_MS = 220;
-        const CART_ICON = '#menu-cart-icon .elme-header__icon';
+        // FE-114: below md the header cart is gone, the Cart tab of the tab bar takes the flight
+        const CART_ICONS = ['#menu-cart-icon .elme-header__icon', '.elme-tabbar__cart .elme-tabbar__icon'];
         const IMAGE = '.elme-card__media img, .elme-look-thumb img, .elme-sticky-atc__thumb';
         // the "Added to cart" bar (toast-stack.phtml): product photo, name and a link to the cart
         const CART_URL = '<?= $escaper->escapeJs($block->getUrl('quick_order/cart')) ?>';
@@ -169,7 +170,13 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
                 || document.querySelector('dialog[open]')) {
                 return null;
             }
-            return window.elmeFly.target(document.querySelector(CART_ICON));
+            for (const selector of CART_ICONS) {
+                const rect = window.elmeFly.target(document.querySelector(selector));
+                if (rect) {
+                    return rect;
+                }
+            }
+            return null;
         }
 
         // a loaded image of this product next to the control (its URL is reused: no new request)

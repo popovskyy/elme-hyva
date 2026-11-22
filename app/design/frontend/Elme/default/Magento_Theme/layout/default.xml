@@ -80,6 +80,18 @@
             <block name="elme.card-swatch-preview" template="Magento_Theme::elme/card-swatch-preview.phtml"/>
             <!-- FE-22: header search autocomplete component (used by both search-form.phtml instances) -->
             <block name="elme.search.autocomplete" template="Magento_Theme::html/header/search-autocomplete.phtml"/>
+            <!-- FE-114: bottom tab bar on phones (below md). The Shop sheet lists the Snowdog mobile menu nodes
+                 (same source as the drawer); Elme_Checkout removes the block in checkout. -->
+            <block name="elme.tab-bar" template="Magento_Theme::elme/tab-bar.phtml">
+                <block name="elme.tab-bar.shop"
+                       as="shop"
+                       class="Snowdog\Menu\Block\Menu"
+                       template="Magento_Theme::elme/tab-bar/shop-sheet.phtml">
+                    <arguments>
+                        <argument name="menu" xsi:type="string">hyva-topmenu-mobile</argument>
+                    </arguments>
+                </block>
+            </block>
         </referenceContainer>
 
         <!-- FE-10: Elme footer (logo, CMS link columns, social, payments) -->

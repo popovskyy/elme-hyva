@@ -1,0 +1,450 @@
+/*
+ * FE-114: liquid glass tab bar on phones (below md) and its Shop sheet. Markup: Magento_Theme/templates/elme/tab-bar.phtml.
+ * Tokens: `tabbar` in hyva.config.json (height, inset, gap, glass alpha / blur), ease-spring.
+ *
+ * Plate (frosted) and lens (over the active tab) are siblings, so the lens can blur what is behind the plate.
+ * No backdrop-filter, or "reduce transparency": solid plate and lens. Reduced motion: the lens does not move or grow.
+ *
+ * Other fixed things below md sit above the bar through --elme-tabbar-top (distance from the screen bottom to the top
+ * edge of the bar, 0 without a bar, while the bar is hidden for the keyboard, and in checkout where the block is gone):
+ * cookie bar, Zendesk launcher, PLP filter pill, cart page bar, toasts. --elme-tabbar-room is the page padding.
+ * On the product page the bar floats above the sticky add to cart bar (--elme-atc-h is measured in tab-bar.phtml).
+ */
+
+@layer components {
+    :root {
+        --elme-atc-lift: 0px;
+        --elme-tabbar-bottom: calc(env(safe-area-inset-bottom) + var(--tabbar-gap) + var(--elme-atc-lift));
+        --elme-tabbar-top: 0px;
+        --elme-tabbar-room: 0px;
+
+        &.elme-sticky-atc-active {
+            --elme-atc-lift: var(--elme-atc-h, 5.5rem);
+        }
+    }
+
+    @variant max-md {
+        html:has(.elme-tabbar) {
+            --elme-tabbar-top: calc(var(--elme-tabbar-bottom) + var(--tabbar-height));
+            --elme-tabbar-room: calc(env(safe-area-inset-bottom) + var(--tabbar-gap) * 2 + var(--tabbar-height));
+            scroll-padding-bottom: var(--elme-tabbar-room);
+        }
+
+        html:has(.elme-tabbar).elme-tabbar-off {
+            --elme-tabbar-top: 0px;
+        }
+
+        /* nothing hides behind the bar at the end of the page */
+        html:has(.elme-tabbar) .elme-footer {
+            padding-bottom: var(--elme-tabbar-room);
+        }
+    }
+
+    .elme-tabbar {
+        position: fixed;
+        z-index: 26;
+        inset-inline: var(--tabbar-inset);
+        bottom: var(--elme-tabbar-bottom);
+        height: var(--tabbar-height);
+        padding: var(--tabbar-pad);
+        touch-action: pan-y;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        transition:
+            bottom var(--transition-duration-base) var(--ease-out-quart),
+            translate var(--transition-duration-base) var(--ease-out-quart),
+            opacity var(--transition-duration-fast) linear,
+            visibility 0s;
+
+        /* the keyboard is open: the bar steps down and out */
+        &.is-off {
+            translate: 0 calc(100% + var(--elme-tabbar-bottom));
+            opacity: 0;
+            visibility: hidden;
+            transition:
+                translate var(--transition-duration-base) var(--ease-in-quart),
+                opacity var(--transition-duration-fast) linear,
+                visibility 0s linear var(--transition-duration-base);
+        }
+
+        @variant md {
+            display: none;
+        }
+    }
+
+    /* ---------- glass ---------- */
+
+    .elme-tabbar__plate {
+        position: absolute;
+        inset: 0;
+        background-color: color-mix(in srgb, var(--color-surface) var(--tabbar-plate-alpha), transparent);
+        -webkit-backdrop-filter: blur(var(--tabbar-plate-blur)) saturate(var(--tabbar-plate-saturate));
+        backdrop-filter: blur(var(--tabbar-plate-blur)) saturate(var(--tabbar-plate-saturate));
+        border: 1px solid color-mix(in srgb, var(--color-surface) var(--tabbar-plate-edge), transparent);
+        box-shadow:
+            0 --spacing(2) --spacing(7) color-mix(in srgb, var(--color-ink) 22%, transparent),
+            inset 0 1px 0 color-mix(in srgb, var(--color-surface) 80%, transparent);
+    }
+
+    .elme-tabbar__lens {
+        position: absolute;
+        inset-block: var(--tabbar-pad);
+        inset-inline-start: var(--tabbar-pad);
+        width: calc((100% - var(--tabbar-pad) * 2) / var(--n, 5));
+        translate: var(--lx, calc(var(--i, 0) * 100%)) 0;
+        background-color: color-mix(in srgb, var(--color-surface) var(--tabbar-lens-alpha), transparent);
+        -webkit-backdrop-filter: blur(var(--tabbar-lens-blur)) brightness(var(--tabbar-lens-brightness))
+            saturate(var(--tabbar-lens-saturate));
+        backdrop-filter: blur(var(--tabbar-lens-blur)) brightness(var(--tabbar-lens-brightness))
+            saturate(var(--tabbar-lens-saturate));
+        box-shadow:
+            inset 0 0 0 1px color-mix(in srgb, var(--color-surface) 85%, transparent),
+            inset 0 --spacing(-1.5) --spacing(3) color-mix(in srgb, var(--color-surface) 35%, transparent),
+            0 --spacing(1) --spacing(2.5) color-mix(in srgb, var(--color-ink) 18%, transparent);
+        transition:
+            translate var(--transition-duration-calm) var(--ease-spring),
+            scale var(--transition-duration-slow) var(--ease-spring),
+            opacity var(--transition-duration-fast) linear;
+        pointer-events: none;
+    }
+
+    /* no current tab (Contact, account, content pages): no lens */
+    .elme-tabbar.is-idle .elme-tabbar__lens {
+        opacity: 0;
+    }
+
+    /* pressed and dragged: the lens grows and follows the finger (no slide animation while it follows) */
+    .elme-tabbar.is-drag .elme-tabbar__lens {
+        scale: 1.14 1.1;
+        transition: scale var(--transition-duration-slow) var(--ease-spring);
+    }
+
+    /* old browsers and "reduce transparency": solid plate and lens, same shape and text */
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+        .elme-tabbar__plate {
+            background-color: var(--color-surface);
+            border-color: var(--color-border);
+        }
+
+        .elme-tabbar__lens {
+            background-color: var(--color-sand-light);
+        }
+    }
+
+    @media (prefers-reduced-transparency: reduce) {
+        .elme-tabbar__plate {
+            background-color: var(--color-surface);
+            border-color: var(--color-border);
+            -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+        }
+
+        .elme-tabbar__lens {
+            background-color: var(--color-sand-light);
+            -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+        }
+    }
+
+    /* ---------- tabs ---------- */
+
+    .elme-tabbar__tabs {
+        position: relative;
+        display: flex;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        > li {
+            display: flex;
+            flex: 1 1 0;
+            min-width: 0;
+        }
+    }
+
+    .elme-tabbar__tab {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: --spacing(1);
+        min-width: 0;
+        padding: 0;
+        color: var(--color-ink);
+        font-size: var(--text-label);
+        line-height: 1;
+        font-weight: 500;
+        text-decoration: none;
+        background: none;
+        border: 0;
+        border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-user-drag: none;
+
+        &:hover {
+            color: var(--color-ink);
+            text-decoration: none;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-olive);
+            outline-offset: -2px;
+        }
+
+        &[aria-current="page"],
+        &.is-hot {
+            font-weight: 600;
+        }
+    }
+
+    .elme-tabbar__icon {
+        position: relative;
+        display: inline-flex;
+
+        > svg {
+            stroke-width: 1.6;
+        }
+    }
+
+    .elme-tabbar__label {
+        white-space: nowrap;
+    }
+
+    .elme-tabbar__badge {
+        position: absolute;
+        inset-block-start: --spacing(-2);
+        inset-inline-start: calc(100% - --spacing(2));
+        min-width: --spacing(4);
+        height: --spacing(4);
+        padding-inline: --spacing(1);
+        border-radius: 9999px;
+        background-color: var(--color-primary);
+        color: var(--color-on-primary);
+        font-size: var(--text-label);
+        line-height: --spacing(4);
+        font-weight: 600;
+        text-align: center;
+
+        &.is-pop {
+            animation: elme-tabbar-pop var(--transition-duration-slow) var(--ease-spring);
+        }
+    }
+
+    .elme-tabbar__icon.is-squashed {
+        animation: elme-tabbar-squash var(--transition-duration-slow) var(--ease-spring);
+    }
+
+    @keyframes elme-tabbar-pop {
+        from {
+            scale: 0.5;
+        }
+    }
+
+    @keyframes elme-tabbar-squash {
+        40% {
+            scale: 1.15 0.85;
+        }
+    }
+
+    /* ---------- others stay clear of the bar (phones only, only while the bar is on screen) ---------- */
+
+    @variant max-md {
+        /* toasts: --elme-toast-bottom is added to the safe area by the stack itself */
+        html:has(.elme-tabbar):not(.elme-tabbar-off) {
+            --elme-toast-bottom: calc(var(--elme-tabbar-bottom) - env(safe-area-inset-bottom) + var(--tabbar-height) + --spacing(2));
+        }
+
+        /* PLP Filter / Sort pill */
+        html:has(.elme-tabbar):not(.elme-tabbar-off) .elme-filterpill {
+            bottom: calc(var(--elme-tabbar-top) + --spacing(3));
+            transform: translateY(calc(100% + var(--elme-tabbar-top) + --spacing(3)));
+
+            &.is-shown {
+                transform: none;
+            }
+        }
+
+        /* cart page bar (total and main button): sticks right above the tab bar */
+        html:has(.elme-tabbar):not(.elme-tabbar-off) .elme-cart__bar {
+            bottom: var(--elme-tabbar-top);
+        }
+
+        /* cookie notice (fixed, bottom-0 utility of the Hyva notice): important beats the utility layer */
+        html:has(.elme-tabbar):not(.elme-tabbar-off) #notice-cookie-block > div {
+            bottom: var(--elme-tabbar-top) !important;
+        }
+
+        /* Zendesk launcher (third-party.css sets bottom with !important, unlayered) */
+        html.elme-zendesk-offset:has(.elme-tabbar):not(.elme-tabbar-off) iframe#launcher,
+        html.elme-zendesk-offset:has(.elme-tabbar):not(.elme-tabbar-off) iframe[data-product="web_widget"],
+        html.elme-zendesk-offset:has(.elme-tabbar):not(.elme-tabbar-off) iframe[title="Button to launch messaging window"],
+        html.elme-zendesk-offset:has(.elme-tabbar):not(.elme-tabbar-off) iframe[title="Close message"],
+        html.elme-zendesk-offset:has(.elme-tabbar):not(.elme-tabbar-off) .zEWidget-launcher {
+            bottom: calc(var(--elme-tabbar-top) + --spacing(3)) !important;
+        }
+    }
+
+    /* ---------- Shop sheet ---------- */
+
+    html.elme-tabbar-sheet-open {
+        overflow: hidden;
+        scrollbar-gutter: auto;
+    }
+
+    .elme-tabbar-sheet {
+        position: fixed;
+        inset: 0;
+        width: auto;
+        max-width: none;
+        max-inline-size: none;
+        height: auto;
+        max-height: none;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--color-ink);
+        overflow: hidden;
+
+        &[open] {
+            display: flex;
+            align-items: flex-end;
+        }
+
+        &::backdrop {
+            background-color: color-mix(in oklab, var(--color-ink) 40%, transparent);
+            opacity: 0;
+            transition: opacity var(--transition-duration-slow) var(--ease-out-quad);
+        }
+
+        &.is-shown::backdrop {
+            opacity: 1;
+        }
+
+        @variant md {
+            display: none !important;
+        }
+    }
+
+    /* the shell is square (sheet shells stay square), rises from the bottom */
+    .elme-tabbar-sheet__shell {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-height: 80dvh;
+        padding-bottom: env(safe-area-inset-bottom);
+        background-color: var(--color-surface);
+        translate: 0 100%;
+        transition: translate var(--transition-duration-slow) var(--ease-out-quad);
+
+        .is-shown > & {
+            translate: 0 0;
+        }
+    }
+
+    .elme-tabbar-sheet__head {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: space-between;
+        gap: --spacing(3);
+        padding: --spacing(4) --spacing(5) --spacing(2);
+    }
+
+    .elme-tabbar-sheet__title {
+        margin: 0;
+        font-family: var(--font-heading);
+        font-size: var(--text-h3);
+        line-height: var(--text-h3--line-height);
+        font-weight: 400;
+    }
+
+    .elme-tabbar-sheet__body {
+        flex: 1 1 auto;
+        min-height: 0;
+        padding: 0 --spacing(4) --spacing(4);
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
+    }
+
+    .elme-tabbar-sheet__list,
+    .elme-tabbar-sheet__also {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .elme-tabbar-sheet__list > li {
+        border-block-end: 1px solid var(--color-border);
+    }
+
+    .elme-tabbar-sheet__list--sub {
+        padding-inline-start: --spacing(4);
+    }
+
+    .elme-tabbar-sheet__list--sub > li:last-child {
+        border-block-end: 0;
+    }
+
+    .elme-tabbar-sheet__group > summary {
+        list-style: none;
+
+        &::-webkit-details-marker {
+            display: none;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-olive);
+            outline-offset: -2px;
+        }
+    }
+
+    .elme-tabbar-sheet__group[open] > summary .elme-mobile-menu__chevron {
+        rotate: 90deg;
+    }
+
+    .elme-tabbar-sheet__group > summary .elme-mobile-menu__chevron {
+        transition: rotate var(--transition-duration-fast) var(--ease-out-quad);
+    }
+
+    /* the rows of the drawer, here without the drawer's own list padding */
+    .elme-tabbar-sheet .elme-mobile-menu__row,
+    .elme-tabbar-sheet .elme-mobile-menu__view-all {
+        text-decoration: none;
+    }
+
+    .elme-tabbar-sheet .elme-mobile-menu__view-all {
+        text-decoration: underline;
+    }
+
+    .elme-tabbar-sheet__also {
+        display: flex;
+        flex-direction: column;
+        gap: --spacing(1);
+        margin-block-start: --spacing(4);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .elme-tabbar,
+        .elme-tabbar__lens,
+        .elme-tabbar.is-drag .elme-tabbar__lens,
+        .elme-tabbar-sheet::backdrop,
+        .elme-tabbar-sheet__shell,
+        .elme-tabbar-sheet__group > summary .elme-mobile-menu__chevron {
+            transition: none;
+        }
+
+        .elme-tabbar.is-drag .elme-tabbar__lens {
+            scale: 1;
+        }
+
+        .elme-tabbar__badge.is-pop,
+        .elme-tabbar__icon.is-squashed {
+            animation: none;
+        }
+    }
+}

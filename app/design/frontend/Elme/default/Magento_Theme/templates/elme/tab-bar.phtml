@@ -1,0 +1,558 @@
+<?php
+/**
+ * FE-114: liquid glass tab bar on phones (below md). Trade customer: Shop, Search, Quick Order, Lists, Cart.
+ * Guest: Shop, Search, Stockist, Log in (no cart, Quick Order or lists for a guest, FE-53).
+ *
+ * - The active tab comes from the URL on the server (aria-current + --i), so the lens is right on first paint.
+ *   The login state is part of the page cache key (HTTP context), so this server pick is cache safe.
+ * - Plate and lens are two siblings (a lens inside a blurred plate cannot see the page behind it).
+ * - Shop opens a bottom sheet (<dialog>) with the Snowdog category tree; Search opens the header search panel.
+ * - Press and drag: the lens follows the finger, lands on the nearest tab and opens it. A tap does the same.
+ * - Hidden while a text field has focus (keyboard) and in checkout (Elme_Checkout removes the block).
+ * - Each tap sends a GTM dataLayer event: {event: 'tab_bar_click', tab_name}.
+ * CSS: web/tailwind/elme/layout/tab-bar.css, tokens `tabbar` in hyva.config.json.
+ */
+
+declare(strict_types=1);
+
+use Elme\LoginOnly\ViewModel\LoginOnly;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var LoginOnly $loginOnly */
+$loginOnly = $viewModels->require(LoginOnly::class);
+$isLoggedIn = $loginOnly->isLoggedIn();
+
+$request = $block->getRequest();
+$path = '/' . trim((string) $request->getOriginalPathInfo(), '/');
+$action = (string) $request->getFullActionName();
+
+// which tab is the current page; '' = none (Contact, account, content pages): the lens stays hidden
+$currentKey = match (true) {
+    str_starts_with($path, '/quick-order/cart') => 'cart',
+    str_starts_with($path, '/quick-order/template') => 'lists',
+    $path === '/quick-order' || str_starts_with($path, '/quick-order/') => 'quick-order',
+    str_starts_with($path, '/become-a-stockist') => 'stockist',
+    $action === 'customer_account_login' => 'login',
+    $action === 'catalogsearch_result_index' => 'search',
+    in_array($action, ['cms_index_index', 'catalog_category_view', 'catalog_product_view'], true) => 'shop',
+    default => '',
+};
+
+// type: sheet = opens the Shop sheet, search = opens the header search panel, link = a page
+$tabs = [
+    ['key' => 'shop', 'label' => __('Shop'), 'icon' => 'shopping-bag', 'type' => 'sheet'],
+    ['key' => 'search', 'label' => __('Search'), 'icon' => 'search', 'type' => 'search'],
+];
+if ($isLoggedIn) {
+    $tabs[] = ['key' => 'quick-order', 'label' => __('Quick Order'), 'icon' => 'clipboard-list', 'type' => 'link',
+        'url' => $block->getUrl('quick_order')];
+    $tabs[] = ['key' => 'lists', 'label' => __('Lists'), 'icon' => 'heart', 'type' => 'link',
+        'url' => $block->getUrl('quick_order/template')];
+    $tabs[] = ['key' => 'cart', 'label' => __('Cart'), 'icon' => 'shopping-cart', 'type' => 'link',
+        'url' => $block->getUrl('quick_order/cart')];
+} else {
+    $tabs[] = ['key' => 'stockist', 'label' => __('Stockist'), 'icon' => 'store', 'type' => 'link',
+        'url' => $block->getUrl('', ['_direct' => 'become-a-stockist'])];
+    $tabs[] = ['key' => 'login', 'label' => __('Log in'), 'icon' => 'log-in', 'type' => 'link',
+        'url' => $block->getUrl('customer/account/login')];
+}
+
+$currentIndex = -1;
+foreach ($tabs as $index => $tab) {
+    if ($tab['key'] === $currentKey) {
+        $currentIndex = $index;
+    }
+}
+?>
+<script>
+    function initElmeTabBar() {
+        const FIELD = 'input:not([type=checkbox],[type=radio],[type=button],[type=submit],[type=reset],[type=range],'
+            + '[type=file],[type=color],[type=image],[type=hidden]), textarea, select, [contenteditable=""],'
+            + '[contenteditable="true"]';
+        const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        return {
+            nav: null,
+            sheet: null,
+            count: 0,
+            current: -1,
+            shopIndex: 0,
+            searchIndex: 1,
+            shopOpen: false,
+            searchOpen: false,
+            closing: false,
+            armed: false,
+            dragging: false,
+            suppress: false,
+            pointerId: null,
+            startX: 0,
+            qoCount: 0,
+            qoPending: null,
+            flights: 0,
+            flightTimer: null,
+            popped: false,
+            squashed: false,
+
+            init() {
+                this.nav = this.$root.querySelector('[data-elme-tabbar]');
+                this.sheet = this.$root.querySelector('dialog');
+                this.count = parseInt(this.nav.dataset.count, 10) || 0;
+                this.current = parseInt(this.nav.dataset.current, 10);
+                this.watchStickyBar();
+            },
+
+            // The sticky add to cart bar (PDP) sits at the very bottom; the tab bar floats above it
+            watchStickyBar() {
+                const sticky = document.querySelector('.elme-sticky-atc');
+                if (!sticky || !('ResizeObserver' in window)) {
+                    return;
+                }
+                const measure = () => document.documentElement.style
+                    .setProperty('--elme-atc-h', sticky.offsetHeight + 'px');
+                measure();
+                new ResizeObserver(measure).observe(sticky);
+            },
+
+            // ----- lens -----
+
+            lensIndex() {
+                if (this.shopOpen) {
+                    return this.shopIndex;
+                }
+                return this.searchOpen ? this.searchIndex : this.current;
+            },
+
+            syncLens(index) {
+                const i = typeof index === 'number' ? index : this.lensIndex();
+                this.nav.style.setProperty('--i', String(Math.max(i, 0)));
+                this.nav.classList.toggle('is-idle', i < 0);
+                this.nav.style.removeProperty('--lx');
+                this.nav.querySelectorAll('[data-tab]').forEach((tab, k) => tab.classList.toggle('is-hot', k === i));
+            },
+
+            geometry() {
+                const rect = this.nav.getBoundingClientRect();
+                const pad = parseFloat(getComputedStyle(this.nav).paddingLeft) || 0;
+                const inner = rect.width - pad * 2;
+                return {left: rect.left + pad, inner: inner, slot: inner / this.count};
+            },
+
+            nearest(clientX) {
+                const g = this.geometry();
+                return Math.max(0, Math.min(this.count - 1, Math.floor((clientX - g.left) / g.slot)));
+            },
+
+            // ----- press and drag -----
+
+            onPointerDown() {
+                const e = this.$event;
+                if (e.pointerType === 'mouse' && e.button !== 0) {
+                    return;
+                }
+                this.armed = true;
+                this.dragging = false;
+                this.pointerId = e.pointerId;
+                this.startX = e.clientX;
+            },
+
+            onPointerMove() {
+                const e = this.$event;
+                if (!this.armed || e.pointerId !== this.pointerId) {
+                    return;
+                }
+                if (!this.dragging) {
+                    if (Math.abs(e.clientX - this.startX) < 6) {
+                        return;
+                    }
+                    this.dragging = true;
+                    this.nav.setPointerCapture(e.pointerId);
+                    this.nav.classList.add('is-drag');
+                }
+                const g = this.geometry();
+                const x = Math.max(0, Math.min(g.inner - g.slot, e.clientX - g.left - g.slot / 2));
+                this.nav.style.setProperty('--lx', x + 'px');
+                const hot = this.nearest(e.clientX);
+                this.nav.querySelectorAll('[data-tab]').forEach((tab, k) => tab.classList.toggle('is-hot', k === hot));
+            },
+
+            onPointerUp() {
+                const e = this.$event;
+                if (!this.armed || e.pointerId !== this.pointerId) {
+                    return;
+                }
+                this.armed = false;
+                if (!this.dragging) {
+                    return; // a tap: the click handler does the work
+                }
+                this.dragging = false;
+                this.nav.classList.remove('is-drag');
+                if (this.nav.hasPointerCapture(e.pointerId)) {
+                    this.nav.releasePointerCapture(e.pointerId);
+                }
+                // the click that follows a drag must not open a second page
+                this.suppress = true;
+                setTimeout(() => {
+                    this.suppress = false;
+                }, 60);
+                const tab = this.nav.querySelectorAll('[data-tab]')[this.nearest(e.clientX)];
+                if (tab) {
+                    this.choose(tab);
+                }
+            },
+
+            onPointerCancel() {
+                this.armed = false;
+                this.dragging = false;
+                this.nav.classList.remove('is-drag');
+                this.syncLens();
+            },
+
+            // ----- choosing a tab (tap or drag release) -----
+
+            onClick() {
+                const e = this.$event;
+                const tab = e.target.closest ? e.target.closest('[data-tab]') : null;
+                if (!tab) {
+                    return;
+                }
+                if (this.suppress) {
+                    e.preventDefault();
+                    return;
+                }
+                const plain = !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) && e.button === 0;
+                if (tab.tagName === 'A' && plain) {
+                    e.preventDefault();
+                }
+                this.choose(tab);
+            },
+
+            choose(tab) {
+                this.track(tab.dataset.tab);
+                const type = tab.dataset.type;
+                if (type === 'sheet') {
+                    this.openSheet();
+                    return;
+                }
+                if (type === 'search') {
+                    this.syncLens(this.searchIndex);
+                    this.openSearch();
+                    return;
+                }
+                // a page: the lens settles on the tab first, then the page opens
+                this.syncLens(parseInt(tab.dataset.index, 10));
+                const href = tab.getAttribute('href');
+                setTimeout(() => window.location.assign(href), reduced() ? 0 : 140);
+            },
+
+            track(name) {
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({event: 'tab_bar_click', tab_name: name});
+            },
+
+            // ----- Search tab: the header owns the panel and the field -----
+
+            openSearch() {
+                window.dispatchEvent(new CustomEvent('elme-open-search'));
+            },
+
+            onSearchState() {
+                this.searchOpen = Boolean((this.$event.detail || {}).open);
+                this.syncLens();
+            },
+
+            // ----- Shop sheet -----
+
+            openSheet() {
+                if (!this.sheet || this.sheet.open) {
+                    return;
+                }
+                this.shopOpen = true;
+                this.closing = false;
+                this.syncLens();
+                this.sheet.showModal();
+                document.documentElement.classList.add('elme-tabbar-sheet-open');
+                const show = () => this.sheet.classList.add('is-shown');
+                if (reduced()) {
+                    show();
+                } else {
+                    requestAnimationFrame(show);
+                }
+            },
+
+            closeSheet() {
+                if (!this.sheet || !this.sheet.open || this.closing) {
+                    return;
+                }
+                this.closing = true;
+                this.sheet.classList.remove('is-shown');
+                const finish = () => {
+                    this.closing = false;
+                    this.shopOpen = false;
+                    this.sheet.close();
+                    document.documentElement.classList.remove('elme-tabbar-sheet-open');
+                    this.syncLens();
+                    const opener = this.nav.querySelector('[data-tab="shop"]');
+                    if (opener) {
+                        opener.focus();
+                    }
+                };
+                if (reduced()) {
+                    finish();
+                } else {
+                    setTimeout(finish, 300);
+                }
+            },
+
+            // The page was restored from the back/forward cache: no sheet, lens on the current tab
+            resetPage() {
+                if (this.sheet && this.sheet.open) {
+                    this.sheet.classList.remove('is-shown');
+                    this.sheet.close();
+                }
+                this.closing = false;
+                this.shopOpen = false;
+                this.searchOpen = false;
+                document.documentElement.classList.remove('elme-tabbar-sheet-open');
+                this.syncLens();
+            },
+
+            onSheetClick() {
+                const e = this.$event;
+                // the dimmed area (the dialog itself) or a category link closes the sheet
+                if (e.target.nodeName === 'DIALOG' || (e.target.closest && e.target.closest('a[href]'))) {
+                    this.closeSheet();
+                }
+            },
+
+            // ----- keyboard: hide the bar while a field has focus -----
+
+            onFocusIn() {
+                const el = this.$event.target;
+                if (el && el.matches && el.matches(FIELD) && !this.nav.contains(el)) {
+                    this.setOff(true);
+                }
+            },
+
+            onFocusOut() {
+                setTimeout(() => {
+                    const el = document.activeElement;
+                    if (!(el && el.matches && el.matches(FIELD))) {
+                        this.setOff(false);
+                    }
+                }, 0);
+            },
+
+            setOff(off) {
+                this.nav.classList.toggle('is-off', off);
+                this.nav.inert = off;
+                document.documentElement.classList.toggle('elme-tabbar-off', off);
+            },
+
+            // ----- cart count (same customer section data and events as the header cart) -----
+
+            getData() {
+                const data = this.$event.detail.data || {};
+                if (data.quick_order) {
+                    this.applyCount(data.quick_order.summary_count);
+                }
+            },
+
+            setQoCount() {
+                this.applyCount((this.$event.detail || {}).count);
+            },
+
+            applyCount(value) {
+                const count = parseInt(value, 10) || 0;
+                if (this.flights > 0) {
+                    this.qoPending = count; // an item is flying to the cart: the number waits for it
+                    return;
+                }
+                this.showCount(count, false);
+            },
+
+            showCount(count, squash) {
+                const grew = count > this.qoCount;
+                this.qoCount = count;
+                this.popped = false;
+                this.squashed = false;
+                if (reduced()) {
+                    return;
+                }
+                this.$nextTick(() => requestAnimationFrame(() => {
+                    this.popped = grew;
+                    this.squashed = squash;
+                }));
+            },
+
+            cartLanding() {
+                this.flights++;
+                clearTimeout(this.flightTimer);
+                this.flightTimer = setTimeout(() => this.cartLanded(true), 1600);
+            },
+
+            cartLanded(timeout) {
+                this.flights = timeout === true ? 0 : Math.max(0, this.flights - 1);
+                if (this.flights > 0) {
+                    return;
+                }
+                clearTimeout(this.flightTimer);
+                const count = this.qoPending;
+                this.qoPending = null;
+                if (count !== null) {
+                    this.showCount(count, timeout !== true);
+                }
+            },
+
+            hasCount() {
+                return this.qoCount > 0;
+            },
+
+            countText() {
+                return this.qoCount > 99 ? '99+' : String(this.qoCount);
+            },
+
+            badgeClass() {
+                return {'is-pop': this.popped};
+            },
+
+            iconClass() {
+                return {'is-squashed': this.squashed};
+            },
+
+            effectEnd() {
+                this.popped = false;
+                this.squashed = false;
+            },
+
+            cartLabel() {
+                const base = '<?= $escaper->escapeJs(__('Cart')) ?>';
+                if (!this.qoCount) {
+                    return base + ', <?= $escaper->escapeJs(__('empty')) ?>';
+                }
+                return base + ', ' + (this.qoCount > 1
+                    ? hyva.str('<?= $escaper->escapeJs(__('%1 items')) ?>', this.qoCount)
+                    : hyva.str('<?= $escaper->escapeJs(__('%1 item')) ?>', this.qoCount));
+            }
+        };
+    }
+
+    window.addEventListener('alpine:init', () => {
+        Alpine.data('initElmeTabBar', initElmeTabBar);
+    }, {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+
+<div class="contents"
+     x-data="initElmeTabBar"
+     @focusin.window="onFocusIn"
+     @focusout.window="onFocusOut"
+     @private-content-loaded.window="getData"
+     @elme-qo-count.window="setQoCount"
+     @elme-cart-landing.window="cartLanding"
+     @elme-cart-landed.window="cartLanded"
+     @elme-search-state.window="onSearchState"
+     @pageshow.window="resetPage">
+    <nav class="elme-tabbar<?= $currentIndex < 0 ? ' is-idle' : '' ?>"
+         data-elme-tabbar
+         data-count="<?= (int) count($tabs) ?>"
+         data-current="<?= (int) $currentIndex ?>"
+         style="--n: <?= (int) count($tabs) ?>; --i: <?= max(0, $currentIndex) ?>"
+         aria-label="<?= $escaper->escapeHtmlAttr(__('Main')) ?>"
+         @pointerdown="onPointerDown"
+         @pointermove="onPointerMove"
+         @pointerup="onPointerUp"
+         @pointercancel="onPointerCancel"
+         @click="onClick">
+        <span class="elme-tabbar__plate corner-leaf" aria-hidden="true"></span>
+        <span class="elme-tabbar__lens corner-leaf-sm" aria-hidden="true"></span>
+        <ul class="elme-tabbar__tabs">
+            <?php foreach ($tabs as $index => $tab): ?>
+                <?php
+                $isCurrent = $index === $currentIndex;
+                $isLink = $tab['type'] === 'link';
+                $isCart = $tab['key'] === 'cart';
+                $tag = $isLink ? 'a' : 'button';
+                $attrs = 'class="elme-tabbar__tab' . ($isCart ? ' elme-tabbar__cart' : '') . ($isCurrent ? ' is-hot' : '') . '"'
+                    . ' data-tab="' . $escaper->escapeHtmlAttr($tab['key']) . '"'
+                    . ' data-type="' . $escaper->escapeHtmlAttr($tab['type']) . '"'
+                    . ' data-index="' . (int) $index . '"'
+                    . ' draggable="false"'
+                    . ($isCurrent ? ' aria-current="page"' : '')
+                    . ($isLink ? ' href="' . $escaper->escapeUrl($tab['url']) . '"' : ' type="button"')
+                    . ($tab['type'] === 'sheet' ? ' aria-haspopup="dialog" aria-controls="elme-tabbar-sheet" :aria-expanded="shopOpen"' : '')
+                    . ($tab['type'] === 'search' ? ' aria-haspopup="true" aria-controls="search-content" :aria-expanded="searchOpen"' : '')
+                    . ($isCart ? ' :aria-label="cartLabel"' : '');
+                ?>
+                <li>
+                    <<?= $tag ?> <?= /* @noEscape */ $attrs ?>>
+                        <span class="elme-tabbar__icon"<?= $isCart ? ' :class="iconClass" @animationend.self="effectEnd"' : '' ?> aria-hidden="true">
+                            <?= $lucideIcons->renderHtml($tab['icon'], '', 22, 22, ['aria-hidden' => 'true']) ?>
+                            <?php if ($isCart): ?>
+                                <span class="elme-tabbar__badge"
+                                      :class="badgeClass"
+                                      x-show="hasCount"
+                                      x-text="countText"
+                                      x-cloak></span>
+                            <?php endif; ?>
+                        </span>
+                        <span class="elme-tabbar__label"><?= $escaper->escapeHtml($tab['label']) ?></span>
+                    </<?= $tag ?>>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </nav>
+
+    <dialog id="elme-tabbar-sheet"
+            class="elme-tabbar-sheet"
+            aria-labelledby="elme-tabbar-sheet-title"
+            @cancel.prevent="closeSheet"
+            @click="onSheetClick">
+        <div class="elme-tabbar-sheet__shell" role="document">
+            <div class="elme-tabbar-sheet__head">
+                <h2 class="elme-tabbar-sheet__title" id="elme-tabbar-sheet-title">
+                    <?= $escaper->escapeHtml(__('Shop')) ?>
+                </h2>
+                <button type="button"
+                        class="elme-mobile-menu__close corner-leaf-sm"
+                        @click="closeSheet"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Close')) ?>">
+                    <?= $lucideIcons->xHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                </button>
+            </div>
+            <div class="elme-tabbar-sheet__body">
+                <?= $block->getChildHtml('shop') ?>
+                <ul class="elme-tabbar-sheet__also">
+                    <?php if ($isLoggedIn): ?>
+                        <li>
+                            <a class="elme-mobile-menu__footer-link" href="<?= $escaper->escapeUrl($block->getUrl('customer/account')) ?>">
+                                <span class="elme-mobile-menu__tile corner-leaf-sm" aria-hidden="true">
+                                    <?= $lucideIcons->renderHtml('user-round', 'shrink-0', 20, 20, ['aria-hidden' => 'true']) ?>
+                                </span>
+                                <?= $escaper->escapeHtml(__('My Account')) ?>
+                            </a>
+                        </li>
+                    <?php endif; ?>
+                    <li>
+                        <a class="elme-mobile-menu__footer-link" href="<?= $escaper->escapeUrl($block->getUrl('contact')) ?>">
+                            <span class="elme-mobile-menu__tile corner-leaf-sm" aria-hidden="true">
+                                <?= $lucideIcons->renderHtml('message-square', 'shrink-0', 20, 20, ['aria-hidden' => 'true']) ?>
+                            </span>
+                            <?= $escaper->escapeHtml(__('Contact')) ?>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </dialog>
+</div>

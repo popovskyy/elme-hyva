@@ -419,15 +419,40 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
             },
 
             toggleSearch() {
-                this.searchOpen = !this.searchOpen;
+                this.setSearchOpen(!this.searchOpen);
                 if (this.searchOpen) {
                     this.focusMobileSearch();
                 }
             },
 
+            // FE-114: the tab bar tells the lens where the search is (`elme-search-state`)
+            setSearchOpen(open) {
+                if (open === this.searchOpen) {
+                    return;
+                }
+                this.searchOpen = open;
+                window.dispatchEvent(new CustomEvent('elme-search-state', {detail: {open: open}}));
+            },
+
+            // FE-114: the Search tab of the phone tab bar opens the panel (and brings the row back)
+            openSearchFromTab() {
+                this.setHidden(false);
+                this.setSearchOpen(true);
+                this.focusMobileSearch();
+            },
+
+            // a tap on the Search tab is "outside" the panel, but it must not close it
+            searchOutside() {
+                const target = this.$event.target;
+                if (target && target.closest && target.closest('[data-tab="search"]')) {
+                    return;
+                }
+                this.searchClose();
+            },
+
             searchClose() {
-                this.searchOpen = false;
-                const toggle = [...this.$root.querySelectorAll('[data-elme-search-toggle]')]
+                this.setSearchOpen(false);
+                const toggle = [...document.querySelectorAll('[data-elme-search-toggle], [data-tab="search"]')]
                     .find((el) => el.offsetParent !== null);
                 if (toggle) {
                     toggle.focus({preventScroll: true});
@@ -454,7 +479,7 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
                     desktop.select();
                     return;
                 }
-                this.searchOpen = true;
+                this.setSearchOpen(true);
                 this.focusMobileSearch();
             }
         }
@@ -475,6 +500,7 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
      @elme-lists-landed.window="landLists"
      @elme-cart-landing.window="cartLanding"
      @elme-cart-landed.window="landCart"
+     @elme-open-search.window="openSearchFromTab"
      @keydown.escape.window="searchEscape"
      @keydown.window="searchShortcut"
 >
@@ -491,7 +517,7 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
 
             <button
                 type="button"
-                class="elme-header__action lg:hidden"
+                class="elme-header__action max-md:hidden lg:hidden"
                 @click.prevent="toggleSearch"
                 aria-haspopup="true"
                 aria-controls="search-content"
@@ -573,7 +599,7 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
                     <button
                         type="button"
                         id="menu-cart-icon"
-                        class="elme-header__action elme-header__cart-btn"
+                        class="elme-header__action elme-header__cart-btn max-md:hidden"
                         x-ref="cartButton"
                         :aria-label="cartAriaLabel"
                         @click="toggleCart"
@@ -582,7 +608,7 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
                     <a
                         id="menu-cart-icon"
                         href="<?= $escaper->escapeUrl($cartUrl) ?>"
-                        class="elme-header__action elme-header__cart-btn"
+                        class="elme-header__action elme-header__cart-btn max-md:hidden"
                         :aria-label="cartAriaLabel"
                     >
                 <?php endif; ?>
@@ -615,7 +641,7 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
         class="xl:hidden absolute z-10 inset-x-0 top-full w-full border-t border-border shadow-sm bg-surface"
         x-cloak
         x-show="searchOpen"
-        @click.outside="searchClose"
+        @click.outside="searchOutside"
     >
         <div class="container flex items-center gap-2 py-3">
             <div class="grow min-w-0">

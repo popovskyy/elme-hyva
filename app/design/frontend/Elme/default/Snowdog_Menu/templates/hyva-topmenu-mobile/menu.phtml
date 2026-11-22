@@ -25,7 +25,7 @@ $lucideIcons = $viewModels->require(LucideIcons::class);
 
 $menuClass = $menu->getCssClass() ?: 'main-menu';
 ?>
-<nav class="<?= $escaper->escapeHtmlAttr($menuClass) ?> elme-mobile-nav lg:hidden"
+<nav class="<?= $escaper->escapeHtmlAttr($menuClass) ?> elme-mobile-nav max-md:hidden lg:hidden"
      aria-label="<?= $escaper->escapeHtmlAttr(__('Main menu')) ?>">
     <button type="button"
             class="elme-mobile-nav__burger inline-flex items-center justify-center
