@@ -40,9 +40,10 @@ $infoId = $uid . '-info';
 
 $selected = $picker['selected'];
 $selectedLabel = $selected ? (string) $selected['label'] : '';
-// the admin text of the info icon; no text, no icon
+// the admin text of the info icon; no text, no icon. Page Builder wraps even an empty block in a <style> tag,
+// so style and script elements do not count as text.
 $infoHtml = trim((string) $block->getChildHtml('product.info.family.fabric.info'));
-$hasInfo = trim(strip_tags($infoHtml)) !== '';
+$hasInfo = trim(strip_tags((string) preg_replace('#<(style|script)\b[^>]*>.*?</\1>#is', '', $infoHtml))) !== '';
 $groupTitles = [
     FabricGroups::QUICK_SHIP => (string) __('Quick Ship:'),
     FabricGroups::MADE_TO_ORDER => (string) __('Made To Order:'),
