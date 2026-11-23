@@ -275,4 +275,189 @@
             );
         }
     }
+
+    /* ---------- Made To Order confirm dialog: bottom sheet below md, centred panel from md ---------- */
+    /* a square shell (like every dialog); the picture is a square too, the buttons and the close icon are the leaves */
+    .elme-fabric-modal {
+        width: 100%;
+        max-width: 100%;
+        max-height: 92dvh;
+        margin: auto 0 0;
+        padding: 0;
+        color: var(--color-ink);
+        background-color: var(--color-surface);
+        border: 0;
+        box-shadow: 0 --spacing(6) --spacing(15) color-mix(in srgb, var(--color-ink) 22%, transparent);
+        overscroll-behavior: contain;
+
+        &[open] {
+            display: flex;
+            flex-direction: column;
+        }
+
+        &::backdrop {
+            background-color: color-mix(in srgb, var(--color-ink) 50%, transparent);
+        }
+
+        @variant md {
+            max-width: --spacing(160);
+            max-height: min(--spacing(140), 90dvh);
+            margin: auto;
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            &[open] {
+                animation: elme-fabric-sheet-in var(--transition-duration-slow) var(--ease-out-quint) both;
+            }
+
+            &[open]::backdrop {
+                animation: elme-fabric-fade-in var(--transition-duration-base) var(--ease-out-quad) both;
+            }
+
+            @variant md {
+                &[open] {
+                    animation-name: elme-fabric-dialog-in;
+                    animation-duration: var(--transition-duration-base);
+                }
+            }
+        }
+    }
+
+    .elme-fabric-modal__panel {
+        position: relative;
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        min-height: 0;
+        overflow-y: auto;
+
+        @variant md {
+            flex-direction: row;
+        }
+    }
+
+    /* over the picture, so it stays reachable on a phone sheet and a tall panel */
+    .elme-fabric-modal__close {
+        position: absolute;
+        inset-block-start: --spacing(3);
+        inset-inline-end: --spacing(3);
+        z-index: 1;
+        background-color: var(--color-surface);
+    }
+
+    .elme-fabric-modal__media {
+        position: relative;
+        flex: none;
+        aspect-ratio: 4 / 3;
+        background-color: var(--color-surface-muted);
+
+        @variant md {
+            flex: 0 0 50%;
+            aspect-ratio: auto;
+            min-height: --spacing(80);
+        }
+    }
+
+    /* the box sets the size (4:3 on a phone, the height of the text from md); the fabric fills it */
+    .elme-fabric-modal__img,
+    .elme-fabric-modal__color {
+        position: absolute;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .elme-fabric-modal__img {
+        object-fit: cover;
+    }
+
+    .elme-fabric-modal__body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: --spacing(2);
+        min-width: 0;
+        padding: --spacing(5);
+
+        @variant md {
+            justify-content: center;
+            padding: --spacing(8) --spacing(6);
+        }
+    }
+
+    .elme-fabric-modal__eyebrow {
+        margin: 0;
+        font-size: var(--text-label);
+        line-height: var(--text-label--line-height);
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--color-ink-muted);
+    }
+
+    .elme-fabric-modal__title {
+        margin: 0;
+        font-family: var(--font-sans);
+        font-size: var(--text-h3);
+        line-height: var(--text-h3--line-height);
+        font-weight: 400;
+        overflow-wrap: anywhere;
+
+        @variant md {
+            font-size: var(--text-h3-desktop);
+        }
+    }
+
+    .elme-fabric-modal__lead {
+        margin: 0;
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        font-weight: 500;
+        color: var(--color-ink);
+    }
+
+    .elme-fabric-modal__text,
+    .elme-fabric-modal__note {
+        margin: 0;
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        color: var(--color-ink-muted);
+    }
+
+    .elme-fabric-modal__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: --spacing(3);
+        margin-top: --spacing(3);
+
+        .btn {
+            flex: 1 1 auto;
+        }
+
+        @variant md {
+            .btn {
+                flex: 0 1 auto;
+            }
+        }
+    }
+
+    @keyframes elme-fabric-fade-in {
+        from {
+            opacity: 0;
+        }
+    }
+
+    @keyframes elme-fabric-sheet-in {
+        from {
+            transform: translateY(100%);
+        }
+    }
+
+    @keyframes elme-fabric-dialog-in {
+        from {
+            opacity: 0;
+            transform: translateY(--spacing(2)) scale(0.98);
+        }
+    }
 }

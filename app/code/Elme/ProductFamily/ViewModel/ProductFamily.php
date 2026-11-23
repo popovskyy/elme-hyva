@@ -37,6 +37,8 @@ class ProductFamily implements ArgumentInterface, IdentityInterface
 
     private const SWATCH_PX = 112;
     private const CONFIGURATION_PX = 320;
+    /** The fabric picture of the Made To Order confirm dialog (FE-85). */
+    private const FABRIC_LARGE_PX = 480;
     private const STRUCTURED_DATA_PX = 800;
     /** The grid card photo, so a swatch preview swaps a photo of the same size. */
     private const CARD_PHOTO_PX = 360;
@@ -276,7 +278,9 @@ class ProductFamily implements ArgumentInterface, IdentityInterface
     /**
      * Axes with at least two values, in family_axes order. Each option:
      * value, label, selected, available, url, note (why it is crossed out), image, color; on a visual
-     * axis also madeToOrder (bool) and leadTime (weeks + label, null for Quick Ship) of the linked member.
+     * axis also madeToOrder (bool), leadTime (weeks + label, null for Quick Ship) of the linked member and
+     * imageLarge (the picture of the Made To Order confirm dialog, only for a made-to-order option; '' when
+     * the fabric is just a colour or has no picture).
      *
      * @return array<int, array{code: string, label: string, visual: bool, selectedLabel: string, options: array<int, array>}>
      */
@@ -306,10 +310,14 @@ class ProductFamily implements ArgumentInterface, IdentityInterface
                 $option['image'] = '';
                 $option['color'] = '';
                 if ($axis['visual']) {
-                    $option = array_merge($option, $this->chipFill($member, $optionSwatches[$option['value']] ?? null));
+                    $optionSwatch = $optionSwatches[$option['value']] ?? null;
+                    $option = array_merge($option, $this->chipFill($member, $optionSwatch));
                     $leadTime = $this->leadTimeProvider->getLeadTime($member);
                     $option['madeToOrder'] = (bool) $member->getData(FamilyLoader::ATTR_MADE_TO_ORDER);
                     $option['leadTime'] = $leadTime ? $leadTime->toArray() : null;
+                    $option['imageLarge'] = $option['madeToOrder']
+                        ? $this->fabricLargeImage($member, $optionSwatch, $option['color'])
+                        : '';
                 }
             }
             unset($option);
@@ -510,14 +518,38 @@ class ProductFamily implements ArgumentInterface, IdentityInterface
     }
 
     /**
+     * The big picture of a fabric for the Made To Order confirm dialog: the same source as chipFill() (the
+     * member's swatch image, else the image of the admin swatch, else the product image) at a larger size.
+     * A fabric that is only a colour has none ('' - the dialog paints the colour).
+     *
+     * @param array{type: int, value: string}|null $optionSwatch
+     */
+    private function fabricLargeImage(Product $member, ?array $optionSwatch, string $chipColor): string
+    {
+        if ($chipColor !== '') {
+            return '';
+        }
+        $swatchFile = (string) $member->getData('swatch_image');
+        if ($swatchFile !== '' && $swatchFile !== 'no_selection') {
+            // no white frame around a picture smaller than the size: the dialog fills its box with the fabric
+            return $this->imageUrl($member, 'swatch_image', $swatchFile, self::FABRIC_LARGE_PX, false);
+        }
+        if ($optionSwatch && $optionSwatch['type'] === Swatch::SWATCH_TYPE_VISUAL_IMAGE && $optionSwatch['value'] !== '') {
+            return (string) $this->swatchMedia->getSwatchAttributeImage(Swatch::SWATCH_IMAGE_NAME, $optionSwatch['value']);
+        }
+
+        return $this->memberImage($member, self::FABRIC_LARGE_PX, false);
+    }
+
+    /**
      * The product image of a member (small image, else thumbnail) at a square size; '' without one.
      */
-    private function memberImage(Product $member, int $size): string
+    private function memberImage(Product $member, int $size, bool $keepFrame = true): string
     {
         foreach (['small_image', 'thumbnail'] as $role) {
             $file = (string) $member->getData($role);
             if ($file !== '' && $file !== 'no_selection') {
-                return $this->imageUrl($member, $role, $file, $size);
+                return $this->imageUrl($member, $role, $file, $size, $keepFrame);
             }
         }
         return '';
@@ -603,15 +635,21 @@ class ProductFamily implements ArgumentInterface, IdentityInterface
         return is_array($text) ? implode(', ', $text) : (string) $text;
     }
 
-    private function imageUrl(Product $member, string $role, string $file, int $size = self::SWATCH_PX): string
-    {
+    private function imageUrl(
+        Product $member,
+        string $role,
+        string $file,
+        int $size = self::SWATCH_PX,
+        bool $keepFrame = true
+    ): string {
+        // the frame stays as the theme sets it (view.xml) unless a caller turns it off
+        $attributes = ['type' => $role, 'width' => $size, 'height' => $size];
+        if (!$keepFrame) {
+            $attributes['frame'] = false;
+        }
         try {
             return (string) $this->imageHelper
-                ->init($member, 'elme_family_swatch', [
-                    'type' => $role,
-                    'width' => $size,
-                    'height' => $size,
-                ])
+                ->init($member, 'elme_family_swatch', $attributes)
                 ->setImageFile($file)
                 ->getUrl();
         } catch (\Exception) {
