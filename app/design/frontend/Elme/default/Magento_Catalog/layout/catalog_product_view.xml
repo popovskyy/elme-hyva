@@ -93,6 +93,9 @@
         <referenceContainer name="before.body.end">
             <block name="elme.pdp.buybox.js"
                    template="Magento_Catalog::product/view/buybox-js.phtml"/>
+            <!-- a required option not chosen: error line, scroll and focus instead of the browser bubble -->
+            <block name="elme.pdp.option-check"
+                   template="Magento_Catalog::product/view/option-check.phtml"/>
         </referenceContainer>
         <referenceBlock name="recently_viewed_products.default_widget_pdp">
             <arguments>

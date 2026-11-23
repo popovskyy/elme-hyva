@@ -95,8 +95,15 @@ $imageUrl = $imageBlock ? (string) $imageBlock->getImageUrl() : '';
                 :aria-label="ariaLabel"
         >
             <?= $lucideIcons->shoppingCartHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
-            <span class="elme-sticky-atc__btn-label tabular-nums min-w-32" x-text="buttonLabel">
-                <?= $escaper->escapeHtml(__('Add to Cart')) ?>
+            <?php // From md one line ("Add 2 to cart · $56.00"); on phones a short label over the line total: the stepper shows the quantity ?>
+            <span class="elme-sticky-atc__btn-label tabular-nums">
+                <span class="elme-sticky-atc__btn-long" x-text="buttonLabel">
+                    <?= $escaper->escapeHtml(__('Add to Cart')) ?>
+                </span>
+                <span class="elme-sticky-atc__btn-stack" aria-hidden="true">
+                    <span><?= $escaper->escapeHtml(__('Add to Cart')) ?></span>
+                    <span class="elme-sticky-atc__btn-total" x-show="hasTotal" x-cloak x-text="totalLabel"></span>
+                </span>
             </span>
         </button>
     </div>

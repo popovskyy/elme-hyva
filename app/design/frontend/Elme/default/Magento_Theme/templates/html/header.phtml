@@ -425,34 +425,14 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
                 }
             },
 
-            // FE-114: the tab bar tells the lens where the search is (`elme-search-state`)
+            // The phone tab bar has its own search window (FE-114); this panel is for md to xl
             setSearchOpen(open) {
-                if (open === this.searchOpen) {
-                    return;
-                }
                 this.searchOpen = open;
-                window.dispatchEvent(new CustomEvent('elme-search-state', {detail: {open: open}}));
-            },
-
-            // FE-114: the Search tab of the phone tab bar opens the panel (and brings the row back)
-            openSearchFromTab() {
-                this.setHidden(false);
-                this.setSearchOpen(true);
-                this.focusMobileSearch();
-            },
-
-            // a tap on the Search tab is "outside" the panel, but it must not close it
-            searchOutside() {
-                const target = this.$event.target;
-                if (target && target.closest && target.closest('[data-tab="search"]')) {
-                    return;
-                }
-                this.searchClose();
             },
 
             searchClose() {
                 this.setSearchOpen(false);
-                const toggle = [...document.querySelectorAll('[data-elme-search-toggle], [data-tab="search"]')]
+                const toggle = [...document.querySelectorAll('[data-elme-search-toggle]')]
                     .find((el) => el.offsetParent !== null);
                 if (toggle) {
                     toggle.focus({preventScroll: true});
@@ -500,7 +480,6 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
      @elme-lists-landed.window="landLists"
      @elme-cart-landing.window="cartLanding"
      @elme-cart-landed.window="landCart"
-     @elme-open-search.window="openSearchFromTab"
      @keydown.escape.window="searchEscape"
      @keydown.window="searchShortcut"
 >
@@ -641,7 +620,7 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
         class="xl:hidden absolute z-10 inset-x-0 top-full w-full border-t border-border shadow-sm bg-surface"
         x-cloak
         x-show="searchOpen"
-        @click.outside="searchOutside"
+        @click.outside="searchClose"
     >
         <div class="container flex items-center gap-2 py-3">
             <div class="grow min-w-0">

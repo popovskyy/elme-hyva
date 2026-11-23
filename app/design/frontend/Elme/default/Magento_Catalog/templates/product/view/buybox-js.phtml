@@ -451,6 +451,19 @@ $loginOnly = $viewModels->require(LoginOnly::class);
                     return this.store ? this.store.buttonLabel() : (this.$root.dataset.labelIdle || '');
                 },
 
+                // the line total alone, for the phone button (empty while the price is not known)
+                totalLabel() {
+                    const total = this.store ? this.store.lineTotal() : null;
+                    if (total === null || !window.hyva || !hyva.formatPrice) {
+                        return '';
+                    }
+                    return hyva.formatPrice(total);
+                },
+
+                hasTotal() {
+                    return this.totalLabel() !== '';
+                },
+
                 ariaLabel() {
                     const name = this.$root.dataset.productName || '';
                     return (this.$root.dataset.labelIdle || '') + (name ? ' ' + name : '');

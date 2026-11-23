@@ -35,6 +35,45 @@
         background-color: var(--color-surface);
     }
 
+    /* Phones: logo and phone number on the first line, the page title under them. From md: the title sits in the
+       middle of the one line. */
+    .elme-checkout-header__bar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        column-gap: --spacing(6);
+        row-gap: --spacing(3);
+        padding-block: --spacing(4);
+
+        @variant md {
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        }
+
+        @variant lg {
+            padding-block: --spacing(5);
+        }
+    }
+
+    .elme-checkout-header__title {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        margin: 0;
+        color: var(--color-ink);
+        font-family: var(--font-heading);
+        font-size: var(--text-h2);
+        line-height: var(--text-h2--line-height);
+        font-weight: 400;
+
+        @variant md {
+            grid-column: 2;
+            grid-row: 1;
+        }
+    }
+
+    .elme-checkout-header__help {
+        justify-self: end;
+    }
+
     .elme-checkout-header__logo {
         width: --spacing(31);
         height: auto;
@@ -628,46 +667,83 @@
         outline-offset: 2px;
     }
 
-    /* --- address dialog: a sheet from the bottom on phones, centred from md --- */
+    /*
+     * --- address dialog: a sheet from the bottom on phones, centred from md ---
+     * It comes and goes by transitions on .is-shown (set by address.phtml after the dialog is open and laid out), not by
+     * a keyframe animation: a keyframe that did not run left the sheet at its first frame, below the screen, with only the
+     * dimmed backdrop showing (seen on iPhone). Now the worst case is a dialog that appears without moving.
+     * Clip, not auto: the dialog never scrolls itself; the body does.
+     */
 
     .elme-checkout-dialog {
+        /* Phones: pinned to the bottom edge by its own offsets, not by the browser's modal-dialog centring with an auto
+           margin (which iOS got wrong: only the backdrop showed). Height comes from the content, up to 92dvh. */
+        position: fixed;
+        inset: auto 0 0;
         width: 100%;
         max-width: 100%;
+        height: auto;
         max-height: 92dvh;
-        margin: auto 0 0;
+        margin: 0;
         padding: 0;
         border: 0;
         background-color: var(--color-surface);
         color: var(--color-ink);
         box-shadow: 0 --spacing(6) --spacing(15) color-mix(in srgb, var(--color-ink) 22%, transparent);
+        overflow: clip;
         overscroll-behavior: contain;
+        translate: 0 100%;
+        transition: translate var(--transition-duration-base) var(--ease-drawer);
 
         &[open] {
             display: flex;
             flex-direction: column;
-            animation: elme-checkout-sheet-in var(--transition-duration-slow) var(--ease-out-quint) both;
+        }
+
+        &.is-shown {
+            translate: 0 0;
+            transition-duration: var(--transition-duration-calm);
         }
 
         &::backdrop {
             background-color: color-mix(in srgb, var(--color-ink) 50%, transparent);
-            animation: elme-checkout-fade-in var(--transition-duration-base) var(--ease-out-quad) both;
+            opacity: 0;
+            transition: opacity var(--transition-duration-base) var(--ease-out-quad);
+        }
+
+        &.is-shown::backdrop {
+            opacity: 1;
+            transition-duration: var(--transition-duration-slow);
         }
 
         @variant md {
+            inset: 0;
             max-width: --spacing(150);
+            height: fit-content;
             max-height: min(--spacing(195), 90dvh);
             margin: auto;
+            opacity: 0;
+            translate: 0 --spacing(2);
+            scale: 0.98;
+            transition:
+                opacity var(--transition-duration-fast) var(--ease-out-quad),
+                translate var(--transition-duration-base) var(--ease-out-quint),
+                scale var(--transition-duration-base) var(--ease-out-quint);
 
-            &[open] {
-                animation-name: elme-checkout-dialog-in;
-                animation-duration: var(--transition-duration-base);
+            &.is-shown {
+                opacity: 1;
+                translate: 0 0;
+                scale: 1;
+                transition-duration: var(--transition-duration-base);
             }
         }
     }
 
+    /* Sizes come from the content (flex-basis auto), and shrink when the dialog hits its max-height. A zero flex-basis in
+       a box whose height is not set collapsed the panel to nothing in some iOS versions. */
     .elme-checkout-dialog__panel {
         display: flex;
-        flex: 1;
+        flex: 0 1 auto;
         flex-direction: column;
         min-height: 0;
     }
@@ -722,7 +798,7 @@
     }
 
     .elme-checkout-dialog__body {
-        flex: 1;
+        flex: 0 1 auto;
         min-height: 0;
         padding: --spacing(5);
         overflow-y: auto;
@@ -1222,22 +1298,6 @@ html:has(.elme-checkout-dialog[open]) {
     overflow: hidden;
 }
 
-@keyframes elme-checkout-sheet-in {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
-}
-
-@keyframes elme-checkout-dialog-in {
-    from {
-        opacity: 0;
-        transform: translateY(8px) scale(0.98);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
 @keyframes elme-checkout-bar-in {
     from {
         opacity: 0;
@@ -1255,10 +1315,13 @@ html:has(.elme-checkout-dialog[open]) {
     .elme-checkout .field-error-message,
     .elme-checkout-section__loader,
     .elme-checkout-details__saving,
-    .elme-checkout-bar,
-    .elme-checkout-dialog[open],
-    .elme-checkout-dialog::backdrop {
+    .elme-checkout-bar {
         animation: none;
+    }
+
+    .elme-checkout-dialog,
+    .elme-checkout-dialog::backdrop {
+        transition: none;
     }
 
     .elme-checkout-summary__panel {

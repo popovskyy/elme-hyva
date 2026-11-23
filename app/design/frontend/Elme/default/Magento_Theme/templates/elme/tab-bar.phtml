@@ -1,12 +1,14 @@
 <?php
 /**
- * FE-114: liquid glass tab bar on phones (below md). Trade customer: Shop, Search, Quick Order, Lists, Cart.
+ * FE-114: floating tab bar on phones (below md). Trade customer: Shop, Search, Quick Order, Lists, Cart.
  * Guest: Shop, Search, Stockist, Log in (no cart, Quick Order or lists for a guest, FE-53).
  *
  * - The active tab comes from the URL on the server (aria-current + --i), so the lens is right on first paint.
  *   The login state is part of the page cache key (HTTP context), so this server pick is cache safe.
- * - Plate and lens are two siblings (a lens inside a blurred plate cannot see the page behind it).
- * - Shop opens a bottom sheet (<dialog>) with the Snowdog category tree; Search opens the header search panel.
+ * - Solid plate with a sand lens under the active tab (two siblings, the lens slides over the plate).
+ * - Shop opens a bottom sheet (<dialog>) with the Snowdog category tree; Search opens a search window (<dialog>) that
+ *   drops from the top, with the same search form as the header (own input id) and the field focused at once.
+ *   Both windows come and go by CSS transitions on the .is-shown class (tab-bar.css); closing waits for transitionend.
  * - Press and drag: the lens follows the finger, lands on the nearest tab and opens it. A tap does the same.
  * - Hidden while a text field has focus (keyboard) and in checkout (Elme_Checkout removes the block).
  * - Each tap sends a GTM dataLayer event: {event: 'tab_bar_click', tab_name}.
@@ -85,6 +87,9 @@ foreach ($tabs as $index => $tab) {
         return {
             nav: null,
             sheet: null,
+            searchWin: null,
+            layer: '',
+            opener: null,
             count: 0,
             current: -1,
             shopIndex: 0,
@@ -106,10 +111,15 @@ foreach ($tabs as $index => $tab) {
 
             init() {
                 this.nav = this.$root.querySelector('[data-elme-tabbar]');
-                this.sheet = this.$root.querySelector('dialog');
+                this.sheet = this.$root.querySelector('#elme-tabbar-sheet');
+                this.searchWin = this.$root.querySelector('#elme-tabbar-search');
                 this.count = parseInt(this.nav.dataset.count, 10) || 0;
                 this.current = parseInt(this.nav.dataset.current, 10);
                 this.watchStickyBar();
+                // the keyboard shrinks the visual viewport: the search window keeps its list above it
+                if (window.visualViewport) {
+                    window.visualViewport.addEventListener('resize', () => this.fitSearch());
+                }
             },
 
             // The sticky add to cart bar (PDP) sits at the very bottom; the tab bar floats above it
@@ -241,12 +251,11 @@ foreach ($tabs as $index => $tab) {
                 this.track(tab.dataset.tab);
                 const type = tab.dataset.type;
                 if (type === 'sheet') {
-                    this.openSheet();
+                    this.openLayer('shop', null);
                     return;
                 }
                 if (type === 'search') {
-                    this.syncLens(this.searchIndex);
-                    this.openSearch();
+                    this.openLayer('search', null);
                     return;
                 }
                 // a page: the lens settles on the tab first, then the page opens
@@ -260,78 +269,136 @@ foreach ($tabs as $index => $tab) {
                 window.dataLayer.push({event: 'tab_bar_click', tab_name: name});
             },
 
-            // ----- Search tab: the header owns the panel and the field -----
+            // ----- the two windows: Shop sheet (rises from the bottom), Search window (drops from the top) -----
 
-            openSearch() {
-                window.dispatchEvent(new CustomEvent('elme-open-search'));
+            layerDialog(key) {
+                return key === 'search' ? this.searchWin : this.sheet;
             },
 
-            onSearchState() {
-                this.searchOpen = Boolean((this.$event.detail || {}).open);
-                this.syncLens();
-            },
-
-            // ----- Shop sheet -----
-
-            openSheet() {
-                if (!this.sheet || this.sheet.open) {
+            // the burger in the phone header opens the same Shop sheet; focus goes back to it when the sheet leaves
+            openShopFromHeader() {
+                const opener = (this.$event.detail || {}).opener || null;
+                if (this.layer) {
                     return;
                 }
-                this.shopOpen = true;
+                this.track('shop-burger');
+                this.openLayer('shop', opener);
+            },
+
+            announceShop(open) {
+                window.dispatchEvent(new CustomEvent('elme-shop-state', {detail: {open: open}}));
+            },
+
+            openLayer(key, opener) {
+                const dlg = this.layerDialog(key);
+                if (!dlg || this.layer) {
+                    return; // one window at a time; `layer` stays set until it has left
+                }
+                this.layer = key;
+                this.opener = opener || null;
                 this.closing = false;
+                this.shopOpen = key === 'shop';
+                this.searchOpen = key === 'search';
+                this.announceShop(this.shopOpen);
                 this.syncLens();
-                this.sheet.showModal();
+                dlg.showModal();
                 document.documentElement.classList.add('elme-tabbar-sheet-open');
-                const show = () => this.sheet.classList.add('is-shown');
-                if (reduced()) {
-                    show();
-                } else {
-                    requestAnimationFrame(show);
+                // The window is now laid out in its closed place. Reading the layout commits that start state, so adding
+                // the class is a real transition in every browser (a requestAnimationFrame could land before it).
+                void dlg.offsetHeight;
+                dlg.classList.add('is-shown');
+                if (key === 'search') {
+                    this.fitSearch();
+                    const input = dlg.querySelector('input[type="search"]');
+                    if (input) {
+                        // still inside the tap: iOS raises the keyboard only for a focus() made in the gesture.
+                        // The field is 16px on touch screens (touch-fields.css), so the page does not zoom.
+                        input.focus({preventScroll: true});
+                        input.select();
+                    }
                 }
             },
 
-            closeSheet() {
-                if (!this.sheet || !this.sheet.open || this.closing) {
+            // the window never reaches under the keyboard
+            fitSearch() {
+                if (!this.searchWin || this.layer !== 'search') {
+                    return;
+                }
+                const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                this.searchWin.style.setProperty('--elme-vvh', Math.round(height) + 'px');
+            },
+
+            closeLayer() {
+                const key = this.layer;
+                const dlg = this.layerDialog(key);
+                if (!key || !dlg || !dlg.open || this.closing) {
                     return;
                 }
                 this.closing = true;
-                this.sheet.classList.remove('is-shown');
-                const finish = () => {
-                    this.closing = false;
-                    this.shopOpen = false;
-                    this.sheet.close();
-                    document.documentElement.classList.remove('elme-tabbar-sheet-open');
-                    this.syncLens();
-                    const opener = this.nav.querySelector('[data-tab="shop"]');
-                    if (opener) {
-                        opener.focus();
-                    }
-                };
-                if (reduced()) {
-                    finish();
-                } else {
-                    setTimeout(finish, 300);
+                dlg.classList.remove('is-shown');
+                // the keyboard goes down with the window
+                const active = document.activeElement;
+                if (active && dlg.contains(active) && active.blur) {
+                    active.blur();
                 }
-            },
-
-            // The page was restored from the back/forward cache: no sheet, lens on the current tab
-            resetPage() {
-                if (this.sheet && this.sheet.open) {
-                    this.sheet.classList.remove('is-shown');
-                    this.sheet.close();
-                }
-                this.closing = false;
+                // the lens goes back to the current tab while the window leaves
                 this.shopOpen = false;
                 this.searchOpen = false;
+                this.announceShop(false);
+                this.syncLens();
+                const shell = dlg.querySelector('.elme-tabbar-sheet__shell');
+                let timer = null;
+                const finish = () => {
+                    clearTimeout(timer);
+                    shell.removeEventListener('transitionend', onEnd);
+                    if (!this.closing) {
+                        return; // the page was reset meanwhile
+                    }
+                    this.closing = false;
+                    this.layer = '';
+                    dlg.close();
+                    document.documentElement.classList.remove('elme-tabbar-sheet-open');
+                    const opener = this.opener && this.opener.isConnected && this.opener.offsetParent !== null
+                        ? this.opener
+                        : this.nav.querySelector('[data-tab="' + key + '"]');
+                    this.opener = null;
+                    if (opener) {
+                        opener.focus({preventScroll: true});
+                    }
+                };
+                const onEnd = (e) => {
+                    if (e.target === shell) {
+                        finish();
+                    }
+                };
+                // closes when the window has left; the timer is only a safety net (hidden tab, no transition ran)
+                shell.addEventListener('transitionend', onEnd);
+                timer = setTimeout(finish, 400);
+            },
+
+            // The page was restored from the back/forward cache: no window, lens on the current tab
+            resetPage() {
+                [this.sheet, this.searchWin].forEach((dlg) => {
+                    if (dlg && dlg.open) {
+                        dlg.classList.remove('is-shown');
+                        dlg.close();
+                    }
+                });
+                this.closing = false;
+                this.layer = '';
+                this.opener = null;
+                this.shopOpen = false;
+                this.searchOpen = false;
+                this.announceShop(false);
                 document.documentElement.classList.remove('elme-tabbar-sheet-open');
                 this.syncLens();
             },
 
             onSheetClick() {
                 const e = this.$event;
-                // the dimmed area (the dialog itself) or a category link closes the sheet
+                // the dimmed area (the dialog itself) or a link (category, suggestion) closes the window
                 if (e.target.nodeName === 'DIALOG' || (e.target.closest && e.target.closest('a[href]'))) {
-                    this.closeSheet();
+                    this.closeLayer();
                 }
             },
 
@@ -461,7 +528,7 @@ foreach ($tabs as $index => $tab) {
      @elme-qo-count.window="setQoCount"
      @elme-cart-landing.window="cartLanding"
      @elme-cart-landed.window="cartLanded"
-     @elme-search-state.window="onSearchState"
+     @elme-open-shop.window="openShopFromHeader"
      @pageshow.window="resetPage">
     <nav class="elme-tabbar<?= $currentIndex < 0 ? ' is-idle' : '' ?>"
          data-elme-tabbar
@@ -491,7 +558,7 @@ foreach ($tabs as $index => $tab) {
                     . ($isCurrent ? ' aria-current="page"' : '')
                     . ($isLink ? ' href="' . $escaper->escapeUrl($tab['url']) . '"' : ' type="button"')
                     . ($tab['type'] === 'sheet' ? ' aria-haspopup="dialog" aria-controls="elme-tabbar-sheet" :aria-expanded="shopOpen"' : '')
-                    . ($tab['type'] === 'search' ? ' aria-haspopup="true" aria-controls="search-content" :aria-expanded="searchOpen"' : '')
+                    . ($tab['type'] === 'search' ? ' aria-haspopup="dialog" aria-controls="elme-tabbar-search" :aria-expanded="searchOpen"' : '')
                     . ($isCart ? ' :aria-label="cartLabel"' : '');
                 ?>
                 <li>
@@ -516,7 +583,7 @@ foreach ($tabs as $index => $tab) {
     <dialog id="elme-tabbar-sheet"
             class="elme-tabbar-sheet"
             aria-labelledby="elme-tabbar-sheet-title"
-            @cancel.prevent="closeSheet"
+            @cancel.prevent="closeLayer"
             @click="onSheetClick">
         <div class="elme-tabbar-sheet__shell" role="document">
             <div class="elme-tabbar-sheet__head">
@@ -525,7 +592,7 @@ foreach ($tabs as $index => $tab) {
                 </h2>
                 <button type="button"
                         class="elme-mobile-menu__close corner-leaf-sm"
-                        @click="closeSheet"
+                        @click="closeLayer"
                         aria-label="<?= $escaper->escapeHtmlAttr(__('Close')) ?>">
                     <?= $lucideIcons->xHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
                 </button>
@@ -552,6 +619,27 @@ foreach ($tabs as $index => $tab) {
                         </a>
                     </li>
                 </ul>
+            </div>
+        </div>
+    </dialog>
+
+    <?php // Search window: the same form as the header (Magento_Theme::html/header/search-form.phtml, input id search-window) ?>
+    <dialog id="elme-tabbar-search"
+            class="elme-tabbar-sheet elme-tabbar-sheet--top"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('Search')) ?>"
+            @cancel.prevent="closeLayer"
+            @click="onSheetClick">
+        <div class="elme-tabbar-sheet__shell elme-tabbar-search__shell" role="document">
+            <div class="elme-tabbar-search__row">
+                <div class="elme-tabbar-search__field">
+                    <?= $block->getChildHtml('search') ?>
+                </div>
+                <button type="button"
+                        class="elme-mobile-menu__close corner-leaf-sm"
+                        @click="closeLayer"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Close search')) ?>">
+                    <?= $lucideIcons->xHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+                </button>
             </div>
         </div>
     </dialog>

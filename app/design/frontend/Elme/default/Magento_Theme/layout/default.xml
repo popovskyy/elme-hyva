@@ -91,6 +91,14 @@
                         <argument name="menu" xsi:type="string">hyva-topmenu-mobile</argument>
                     </arguments>
                 </block>
+                <!-- The Search tab opens a window with the same search form as the header (own input id) -->
+                <block name="elme.tab-bar.search"
+                       as="search"
+                       template="Magento_Theme::html/header/search-form.phtml">
+                    <arguments>
+                        <argument name="input_id" xsi:type="string">search-window</argument>
+                    </arguments>
+                </block>
             </block>
         </referenceContainer>
 

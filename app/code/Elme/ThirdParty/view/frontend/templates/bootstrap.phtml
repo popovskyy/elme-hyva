@@ -5,8 +5,8 @@
  * - No sync scripts in <head>; load after interactive (idle / load+timeout / Hyvä
  *   init-external-scripts), never fetchpriority=high.
  * - Marketing (GTM, Klaviyo, Triple Whale): gated by consent_mode (default defer_only
- *   until a CMP / Privacy page lands). Chat (Zendesk): first interaction, or 12s
- *   on a quiet visit, so it does not compete with the first paint.
+ *   until a CMP / Privacy page lands). Chat (Zendesk): 2s after the first interaction (when idle),
+ *   or 12s on a quiet visit, so it does not compete with the first paint or the first tap's animation.
  * - No JSON-LD / meta / heading injection (FE-55 owns SEO). Ecommerce stays in dataLayer.
  * - D7: Klaviyo forms toggle via config; footer newsletter remains Magento (FE-11).
  */
@@ -295,8 +295,24 @@ $bootstrapJson = $config->getBootstrapJson();
             loaded = true;
             startFunctional();
         }
+        // The first tap is often the one that opens a menu or a sheet, and the chat script costs ~150ms of
+        // main thread on a phone. Let that animation finish, then boot the chat when the page is idle.
+        var armedByTap = false;
+        function afterInteraction() {
+            if (armedByTap) {
+                return;
+            }
+            armedByTap = true;
+            setTimeout(function () {
+                if (window.requestIdleCallback) {
+                    window.requestIdleCallback(fire, { timeout: 3000 });
+                } else {
+                    fire();
+                }
+            }, 2000);
+        }
         ['pointerdown', 'keydown', 'touchstart'].forEach(function (name) {
-            window.addEventListener(name, fire, {once: true, passive: true});
+            window.addEventListener(name, afterInteraction, {once: true, passive: true});
         });
         // Chat is not needed for the first paint. A quiet visit still gets it.
         setTimeout(fire, 12000);

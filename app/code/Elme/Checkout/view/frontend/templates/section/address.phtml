@@ -74,6 +74,7 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
             x-ref="dialog"
             aria-labelledby="elme-checkout-address-dialog-title"
             @close="dialogClosed"
+            @cancel.prevent="closeDialog"
             @click="closeOnBackdrop">
         <div class="elme-checkout-dialog__panel">
             <div class="elme-checkout-dialog__head">
@@ -158,6 +159,7 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
         return {
             dialogGroup: '',
             formOpen: false,
+            leaving: false,
 
             store() {
                 return Alpine.store('elmeCheckout');
@@ -242,7 +244,7 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
             },
             openShipping() {
                 this.dialogGroup = 'shipping';
-                this.$refs.dialog.showModal();
+                this.openDialog();
                 if (this.addresses().length === 0) {
                     this.openForm();
                     return;
@@ -251,11 +253,40 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
             },
             openBilling() {
                 this.dialogGroup = 'billing';
-                this.$refs.dialog.showModal();
+                this.openDialog();
                 this.focusCheckedRadio('billingList');
             },
+            openDialog() {
+                const dialog = this.$refs.dialog;
+                this.leaving = false;
+                dialog.showModal();
+                // laid out in its closed place now; reading the layout commits that, so the class is a real transition
+                void dialog.offsetHeight;
+                dialog.classList.add('is-shown');
+            },
+            // goes the way it came (down on phones), then closes; the timer is only a safety net
             closeDialog() {
-                this.$refs.dialog.close();
+                const dialog = this.$refs.dialog;
+                if (!dialog.open || this.leaving) {
+                    return;
+                }
+                this.leaving = true;
+                dialog.classList.remove('is-shown');
+                let timer = null;
+                const finish = () => {
+                    clearTimeout(timer);
+                    dialog.removeEventListener('transitionend', onEnd);
+                    if (dialog.open) {
+                        dialog.close();
+                    }
+                };
+                const onEnd = (event) => {
+                    if (event.target === dialog && !event.pseudoElement) {
+                        finish();
+                    }
+                };
+                dialog.addEventListener('transitionend', onEnd);
+                timer = setTimeout(finish, 450);
             },
             closeOnBackdrop() {
                 // The panel fills the dialog, so a click on the dialog itself is a click on the backdrop
@@ -264,6 +295,8 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
                 }
             },
             dialogClosed() {
+                this.leaving = false;
+                this.$refs.dialog.classList.remove('is-shown');
                 const opener = this.dialogGroup === 'billing' ? 'changeBilling' : 'changeShipping';
                 if (this.formOpen) {
                     this.closeForm();
@@ -333,7 +366,8 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
                 requestAnimationFrame(() => {
                     const target = element();
                     if (target?.getClientRects().length) {
-                        target.focus();
+                        // preventScroll: the dialog may still be coming in; a focus must not scroll the page to reveal it
+                        target.focus({preventScroll: true});
                     } else if (framesLeft > 0) {
                         this.focusWhenShown(element, framesLeft - 1);
                     }

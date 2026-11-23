@@ -5,7 +5,7 @@
  * art (::after). They are masks, so each type colours them from its own tint
  * and --leaf-x / --leaf-y / --leaf-flip give each type a different scatter.
  * Page messages are a compact card (--message-max-width), centred.
- * Page messages stay in the flow; toasts are a charcoal bar fixed at the bottom (see .elme-toast-stack).
+ * Page messages stay in the flow; toasts are the same card, fixed at the top of the screen (see .elme-toast-stack).
  */
 
 @layer components {
@@ -174,22 +174,19 @@
     }
 
     /*
-     * Ephemeral toast: a charcoal bar at the bottom, full width on phones, bottom left
-     * from lg. With an image (Add to Cart) the photo replaces the status badge and a "View cart" link sits on
-     * the right; a sage line runs down while the toast stays. Leaf layers are off here.
-     * --elme-toast-bottom lifts the stack over the sticky Add to Cart bar and the cart page bar.
+     * Ephemeral toast: the same tinted paper card as the page messages (type colours, leaf art, leaf mark). On phones
+     * and tablets it comes down from the top of the screen (the bottom already holds the tab bar, the sticky Add to
+     * Cart bar, the filter pill, the cookie notice), newest on top. From lg it stays bottom left, away from the header
+     * cart that the added item flies to. With an image (Add to Cart) the photo replaces the status mark and a
+     * "View cart" link sits on the right; a line in the type colour runs down while the toast stays.
+     * --elme-toast-bottom (lg) lifts the stack over the sticky Add to Cart bar.
      */
     :root {
+        --elme-toast-top: --spacing(3);
         --elme-toast-bottom: --spacing(3);
 
         &:has(.elme-sticky-atc.is-visible) {
             --elme-toast-bottom: --spacing(24);
-        }
-
-        @variant max-lg {
-            &:has(.elme-cart__bar) {
-                --elme-toast-bottom: --spacing(24);
-            }
         }
     }
 
@@ -197,16 +194,27 @@
         position: fixed;
         z-index: 40;
         inset-inline: --spacing(3);
-        bottom: calc(var(--elme-toast-bottom) + env(safe-area-inset-bottom));
+        top: calc(var(--elme-toast-top) + env(safe-area-inset-top));
         display: flex;
-        flex-direction: column;
+        flex-direction: column-reverse;
         gap: --spacing(2);
         pointer-events: none;
-        transition: bottom var(--transition-duration-base) var(--ease-out-quart);
+
+        /* tablet: one card width, centred */
+        @variant md {
+            inset-inline: 0;
+            width: --spacing(105);
+            margin-inline: auto;
+        }
 
         @variant lg {
             inset-inline: var(--container-gutter-desktop) auto;
+            margin-inline: 0;
+            top: auto;
+            bottom: calc(var(--elme-toast-bottom) + env(safe-area-inset-bottom));
+            flex-direction: column;
             width: --spacing(105);
+            transition: bottom var(--transition-duration-base) var(--ease-out-quart);
         }
     }
 
@@ -215,58 +223,23 @@
         min-height: --spacing(16);
         margin: 0;
         padding: --spacing(2.5) --spacing(1.5) --spacing(3) --spacing(3);
-        border: 0;
-        border-radius: 0;
-        background-color: var(--color-primary);
-        box-shadow: 0 --spacing(3) --spacing(8) color-mix(in srgb, var(--color-ink) 24%, transparent);
-        color: var(--color-on-primary);
+        box-shadow: 0 --spacing(3) --spacing(8) color-mix(in srgb, var(--color-ink) 18%, transparent);
         font-size: var(--text-copy);
         line-height: var(--text-copy--line-height);
         pointer-events: auto;
-
-        &::before,
-        &::after {
-            content: none;
-        }
 
         &.has-image {
             padding-inline-start: --spacing(2.5);
         }
 
         &.has-title .message__text {
-            color: color-mix(in srgb, var(--color-on-primary) 75%, transparent);
+            color: color-mix(in srgb, var(--message-text) 80%, transparent);
             font-weight: 400;
         }
 
         &.is-leaving {
             opacity: 0;
             pointer-events: none;
-        }
-
-        a {
-            color: var(--color-secondary);
-        }
-
-        .message__badge {
-            background: var(--message-bg);
-
-            &::after {
-                background: var(--message-mark);
-            }
-        }
-
-        .message__close {
-            color: var(--color-on-primary);
-
-            &:focus-visible {
-                outline-color: var(--color-on-primary);
-            }
-
-            @media (hover: hover) and (pointer: fine) {
-                &:hover {
-                    background-color: color-mix(in srgb, var(--color-on-primary) 12%, transparent);
-                }
-            }
         }
     }
 
@@ -306,7 +279,7 @@
         inset-inline: 0;
         bottom: 0;
         height: --spacing(0.75);
-        background-color: var(--color-secondary);
+        background-color: color-mix(in srgb, var(--message-mark) 55%, transparent);
         transform-origin: left;
         animation: elme-toast-timer var(--toast-life, 5000ms) linear forwards;
     }
@@ -321,7 +294,7 @@
         }
     }
 
-    /* The bar slides up from below the screen edge and drops away when it leaves */
+    /* The card slides in from the screen edge it sits on (top; bottom from lg) and goes back the same way */
     @media (prefers-reduced-motion: no-preference) {
         .elme-toast-stack .message {
             transition:
@@ -329,11 +302,19 @@
                 translate var(--transition-duration-calm) var(--ease-out-quint);
 
             @starting-style {
-                translate: 0 calc(100% + --spacing(4));
+                translate: 0 calc(-100% - --spacing(4));
+
+                @variant lg {
+                    translate: 0 calc(100% + --spacing(4));
+                }
             }
 
             &.is-leaving {
-                translate: 0 --spacing(3);
+                translate: 0 calc(--spacing(3) * -1);
+
+                @variant lg {
+                    translate: 0 --spacing(3);
+                }
             }
         }
     }

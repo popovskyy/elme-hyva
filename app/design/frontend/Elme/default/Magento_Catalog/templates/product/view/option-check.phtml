@@ -1,0 +1,135 @@
+<?php
+/**
+ * PDP: a required option (configurable Size, Configuration, ...) that is not chosen when Add to cart is pressed.
+ *
+ * The browser's own bubble ("Please select an item in the list") is not shown by iOS, and anywhere else it sits on the
+ * field, out of sight when the press came from the sticky bar. So the `invalid` event is taken over: no bubble, an
+ * error line under the field (the custom select turns red by itself from aria-invalid), the field scrolled to the
+ * middle of the screen and focused. When it was out of sight (sticky bar), the toast says it too and the pressed
+ * button shakes (window.elmeAtc from elme/atc-button.phtml). The error goes when a value is chosen.
+ * Plain script, no Alpine: it works on the native form, whichever button pressed it.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+?>
+<script>
+    (function () {
+        const FORM = '#product_addtocart_form';
+        const TEXT_NAMED = '<?= $escaper->escapeJs(__('Please select %1')) ?>';
+        const TEXT_PLAIN = '<?= $escaper->escapeJs(__('Please select an option')) ?>';
+        const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let pending = null;
+
+        function labelOf(field) {
+            const label = field.id ? document.querySelector('label[for="' + field.id + '"]') : null;
+            return label ? label.textContent.trim() : '';
+        }
+
+        function messageFor(field) {
+            const name = labelOf(field);
+            if (field.tagName !== 'SELECT') {
+                return field.validationMessage || TEXT_PLAIN;
+            }
+            return name ? TEXT_NAMED.replace('%1', name) : TEXT_PLAIN;
+        }
+
+        // the custom select hides the native one: scroll to, and focus, what the customer sees
+        function visibleControl(field) {
+            const host = field.closest('.elme-select');
+            return (host && host.querySelector('.elme-select__trigger')) || field;
+        }
+
+        function line(field) {
+            const id = (field.id || 'pdp-option') + '-error';
+            let el = document.getElementById(id);
+            if (!el) {
+                el = document.createElement('p');
+                el.id = id;
+                el.className = 'elme-pdp__field-error';
+                el.setAttribute('role', 'alert');
+                (field.closest('.elme-select') || field).insertAdjacentElement('afterend', el);
+            }
+            return el;
+        }
+
+        function show(field) {
+            const el = line(field);
+            el.textContent = messageFor(field);
+            field.setAttribute('aria-invalid', 'true');
+            field.setAttribute('aria-describedby', el.id);
+        }
+
+        function clear(field) {
+            const el = document.getElementById((field.id || 'pdp-option') + '-error');
+            if (el) {
+                el.remove();
+            }
+            field.removeAttribute('aria-invalid');
+            field.removeAttribute('aria-describedby');
+        }
+
+        // out of sight = not clearly on screen between the header and the bars at the bottom
+        function inSight(el) {
+            const rect = el.getBoundingClientRect();
+            return rect.top >= 72 && rect.bottom <= window.innerHeight - 200;
+        }
+
+        function reveal(field) {
+            const control = visibleControl(field);
+            const seen = inSight(control);
+            const group = field.closest('[role="group"]') || control;
+            if (!seen) {
+                group.scrollIntoView({block: 'center', behavior: reduced() ? 'auto' : 'smooth'});
+                window.dispatchEvent(new CustomEvent('elme-toast', {
+                    detail: {type: 'error', text: messageFor(field)}
+                }));
+            }
+            control.focus({preventScroll: true});
+            // the pressed button shakes: the sticky one when the press came from there
+            const main = document.getElementById('product-addtocart-button');
+            const pressed = main && main.elmeAtcOrigin ? main.elmeAtcOrigin : main;
+            if (pressed && window.elmeAtc) {
+                window.elmeAtc.done(pressed, false);
+            }
+        }
+
+        // all invalid fields report in one task; the first one (page order) is the one to show
+        document.addEventListener('invalid', (event) => {
+            const field = event.target;
+            if (!field.closest || !field.closest(FORM)) {
+                return;
+            }
+            event.preventDefault();
+            show(field);
+            if (!pending) {
+                pending = field;
+                setTimeout(() => {
+                    const first = pending;
+                    pending = null;
+                    reveal(first);
+                }, 0);
+            }
+        }, true);
+
+        const done = (event) => {
+            const field = event.target;
+            if (field && field.getAttribute && field.getAttribute('aria-invalid') === 'true'
+                && field.closest && field.closest(FORM) && field.validity && field.validity.valid) {
+                clear(field);
+            }
+        };
+        document.addEventListener('change', done, true);
+        document.addEventListener('input', done, true);
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
