@@ -6,7 +6,7 @@
 
 Each ticket below is ready to copy into Jira: **Scope** (what the dev builds), **Ref** (production URL and old code in m2-bart-group, theme `Bart/el`), **QA** (checks QA ticks off). A ticket goes to QA only when it also meets the Definition of Done.
 
-**Status** (Overview table): **Done** = merged into `main` from its own `Merge FE-xx` branch; **In review** = the code is in `main` but it was not merged as its own ticket or not yet checked on a running store (QA it, then set Done); **To do** = not started; **Split** = replaced by the tickets named in its title. Last synced with git history on 31 Oct 2026.
+**Status** (Overview table): **Done** = merged into `production` from its own `Merge FE-xx` branch; **In review** = the code is in `production` but it was not merged as its own ticket or not yet checked on a running store (QA it, then set Done); **To do** = not started; **Split** = replaced by the tickets named in its title. Last synced with git history on 31 Oct 2026.
 
 **Definition of Done (every ticket)**
 

@@ -37,6 +37,10 @@ New Elme Living storefront (moving off the shared Adobe Commerce instance `m2-ba
 
 `.claude/skills/hyva-*` are copied from github.com/hyva-themes/hyva-ai-tools (commit in `HYVA_AI_TOOLS_VERSION`). The Hyvä CMS / Hyvä UI skills are left out on purpose: those are paid products we don't use.
 
+## Git
+
+The base branch is `production` (Bitbucket `bartgroup/m2-elmeliving`). Cut every ticket branch from a fresh `production` (`git fetch && git switch -c fe-xx-slug origin/production`), name it after the ticket and merge it back with a `Merge FE-xx` commit.
+
 ## Roadmap
 
 Frontend tickets (FE-01...FE-58, UX-01...UX-12, epics, dependencies, QA checks, decisions D1-D12): `docs/frontend-tickets.md`. Update the Status column and decisions there when a ticket or decision changes.

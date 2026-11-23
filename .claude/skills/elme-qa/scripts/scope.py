@@ -9,8 +9,8 @@ classes lists who else references them.
     python3 .claude/skills/elme-qa/scripts/scope.py              # report
     python3 .claude/skills/elme-qa/scripts/scope.py --list php   # paths only: php|xml|phtml|css|js|all
 
-BASE=<ref> overrides the base branch (default: the first of origin/main, main, origin/master,
-master that exists). Before the first commit everything untracked counts as changed.
+BASE=<ref> overrides the base branch (default: the first of origin/production, bitbucket/production,
+production, origin/main, main, origin/master, master that exists). Before the first commit everything untracked counts as changed.
 """
 import os
 import re
@@ -63,7 +63,7 @@ def has_head():
 def base_ref():
     if os.environ.get('BASE'):
         return os.environ['BASE']
-    for ref in ('origin/main', 'main', 'origin/master', 'master'):
+    for ref in ('origin/production', 'bitbucket/production', 'production', 'origin/main', 'main', 'origin/master', 'master'):
         if subprocess.run(['git', 'rev-parse', '--verify', '-q', ref], capture_output=True).returncode == 0:
             return ref
     return None
