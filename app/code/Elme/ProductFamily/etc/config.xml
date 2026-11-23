@@ -2,11 +2,12 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
-        <elme_product_family>
-            <lead_time>
+        <elme_catalog>
+            <product_family>
                 <!-- Made-to-order lead time until the Shipment Service provides it (old site: "With you in 14 weeks") -->
-                <default_weeks>14</default_weeks>
-            </lead_time>
-        </elme_product_family>
+                <lead_time_weeks>14</lead_time_weeks>
+                <lead_time_label>With you in %1</lead_time_label>
+            </product_family>
+        </elme_catalog>
     </default>
 </config>

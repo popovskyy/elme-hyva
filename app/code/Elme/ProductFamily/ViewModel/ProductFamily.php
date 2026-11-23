@@ -7,6 +7,7 @@ namespace Elme\ProductFamily\ViewModel;
 use Elme\ProductFamily\Model\AxisBuilder;
 use Elme\ProductFamily\Model\ColourCounter;
 use Elme\ProductFamily\Model\ConfigurationPicker;
+use Elme\ProductFamily\Model\FabricGroups;
 use Elme\ProductFamily\Model\FamilyLoader;
 use Elme\ProductFamily\Model\LeadTime\LeadTimeProviderInterface;
 use Elme\ProductFamily\Model\ProductGroupBuilder;
@@ -63,6 +64,7 @@ class ProductFamily implements ArgumentInterface, IdentityInterface
         private readonly ColourCounter $colourCounter,
         private readonly ProductGroupBuilder $productGroupBuilder,
         private readonly LeadTimeProviderInterface $leadTimeProvider,
+        private readonly FabricGroups $fabricGroups,
         private readonly array $visualAxes = []
     ) {
     }
@@ -273,7 +275,8 @@ class ProductFamily implements ArgumentInterface, IdentityInterface
 
     /**
      * Axes with at least two values, in family_axes order. Each option:
-     * value, label, selected, available, url, note (why it is crossed out), image, color.
+     * value, label, selected, available, url, note (why it is crossed out), image, color; on a visual
+     * axis also madeToOrder (bool) and leadTime (weeks + label, null for Quick Ship) of the linked member.
      *
      * @return array<int, array{code: string, label: string, visual: bool, selectedLabel: string, options: array<int, array>}>
      */
@@ -304,6 +307,9 @@ class ProductFamily implements ArgumentInterface, IdentityInterface
                 $option['color'] = '';
                 if ($axis['visual']) {
                     $option = array_merge($option, $this->chipFill($member, $optionSwatches[$option['value']] ?? null));
+                    $leadTime = $this->leadTimeProvider->getLeadTime($member);
+                    $option['madeToOrder'] = (bool) $member->getData(FamilyLoader::ATTR_MADE_TO_ORDER);
+                    $option['leadTime'] = $leadTime ? $leadTime->toArray() : null;
                 }
             }
             unset($option);
@@ -311,6 +317,22 @@ class ProductFamily implements ArgumentInterface, IdentityInterface
         unset($axis);
 
         return $this->axesByProduct[$productId] = $axes;
+    }
+
+    /**
+     * FE-85: the "Select Color:" fabric picker of the PDP for one visual axis of getAxes(): the options
+     * in a Quick Ship and a Made To Order group (see FabricGroups). Null when no option of the axis is
+     * made to order; the template then keeps the plain FE-28 chips.
+     *
+     * @param array{code: string, label: string, visual: bool, selectedLabel: string, options: array<int, array>} $axis
+     * @return array{
+     *     selected: array<string, mixed>|null,
+     *     groups: array<int, array{code: string, leadTime: string, options: array<int, array<string, mixed>>}>
+     * }|null
+     */
+    public function getFabricPicker(array $axis): ?array
+    {
+        return $axis['visual'] ? $this->fabricGroups->build($axis['options']) : null;
     }
 
     /**

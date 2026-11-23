@@ -4,6 +4,7 @@
  * Colour axes are chips (image or colour), other axes (size, comfort ...) are text buttons.
  * A value with no sibling in the current combination stays visible, crossed out, and links to
  * the closest sibling. Look: web/tailwind/elme/product/family-swatches.css.
+ * FE-85: a colour axis with a made-to-order option is drawn by fabric-picker.phtml instead.
  */
 
 declare(strict_types=1);
@@ -25,10 +26,17 @@ $axes = $product ? $family->getAxes($product) : [];
 if (!$axes) {
     return;
 }
+// FE-85: a colour axis with made-to-order fabrics is the "Select Color:" picker (Quick Ship / Made To Order groups)
+$fabricBlock = $block->getChildBlock('product.info.family.fabric');
 ?>
 <div class="elme-family">
     <?php foreach ($axes as $axis): ?>
         <?php
+        $fabricPicker = $fabricBlock ? $family->getFabricPicker($axis) : null;
+        if ($fabricPicker) {
+            echo /* @noEscape */ $fabricBlock->setData('axis', $axis)->setData('picker', $fabricPicker)->toHtml();
+            continue;
+        }
         $labelId = 'elme-family-' . $escaper->escapeHtmlAttr($axis['code']);
         $isVisual = $axis['visual'];
         ?>

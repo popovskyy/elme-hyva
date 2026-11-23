@@ -4,6 +4,7 @@
     <module name="Elme_ProductFamily">
         <sequence>
             <module name="Magento_Catalog"/>
+            <module name="Magento_Cms"/>
             <module name="Magento_Swatches"/>
         </sequence>
     </module>
