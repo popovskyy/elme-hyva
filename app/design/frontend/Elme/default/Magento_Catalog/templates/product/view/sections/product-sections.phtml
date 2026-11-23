@@ -51,6 +51,8 @@ if ($descriptionHtml !== '') {
         'title' => __('Details'),
         'html' => '<div class="prose">' . $descriptionHtml . '</div>',
         'print' => true,
+        // FE-98: Details holds the short text too, so the sheet prints it once (see pdp-print.css)
+        'covers_short' => $details->descriptionCoversShort($product, (string) $productPage->getShortDescription()),
     ];
 }
 
@@ -185,7 +187,7 @@ if (!$sections) {
 <div class="elme-pdp__sections">
     <?php foreach ($sections as $id => $section): ?>
         <?php /* FE-98: only the sections flagged "print" go on the printed spec sheet (pdp-print.css) */ ?>
-        <details class="elme-pdp__section<?= !empty($section['print']) ? ' elme-pdp__section--print' : '' ?>"
+        <details class="elme-pdp__section<?= !empty($section['print']) ? ' elme-pdp__section--print' : '' ?><?= !empty($section['covers_short']) ? ' elme-pdp__section--has-short' : '' ?>"
                  id="<?= $escaper->escapeHtmlAttr($id) ?>">
             <summary>
                 <h2><?= $escaper->escapeHtml($section['title']) ?></h2>
