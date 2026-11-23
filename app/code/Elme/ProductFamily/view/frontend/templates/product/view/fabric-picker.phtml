@@ -1,0 +1,362 @@
+<?php
+/**
+ * Elme FE-85: "Select Color:" fabric picker of the PDP for a colour axis that has made-to-order options
+ * (sofas and other upholstery). A collapsed field (current fabric, thumbnail + name) opens a panel with the
+ * fabrics in two groups, "Quick Ship" and "Made To Order: With you in 14 weeks" + an info icon whose text is the
+ * CMS block pdp_make_to_order_info_tooltip. An empty group is not printed. Every fabric is a link to the sibling
+ * product page (swatch = navigation, as FE-28); the current one is marked and not a link.
+ * A Made To Order fabric asks first: a click opens one confirm dialog (large fabric picture, name, its lead time,
+ * Cancel / Confirm); Confirm is a plain link to the sibling product. The tile keeps its href, so a ctrl / cmd / shift
+ * click, a middle click and a browser without JS go straight to the product. The dialog text of the tile is read from
+ * its data-mto-* attributes (no arguments in Alpine expressions, CSP).
+ * Fed by family.phtml: `axis` (ProductFamily::getAxes()) and `picker` (ProductFamily::getFabricPicker()).
+ * Look: web/tailwind/elme/product/fabric-picker.css. Lead time: Stores > Configuration > Elme > Catalog.
+ */
+
+declare(strict_types=1);
+
+use Elme\ProductFamily\Model\FabricGroups;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$axis = $block->getData('axis');
+$picker = $block->getData('picker');
+if (!is_array($axis) || !is_array($picker) || !$picker['groups']) {
+    return;
+}
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+
+$uid = 'elme-fabric-' . preg_replace('/[^a-z0-9_-]/i', '', (string) $axis['code']);
+$labelId = $uid . '-label';
+$panelId = $uid . '-panel';
+$infoId = $uid . '-info';
+$mtoTitleId = $uid . '-mto-title';
+$mtoTextId = $uid . '-mto-text';
+
+$selected = $picker['selected'];
+$selectedLabel = $selected ? (string) $selected['label'] : '';
+// the admin text of the info icon; no text, no icon. Page Builder wraps even an empty block in a <style> tag,
+// so style and script elements do not count as text.
+$infoHtml = trim((string) $block->getChildHtml('product.info.family.fabric.info'));
+$hasInfo = trim(strip_tags((string) preg_replace('#<(style|script)\b[^>]*>.*?</\1>#is', '', $infoHtml))) !== '';
+$groupTitles = [
+    FabricGroups::QUICK_SHIP => (string) __('Quick Ship:'),
+    FabricGroups::MADE_TO_ORDER => (string) __('Made To Order:'),
+];
+
+/** The fabric: its image, else its colour, else the first letters of the name. */
+$renderFill = static function (array $option, string $class, int $size, bool $lazy) use ($escaper): string {
+    if ($option['image'] !== '') {
+        return '<img src="' . $escaper->escapeUrl($option['image']) . '" alt="" width="' . $size . '" height="' . $size . '"'
+            . ($lazy ? ' loading="lazy"' : '') . ' class="' . $class . '">';
+    }
+    if ($option['color'] !== '') {
+        return '<span class="' . $class . '" style="background-color: ' . $escaper->escapeHtmlAttr($option['color']) . '"></span>';
+    }
+
+    return '<span class="' . $class . ' elme-fabric__fill--text" aria-hidden="true">'
+        . $escaper->escapeHtml(mb_substr((string) $option['label'], 0, 2)) . '</span>';
+};
+?>
+<div class="elme-fabric"
+     x-data="initElmeFabricPicker"
+     @keydown.escape.window="onEscape"
+     @click.window="onWindowClick"
+     @focusin.window="onWindowFocus">
+    <p class="elme-family__label" id="<?= /* @noEscape */ $labelId ?>">
+        <span class="elme-family__name"><?= $escaper->escapeHtml(__('Select %1:', $axis['label'])) ?></span>
+        <?php if ($selectedLabel !== ''): ?>
+            <span class="elme-family__value"><?= $escaper->escapeHtml($selectedLabel) ?></span>
+        <?php endif; ?>
+    </p>
+
+    <button type="button"
+            class="elme-fabric__trigger"
+            x-ref="trigger"
+            aria-haspopup="true"
+            aria-controls="<?= /* @noEscape */ $panelId ?>"
+            aria-expanded="false"
+            :aria-expanded="open"
+            aria-labelledby="<?= /* @noEscape */ $labelId ?>"
+            @click="toggle">
+        <?php if ($selected): ?>
+            <?= /* @noEscape */ $renderFill($selected, 'elme-fabric__thumb', 112, false) ?>
+        <?php endif; ?>
+        <span class="elme-fabric__current"><?= $escaper->escapeHtml($selectedLabel !== '' ? $selectedLabel : __('Choose')) ?></span>
+        <?= $lucideIcons->chevronDownHtml('elme-fabric__chevron', 20, 20, ['aria-hidden' => 'true']) ?>
+    </button>
+
+    <div class="elme-fabric__panel"
+         id="<?= /* @noEscape */ $panelId ?>"
+         role="group"
+         aria-labelledby="<?= /* @noEscape */ $labelId ?>"
+         x-show="open"
+         @click="openMto"
+         x-cloak>
+        <?php foreach ($picker['groups'] as $group): ?>
+            <section class="elme-fabric__group elme-fabric__group--<?= $escaper->escapeHtmlAttr(str_replace('_', '-', $group['code'])) ?>">
+                <div class="elme-fabric__group-head">
+                    <h3 class="elme-fabric__group-title"><?= $escaper->escapeHtml($groupTitles[$group['code']] ?? '') ?></h3>
+                    <?php if ($group['code'] === FabricGroups::MADE_TO_ORDER && ($group['leadTime'] !== '' || $hasInfo)): ?>
+                        <p class="elme-fabric__lead">
+                            <?php if ($group['leadTime'] !== ''): ?>
+                                <span><?= $escaper->escapeHtml($group['leadTime']) ?></span>
+                            <?php endif; ?>
+                            <?php if ($hasInfo): ?>
+                                <button type="button"
+                                        class="elme-fabric__info-btn"
+                                        x-ref="infoBtn"
+                                        aria-controls="<?= /* @noEscape */ $infoId ?>"
+                                        aria-expanded="false"
+                                        :aria-expanded="infoOpen"
+                                        aria-label="<?= $escaper->escapeHtmlAttr(__('About Quick Ship and Made To Order')) ?>"
+                                        @click="toggleInfo">
+                                    <?= $lucideIcons->infoHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                                </button>
+                            <?php endif; ?>
+                        </p>
+                    <?php endif; ?>
+                </div>
+                <?php if ($group['code'] === FabricGroups::MADE_TO_ORDER && $hasInfo): ?>
+                    <div class="elme-fabric__note"
+                         id="<?= /* @noEscape */ $infoId ?>"
+                         x-show="infoOpen"
+                         x-cloak>
+                        <?= /* @noEscape */ $infoHtml ?>
+                    </div>
+                <?php endif; ?>
+
+                <ul class="elme-fabric__list" role="list">
+                    <?php foreach ($group['options'] as $option): ?>
+                        <?php
+                        $label = (string) $option['label'];
+                        $state = $option['selected'] ? ' is-selected' : ($option['available'] ? '' : ' is-unavailable');
+                        $itemClass = 'elme-fabric__item' . $state;
+                        $inner = '<span class="elme-fabric__swatch">'
+                            . $renderFill($option, 'elme-fabric__img', 112, true)
+                            . '</span>'
+                            . '<span class="elme-fabric__name">' . $escaper->escapeHtml($label) . '</span>';
+                        ?>
+                        <li>
+                            <?php if ($option['selected']): ?>
+                                <span class="<?= /* @noEscape */ $itemClass ?>" aria-current="true">
+                                    <?= /* @noEscape */ $inner ?>
+                                    <span class="sr-only"><?= $escaper->escapeHtml(__(', selected')) ?></span>
+                                </span>
+                            <?php else: ?>
+                                <a href="<?= $escaper->escapeUrl($option['url']) ?>"
+                                   class="<?= /* @noEscape */ $itemClass ?>"
+                                   <?php if ($option['note'] !== ''): ?>
+                                   title="<?= $escaper->escapeHtmlAttr($label . ' - ' . $option['note']) ?>"
+                                   <?php endif; ?>
+                                   <?php if ($group['code'] === FabricGroups::MADE_TO_ORDER): ?>
+                                   aria-haspopup="dialog"
+                                   data-mto-name="<?= $escaper->escapeHtmlAttr($label) ?>"
+                                   data-mto-image="<?= $escaper->escapeUrl((string) ($option['imageLarge'] ?? '')) ?>"
+                                   data-mto-color="<?= $escaper->escapeHtmlAttr($option['color']) ?>"
+                                   data-mto-lead="<?= $escaper->escapeHtmlAttr((string) ($option['leadTime']['label'] ?? '')) ?>"
+                                   data-mto-note="<?= $escaper->escapeHtmlAttr($option['note']) ?>"
+                                   <?php endif; ?>>
+                                    <?= /* @noEscape */ $inner ?>
+                                    <?php if ($option['note'] !== ''): ?>
+                                        <span class="sr-only">, <?= $escaper->escapeHtml(lcfirst($option['note'])) ?></span>
+                                    <?php endif; ?>
+                                </a>
+                            <?php endif; ?>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </section>
+        <?php endforeach; ?>
+    </div>
+
+    <?php /* the Made To Order confirm dialog: a child of the root next to the panel, so a click or focus in it counts as inside the picker */ ?>
+    <dialog class="elme-fabric-modal"
+            x-ref="mtoDialog"
+            aria-labelledby="<?= /* @noEscape */ $mtoTitleId ?>"
+            aria-describedby="<?= /* @noEscape */ $mtoTextId ?>"
+            @click="closeMtoOnBackdrop"
+            @close="mtoClosed">
+        <div class="elme-fabric-modal__panel">
+            <button type="button"
+                    class="elme-ib elme-fabric-modal__close"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Close')) ?>"
+                    @click="closeMto">
+                <?= $lucideIcons->xHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+            </button>
+            <div class="elme-fabric-modal__media" x-show="mtoHasMedia" x-cloak>
+                <img class="elme-fabric-modal__img"
+                     alt=""
+                     width="480"
+                     height="480"
+                     x-show="mtoImage"
+                     :src="mtoImage">
+                <span class="elme-fabric-modal__color" x-show="mtoColor" :style="mtoColorStyle"></span>
+            </div>
+            <div class="elme-fabric-modal__body">
+                <p class="elme-fabric-modal__eyebrow"><?= $escaper->escapeHtml(__('Made To Order')) ?></p>
+                <h2 class="elme-fabric-modal__title" id="<?= /* @noEscape */ $mtoTitleId ?>" x-text="mtoName"></h2>
+                <p class="elme-fabric-modal__lead" x-show="mtoLead" x-text="mtoLead" x-cloak></p>
+                <p class="elme-fabric-modal__text" id="<?= /* @noEscape */ $mtoTextId ?>">
+                    <?= $escaper->escapeHtml(__('This fabric is made to order, so allow extra time for delivery.')) ?>
+                </p>
+                <p class="elme-fabric-modal__note" x-show="mtoNote" x-text="mtoNote" x-cloak></p>
+                <div class="elme-fabric-modal__actions">
+                    <button type="button" class="btn btn-secondary" @click="closeMto">
+                        <?= $escaper->escapeHtml(__('Cancel')) ?>
+                    </button>
+                    <a class="btn btn-primary" :href="mtoUrl" @click="closeMto">
+                        <?= $escaper->escapeHtml(__('Confirm')) ?>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <script>
+        function initElmeFabricPicker() {
+            // the tile that opened the confirm dialog: an element is kept out of the Alpine state (proxy)
+            let mtoOpener = null;
+
+            return {
+                open: false,
+                infoOpen: false,
+                observer: null,
+                mtoName: '',
+                mtoImage: null,
+                mtoColor: '',
+                mtoColorStyle: {},
+                mtoHasMedia: false,
+                mtoLead: '',
+                mtoNote: '',
+                mtoUrl: '#',
+
+                init() {
+                    // The panel hangs under its field: once the field has scrolled out of view there is nothing
+                    // to anchor it to, so close it rather than leave it open out of sight.
+                    if (typeof IntersectionObserver === 'function') {
+                        this.observer = new IntersectionObserver((entries) => {
+                            entries.forEach((entry) => {
+                                // the page behind the confirm dialog can still scroll: leave the panel to it
+                                if (!entry.isIntersecting && !this.$refs.mtoDialog.open) {
+                                    this.close();
+                                }
+                            });
+                        });
+                        this.observer.observe(this.$refs.trigger);
+                    }
+                },
+
+                toggle() {
+                    if (this.open) {
+                        this.close();
+                    } else {
+                        this.open = true;
+                    }
+                },
+
+                close() {
+                    this.open = false;
+                    this.infoOpen = false;
+                },
+
+                toggleInfo() {
+                    this.infoOpen = !this.infoOpen;
+                },
+
+                // Esc closes the info note first, then the panel, and hands focus back to where it came from.
+                // Not while the confirm dialog is open: Esc belongs to the dialog (it closes itself) and the
+                // panel stays as it was.
+                onEscape() {
+                    if (this.$refs.mtoDialog.open) {
+                        return;
+                    }
+                    if (this.infoOpen) {
+                        this.infoOpen = false;
+                        if (this.$refs.infoBtn) {
+                            this.$refs.infoBtn.focus();
+                        }
+                    } else if (this.open) {
+                        this.close();
+                        this.$refs.trigger.focus();
+                    }
+                },
+
+                onWindowClick() {
+                    if (this.open && !this.$root.contains(this.$event.target)) {
+                        this.close();
+                    }
+                },
+
+                // keyboard: tabbing past the last fabric leaves the picker, so it closes
+                onWindowFocus() {
+                    if (this.open && !this.$root.contains(this.$event.target)) {
+                        this.close();
+                    }
+                },
+
+                // A click on a Made To Order tile opens the confirm dialog instead of leaving the page. One
+                // handler on the panel (tiles are links with data-mto-*). A modified click (new tab, new window)
+                // keeps the link's own job.
+                openMto(event) {
+                    const tile = event.target.closest('a[data-mto-name]');
+
+                    if (!tile || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                        return;
+                    }
+                    event.preventDefault();
+                    mtoOpener = tile;
+
+                    const data = tile.dataset;
+                    this.mtoName = data.mtoName || '';
+                    this.mtoColor = data.mtoColor || '';
+                    this.mtoColorStyle = this.mtoColor ? {backgroundColor: this.mtoColor} : {};
+                    this.mtoLead = data.mtoLead || '';
+                    this.mtoNote = data.mtoNote || '';
+                    this.mtoUrl = tile.href;
+                    this.mtoHasMedia = Boolean(data.mtoImage || this.mtoColor);
+
+                    // empty first, so the picture of the fabric opened before is never shown under this name
+                    this.mtoImage = null;
+                    this.$nextTick(() => {
+                        this.mtoImage = data.mtoImage || null;
+                    });
+                    this.$refs.mtoDialog.showModal();
+                },
+
+                closeMto() {
+                    this.$refs.mtoDialog.close();
+                },
+
+                closeMtoOnBackdrop(event) {
+                    // the panel fills the dialog, so a click on the dialog itself is a click on the backdrop
+                    if (event.target === this.$refs.mtoDialog) {
+                        this.closeMto();
+                    }
+                },
+
+                // back to the tile that asked (the panel is still open behind the dialog)
+                mtoClosed() {
+                    if (mtoOpener && mtoOpener.isConnected) {
+                        mtoOpener.focus({preventScroll: true});
+                    }
+                    mtoOpener = null;
+                }
+            };
+        }
+
+        window.addEventListener('alpine:init', () => Alpine.data('initElmeFabricPicker', initElmeFabricPicker), {once: true});
+    </script>
+    <?php $hyvaCsp->registerInlineScript() ?>
+</div>

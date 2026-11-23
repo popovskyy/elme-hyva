@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="elme_catalog">
+            <group id="product_family" translate="label comment" sortOrder="40"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Product family: made to order (FE-85)</label>
+                <comment>The text behind the info icon next to "Made To Order:" is the CMS block with the identifier pdp_make_to_order_info_tooltip (Content &gt; Blocks). Disable the block or empty its content to hide the icon.</comment>
+                <field id="lead_time_weeks" translate="label comment" type="text" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Made to order lead time (weeks)</label>
+                    <comment>Shown next to "Made To Order:" above the fabric swatches. Empty or 0: no lead time is shown.</comment>
+                    <validate>validate-digits</validate>
+                </field>
+                <field id="lead_time_label" translate="label comment" type="text" sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Lead time wording</label>
+                    <comment>%1 becomes the weeks, e.g. "With you in %1" shows "With you in 14 weeks". Empty: the built-in wording.</comment>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

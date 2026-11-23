@@ -18,10 +18,13 @@ class DefaultLeadTimeProviderTest extends TestCase
         return $product;
     }
 
-    private function provider(string|int|null $weeks): DefaultLeadTimeProvider
+    private function provider(string|int|null $weeks, ?string $label = null): DefaultLeadTimeProvider
     {
         $config = $this->createStub(ScopeConfigInterface::class);
-        $config->method('getValue')->willReturn($weeks);
+        $config->method('getValue')->willReturnMap([
+            [DefaultLeadTimeProvider::XML_PATH_DEFAULT_WEEKS, 'store', null, $weeks],
+            [DefaultLeadTimeProvider::XML_PATH_LABEL, 'store', null, $label],
+        ]);
         return new DefaultLeadTimeProvider($config);
     }
 
@@ -39,6 +42,18 @@ class DefaultLeadTimeProviderTest extends TestCase
         self::assertSame('With you in 1 week', $this->provider(1)->getLeadTime($this->product(true))->label);
     }
 
+    public function testWordingComesFromTheConfiguredText(): void
+    {
+        $leadTime = $this->provider(12, 'Ships in about %1')->getLeadTime($this->product(true));
+
+        self::assertSame('Ships in about 12 weeks', $leadTime->label);
+    }
+
+    public function testBlankWordingFallsBackToTheBuiltInText(): void
+    {
+        self::assertSame('With you in 8 weeks', $this->provider(8, '   ')->getLeadTime($this->product(true))->label);
+    }
+
     public function testQuickShipHasNoLeadTime(): void
     {
         self::assertNull($this->provider('14')->getLeadTime($this->product(false)));
@@ -47,5 +62,6 @@ class DefaultLeadTimeProviderTest extends TestCase
     public function testNoConfiguredValueHasNoLeadTime(): void
     {
         self::assertNull($this->provider(null)->getLeadTime($this->product(true)));
+        self::assertNull($this->provider('0')->getLeadTime($this->product(true)));
     }
 }

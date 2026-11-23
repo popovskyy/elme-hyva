@@ -183,7 +183,15 @@
         "font-size": "0.9375rem",
         "letter-spacing": "0.5px"
       },
+      "tabbar": {
+        "height": "3.5rem",
+        "inset": "0.5rem",
+        "gap": "0.5rem",
+        "pad": "0.25rem"
+      },
       "ease": {
+        "spring": "cubic-bezier(.34, 1.45, .5, 1)",
+        "drawer": "cubic-bezier(.32, .72, 0, 1)",
         "out-quad": "cubic-bezier(.25, .46, .45, .94)",
         "out-quart": "cubic-bezier(.165, .84, .44, 1)",
         "out-quint": "cubic-bezier(.23, 1, .32, 1)",

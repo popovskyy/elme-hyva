@@ -1,0 +1,59 @@
+<?php
+/**
+ * FE-114: category tree of the Shop sheet. Same Snowdog nodes and node templates as the mobile drawer
+ * (Snowdog_Menu hyva-topmenu-mobile, D3), shown as an accordion of native <details> (no JS, one open at a time).
+ * Nothing in here depends on the login state, so the block cache of the menu is safe.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Snowdog\Menu\Block\Menu;
+
+/** @var Menu $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+if (!$block->getMenu()) {
+    return;
+}
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+$cleanTitle = static fn ($node): string => trim((string) preg_replace('/\{.*?\}/', '', (string) $node->getTitle()));
+
+$renderList = static function (array $nodes, int $depth) use (&$renderList, $block, $escaper, $lucideIcons, $cleanTitle): string {
+    $html = '';
+    foreach ($nodes as $node) {
+        if ($node->getType() === 'cms_block') {
+            continue;
+        }
+        $children = $block->getNodes($node->getLevel() + 1, $node);
+        $node->setIsParent((bool) $children);
+        if (!$children) {
+            $html .= '<li>' . $block->renderMenuNode($node) . '</li>';
+            continue;
+        }
+        $viewAll = $block->isViewAllLinkAllowed($node->getType())
+            ? '<li>' . $block->renderViewAllLink($node) . '</li>'
+            : '';
+        $html .= '<li><details class="elme-tabbar-sheet__group" name="elme-tabbar-shop-' . (int) $depth . '">'
+            . '<summary class="elme-mobile-menu__row">'
+            . '<span>' . $escaper->escapeHtml($cleanTitle($node)) . '</span>'
+            . '<span class="elme-mobile-menu__chevron corner-leaf-sm" aria-hidden="true">'
+            . $lucideIcons->chevronRightHtml('', 16, 16, ['aria-hidden' => 'true'])
+            . '</span></summary>'
+            . '<ul class="elme-tabbar-sheet__list elme-tabbar-sheet__list--sub">'
+            . $viewAll
+            . $renderList($children, $depth + 1)
+            . '</ul></details></li>';
+    }
+    return $html;
+};
+?>
+<ul class="elme-tabbar-sheet__list">
+    <?= /* @noEscape */ $renderList($block->getNodes(), 0) ?>
+</ul>

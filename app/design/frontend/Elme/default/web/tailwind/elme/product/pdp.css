@@ -381,16 +381,73 @@
 
     .elme-sticky-atc__btn {
         flex: 1 1 auto;
-        min-width: --spacing(40);
+        min-width: 0;
+        --btn-padding-inline: --spacing(3);
+
+        @variant md {
+            min-width: --spacing(40);
+            --btn-padding-inline: var(--btn-padding-x);
+        }
 
         @variant lg {
             flex: 0 1 auto;
         }
+
+        /* the narrowest phones: the label and the total get the room, the cart icon goes */
+        @media (width < 22.5rem) {
+            > svg {
+                display: none;
+            }
+        }
     }
 
     .elme-sticky-atc__btn-label {
-        min-width: --spacing(32);
         white-space: nowrap;
+
+        @variant md {
+            min-width: --spacing(32);
+        }
+    }
+
+    /* Phones: the stepper next to the button already shows the quantity, so the button is a short label over the
+       line total. "Add 2 to cart · $1,234.00" did not fit the 200px left beside the stepper and was cut off. */
+    .elme-sticky-atc__btn-long {
+        display: none;
+
+        @variant md {
+            display: inline;
+        }
+    }
+
+    .elme-sticky-atc__btn-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        line-height: 1.2;
+
+        @variant md {
+            display: none;
+        }
+    }
+
+    .elme-sticky-atc__btn-total {
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        font-weight: 400;
+    }
+
+    /* A required option that was not chosen (Magento_Catalog::product/view/option-check.phtml). The select itself
+       turns red from aria-invalid (select-js.phtml). */
+    .elme-pdp__field-error {
+        margin: --spacing(1.5) 0 0;
+        color: var(--color-error-text);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        font-weight: 500;
+
+        @media (prefers-reduced-motion: no-preference) {
+            animation: elme-pdp-error-in var(--transition-duration-fast) var(--ease-out-quint) both;
+        }
     }
 
     /* FE-26: guests — apply + login under "Sign in to see pricing" (old guest-user-wrapper) */
@@ -1142,5 +1199,12 @@
                 border-color: var(--color-ink);
             }
         }
+    }
+}
+
+@keyframes elme-pdp-error-in {
+    from {
+        opacity: 0;
+        transform: translateY(calc(var(--spacing) * -1));
     }
 }

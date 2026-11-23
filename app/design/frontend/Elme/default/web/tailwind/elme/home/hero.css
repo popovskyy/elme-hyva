@@ -350,8 +350,12 @@
     grid-area: 1 / 1;
 }
 
+/* Both axes fill the cell. Safari stretches the height of this aspect-ratio box first and then takes the width from
+   the ratio (4:5 of the stretched height = 75% of the screen on iPhone); width 100% pins it. */
 .elme-hero__slide > .elme-hero__media {
     align-self: stretch;
+    justify-self: stretch;
+    width: 100%;
     max-height: none;
 }
 

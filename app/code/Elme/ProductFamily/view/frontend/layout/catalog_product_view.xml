@@ -1,11 +1,22 @@
 <?xml version="1.0"?>
-<!-- FE-28: family swatches; product-info.phtml prints the child above the buy box. -->
+<!-- FE-28: family swatches; product-info.phtml prints the child above the buy box.
+     FE-85: a colour axis with made-to-order fabrics is drawn by product.info.family.fabric (Quick Ship / Made To Order
+     picker) instead of chips; its info icon shows the CMS block pdp_make_to_order_info_tooltip. -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceBlock name="product.info">
             <block name="product.info.family"
-                   template="Elme_ProductFamily::product/view/family.phtml"/>
+                   template="Elme_ProductFamily::product/view/family.phtml">
+                <block name="product.info.family.fabric"
+                       template="Elme_ProductFamily::product/view/fabric-picker.phtml">
+                    <block class="Magento\Cms\Block\Block" name="product.info.family.fabric.info">
+                        <arguments>
+                            <argument name="block_id" xsi:type="string">pdp_make_to_order_info_tooltip</argument>
+                        </arguments>
+                    </block>
+                </block>
+            </block>
             <block name="product.info.configurations"
                    template="Elme_ProductFamily::product/view/configurations.phtml"/>
         </referenceBlock>

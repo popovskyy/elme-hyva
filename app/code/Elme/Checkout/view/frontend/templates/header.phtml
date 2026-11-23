@@ -16,7 +16,7 @@ $contact = $viewModels->require(StoreContact::class);
 $heroicons = $viewModels->require(HeroiconsOutline::class);
 ?>
 <header class="elme-checkout-header">
-    <div class="container flex items-center justify-between gap-6 py-4 lg:py-5">
+    <div class="container elme-checkout-header__bar">
         <a href="<?= $escaper->escapeUrl($block->getBaseUrl()) ?>"
            aria-label="<?= $escaper->escapeHtmlAttr(__('Elme Living home page')) ?>">
             <img src="<?= $escaper->escapeUrl($block->getViewFileUrl('images/logo.svg')) ?>"
@@ -25,6 +25,8 @@ $heroicons = $viewModels->require(HeroiconsOutline::class);
                  height="38"
                  class="elme-checkout-header__logo">
         </a>
+        <?php // Visual page title: the page's own h1 stays for screen readers (it is sr-only, see the layout) ?>
+        <p class="elme-checkout-header__title" aria-hidden="true"><?= $escaper->escapeHtml(__('Checkout')) ?></p>
         <p class="elme-checkout-header__help">
             <span class="hidden md:inline"><?= $escaper->escapeHtml(__('Need assistance?')) ?></span>
             <a class="elme-checkout-header__help-link"

@@ -2,11 +2,14 @@
 /**
  * FE-09: mobile menu button. The drawer HTML is hyva-topmenu-mobile/dialog.phtml,
  * printed at the end of the body so it does not sit in front of the hero.
+ * Phones (below md) have the bottom tab bar instead of the drawer: their burger here only opens its Shop sheet, the same
+ * as the Shop tab (event elme-open-shop, listened to in elme/tab-bar.phtml).
  */
 
 declare(strict_types=1);
 
 use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
 use Hyva\Theme\ViewModel\LucideIcons;
 use Magento\Framework\Escaper;
 use Snowdog\Menu\Block\Menu;
@@ -22,13 +25,36 @@ if (!$menu) {
 
 /** @var LucideIcons $lucideIcons */
 $lucideIcons = $viewModels->require(LucideIcons::class);
+/** @var HyvaCsp $hyvaCsp */
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
 
 $menuClass = $menu->getCssClass() ?: 'main-menu';
 ?>
+<script>
+    function initElmeShopBurger() {
+        return {
+            shopOpen: false,
+
+            // the Shop sheet of the phone tab bar; the opener goes with the event so that focus comes back to it
+            open() {
+                window.dispatchEvent(new CustomEvent('elme-open-shop', {detail: {opener: this.$el}}));
+            },
+
+            onShopState() {
+                this.shopOpen = Boolean((this.$event.detail || {}).open);
+            }
+        };
+    }
+
+    window.addEventListener('alpine:init', () => {
+        Alpine.data('initElmeShopBurger', initElmeShopBurger);
+    }, {once: true});
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
 <nav class="<?= $escaper->escapeHtmlAttr($menuClass) ?> elme-mobile-nav lg:hidden"
      aria-label="<?= $escaper->escapeHtmlAttr(__('Main menu')) ?>">
     <button type="button"
-            class="elme-mobile-nav__burger inline-flex items-center justify-center
+            class="elme-mobile-nav__burger max-md:hidden inline-flex items-center justify-center
                    min-w-11 min-h-11 p-0 text-ink bg-transparent border-0
                    focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
                    focus-visible:outline-primary"
@@ -38,6 +64,21 @@ $menuClass = $menu->getCssClass() ?: 'main-menu';
             aria-haspopup="dialog"
             aria-controls="elme-mobile-menu"
             aria-label="<?= $escaper->escapeHtmlAttr(__('Open menu')) ?>">
+        <?= $lucideIcons->menuHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
+    </button>
+    <?php // Phones: opens the Shop sheet of the bottom tab bar ?>
+    <button type="button"
+            class="elme-mobile-nav__burger md:hidden inline-flex items-center justify-center
+                   min-w-11 min-h-11 p-0 text-ink bg-transparent border-0
+                   focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+                   focus-visible:outline-primary"
+            x-data="initElmeShopBurger"
+            @click="open"
+            @elme-shop-state.window="onShopState"
+            :aria-expanded="shopOpen"
+            aria-haspopup="dialog"
+            aria-controls="elme-tabbar-sheet"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('Open shop menu')) ?>">
         <?= $lucideIcons->menuHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
     </button>
 </nav>

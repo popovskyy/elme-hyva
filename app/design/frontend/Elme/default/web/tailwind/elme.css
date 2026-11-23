@@ -24,11 +24,13 @@
 @import "./elme/foundation/motion-burst.css";
 @import "./elme/foundation/dust.css";
 @import "./elme/foundation/snap-carousel.css";
+@import "./elme/foundation/touch-fields.css";
 
 /* layout */
 @import "./elme/layout/header.css";
 @import "./elme/layout/search-autocomplete.css";
 @import "./elme/layout/mobile-menu.css";
+@import "./elme/layout/tab-bar.css";
 @import "./elme/layout/mega-menu.css";
 @import "./elme/layout/footer.css";
 @import "./elme/layout/third-party.css";
@@ -52,6 +54,7 @@
 @import "./elme/product/pdp-recommendations.css";
 @import "./elme/product/pdp-diagram.css";
 @import "./elme/product/family-swatches.css";
+@import "./elme/product/fabric-picker.css";
 @import "./elme/product/family-configurations.css";
 @import "./elme/product/heart.css";
 @import "./elme/product/list-picker.css";

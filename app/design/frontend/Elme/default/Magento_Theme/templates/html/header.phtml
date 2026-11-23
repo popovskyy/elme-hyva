@@ -419,15 +419,20 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
             },
 
             toggleSearch() {
-                this.searchOpen = !this.searchOpen;
+                this.setSearchOpen(!this.searchOpen);
                 if (this.searchOpen) {
                     this.focusMobileSearch();
                 }
             },
 
+            // The phone tab bar has its own search window (FE-114); this panel is for md to xl
+            setSearchOpen(open) {
+                this.searchOpen = open;
+            },
+
             searchClose() {
-                this.searchOpen = false;
-                const toggle = [...this.$root.querySelectorAll('[data-elme-search-toggle]')]
+                this.setSearchOpen(false);
+                const toggle = [...document.querySelectorAll('[data-elme-search-toggle]')]
                     .find((el) => el.offsetParent !== null);
                 if (toggle) {
                     toggle.focus({preventScroll: true});
@@ -454,7 +459,7 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
                     desktop.select();
                     return;
                 }
-                this.searchOpen = true;
+                this.setSearchOpen(true);
                 this.focusMobileSearch();
             }
         }
@@ -491,7 +496,7 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
 
             <button
                 type="button"
-                class="elme-header__action lg:hidden"
+                class="elme-header__action max-md:hidden lg:hidden"
                 @click.prevent="toggleSearch"
                 aria-haspopup="true"
                 aria-controls="search-content"
@@ -573,7 +578,7 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
                     <button
                         type="button"
                         id="menu-cart-icon"
-                        class="elme-header__action elme-header__cart-btn"
+                        class="elme-header__action elme-header__cart-btn max-md:hidden"
                         x-ref="cartButton"
                         :aria-label="cartAriaLabel"
                         @click="toggleCart"
@@ -582,7 +587,7 @@ $shoppingListUrl = $block->getUrl('quick_order/template');
                     <a
                         id="menu-cart-icon"
                         href="<?= $escaper->escapeUrl($cartUrl) ?>"
-                        class="elme-header__action elme-header__cart-btn"
+                        class="elme-header__action elme-header__cart-btn max-md:hidden"
                         :aria-label="cartAriaLabel"
                     >
                 <?php endif; ?>

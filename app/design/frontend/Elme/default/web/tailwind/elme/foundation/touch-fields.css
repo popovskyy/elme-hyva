@@ -1,0 +1,14 @@
+/*
+ * iOS Safari zooms the page into a text field whose text is smaller than 16px, and does not zoom back. The fields keep
+ * the type scale with a mouse and are at least 16px on a touch screen, so a tap on a field never zooms. (The page
+ * itself stays zoomable: the viewport is not locked, because that would take pinch zoom away from low-vision users.)
+ * Important: the type-scale utilities (text-note, text-copy) sit in a later layer.
+ */
+@media (pointer: coarse) {
+    input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="hidden"],
+        [type="submit"], [type="button"], [type="reset"], [type="image"]),
+    select,
+    textarea {
+        font-size: max(1rem, 16px) !important;
+    }
+}
