@@ -1,0 +1,463 @@
+/*
+ * FE-85 PDP "Select Color:" fabric picker (Elme_ProductFamily product/view/fabric-picker.phtml), used when a
+ * colour axis has made-to-order fabrics. A leaf field (like the enhanced select, elme/components/select.css)
+ * opens a panel under it that floats as its own small leaf; the fabrics are tiles in a Quick Ship and a Made To
+ * Order group. A tile is a link to the sibling product, the current one is marked and is not a link.
+ */
+@layer components {
+    .elme-fabric {
+        position: relative;
+    }
+
+    /* ---------- field ---------- */
+    .elme-fabric__trigger {
+        display: flex;
+        align-items: center;
+        gap: --spacing(3);
+        width: 100%;
+        min-block-size: var(--form-height);
+        padding-block: --spacing(1.5);
+        padding-inline: --spacing(3) var(--form-px);
+        font: inherit;
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        text-align: start;
+        color: var(--color-ink);
+        cursor: pointer;
+        background-color: var(--form-bg);
+        border: 1px solid var(--form-stroke);
+        /* leaf corners (elme/foundation/leaf.css), 50px control */
+        border-radius: 0 var(--radius-leaf) 0 var(--radius-leaf);
+        transition: border-color var(--transition-duration-fast) var(--ease-out-quad);
+
+        &:hover {
+            border-color: var(--color-primary);
+        }
+
+        &:focus-visible,
+        &[aria-expanded="true"] {
+            border-color: var(--color-olive);
+            outline: 1px solid var(--color-olive);
+            outline-offset: 0;
+        }
+    }
+
+    .elme-fabric__thumb {
+        flex-shrink: 0;
+        width: --spacing(8);
+        height: --spacing(8);
+        object-fit: cover;
+        /* smallest leaf: a 32px mini swatch */
+        border-radius: 0 var(--radius-leaf-xs) 0 var(--radius-leaf-xs);
+    }
+
+    .elme-fabric__current {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .elme-fabric__chevron {
+        flex-shrink: 0;
+        color: var(--color-ink-muted);
+    }
+
+    .elme-fabric__trigger[aria-expanded="true"] .elme-fabric__chevron {
+        rotate: 180deg;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .elme-fabric__chevron {
+            transition: rotate var(--transition-duration-fast) var(--ease-out-quad);
+        }
+    }
+
+    /* ---------- panel ---------- */
+    .elme-fabric__panel {
+        position: absolute;
+        inset-inline: 0;
+        /* floats 4px under the field, above the buy box and the sticky bar */
+        top: calc(100% + --spacing(1));
+        z-index: 60;
+        max-block-size: min(--spacing(130), 70dvh);
+        padding: --spacing(3);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        color: var(--color-ink);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm);
+
+        @media (prefers-reduced-motion: no-preference) {
+            animation: elme-fabric-in var(--transition-duration-fast) var(--ease-out-quad);
+        }
+    }
+
+    @keyframes elme-fabric-in {
+        from {
+            opacity: 0;
+            translate: 0 calc(var(--spacing) * -1);
+        }
+    }
+
+    .elme-fabric__group + .elme-fabric__group {
+        margin-top: --spacing(4);
+        padding-top: --spacing(4);
+        border-top: 1px solid var(--color-border);
+    }
+
+    .elme-fabric__group-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: --spacing(1) --spacing(3);
+        margin-bottom: --spacing(3);
+    }
+
+    .elme-fabric__group-title {
+        margin: 0;
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        font-weight: 500;
+        color: var(--color-ink);
+    }
+
+    .elme-fabric__lead {
+        display: inline-flex;
+        align-items: center;
+        gap: --spacing(1);
+        margin: 0;
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        color: var(--color-ink-muted);
+    }
+
+    .elme-fabric__info-btn {
+        display: inline-grid;
+        place-items: center;
+        width: --spacing(8);
+        height: --spacing(8);
+        padding: 0;
+        color: var(--color-ink-muted);
+        cursor: pointer;
+        background: transparent;
+        border: 0;
+        border-radius: 0 var(--radius-leaf-xs) 0 var(--radius-leaf-xs);
+
+        &:hover,
+        &[aria-expanded="true"] {
+            color: var(--color-ink);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 0;
+        }
+    }
+
+    /* the CMS text behind the info icon, inline under the group heading */
+    .elme-fabric__note {
+        margin-bottom: --spacing(3);
+        padding: --spacing(3);
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        color: var(--color-ink);
+        background: var(--color-surface-muted);
+        border-radius: 0 var(--radius-leaf-xs) 0 var(--radius-leaf-xs);
+
+        p {
+            margin: 0;
+        }
+
+        p + p {
+            margin-top: --spacing(2);
+        }
+    }
+
+    /* ---------- fabric tiles ---------- */
+    .elme-fabric__list {
+        display: grid;
+        /* wraps to the width of the panel (4 across on a phone, 5 to 6 on desktop): never a sideways scroll */
+        grid-template-columns: repeat(auto-fill, minmax(--spacing(17), 1fr));
+        gap: --spacing(3) --spacing(2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .elme-fabric__item {
+        display: grid;
+        gap: --spacing(1.5);
+        justify-items: center;
+        text-align: center;
+        color: var(--color-ink);
+        text-decoration: none;
+
+        &:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+    }
+
+    .elme-fabric__swatch {
+        position: relative;
+        display: block;
+        width: 100%;
+        aspect-ratio: 1;
+        padding: 2px;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 0 var(--radius-leaf-sm) 0 var(--radius-leaf-sm);
+        transition: border-color var(--transition-duration-fast) var(--ease-out-quad);
+    }
+
+    a.elme-fabric__item:hover .elme-fabric__swatch {
+        border-color: var(--color-ink);
+    }
+
+    .elme-fabric__item.is-selected .elme-fabric__swatch {
+        border-color: var(--color-ink);
+        box-shadow: inset 0 0 0 1px var(--color-ink);
+    }
+
+    .elme-fabric__img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 0 var(--radius-leaf-xs) 0 var(--radius-leaf-xs);
+    }
+
+    .elme-fabric__fill--text {
+        display: grid;
+        place-items: center;
+        font-size: var(--text-label);
+        line-height: 1;
+        font-weight: 500;
+        text-transform: uppercase;
+        color: var(--color-ink-muted);
+        background: var(--color-surface-muted);
+    }
+
+    .elme-fabric__name {
+        max-width: 100%;
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        overflow-wrap: anywhere;
+    }
+
+    .elme-fabric__item.is-selected .elme-fabric__name {
+        font-weight: 500;
+    }
+
+    /* no sibling keeps the current combination: faded with a diagonal line, still a link to the closest one */
+    .elme-fabric__item.is-unavailable {
+        color: var(--color-ink-subtle);
+
+        .elme-fabric__img {
+            opacity: 0.45;
+        }
+
+        .elme-fabric__swatch::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            border-radius: inherit;
+            background: linear-gradient(
+                to top right,
+                transparent calc(50% - 0.5px),
+                var(--color-ink-muted) 50%,
+                transparent calc(50% + 0.5px)
+            );
+        }
+    }
+
+    /* ---------- Made To Order confirm dialog: bottom sheet below md, centred panel from md ---------- */
+    /* a square shell (like every dialog); the picture is a square too, the buttons and the close icon are the leaves */
+    .elme-fabric-modal {
+        width: 100%;
+        max-width: 100%;
+        max-height: 92dvh;
+        margin: auto 0 0;
+        padding: 0;
+        color: var(--color-ink);
+        background-color: var(--color-surface);
+        border: 0;
+        box-shadow: 0 --spacing(6) --spacing(15) color-mix(in srgb, var(--color-ink) 22%, transparent);
+        overscroll-behavior: contain;
+
+        &[open] {
+            display: flex;
+            flex-direction: column;
+        }
+
+        &::backdrop {
+            background-color: color-mix(in srgb, var(--color-ink) 50%, transparent);
+        }
+
+        @variant md {
+            max-width: --spacing(160);
+            max-height: min(--spacing(140), 90dvh);
+            margin: auto;
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            &[open] {
+                animation: elme-fabric-sheet-in var(--transition-duration-slow) var(--ease-out-quint) both;
+            }
+
+            &[open]::backdrop {
+                animation: elme-fabric-fade-in var(--transition-duration-base) var(--ease-out-quad) both;
+            }
+
+            @variant md {
+                &[open] {
+                    animation-name: elme-fabric-dialog-in;
+                    animation-duration: var(--transition-duration-base);
+                }
+            }
+        }
+    }
+
+    .elme-fabric-modal__panel {
+        position: relative;
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        min-height: 0;
+        overflow-y: auto;
+
+        @variant md {
+            flex-direction: row;
+        }
+    }
+
+    /* over the picture, so it stays reachable on a phone sheet and a tall panel */
+    .elme-fabric-modal__close {
+        position: absolute;
+        inset-block-start: --spacing(3);
+        inset-inline-end: --spacing(3);
+        z-index: 1;
+        background-color: var(--color-surface);
+    }
+
+    .elme-fabric-modal__media {
+        position: relative;
+        flex: none;
+        aspect-ratio: 4 / 3;
+        background-color: var(--color-surface-muted);
+
+        @variant md {
+            flex: 0 0 50%;
+            aspect-ratio: auto;
+            min-height: --spacing(80);
+        }
+    }
+
+    /* the box sets the size (4:3 on a phone, the height of the text from md); the fabric fills it */
+    .elme-fabric-modal__img,
+    .elme-fabric-modal__color {
+        position: absolute;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .elme-fabric-modal__img {
+        object-fit: cover;
+    }
+
+    .elme-fabric-modal__body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: --spacing(2);
+        min-width: 0;
+        padding: --spacing(5);
+
+        @variant md {
+            justify-content: center;
+            padding: --spacing(8) --spacing(6);
+        }
+    }
+
+    .elme-fabric-modal__eyebrow {
+        margin: 0;
+        font-size: var(--text-label);
+        line-height: var(--text-label--line-height);
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--color-ink-muted);
+    }
+
+    .elme-fabric-modal__title {
+        margin: 0;
+        font-family: var(--font-sans);
+        font-size: var(--text-h3);
+        line-height: var(--text-h3--line-height);
+        font-weight: 400;
+        overflow-wrap: anywhere;
+
+        @variant md {
+            font-size: var(--text-h3-desktop);
+        }
+    }
+
+    .elme-fabric-modal__lead {
+        margin: 0;
+        font-size: var(--text-copy);
+        line-height: var(--text-copy--line-height);
+        font-weight: 500;
+        color: var(--color-ink);
+    }
+
+    .elme-fabric-modal__text,
+    .elme-fabric-modal__note {
+        margin: 0;
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        color: var(--color-ink-muted);
+    }
+
+    .elme-fabric-modal__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: --spacing(3);
+        margin-top: --spacing(3);
+
+        .btn {
+            flex: 1 1 auto;
+        }
+
+        @variant md {
+            .btn {
+                flex: 0 1 auto;
+            }
+        }
+    }
+
+    @keyframes elme-fabric-fade-in {
+        from {
+            opacity: 0;
+        }
+    }
+
+    @keyframes elme-fabric-sheet-in {
+        from {
+            transform: translateY(100%);
+        }
+    }
+
+    @keyframes elme-fabric-dialog-in {
+        from {
+            opacity: 0;
+            transform: translateY(--spacing(2)) scale(0.98);
+        }
+    }
+}
