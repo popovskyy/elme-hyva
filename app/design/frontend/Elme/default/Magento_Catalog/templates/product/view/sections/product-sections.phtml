@@ -7,6 +7,8 @@
  * Rows come from Elme\Theme\ViewModel\ProductDetails (FE-55 maps the same rows to Product JSON-LD).
  * No structured data here; the Trade FAQ is plain HTML (FAQPage lives on /faqs only).
  * Look: web/tailwind/elme/product/pdp.css.
+ * FE-98: Details, Product Specifications, Dimensions and Care Instructions carry 'print' => true and go on the
+ * printed spec sheet; every other section (Delivery, Trade FAQ, other modules) stays off it.
  */
 
 declare(strict_types=1);
@@ -48,6 +50,7 @@ if ($descriptionHtml !== '') {
     $sections['description'] = [
         'title' => __('Details'),
         'html' => '<div class="prose">' . $descriptionHtml . '</div>',
+        'print' => true,
     ];
 }
 
@@ -69,7 +72,7 @@ if ($specRows || $disclaimerHtml !== '') {
     <?php if ($disclaimerHtml !== ''): ?>
         <div class="elme-pdp__note prose"><?= /* @noEscape */ $disclaimerHtml ?></div>
     <?php endif; ?>
-    <?php $sections['product-attributes'] = ['title' => __('Product Specifications'), 'html' => ob_get_clean()];
+    <?php $sections['product-attributes'] = ['title' => __('Product Specifications'), 'html' => ob_get_clean(), 'print' => true];
 }
 
 // Sections other modules add to the detailed_info group keep working
@@ -109,7 +112,7 @@ if ($sizeRows) {
             <?= $escaper->escapeHtml(__('View Dimensions')) ?>
         </button>
     <?php endif; ?>
-    <?php $sections['dimensions'] = ['title' => __('Dimensions'), 'html' => ob_get_clean()];
+    <?php $sections['dimensions'] = ['title' => __('Dimensions'), 'html' => ob_get_clean(), 'print' => true];
 }
 
 // Delivery: shipping cartons, units per carton, handling note; FE-31 adds the logged-in estimate
@@ -146,6 +149,7 @@ if ($careHtml !== '') {
     $sections['care'] = [
         'title' => __('Care Instructions'),
         'html' => '<div class="prose">' . $careHtml . '</div>',
+        'print' => true,
     ];
 }
 
@@ -180,7 +184,9 @@ if (!$sections) {
 ?>
 <div class="elme-pdp__sections">
     <?php foreach ($sections as $id => $section): ?>
-        <details class="elme-pdp__section" id="<?= $escaper->escapeHtmlAttr($id) ?>">
+        <?php /* FE-98: only the sections flagged "print" go on the printed spec sheet (pdp-print.css) */ ?>
+        <details class="elme-pdp__section<?= !empty($section['print']) ? ' elme-pdp__section--print' : '' ?>"
+                 id="<?= $escaper->escapeHtmlAttr($id) ?>">
             <summary>
                 <h2><?= $escaper->escapeHtml($section['title']) ?></h2>
                 <?= $lucideIcons->chevronDownHtml('', 20, 20, ['aria-hidden' => 'true']) ?>

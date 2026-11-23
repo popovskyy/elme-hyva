@@ -76,7 +76,7 @@ $buyControls = $product->isSaleable()
         <div class="elme-pdp__meta">
             <?php $sku = (string) $product->getSku(); ?>
             <?php if ($sku !== ''): ?>
-                <p>
+                <p class="elme-pdp__sku">
                     <?= $escaper->escapeHtml(__('SKU')) ?>
                     <button type="button"
                             class="elme-copy-sku text-ink"
@@ -168,6 +168,9 @@ $buyControls = $product->isSaleable()
     <?php endif; ?>
 
     <?= $block->getChildHtml('product.info.details') ?>
+
+    <?php /* FE-98: "Print spec sheet" under the accordion, for guests and customers alike */ ?>
+    <?= $block->getChildHtml('elme.pdp.print') ?>
 
     <?= $block->getChildHtml('product.info.additional') ?>
 </div>
