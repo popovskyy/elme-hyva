@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- FE-12 Instagram + FE-13 Our Difference. FE-25 layout. FE-27 sticky ATC + buy box JS (logged-in only via handle). -->
+<!-- FE-12 Instagram + FE-13 Our Difference. FE-25 layout. FE-27 sticky ATC + buy box JS (logged-in only via handle). FE-98 print spec sheet. -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
@@ -89,6 +89,10 @@
             <block class="Magento\Catalog\Block\Product\View"
                    name="product.info.sticky.atc"
                    template="Magento_Catalog::product/view/sticky-atc.phtml"/>
+            <!-- FE-98: Print spec sheet button + print hooks (look: elme/product/pdp-print.css) -->
+            <block class="Magento\Framework\View\Element\Template"
+                   name="elme.pdp.print"
+                   template="Magento_Catalog::product/view/print-sheet.phtml"/>
         </referenceBlock>
         <referenceContainer name="before.body.end">
             <block name="elme.pdp.buybox.js"

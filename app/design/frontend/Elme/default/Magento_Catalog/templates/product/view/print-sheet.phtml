@@ -1,0 +1,68 @@
+<?php
+/**
+ * Elme FE-98: "Print spec sheet" on the product page. The sheet itself is the page seen through the print
+ * stylesheet (web/tailwind/elme/product/pdp-print.css): logo, photo, name, SKU, description, specifications,
+ * dimensions and care, no price, stock, header, footer or carousels. The browser print dialog saves it as a
+ * PDF; no PDF library and no backend. Same for guests and customers (nothing here reads the login state).
+ *
+ * The button opens the print dialog and is shown by the script below (it does nothing without JS). Ctrl+P
+ * gives the same sheet. Browsers that cannot show a closed <details> in print get the sheet sections opened
+ * for the print and closed again after it.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+?>
+<div class="elme-pdp__print">
+    <button type="button"
+            class="elme-pdp__print-btn"
+            data-print-sheet
+            hidden>
+        <?= $lucideIcons->printerHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+        <?= $escaper->escapeHtml(__('Print spec sheet')) ?>
+    </button>
+</div>
+<script>
+    (() => {
+        const buttons = document.querySelectorAll('[data-print-sheet]');
+        if (!buttons.length) {
+            return;
+        }
+        buttons.forEach((button) => {
+            button.hidden = false;
+            button.addEventListener('click', () => window.print());
+        });
+
+        // The sheet sections must be open while printing (Ctrl+P too); put back what was closed afterwards
+        let opened = [];
+        window.addEventListener('beforeprint', () => {
+            // added to the list, not replacing it: a second beforeprint before the afterprint must not
+            // forget what the first one opened
+            const closed = [...document.querySelectorAll('.elme-pdp__section--print:not([open])')];
+            closed.forEach((section) => {
+                section.open = true;
+            });
+            opened = opened.concat(closed);
+        });
+        window.addEventListener('afterprint', () => {
+            opened.forEach((section) => {
+                section.open = false;
+            });
+            opened = [];
+        });
+    })();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

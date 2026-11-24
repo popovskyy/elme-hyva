@@ -1,0 +1,361 @@
+/*
+ * FE-98 "Print spec sheet": the product page seen through the print stylesheet is one A4 sheet a retailer
+ * can hand to their own customer: Elme logo, main photo, name, SKU, description, specifications, dimensions
+ * and care instructions. No price, stock, header, footer, chat, tab bar or carousels, for guests and
+ * customers alike. The browser print dialog saves it as a PDF; there is no PDF library and no backend.
+ *
+ * Templates: Magento_Catalog product/product-detail-page.phtml (logo bar), product/view/product-info.phtml,
+ * product/view/sections/product-sections.phtml (sections flagged elme-pdp__section--print),
+ * product/view/print-sheet.phtml (button + beforeprint hook).
+ *
+ * The sheet is a WHITELIST: every level from <body> down to the info column hides everything that is not
+ * named below, so a block added to the page later (a banner, a chat bubble, a new price line) stays off
+ * the sheet until someone adds it here on purpose.
+ *
+ * A4 minus the margins is about 700 CSS px wide, so no md: / lg: rule applies in print; the sheet has its
+ * own grid. Sizes here are page units (mm, pt), not screen tokens. Colours are the keywords black / white:
+ * the sheet is black text on white whatever the screen palette is. The print rules are not in a layer on
+ * purpose: unlayered rules beat the layered utilities and components without more specificity, and the
+ * !important ones also beat inline styles from Alpine and third-party widgets.
+ */
+
+@layer components {
+    /* the logo bar exists only for the sheet */
+    .elme-pdp__print-head {
+        display: none;
+    }
+
+    .elme-pdp__print {
+        margin-top: --spacing(4);
+    }
+
+    .elme-pdp__print-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: --spacing(2);
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--color-ink);
+        font-size: var(--text-copy);
+        font-weight: 500;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        cursor: pointer;
+
+        &[hidden] {
+            display: none;
+        }
+
+        &:hover {
+            color: var(--color-primary);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--color-ink);
+            outline-offset: 4px;
+        }
+    }
+}
+
+/* A named page: only the product page gets A4 and these margins, the rest of the site prints as before */
+@page elme-spec {
+    size: A4;
+    margin: 12mm;
+}
+
+@media print {
+    body.catalog-product-view {
+        /* hairlines between table rows: a soft black that still shows on an office printer */
+        --elme-print-rule: color-mix(in srgb, black 30%, white);
+
+        page: elme-spec;
+        margin: 0;
+        padding: 0 !important;
+        background: white;
+        color: black;
+    }
+
+    /* ---------- what stays on the sheet ---------- */
+    /* tab bar, toasts, modals, chat and cookie widgets sit next to the page wrapper */
+    body.catalog-product-view > :not(.page-wrapper),
+    /* header, footer */
+    body.catalog-product-view .page-wrapper > :not(main),
+    /* breadcrumbs, messages, content area */
+    body.catalog-product-view main > :not(.columns),
+    body.catalog-product-view .columns > :not(.column.main),
+    /* Our Difference, Instagram, recently viewed */
+    body.catalog-product-view .column.main > :not(.product-info-main),
+    /* CMS blocks, Complete the look and the other carousels */
+    body.catalog-product-view .product-info-main > :not(.elme-pdp),
+    /* sticky add-to-cart bar */
+    body.catalog-product-view .elme-pdp > :not(.elme-pdp__print-head, .elme-gallery, .elme-pdp__info),
+    /* buy box, family swatches, configurations, essentials, print button, dimension drawing dialog */
+    body.catalog-product-view .elme-pdp__info > :not(.elme-pdp__head, .elme-pdp__desc, .elme-pdp__sections),
+    /* stock dot and stock quantity: only the SKU stays */
+    body.catalog-product-view .elme-pdp__meta > :not(.elme-pdp__sku),
+    /* Delivery, Trade FAQ and sections added by other modules */
+    body.catalog-product-view .elme-pdp__sections > :not(.elme-pdp__section--print),
+    /* arrows, counter, thumbnails, "View gallery", lightbox, Sale / New badge */
+    body.catalog-product-view .elme-gallery > :not(.elme-gallery__stage),
+    body.catalog-product-view .elme-gallery__stage > :not(.elme-gallery__track),
+    /* the main photo only */
+    body.catalog-product-view .elme-gallery__track > :not(:first-child),
+    body.catalog-product-view .elme-gallery__play,
+    body.catalog-product-view .elme-pdp__more,
+    body.catalog-product-view .elme-copy-sku__done,
+    body.catalog-product-view .elme-pdp__section > summary svg {
+        display: none !important;
+    }
+
+    /* no photo: the theme placeholder is not worth a sheet; the text takes the full width */
+    body.catalog-product-view .elme-gallery:has(.elme-gallery__slide--placeholder) {
+        display: none !important;
+    }
+
+    /* when the Details section contains the short description (product-sections.phtml sets the class),
+       the short one above the buy box would print the same paragraph twice; when Details says
+       something else, both print */
+    body.catalog-product-view .elme-pdp:has(#description.elme-pdp__section--has-short) .elme-pdp__desc {
+        display: none !important;
+    }
+
+    /* ---------- frame ---------- */
+    body.catalog-product-view .page-wrapper,
+    body.catalog-product-view .page-main,
+    body.catalog-product-view .columns,
+    body.catalog-product-view .column.main,
+    body.catalog-product-view .product-info-main {
+        display: block;
+        min-height: 0;
+        width: auto;
+        max-width: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* logo, then photo beside name / SKU / description, then the sections across the sheet */
+    body.catalog-product-view .elme-pdp {
+        display: grid;
+        grid-template-columns: 68mm minmax(0, 1fr);
+        /* logo / name block / text beside the photo: the photo is taller than the name block, so the extra
+           height goes to the text row and the name and the text stay together */
+        grid-template-rows: auto auto 1fr;
+        align-items: start;
+        gap: 4mm 8mm;
+        margin: 0;
+        padding: 0;
+    }
+
+    body.catalog-product-view .elme-pdp__print-head {
+        display: block;
+        grid-column: 1 / -1;
+        padding-bottom: 4mm;
+        border-bottom: 0.3mm solid black;
+
+        img {
+            display: block;
+            width: 48mm;
+            height: auto;
+        }
+    }
+
+    /* the info column's children join the sheet grid */
+    body.catalog-product-view .elme-pdp__info {
+        display: contents;
+    }
+
+    body.catalog-product-view .elme-pdp__head {
+        grid-column: 2;
+        grid-row: 2;
+        gap: 1.5mm;
+    }
+
+    body.catalog-product-view .elme-pdp__desc {
+        grid-column: 2;
+        grid-row: 3;
+    }
+
+    body.catalog-product-view .elme-pdp:has(.elme-gallery__slide--placeholder) :is(.elme-pdp__head, .elme-pdp__desc, #description) {
+        grid-column: 1 / -1;
+    }
+
+    /* the sections join the sheet grid too: Details sits beside the photo, the rest run across the sheet */
+    body.catalog-product-view .elme-pdp__sections {
+        display: contents;
+    }
+
+    /* ---------- photo ---------- */
+    body.catalog-product-view .elme-pdp > .elme-gallery {
+        position: static;
+        grid-column: 1;
+        grid-row: 2 / span 2;
+        margin: 0;
+    }
+
+    body.catalog-product-view .elme-gallery__track {
+        display: block;
+        overflow: visible;
+    }
+
+    body.catalog-product-view .elme-gallery__slide {
+        display: block;
+        width: 100%;
+        max-height: none;
+        aspect-ratio: 1;
+        overflow: visible;
+        background: none;
+        cursor: default;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    }
+
+    /* ---------- name, SKU, description ---------- */
+    body.catalog-product-view .elme-pdp__title {
+        font-size: 20pt;
+        line-height: 1.15;
+    }
+
+    body.catalog-product-view .elme-pdp__subtitle {
+        font-size: 11pt;
+        line-height: 1.3;
+    }
+
+    body.catalog-product-view .elme-pdp__meta {
+        font-size: 9pt;
+        line-height: 1.3;
+    }
+
+    body.catalog-product-view .elme-copy-sku {
+        cursor: default;
+    }
+
+    body.catalog-product-view .elme-pdp__desc-text {
+        display: block;
+        overflow: visible;
+        -webkit-line-clamp: unset;
+        line-clamp: unset;
+        font-size: 10pt;
+        line-height: 1.4;
+    }
+
+    /* ---------- sections: open, no accordion chrome ---------- */
+    body.catalog-product-view .elme-pdp__section {
+        grid-column: 1 / -1;
+        border: 0;
+        break-inside: avoid;
+
+        &#description {
+            break-inside: auto;
+        }
+
+        > summary {
+            display: block;
+            min-height: 0;
+            padding: 0 0 1.5mm;
+            border-bottom: 0.2mm solid black;
+            cursor: default;
+        }
+
+        h2 {
+            font-size: 11pt;
+            line-height: 1.3;
+        }
+    }
+
+    /* Details takes the cell beside the photo when it stands in for the short description (or there is no
+       short description); otherwise the short text has that cell and Details runs across the sheet */
+    body.catalog-product-view .elme-pdp__section--has-short,
+    body.catalog-product-view .elme-pdp:not(:has(.elme-pdp__desc)) #description {
+        grid-column: 2;
+        grid-row: 3;
+    }
+
+    /* browsers that know ::details-content show the closed sections by CSS; the others get the open
+       attribute from the beforeprint hook (print-sheet.phtml) */
+    body.catalog-product-view .elme-pdp__section::details-content {
+        content-visibility: visible;
+    }
+
+    body.catalog-product-view .elme-pdp__section-body {
+        padding: 2mm 0 0;
+        font-size: 9.5pt;
+        line-height: 1.4;
+        animation: none;
+    }
+
+    /* the CMS text style sets its own size: the sheet text is one size */
+    body.catalog-product-view .elme-pdp__section-body .prose {
+        font-size: inherit;
+        line-height: inherit;
+    }
+
+    body.catalog-product-view .elme-pdp__spec {
+        th,
+        td {
+            display: table-cell;
+            padding: 0.9mm 0;
+            font-size: inherit;
+            line-height: inherit;
+        }
+
+        th {
+            width: 35%;
+            padding-right: 4mm;
+        }
+
+        tr {
+            break-inside: avoid;
+        }
+
+        tr + tr {
+            border-top-color: var(--elme-print-rule);
+        }
+
+        tr:first-child th,
+        tr:first-child td {
+            padding-top: 0;
+        }
+    }
+
+    body.catalog-product-view .elme-pdp__note {
+        margin-top: 2mm;
+        font-size: 8.5pt;
+        line-height: 1.35;
+    }
+
+    /* two columns of label / value pairs: half the height of the single list */
+    body.catalog-product-view .elme-pdp__dims {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 8mm;
+
+        > div {
+            padding-block: 1mm;
+            border-top-width: 0;
+            border-bottom: 1px solid var(--elme-print-rule);
+            break-inside: avoid;
+        }
+    }
+
+    body.catalog-product-view .prose img {
+        max-height: 60mm;
+        width: auto;
+        max-width: 100%;
+    }
+
+    /* ---------- black on white ---------- */
+    body.catalog-product-view .page-wrapper,
+    body.catalog-product-view .page-wrapper * {
+        color: black !important;
+        text-shadow: none !important;
+    }
+
+    body.catalog-product-view .elme-pdp__section-body a {
+        text-decoration: none;
+    }
+}

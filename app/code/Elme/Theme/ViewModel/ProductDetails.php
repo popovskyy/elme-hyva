@@ -69,6 +69,18 @@ class ProductDetails implements ArgumentInterface
     }
 
     /**
+     * True when the long description contains the short one, so the Details section can stand in for both
+     * (the printed spec sheet, FE-98, then leaves the short text out instead of printing it twice).
+     */
+    public function descriptionCoversShort(Product $product, string $shownShortText): bool
+    {
+        $short = $this->normaliseText($shownShortText);
+        $long = $this->normaliseText((string) $product->getData('description'));
+
+        return $short !== '' && $long !== '' && str_contains($long, $short);
+    }
+
+    /**
      * Spec table: attributes marked "Visible on Catalog Pages on Storefront" (admin order), then the
      * rows of the specifications JSON. A JSON row with the label of an earlier row is skipped.
      *
