@@ -225,11 +225,26 @@
         color: var(--color-ink-muted);
     }
 
-    .elme-pdp__your-price {
+    /* FE-106: "List price" (RRP, small) above "Trade price" (the big one), like the old site */
+    .elme-pdp__price-lines {
+        display: grid;
+        gap: --spacing(1);
+    }
+
+    .elme-pdp__price-label {
         font-size: var(--text-note);
         line-height: var(--text-note--line-height);
         color: var(--color-ink-muted);
+    }
+
+    .elme-pdp__price-row--trade .elme-pdp__price-label {
         width: 100%;
+    }
+
+    /* the theme's unlayered `.price-box .price` sets size and weight from these two, so they are the way in */
+    .elme-pdp__price-row--list {
+        --price-font-size: var(--text-copy);
+        --price-font-weight: 400;
     }
 
     .elme-pdp__ex-gst {

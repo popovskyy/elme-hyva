@@ -15,8 +15,11 @@ use Magento\Framework\Pricing\PriceCurrencyInterface;
 /**
  * GET /customer-price/prices?ids=1,2,3 - prices of the current customer, never cached.
  *
- * Response: {"1": {"final": 12.5, "regular": 15, "promo": true, "final_formatted": "$12.50",
- * "regular_formatted": "$15.00"}}. Guests get 401 and no prices. `promo` means was/now is a sale.
+ * Response: {"1": {"final": 12.5, "regular": 15, "promo": true, "list": 15, "trade": null, "was": 15,
+ * "final_formatted": "$12.50", "regular_formatted": "$15.00", "list_formatted": "$15.00", "trade_formatted": null,
+ * "was_formatted": "$15.00"}}. Guests get 401 and no prices. `was` is the struck-through price (null = no sale),
+ * `list` the price list price and `trade` the customer's agreed price (null hides that line); see
+ * CustomerPriceProviderInterface.
  */
 class Index implements HttpGetActionInterface
 {
@@ -53,10 +56,16 @@ class Index implements HttpGetActionInterface
 
         $data = [];
         foreach ($prices as $productId => $price) {
-            $data[$productId] = $price + [
-                'final_formatted' => $this->priceCurrency->format($price['final'], false),
-                'regular_formatted' => $this->priceCurrency->format($price['regular'], false),
-            ];
+            $row = $price + ['list' => null, 'trade' => null, 'was' => null];
+            $row['final_formatted'] = $this->priceCurrency->format($price['final'], false);
+            $row['regular_formatted'] = $this->priceCurrency->format($price['regular'], false);
+            // an empty price stays null: format(null) would print $0.00
+            foreach (['list', 'trade', 'was'] as $key) {
+                $row[$key . '_formatted'] = $row[$key] !== null
+                    ? $this->priceCurrency->format($row[$key], false)
+                    : null;
+            }
+            $data[$productId] = $row;
         }
 
         return $result->setData((object) $data);

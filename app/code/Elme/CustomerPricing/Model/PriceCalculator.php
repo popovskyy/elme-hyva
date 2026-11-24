@@ -12,12 +12,21 @@ namespace Elme\CustomerPricing\Model;
  * list price. Percent discounts need a list price. Prices that are not above zero are ignored.
  *
  * `promo` is true only when a list or region promo is among the winners (same final). Contract, A1, marketing and
- * group discounts are not sales: the storefront shows those as a plain "Your price".
+ * group discounts are not sales.
+ *
+ * Next to that the result keeps the old site's labelled breakdown (Bart\Pronto ElmePriceService, list / trade / promo):
+ * `list` is the price list price (the RRP, null when the SKU has none), `trade` is the lowest agreed everyday price
+ * (region price, A1, type 20, type 25; null when there is none under the list price) and `was` is the price the
+ * storefront strikes through: the trade price, else the list price, and only when the final price is below it.
  */
 class PriceCalculator
 {
+    /** Price sources that are not list, list promo or region promo: the agreed everyday prices */
+    private const NOT_TRADE_KEYS = ['list', 'list_promo', 'region_promo'];
+
     /**
-     * @return array{final: float, regular: float, promo: bool}|null Null when no source prices the SKU.
+     * @return array{final: float, regular: float, promo: bool, list: ?float, trade: ?float, was: ?float}|null
+     *         Null when no source prices the SKU.
      */
     public function calculate(PriceSources $sources): ?array
     {
@@ -61,10 +70,21 @@ class PriceCalculator
             }
         }
 
+        $listRounded = $list !== null ? round($list, 2) : null;
+        $tradePrices = array_diff_key($candidates, array_flip(self::NOT_TRADE_KEYS));
+        $trade = $tradePrices ? round(min($tradePrices), 2) : null;
+        if ($trade !== null && $listRounded !== null && $trade >= $listRounded) {
+            $trade = null;
+        }
+        $base = $trade ?? $listRounded;
+
         return [
             'final' => $final,
-            'regular' => $list !== null ? max(round($list, 2), $final) : $final,
-            'promo' => $promo && $list !== null && round($list, 2) > $final,
+            'regular' => $listRounded !== null ? max($listRounded, $final) : $final,
+            'promo' => $promo && $listRounded !== null && $listRounded > $final,
+            'list' => $listRounded,
+            'trade' => $trade,
+            'was' => $base !== null && $base > $final ? $base : null,
         ];
     }
 }
