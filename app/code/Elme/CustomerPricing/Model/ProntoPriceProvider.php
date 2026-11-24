@@ -18,7 +18,7 @@ use Elme\LoginOnly\Model\GroupPriceProvider;
 class ProntoPriceProvider implements CustomerPriceProviderInterface
 {
     /**
-     * @var array<string, array<int, array{final: float, regular: float, promo: bool}|null>>
+     * @var array<string, array<int, array{final: float, regular: float, promo: bool, list: ?float, trade: ?float, was: ?float}|null>>
      */
     private array $prices = [];
 
@@ -45,7 +45,8 @@ class ProntoPriceProvider implements CustomerPriceProviderInterface
 
     /**
      * @param int[] $productIds
-     * @return array<int, array{final: float, regular: float, promo: bool}|null> Every id asked for, null = no price
+     * @return array<int, array{final: float, regular: float, promo: bool, list: ?float, trade: ?float, was: ?float}|null>
+     *         Every id asked for, null = no price
      */
     private function load(array $productIds, int $customerId, int $customerGroupId): array
     {

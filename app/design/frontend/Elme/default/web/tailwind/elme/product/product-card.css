@@ -64,6 +64,13 @@
         min-height: --spacing(6);
     }
 
+    /* FE-106: "Trade" before the agreed price (struck through when a sale is under it) */
+    .elme-price-label {
+        font-size: var(--text-note);
+        line-height: var(--text-note--line-height);
+        color: var(--color-ink-muted);
+    }
+
     .elme-card__badge {
         padding: --spacing(1) --spacing(2);
         font-size: var(--text-label);

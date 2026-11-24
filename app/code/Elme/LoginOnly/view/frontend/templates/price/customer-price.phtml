@@ -6,6 +6,12 @@
  *
  * Block data: product_id (or a block with getProduct()), show_tax_label, pdp (bool: large PDP row).
  * No itemprop/offers (FE-27 SEO): Pronto prices must not enter Offer microdata or server HTML numbers.
+ *
+ * What shows (FE-106, same rules as the old site):
+ * - Agreed price under the list price ("trade"): PDP "List price" line (hidden when the price list has none) and
+ *   "Trade price" line; cards a "Trade" label. A sale under the trade price strikes the trade price through.
+ * - No agreed price, on sale: the list price struck through, then the price.
+ * - Otherwise the price alone.
  */
 
 declare(strict_types=1);
@@ -28,6 +34,7 @@ $boxClass = $isPdp
 $skeletonClass = $isPdp
     ? 'elme-skeleton elme-pdp__price-skeleton'
     : 'elme-skeleton h-5 w-20 self-center';
+$rowClass = $isPdp ? 'elme-pdp__price-row' : 'm-0 flex flex-wrap items-baseline gap-x-2';
 ?>
 <div class="<?= $escaper->escapeHtmlAttr($boxClass) ?>"
      x-data="initElmeCustomerPrice"
@@ -38,11 +45,62 @@ $skeletonClass = $isPdp
     <span class="<?= $escaper->escapeHtmlAttr($skeletonClass) ?>" x-show="isLoading" aria-hidden="true"></span>
     <span class="sr-only" x-show="isLoading"><?= $escaper->escapeHtml(__('Loading your price')) ?></span>
 
-    <template x-if="hasDiscount">
-        <p class="elme-pdp__price-row<?= $isPdp ? '' : ' flex flex-wrap items-baseline gap-x-2' ?>">
+    <?php if ($isPdp): ?>
+        <template x-if="hasTrade">
+            <div class="elme-pdp__price-lines">
+                <template x-if="hasList">
+                    <p class="elme-pdp__price-row elme-pdp__price-row--list">
+                        <span class="elme-pdp__price-label"><?= $escaper->escapeHtml(__('List price')) ?></span>
+                        <span class="price" x-text="listPrice"></span>
+                        <?php if ($showTax): ?>
+                            <span class="elme-pdp__ex-gst"><?= $escaper->escapeHtml(__('ex. GST')) ?></span>
+                        <?php endif; ?>
+                    </p>
+                </template>
+                <p class="elme-pdp__price-row elme-pdp__price-row--trade">
+                    <span class="elme-pdp__price-label"><?= $escaper->escapeHtml(__('Trade price')) ?></span>
+                    <template x-if="hasWas">
+                        <span class="old-price">
+                            <span class="sr-only"><?= $escaper->escapeHtml(__('Was')) ?></span>
+                            <s class="price" x-text="wasPrice"></s>
+                        </span>
+                    </template>
+                    <span class="final-price">
+                        <span class="sr-only" x-show="hasWas"><?= $escaper->escapeHtml(__('Now')) ?></span>
+                        <span class="price" x-text="finalPrice"></span>
+                        <?php if ($showTax): ?>
+                            <span class="elme-pdp__ex-gst"><?= $escaper->escapeHtml(__('ex. GST')) ?></span>
+                        <?php endif; ?>
+                    </span>
+                </p>
+            </div>
+        </template>
+    <?php else: ?>
+        <template x-if="hasTrade">
+            <p class="<?= $escaper->escapeHtmlAttr($rowClass) ?>">
+                <span class="elme-price-label"><?= $escaper->escapeHtml(__('Trade')) ?></span>
+                <template x-if="hasWas">
+                    <span class="old-price">
+                        <span class="sr-only"><?= $escaper->escapeHtml(__('Was')) ?></span>
+                        <s class="price" x-text="wasPrice"></s>
+                    </span>
+                </template>
+                <span class="final-price">
+                    <span class="sr-only" x-show="hasWas"><?= $escaper->escapeHtml(__('Now')) ?></span>
+                    <span class="price" x-text="finalPrice"></span>
+                    <?php if ($showTax): ?>
+                        <span class="elme-pdp__ex-gst"><?= $escaper->escapeHtml(__('ex. GST')) ?></span>
+                    <?php endif; ?>
+                </span>
+            </p>
+        </template>
+    <?php endif; ?>
+
+    <template x-if="isSale">
+        <p class="<?= $escaper->escapeHtmlAttr($rowClass) ?>">
             <span class="old-price">
                 <span class="sr-only"><?= $escaper->escapeHtml(__('Was')) ?></span>
-                <s class="price" x-text="regularPrice"></s>
+                <s class="price" x-text="wasPrice"></s>
             </span>
             <span class="final-price">
                 <span class="sr-only"><?= $escaper->escapeHtml(__('Now')) ?></span>
@@ -54,22 +112,8 @@ $skeletonClass = $isPdp
         </p>
     </template>
 
-    <template x-if="isContractPrice">
-        <p class="elme-pdp__price-row<?= $isPdp ? '' : ' flex flex-wrap items-baseline gap-x-2' ?>">
-            <?php if ($isPdp): ?>
-                <span class="elme-pdp__your-price"><?= $escaper->escapeHtml(__('Your price')) ?></span>
-            <?php endif; ?>
-            <span class="final-price">
-                <span class="price" x-text="finalPrice"></span>
-                <?php if ($showTax): ?>
-                    <span class="elme-pdp__ex-gst"><?= $escaper->escapeHtml(__('ex. GST')) ?></span>
-                <?php endif; ?>
-            </span>
-        </p>
-    </template>
-
     <template x-if="isPlainPrice">
-        <p class="elme-pdp__price-row<?= $isPdp ? '' : ' flex flex-wrap items-baseline gap-x-2' ?>">
+        <p class="<?= $escaper->escapeHtmlAttr($rowClass) ?>">
             <span class="final-price">
                 <span class="price" x-text="finalPrice"></span>
                 <?php if ($showTax): ?>

@@ -64,7 +64,7 @@ class ProntoPriceProviderTest extends TestCase
         $this->magentoPrices->expects($this->once())->method('getPrices')->with([])->willReturn([]);
 
         $this->assertSame(
-            [5 => ['final' => 99.0, 'regular' => 120.0, 'promo' => false]],
+            [5 => ['final' => 99.0, 'regular' => 120.0, 'promo' => false, 'list' => 120.0, 'trade' => 99.0, 'was' => null]],
             $this->provider->getPrices([5], self::CUSTOMER_ID, self::GROUP_ID)
         );
     }
@@ -80,7 +80,7 @@ class ProntoPriceProviderTest extends TestCase
             ->willReturn([13 => ['final' => 95.0, 'regular' => 100.0, 'promo' => true]]);
 
         $this->assertSame(
-            [13 => ['final' => 90.0, 'regular' => 100.0, 'promo' => false]],
+            [13 => ['final' => 90.0, 'regular' => 100.0, 'promo' => false, 'list' => 100.0, 'trade' => 90.0, 'was' => null]],
             $this->provider->getPrices([13], self::CUSTOMER_ID, self::GROUP_ID)
         );
     }
@@ -103,7 +103,7 @@ class ProntoPriceProviderTest extends TestCase
 
         $this->provider->getPrices([2], self::CUSTOMER_ID, self::GROUP_ID);
         $this->assertSame(
-            [2 => ['final' => 380.0, 'regular' => 450.0, 'promo' => false]],
+            [2 => ['final' => 380.0, 'regular' => 450.0, 'promo' => false, 'list' => 450.0, 'trade' => 380.0, 'was' => null]],
             $this->provider->getPrices([2], self::CUSTOMER_ID, self::GROUP_ID)
         );
     }

@@ -21,6 +21,17 @@ Open Graph tag `product:price:amount` is dropped for logged-in customers too (`c
 | 25 | `discount_type = 25`: `discount` (% off the list price) for an `item_group` | the customer's `marketing_flag`, SKUs in `pronto_elme_sku_group_mapping` |
 
 - A mapping never raises the price above the list price (the list price is a candidate too).
+- Besides `final` / `regular` / `promo` the result carries the labelled breakdown of the old site (FE-106). The
+  storefront reads it from `/customer-price/prices`; `final` is unchanged, so the cart still agrees with it:
+
+  | Key | Meaning | Empty means |
+  | --- | --- | --- |
+  | `list` | price list price (RRP), shown as "List price" on the PDP | no price list row: the line is hidden |
+  | `trade` | lowest agreed everyday price: region price, A1, type 20 (fixed or %), type 25, only when under `list` | no agreed price |
+  | `was` | the price struck through: `trade`, else `list`, only when `final` is below it | nothing on sale |
+
+  PDP: with a `trade` price "List price" and "Trade price" (struck through when `was` is set), both ex. GST; without
+  one a sale shows `list` struck through and the price, otherwise the price alone. Cards: "Trade" before the price.
 - A SKU without a price list row takes Magento's price for the customer group (price, special price, catalog rules) as
   its list price and promo, so the catalogue keeps prices before the Pronto feed fills the list. Without any price the
   product is left out (no price shown, Magento's price in the cart).
@@ -76,6 +87,7 @@ The sample files give (password `Be07Prices!2026`):
 | FE53-LAMP (list 450) | 380 (A1) | 405 (20, 10%) | 450 |
 | TEST-SOFA-1 (list 1299) | 1199 (region VIC) | 1039.20 (25, SOFAS 20%) | 1299 |
 | FE53-VASE configurable | 99 (20, SAGE fixed) | 110 (SAND list promo) | 110 |
+| FE53-VASE-SAND (list 135, promo 110) | 110, struck 125 (A1 125 under the promo) | 110, struck 135 | 110, struck 135 |
 | BE01-100 (no Pronto row) | 100 (Magento) | 100 | 100 |
 
 ## Tests

@@ -2,10 +2,12 @@
 /**
  * Loads the logged-in customer's prices for Elme_LoginOnly::price/customer-price.phtml placeholders.
  *
- * window.elmeCustomerPrices.get(productId) returns a promise of {final, regular, promo, final_formatted,
- * regular_formatted} or null. Ids asked for in the same tick go out as one request. Prices are kept in memory
- * for the page only (never in localStorage), so a shared computer never shows the last customer's prices.
- * `promo` is true only for a list/region (or Magento special) sale; contract prices stay false.
+ * window.elmeCustomerPrices.get(productId) returns a promise of {final, regular, promo, list, trade, was, plus a
+ * *_formatted string for each price} or null. Ids asked for in the same tick go out as one request. Prices are kept
+ * in memory for the page only (never in localStorage), so a shared computer never shows the last customer's prices.
+ * `list` (RRP) and `trade` (agreed price under it) are null when the customer has none; `was` is the struck-through
+ * price (the trade price, else the list price) and null unless the final price is below it. See
+ * Elme\LoginOnly\Api\CustomerPriceProviderInterface.
  */
 
 declare(strict_types=1);
@@ -106,29 +108,44 @@ $loginOnly = $viewModels->require(LoginOnly::class);
                 return this.state === 'ready';
             },
 
-            hasDiscount() {
-                return this.isReady() && Boolean(this.price.promo);
+            // Agreed everyday price under the list price (contract, A1, marketing, group, region): "Trade price"
+            hasTrade() {
+                return this.isReady() && this.has('trade');
             },
 
-            // Contract / A1 / group discount: plain "Your price", no strike-through
-            isContractPrice() {
-                return this.isReady()
-                    && !this.price.promo
-                    && this.price.regular > this.price.final;
+            // The price list price (RRP); the "List price" line is hidden when the price list has none
+            hasList() {
+                return this.isReady() && this.has('list');
+            },
+
+            // Something is struck through: the trade price when there is one, else the list price
+            hasWas() {
+                return this.isReady() && this.has('was');
+            },
+
+            // Sale without a trade price: list price struck through, then the final price
+            isSale() {
+                return this.hasWas() && !this.hasTrade();
             },
 
             isPlainPrice() {
-                return this.isReady()
-                    && !this.hasDiscount()
-                    && !this.isContractPrice();
+                return this.isReady() && !this.hasTrade() && !this.hasWas();
+            },
+
+            has(key) {
+                return this.price !== null && this.price[key] !== null && this.price[key] !== undefined;
             },
 
             finalPrice() {
                 return this.price ? this.price.final_formatted : '';
             },
 
-            regularPrice() {
-                return this.price ? this.price.regular_formatted : '';
+            listPrice() {
+                return this.has('list') ? this.price.list_formatted : '';
+            },
+
+            wasPrice() {
+                return this.has('was') ? this.price.was_formatted : '';
             }
         }
     }
